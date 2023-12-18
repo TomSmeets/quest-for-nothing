@@ -1,3 +1,5 @@
+// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// gl_shader.vert - A simple OpenGL vertex Shader
 #version 330 core
 
 // Vertex attributes, this information is passed directly from the cpu

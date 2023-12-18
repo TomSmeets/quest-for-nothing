@@ -1,3 +1,5 @@
+// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// image.h - Handle graphical images in f32 rgba format
 #pragma once
 #include "color.h"
 #include "inc.h"
