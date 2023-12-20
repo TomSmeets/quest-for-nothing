@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// os_generic.h - Chooses the correct OS implmentation to include
+// os_generic.h - Chooses the correct OS implementation to include
 #pragma once
 
 #if __unix__

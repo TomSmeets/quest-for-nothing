@@ -4,7 +4,7 @@
 # build.sh - Build the current project
 set -euo pipefail
 
-# Full buld vs quick build
+# Full build vs quick build
 MODE="${1:-s}"
 
 if [ $MODE == 's' ]; then

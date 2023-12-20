@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-# build-gl.sh - Generate small OpenGL 3.3 API haders
+# build-gl.sh - Generate small OpenGL 3.3 API headers
 set -euo pipefail
 
 # Prepare the output directory
