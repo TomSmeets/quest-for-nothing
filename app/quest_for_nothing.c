@@ -12,6 +12,7 @@
 #include "str.h"
 #include "vec.h"
 #include "mat.h"
+#include "sound.h"
 
 static void input_key_dbg(input *in) {
     mem m = {};
@@ -24,22 +25,20 @@ static void input_key_dbg(input *in) {
     mem_clear(&m);
 }
 
+
 static void audio_callback(f32 dt, u32 count, v2 *buffer) {
-    static f32 t0 = 0;
-    static f32 t1 = 0;
-    static f32 t2 = 0;
+    static Sound snd_static;
+    Sound *snd = &snd_static;
 
     for (u32 i = 0; i < count; ++i) {
-        f32 v = f_sin(t0 * R4) * f_sin(t1 * R4);
+        snd_begin(snd, dt, 120);
 
-        // compression
-        // v = f_clamp(v*(1 + 8*(.5 + .5*f_sin(t2*R4))), -1, 1);
-
+        f32 v = 0;
+        v += snd_sin(snd, 110)*snd_sin(snd, 1);
+        v += snd_sin(snd, 220)*snd_sin(snd, 2);
+        v += snd_sin(snd, 440)*snd_sin(snd, 3);
+        v = snd_compress(v, snd->beat % 4 + 1);
         buffer[i] = (v2){v, v};
-
-        t0 = f_fract(t0 + dt * 440);
-        t1 = f_fract(t1 + dt * 1);
-        t2 = f_fract(t2 + dt * .5);
     }
 }
 
@@ -82,6 +81,7 @@ void main_update(void *handle) {
     // os_printf("time:    %f\n", (app->time - app->start_time) / 1e6);
     // os_printf("Counter: %u\n", app->counter++);
     sdl_begin(win);
+    win->audio_callback = audio_callback;
 
     gl->glClearColor(.5, .5, .5, 1);
     gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);

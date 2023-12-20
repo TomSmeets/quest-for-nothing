@@ -9,6 +9,7 @@ typedef struct SDL_MouseButtonEvent SDL_MouseButtonEvent;
 typedef struct SDL_MouseMotionEvent SDL_MouseMotionEvent;
 typedef struct SDL_MouseWheelEvent SDL_MouseWheelEvent;
 typedef struct SDL_WindowEvent SDL_WindowEvent;
+typedef struct Sound Sound;
 typedef struct Token Token;
 typedef struct buf buf;
 typedef struct fmt_t fmt_t;
