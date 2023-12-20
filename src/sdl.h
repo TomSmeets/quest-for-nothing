@@ -131,7 +131,6 @@ static void sdl_begin(sdl_win *sdl) {
     while (api->SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             sdl->input.quit = 1;
-            api->SDL_Quit();
         }
 
         if (event.type == SDL_MOUSEMOTION) {
