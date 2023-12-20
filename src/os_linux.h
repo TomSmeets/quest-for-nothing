@@ -7,9 +7,8 @@
 #include "str.h"
 
 #include <fcntl.h> // File control, contains file options
-#include <stdio.h>
 #include <sys/mman.h> // mmap
-#include <sys/sendfile.h>
+#include <sys/sendfile.h> // sendfile
 #include <sys/stat.h> // stat
 #include <time.h>     // clock_gettime
 #include <unistd.h>   // write
@@ -148,9 +147,8 @@ static u64 os_file_mtime(char *path) {
 // ==== Dynamic Libraries ====
 extern void *dlopen(const char *file, int mode);
 extern void *dlsym(void *handle, const char *name);
-#define RTLD_LAZY 0x00001 /* Lazy function call binding.  */
-#define RTLD_NOW 0x00002  /* Immediate function call binding.  */
 
+#define RTLD_LAZY 0x00001
 static void *os_dlopen(char *file) {
     return dlopen(file, RTLD_LAZY);
 }
