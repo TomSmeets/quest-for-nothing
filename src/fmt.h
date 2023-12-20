@@ -22,7 +22,6 @@ static void fmt_buf(fmt_t *f, u64 size, u8 *data) {
     f->used += size;
 }
 
-
 static void fmt_str_len(fmt_t *f, u32 len, char *str) {
     fmt_buf(f, len, (u8 *)str);
 }

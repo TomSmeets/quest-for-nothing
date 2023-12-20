@@ -41,12 +41,12 @@ static u64 os_time(void) {
 }
 
 static void os_sleep_until(u64 target_time) {
-    for(;;) {
+    for (;;) {
         u64 time = os_time();
         if(time > target_time) break;
 
-        i64 sleep_time = (i64) (target_time - time)*.5 - 1000;
-        if(sleep_time > 0)
+        i64 sleep_time = (i64)(target_time - time) * .5 - 1000;
+        if (sleep_time > 0)
             Sleep(sleep_time / 1000);
     }
 }

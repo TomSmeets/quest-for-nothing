@@ -60,7 +60,7 @@ static bool is_op(char c) {
 }
 
 static char *str_dup(mem *m, char *str, u32 len) {
-    char *out = mem_push(m, len+1);
+    char *out = mem_push(m, len + 1);
     std_memcpy(out, str, len);
     out[len] = 0;
     return out;

@@ -47,7 +47,7 @@ static u64 os_time(void) {
 
 static void os_sleep_until(u64 time) {
     u64 current_time = os_time();
-    if(time > current_time)
+    if (time > current_time)
         usleep(time - current_time);
 }
 
