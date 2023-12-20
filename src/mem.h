@@ -34,6 +34,7 @@ static void *mem_push_ex(mem *m, u64 size, u64 align, bool clear) {
     if (alloc_end > m->end) {
         // if it does not fit, allocate a new page with the minimum size
         mem_page *p = os_alloc_page(sizeof(mem_page) + size);
+        assert(p && p->size >= sizeof(mem_page) + size);
         p->next = m->used_page;
         m->used_page = p;
 
