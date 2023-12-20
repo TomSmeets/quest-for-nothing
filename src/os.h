@@ -3,15 +3,22 @@
 #pragma once
 #include "inc.h"
 
+// ==== Main Entrypoint ====
+// These are called by the os
+// Use os_exit to quit
+void *main_init(int argc, char **argv);
+void main_update(void *handle);
+
 // ==== Basics ====
 static void os_print(char *out);
 static void os_assert(bool assertion, char *message);
+static void os_exit(u32 code);
 
 // Get the current time in micro seconds
 static u64 os_time(void);
 
-// Sleep for some micro seconds
-static void os_sleep(u64);
+// Sleep until the given time
+static void os_sleep_until(u64 time);
 
 // ==== Memory ====
 struct mem_page {

@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// os.h - api for platform implementations
+// os_windows.h - Windows API wrapper and platform implementation
 #pragma once
 #include "inc.h"
 #include "os.h"
@@ -7,30 +7,39 @@
 #include <windows.h>
 #include <stdio.h>
 
-static void os_assert(bool cond, char *msg) {
-    if (cond) return;
-    os_print(msg);
-    os_print("\n");
-    __builtin_debugtrap();
+// ==== Main Entrypoint ====
+// int WINAPI WinMain(HINSTANCE h_inst, HINSTANCE h_inst_prev, PWSTR cmdline, int n_cmd_show);
+int main(int argc, char *argv[]) {
+    void *app = main_init(argc, argv);
+    for(;;) { main_update(app); }
 }
 
+// ==== Basics ====
 static void os_print(char *msg) {
     fputs(msg, stdout);
 }
 
+static void os_assert(bool cond, char *msg) {
+    if (cond) return;
+    os_print(msg);
+    __builtin_debugtrap();
+}
+
+static void os_exit(u32 code) {
+    ExitProcess(code);
+}
+
 static u64 os_time(void) {
     LARGE_INTEGER big_freq, big_count;
-    QueryPerformanceFrequency(&big_freq);
-    QueryPerformanceCounter(&big_count);
+    assert(QueryPerformanceFrequency(&big_freq));
+    assert(QueryPerformanceCounter(&big_count));
     i64 freq = big_freq.QuadPart;
     i64 count = big_count.QuadPart;
     assert(freq  >= 1000 * 1000);
     assert(count >= 0);
-    u64 time = (u64) count / ((u64) freq / 1000 / 1000);
-    return time;
+    return (u64) count / ((u64) freq / 1000 / 1000);
 }
 
-// exact sleep until target_time
 static void os_sleep_until(u64 target_time) {
     for(;;) {
         u64 time = os_time();

@@ -6,9 +6,8 @@
 // - Enum to String
 // - Automatically add typedefs
 // - ... that is all?
-#include "inc.h"
 #include "fmt.h"
-#include "os_linux.h"
+#include "os_generic.h"
 #include "parse.h"
 
 struct gen_enum {
@@ -84,9 +83,12 @@ static void handle_file(mem *m, char *path) {
     }
 }
 
-int main(void) {
+void *main_init(int argc, char *argv[]) {
     mem m = {};
     handle_file(&m, "src/mem.h");
     handle_file(&m, "src/parse.h");
     handle_file(&m, "src/input.h");
+    return 0;
 }
+
+void main_update(void *handle) { os_exit(0); }

@@ -17,13 +17,20 @@ function cc() {
   clang -O0 -ggdb -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc "$@"
 }
 
+# Cross compilation
+if [ $MODE == 'c' ]; then
+  cc -target x86_64-unknown-windows-gnu -o out/hello             app/hello.c
+fi
+
+# "Slow" (build executables)
 if [ $MODE == 's' ]; then
-  cc -o out/hot   app/hot.c
-  cc -o out/parse app/parse.c
-  cc -o out/code_gen app/code_gen.c
+  cc -o out/hot               app/hot.c
+  cc -o out/parse             app/parse.c
+  cc -o out/code_gen          app/code_gen.c
+  cc -o out/hello             app/hello.c
+  cc -o out/quest_for_nothing app/quest_for_nothing.c
 fi
 
 cc -shared -o out/quest_for_nothing.so app/quest_for_nothing.c
-cc -shared -o out/hello.so app/hello.c
-# cc -o out/hello app/hello.c
+cc -shared -o out/hello.so             app/hello.c
 touch out/trigger

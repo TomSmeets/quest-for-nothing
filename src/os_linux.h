@@ -14,6 +14,12 @@
 #include <time.h>     // clock_gettime
 #include <unistd.h>   // write
 
+// ==== Main Entrypoint ====
+int main(int argc, char *argv[]) {
+    void *app = main_init(argc, argv);
+    for(;;) { main_update(app); }
+}
+
 // ==== Basics ====
 static void os_print(char *msg) {
     write(1, msg, str_len(msg));
@@ -21,8 +27,12 @@ static void os_print(char *msg) {
 
 static void os_assert(bool cond, char *msg) {
     if (cond) return;
-    printf("%s\n", msg);
+    write(2, msg, str_len(msg));
     __builtin_debugtrap();
+}
+
+static void os_exit(u32 code) {
+    _exit(code);
 }
 
 static u64 linux_time_to_u64(struct timespec *t) {
@@ -35,9 +45,10 @@ static u64 os_time(void) {
     return linux_time_to_u64(&t);
 }
 
-// sleep for time micro seconds
-static void os_sleep(u64 time) {
-    usleep(time);
+static void os_sleep_until(u64 time) {
+    u64 current_time = os_time();
+    if(time > current_time)
+        usleep(time - current_time);
 }
 
 // ==== Memory ====

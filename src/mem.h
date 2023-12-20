@@ -1,7 +1,6 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // mem.h - a simple stack based memory allocator
 #pragma once
-#include "inc.h"
 #include "os.h"
 
 #define mem_struct(m, t)   ((t *)mem_push_ex(m, sizeof(t), _Alignof(t), 1))

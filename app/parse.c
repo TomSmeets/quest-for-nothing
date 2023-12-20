@@ -1,8 +1,6 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // parse.c - Some experiments with recursive decent parsers
-#include "inc.h"
-#include "os.h"
-#include "os_linux.h"
+#include "os_generic.h"
 #include "fmt.h"
 
 struct Parse {
@@ -97,7 +95,7 @@ static u8 *parse_word(Parse *p) {
     return str_dup(&p->m, start, p->start - start);
 }
 
-int main(void) {
+void *main_init(int argc, char *argv[]) {
     mem m = {};
     buf file = os_read_file(&m, "src/input.h");
     Parse p = { .start = file.ptr, .end = file.ptr + file.size };
@@ -126,3 +124,5 @@ int main(void) {
     mem_clear(&p.m);
     return 0;
 }
+
+void main_update(void *handle) { os_exit(0); }

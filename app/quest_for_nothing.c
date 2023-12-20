@@ -7,7 +7,7 @@
 #include "input.h"
 #include "math.h"
 #include "mem.h"
-#include "os_linux.h"
+#include "os_generic.h"
 #include "sdl.h"
 #include "str.h"
 #include "vec.h"
@@ -59,7 +59,7 @@ struct App {
 // You can choose how to run this app
 // - dynamically: use ./hot main.so
 // - directly:    use ./main
-App *main_init(int argc, char *argv[]) {
+void *main_init(int argc, char **argv) {
     os_printf("main_init called :)\n");
     mem m = {};
     App *app = mem_struct(&m, App);
@@ -71,7 +71,8 @@ App *main_init(int argc, char *argv[]) {
     return app;
 }
 
-u32 main_update(App *app) {
+void main_update(void *handle) {
+    App *app = handle;
     mem *m = &app->tmp;
 
     sdl_win *win = app->window;
@@ -88,7 +89,7 @@ u32 main_update(App *app) {
     input_key_dbg(&win->input);
     if (win->input.quit || input_is_down(&win->input, KEY_Q)) {
         sdl_quit(win);
-        return 1;
+        os_exit(0);
     }
 
     sdl_end(win);
@@ -98,15 +99,5 @@ u32 main_update(App *app) {
     // 2. sleep until we reach that time
     // if we miss our mark a little we can correct it again the next frame
     app->time += 1000 * 1000 / rate;
-    u64 actual_time = os_time();
-    if (app->time > actual_time) os_sleep(app->time - actual_time);
-    return 0;
-}
-
-int main(int argc, char **argv) {
-    App *app = main_init(argc, argv);
-    for(;;) {
-        u32 ret = main_update(app);
-        if(ret > 0) return ret - 1;
-    }
+    os_sleep_until(app->time);
 }
