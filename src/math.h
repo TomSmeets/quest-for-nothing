@@ -118,7 +118,7 @@ static f32 bits_to_float(u32 u) {
 
 // https://gist.github.com/petrsm/079de9396d63e00d5994a7cc936ae9c7
 // seems pretty accurate
-static f32 fpow2(f32 x) {
+static f32 f_pow2(f32 x) {
     // 2^x = 2^i * 2^f
     i32 pi = f_floor(x); // integer part
     f32 pf = x - pi;     // fractional part, 0-1

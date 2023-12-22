@@ -1,5 +1,6 @@
 #pragma once
 typedef struct App App;
+typedef struct Note Note;
 typedef struct Parse Parse;
 typedef struct SDL_CommonEvent SDL_CommonEvent;
 typedef struct SDL_DropEvent SDL_DropEvent;

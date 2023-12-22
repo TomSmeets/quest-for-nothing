@@ -55,6 +55,16 @@ struct App {
     gl_t *gl;
 };
 
+static void play(char *music) {
+    char *p = music;
+
+    while(*p) {
+        while(*p == ' ') p++;
+        Note n = parse_note(&p);
+        printf("%f\n", n.freq);
+    }
+}
+
 // You can choose how to run this app
 // - dynamically: use ./hot main.so
 // - directly:    use ./main
@@ -82,9 +92,7 @@ void main_update(void *handle) {
     // os_printf("Counter: %u\n", app->counter++);
     sdl_begin(win);
     win->audio_callback = audio_callback;
-
-    gl->glClearColor(.5, .5, .5, 1);
-    gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    gl_draw(app->gl, win->input.window_size);
 
     input_key_dbg(&win->input);
     if (win->input.quit || input_is_down(&win->input, KEY_Q)) {
