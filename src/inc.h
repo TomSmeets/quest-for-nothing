@@ -30,6 +30,7 @@ static_assert(sizeof(f32) == 4);
 
 #define U64_MAX 0xffffffffffffffff
 #define U32_MAX 0xffffffff
+#define U16_MAX 0xffff
 
 #define SIZE_KB (1024ULL)
 #define SIZE_MB (1024ULL * 1024ULL)

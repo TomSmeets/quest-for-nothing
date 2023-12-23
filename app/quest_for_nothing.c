@@ -13,6 +13,7 @@
 #include "vec.h"
 #include "mat.h"
 #include "sound.h"
+#include "gfx.h"
 
 static void input_key_dbg(input *in) {
     mem m = {};
@@ -91,7 +92,8 @@ void main_update(void *handle) {
     // os_printf("time:    %f\n", (app->time - app->start_time) / 1e6);
     // os_printf("Counter: %u\n", app->counter++);
     sdl_begin(win);
-    win->audio_callback = audio_callback;
+    // win->audio_callback = audio_callback;
+
     gl_draw(app->gl, win->input.window_size);
 
     input_key_dbg(&win->input);

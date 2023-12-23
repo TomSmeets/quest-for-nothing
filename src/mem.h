@@ -5,6 +5,7 @@
 
 #define mem_struct(m, t)   ((t *)mem_push_ex(m, sizeof(t), _Alignof(t), 1))
 #define mem_array(m, t, n) ((t *)mem_push_ex(m, sizeof(t)*(n), _Alignof(t), 1))
+#define mem_array_uninit(m, t, n) ((t *)mem_push_ex(m, sizeof(t)*(n), _Alignof(t), 0))
 
 // Allocates smaller chucks of memory from bigger memory pages
 struct mem {

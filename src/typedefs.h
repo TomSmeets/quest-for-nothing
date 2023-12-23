@@ -1,5 +1,6 @@
 #pragma once
 typedef struct App App;
+typedef struct Gfx Gfx;
 typedef struct Note Note;
 typedef struct Parse Parse;
 typedef struct SDL_CommonEvent SDL_CommonEvent;
@@ -15,6 +16,8 @@ typedef struct Token Token;
 typedef struct buf buf;
 typedef struct fmt_t fmt_t;
 typedef struct gen_enum gen_enum;
+typedef struct gfx_pass gfx_pass;
+typedef struct gfx_vertex gfx_vertex;
 typedef struct gl_api gl_api;
 typedef struct gl_t gl_t;
 typedef struct hello hello;

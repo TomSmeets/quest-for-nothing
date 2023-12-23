@@ -4,6 +4,7 @@
 - [Note Scale Reference](https://pages.mtu.edu/~suits/NoteFreqCalcs.html)
 - [Music BPM Examples](https://crypt-of-the-necrodancer.fandom.com/wiki/Music)
 - [Musical Form](https://en.wikipedia.org/wiki/Musical_form)
+- [Analyzing KRAFTWERK's drum patterns](https://www.youtube.com/watch?v=2qhcp6iVWbw)
 
 Music is structured.
 
