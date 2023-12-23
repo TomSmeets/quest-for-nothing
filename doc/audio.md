@@ -15,7 +15,7 @@ Octaves
 
 Notes
 
-Beats per minute, exaples are something around (120 - 140).
+Beats per minute, examples are something around (120 - 140).
 I appreciate a good beat in music. Syncing sound effects with the music would give a very good feeling.
 
 A note has
@@ -50,7 +50,7 @@ C040
 
 ## Synth design
 What is a good design for writing a syntesier in this game?
-I want to programattically write the music. That would be cool.
+I want to programmatically write the music. That would be cool.
 This would involve 'notes' that play on given beats and last for some number of beats.
 
 - https://open.spotify.com/track/7o6WAdouGszJEscEuuz0eP?si=3d2c702b106e4d0f
