@@ -5,7 +5,7 @@
 #include "math.h"
 
 // See [doc/audio.md](doc/audio.md) for information
-// Tracks a number of osscilators
+// Tracks a number of oscillators
 struct Sound {
     f32 dt;
 

@@ -1,19 +1,19 @@
 # Memory methods
 
-
-## Malloc / Free
-
-
-
-
 # Good Idea
 
-
 ## Flexible arenas
-Allocating memory is easy but freeing memory is difficult.
-The advantage of memory arenas are that we don't have to think about freeing so much.
-There are fixed points in the program were we do a 'free' and everything in this arena is freed.
-This means we don't have to think in individual objects.
+Allocating memory is easy but freeing memory is difficult. I don't want to constantly think about freeing individual objects.
+Memory arenas help with this.
+
+There are fixed points in the program were I will call 'free' and everything in the given arena is freed.
+This means I don't have to think about individual objects.
+
+Some example areas are:
+- Game
+- Level
+- Frame
+- Temporary
 
 All memory is split into blocks. And can be directly allocated and freed in big chucks from the OS.
 
@@ -70,16 +70,16 @@ A memory arena can use a number of blocks to construct its memory.
 
 A guess for a good minimum size for a block would be something like 1MB. But anything would work probably.
 
-Memory When a block is full, the arena just allocates a new block from the os with `os_alloc_page` and pushes it to the 'Used' stack. The start and end pointers are also updated.
+Memory When a block is full, the arena just allocates a new block from the OS with `os_alloc_page` and pushes it to the 'Used' stack. The start and end pointers are also updated.
 
-To free an arean we iterate over all blocks and call `os_free_page`.
+To free an arena we iterate over all blocks and call `os_free_page`.
 
 An empty memory arena will just be the single struct 0 pointers for used,start and end.
 This allows for very easy creation of memory arenas. Just use `mem_arena m = {}`
 
 To speed up the allocation and deallocation of pages we can optionally cache freed pages.
-We don't have to return them to the os directly, but hang on to them and give them to the next allocation.
-Caching should probably bo only done with the most common pages that are the minimum allocation size.
+We don't have to return them to the OS directly, but hang on to them and give them to the next allocation.
+Caching should probably be only done with the most common pages that are the minimum allocation size.
 When freeing big pages that are used for files, we want to return that memory to the OS.
 
 This method is very flexible. It allows us to create huge arenas that have very long lifetimes.
@@ -182,23 +182,23 @@ At the end of the frame we clear the previous frame arena and swap the two frame
 
 ### Advantages
 - Simple
-- Unused memory is instanttly freed, basically garbage collection
+- Unused memory is instantly freed, basically garbage collection
 - I don't have to think about memory freeing
 
 ### Disadvantages
 - Unsuitable for static data, everything has to be iterated and copied every time.
-- In pracitce, the copying cannot be easily combined with the modifying of the memory.
+- In practice, the copying cannot be easily combined with the modifying of the memory.
 - Only suitable for small memory footprint
 - Pointers are not stable
 
 ### Conclusion
 This is not good.
 
-While we don't have to think about freing it actually complicates memory by making me think constantly of coping. Also it is very inefficient.
+While we don't have to think about freeing it actually complicates memory by making me think constantly of coping. Also it is very inefficient.
 If your game uses ~10MB of memory and runs at 144 FPS you would need a memory throughput of 1.4 GB/s.
 
 While we can combine all memory updates in this copy. 
 However the overhead of copying the data.
-Basically garabage collection.
+Basically garbage collection.
 
 This could also be achieved with Flexible Arenas

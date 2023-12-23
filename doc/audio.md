@@ -5,29 +5,22 @@
 - [Music BPM Examples](https://crypt-of-the-necrodancer.fandom.com/wiki/Music)
 - [Musical Form](https://en.wikipedia.org/wiki/Musical_form)
 
-Music is very much structured.
+Music is structured.
 
 - [A440](https://en.wikipedia.org/wiki/A440_(pitch_standard))
 
-Octaves
-// Octave 4
-`C D E F G A B`
-
-Notes
-
 Beats per minute, examples are something around (120 - 140).
-I appreciate a good beat in music. Syncing sound effects with the music would give a very good feeling.
+Syncing sound effects with the music sound nice.
 
 A note has
 - u32 id
 - f32 velocity
 - f32 time
 
-
 Note
-octave
-Velocity
-Duration
+- octave
+- Velocity
+- Duration
 
 note,octave,velocity,duration
 A040
@@ -49,7 +42,7 @@ C040
 - [Filters with example code](https://www.musicdsp.org/en/latest/Filters/29-resonant-filter.html)
 
 ## Synth design
-What is a good design for writing a syntesier in this game?
+What is a good design for writing a synthesizer in this game?
 I want to programmatically write the music. That would be cool.
 This would involve 'notes' that play on given beats and last for some number of beats.
 
