@@ -6,7 +6,7 @@
 
 // See [doc/audio.md](doc/audio.md) for information
 // Tracks a number of oscillators
-struct Sound {
+struct sound {
     f32 dt;
 
     u32 beat;
@@ -18,7 +18,7 @@ struct Sound {
 };
 
 // ==== Base ====
-static void snd_begin(Sound *snd, f32 dt, f32 bpm) {
+static void snd_begin(sound *snd, f32 dt, f32 bpm) {
     snd->dt  = dt;
     snd->bpm = bpm;
     snd->index = 0;
@@ -32,13 +32,13 @@ static void snd_begin(Sound *snd, f32 dt, f32 bpm) {
 }
 
 // Access a persistent sound variable
-static f32 *snd_var(Sound *snd) {
+static f32 *snd_var(sound *snd) {
     assert(snd->index < array_count(snd->vars));
     return snd->vars + snd->index++;
 }
 
 // A simple ramp from 0 to 1 with the given frequency
-static f32 snd_ramp(Sound *snd, f32 freq) {
+static f32 snd_ramp(sound *snd, f32 freq) {
     f32 *v = snd_var(snd);
     f32 ret = *v;
     *v = f_fract(*v + snd->dt*freq);
@@ -107,18 +107,18 @@ static Note parse_note(char **note) {
 // ==== Generators ====
 
 // Sine wave
-static f32 snd_sin(Sound *snd, f32 freq) {
+static f32 snd_sin(sound *snd, f32 freq) {
     return f_sin(snd_ramp(snd, freq)*R4);
 }
 
 // Square wave
-static f32 snd_square(Sound *snd, f32 freq, f32 mod) {
+static f32 snd_square(sound *snd, f32 freq, f32 mod) {
     f32 v = snd_ramp(snd, freq)*2;
     return v > 1 + mod ? 1 : -1;
 }
 
 // Triangle wave
-static f32 snd_tri(Sound *snd, f32 freq) {
+static f32 snd_tri(sound *snd, f32 freq) {
     f32 v = snd_ramp(snd, freq)*4;
     if(v > 3) return (v - 3) - 1;
     if(v > 1) return 1 - (v - 1);

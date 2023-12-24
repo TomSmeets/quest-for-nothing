@@ -28,8 +28,8 @@ static void input_key_dbg(input *in) {
 
 
 static void audio_callback(f32 dt, u32 count, v2 *buffer) {
-    static Sound snd_static;
-    Sound *snd = &snd_static;
+    static sound snd_static;
+    sound *snd = &snd_static;
 
     for (u32 i = 0; i < count; ++i) {
         snd_begin(snd, dt, 120);
