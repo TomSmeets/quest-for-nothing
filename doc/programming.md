@@ -53,3 +53,61 @@ C does not have constructors and I almost never need them if I use zero as the d
 
 ## Some unknowns
 - `char *` vs `const char *`? I never use const, so why would I use this with strings? Are they special?
+
+
+# Questionable Ideas
+
+## Context
+
+Tired of passing too many arguments? Just pack everything into a big 'context' struct.
+This can be done with a global or a local argument.
+
+Global make optimization a little harder which is why I also considered `ctx` as a argument I pass everywhere.
+
+```c
+struct ctx {
+    bool init; // Is this the first frame?
+
+    u32 frame; // Frame number
+    f32 dt;    // Time between frames
+    mem_arena mem_perm;  // memory stored forever!
+
+    // Temporary memory for the current frame
+    mem_arena mem_frame;
+    // memory stored for TWO frames, so you can duble buffer
+    mem_arena mem_prev_frame;
+
+    // "Global" data stored for ecach module
+    // can store cached data, debug data, and whatever
+    ctx_module mods[64];
+};
+
+#define ctx_get(name) ((name *) ctx_get_size((void **) &CTX->mods[CTX_MOD_ ## name].data, sizeof(name)))
+
+static void *ctx_get_size(void **addr, u64 size) {
+    ctx *ctx = ctx_ctx();
+    if(!*addr) *addr = mem_push(&ctx->mem_perm, size);
+    return *addr;
+}
+
+// Maybe we use ctx as a global
+static void frame_end_gfx_gl(void) {
+    gfx_gl_data *self = ctx_get(gfx_gl_data);
+    gl_ptrs *gl = gl_get();
+    if(!gl) return;
+    // stuff ...
+}
+
+// Or as a local argument
+static void frame_end_gfx_gl(ctx *c) {
+    gfx_gl_data *self = ctx_get(c, gfx_gl_data);
+    gl_ptrs *gl = gl_get(c);
+    if(!gl) return;
+    // stuff ...
+}
+```
+
+### Conclusion
+
+I created the previous instance of this game using this method. While I like the simplicity.
+It hampered flexibility. It made the code less composable.
