@@ -1,12 +1,12 @@
 <!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
 <!-- programming.md - Describing how and why I like to program in C -->
 # Programming in C
-I like the C programming language due to it's simplicity, compilation speed, and runtime performance.
+I like the C programming language due to its simplicity, compilation speed, and runtime performance.
 
 ## Compilation Speed
 
 Compilation speed is very important to me.
-Compiling is something I do very often and it tells me whether the code is correct.
+Compiling is something I do very often, it tells me whether the code is correct.
 I compile my C code with `clang -O0`.
 
 I include only that what I need from SDL2 ([src/sdl_api.h](src/sdl_api.h)) and from OpenGL ([src/gl_api.h](src/gl_api.h)).
@@ -19,7 +19,7 @@ Just call `clang app/quest_for_nothing.c`, dependencies are included automatical
 I define all my methods as `static`, this prevents all these symbols from being exported, improving compilation speed and giving the compiler the chance to inline whatever it wants.
 Link time optimization won't be as good as letting the compiler optimize everything at once.
 
-See [build.sh](build.sh) for a implementation of this build process.
+See [build.sh](build.sh) for an implementation of this build process.
 
 ## Hot reloading
 This is the best feature of C, which is not really possible in other languages.
@@ -54,7 +54,7 @@ C does not have constructors and I almost never need them if I use zero as the d
 - Never think "blocking" or "async" Think polling or frames, this is the most flexible and best solution.
 
 ## Some unknowns
-- `char *` vs `const char *`? I never use const, so why would I use this with strings? Are they special?
+- `char *` vs `const char *`? I never use `const`, so why would I use this with strings? Are they special?
 
 
 # Questionable Ideas
@@ -64,7 +64,7 @@ C does not have constructors and I almost never need them if I use zero as the d
 Tired of passing too many arguments? Just pack everything into a big 'context' struct.
 This can be done with a global or a local argument.
 
-Global make optimization a little harder which is why I also considered `ctx` as a argument I pass everywhere.
+Global make optimization a little harder which is why I also considered `ctx` as an argument I pass everywhere.
 
 ```c
 struct ctx {

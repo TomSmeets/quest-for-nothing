@@ -58,7 +58,7 @@ struct gfx_vertex {
 // 65536*(8*4 + 2) = 2.12 MB
 //
 // u16 is a limit we could reach, so lets just use u32 for flexibility and simplicity
-// 
+//
 struct gfx_pass {
     m4 transform;
     mem *m;

@@ -12,7 +12,7 @@
 ## UI
 
 There are two kinds of graphics in this game.
-1. a 2D user interface
-2. a 3D World
+1. A 2D user interface.
+2. A 3D World.
 
 Do I want to combine these?

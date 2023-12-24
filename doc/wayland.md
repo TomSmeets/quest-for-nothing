@@ -2,8 +2,8 @@
 <!-- wayland.md - Learning about wayland and writing a wayland compositor -->
 # Creating a Wayland Compositor
 
-## Run a wayland compositor 
-To access the eventloop I have to be able to access the insides of the `wl_display`.
+## Run a Wayland compositor
+To access the event loop I have to be able to access the insides of the `wl_display`.
 To do this just declare it with the first two fields accessible.
 
 ```c

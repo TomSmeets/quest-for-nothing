@@ -2,8 +2,7 @@
 <!-- audio.md - Learning about Music, Synthesizers, and Digital Audio -->
 # Audio
 
-During development I am probably listening to [this playlist](https://open.spotify.com/playlist/7bSrm9AXuFLnqxjLaTvzrD).
-This game will probably have the same music vibe.
+This game will probably have the same music vibe as [this playlist](https://open.spotify.com/playlist/7bSrm9AXuFLnqxjLaTvzrD).
 
 ## Music Theory
 - [Note Scale Reference](https://pages.mtu.edu/~suits/NoteFreqCalcs.html)
@@ -28,7 +27,7 @@ Note
 - Velocity
 - Duration
 
-note,octave,velocity,duration
+note, octave, velocity, duration
 A040
 B040
 C040

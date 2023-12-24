@@ -8,7 +8,7 @@
 Allocating memory is easy but freeing memory is difficult. I don't want to constantly think about freeing individual objects.
 Memory arenas help with this.
 
-There are fixed points in the program were I will call 'free' and everything in the given arena is freed.
+There are fixed points in the program where I will call 'free' and everything in the given arena is freed.
 This means I don't have to think about individual objects.
 
 Some example areas are:
@@ -39,7 +39,7 @@ static void os_free_page(mem_page *page);
 
 A memory arena can use a number of blocks to construct its memory.
 
-    +---------------+              +---------------+     
+    +---------------+              +---------------+
     | Mem Arena     |     +---->   | Memory Block  | ---+
     +---------------+     |        +---------------+    |
     | Used          | ----+        |  Entity 3     |    |
@@ -52,31 +52,31 @@ A memory arena can use a number of blocks to construct its memory.
                           \---->   . . . . . . . . .    |
                                                         |
     +---------------------------------------------------+
-    |                  
-    |   +---------------+       +---------------+    
+    |
+    |   +---------------+       +---------------+
     +-> | Memory Block  | ----> | Memory Block  | ---> ...
-        +---------------+       +---------------+    
-        | Entity 2      |       |               |    
-        +---------------+       |               |    
-        | Image         |       |               |    
-        |               |       |     Some      |    
-        +---------------+       |     Big       |    
-        | Entity 1      |       |     File      |    
-        |               |       |               |    
-        +---------------+       |               |    
-                                |               |    
-                                |               |    
-                                |               |    
-                                |               |    
-                                +---------------+    
+        +---------------+       +---------------+
+        | Entity 2      |       |               |
+        +---------------+       |               |
+        | Image         |       |               |
+        |               |       |     Some      |
+        +---------------+       |     Big       |
+        | Entity 1      |       |     File      |
+        |               |       |               |
+        +---------------+       |               |
+                                |               |
+                                |               |
+                                |               |
+                                |               |
+                                +---------------+
 
-A guess for a good minimum size for a block would be something like 1MB. But anything would work probably.
+A guess for a good minimum size for a block would be something like 1 MB. But probably anything would work.
 
 Memory When a block is full, the arena just allocates a new block from the OS with `os_alloc_page` and pushes it to the 'Used' stack. The start and end pointers are also updated.
 
 To free an arena we iterate over all blocks and call `os_free_page`.
 
-An empty memory arena will just be the single struct 0 pointers for used,start and end.
+An empty memory arena will just be the single struct 0 pointers for used, start and end.
 This allows for very easy creation of memory arenas. Just use `mem_arena m = {}`
 
 To speed up the allocation and deallocation of pages we can optionally cache freed pages.
@@ -85,7 +85,7 @@ Caching should probably be only done with the most common pages that are the min
 When freeing big pages that are used for files, we want to return that memory to the OS.
 
 This method is very flexible. It allows us to create huge arenas that have very long lifetimes.
-But I can also create very short lived arenas and use it as a very rough malloc/free.
+But I can also create very short-lived arenas and use it as a very rough malloc/free.
 
 ### Flexible
 An example is the `printf` function.
@@ -122,7 +122,7 @@ The most common memory allocation method of malloc/free is never a good idea. Fl
 
 ## Permanent + Frame Arena
 
-        Permanent             Frame        
+        Permanent             Frame
     +---------------+     +---------------+
     | Game State    |     | Draw Call     |
     |               |     |               |
@@ -177,7 +177,7 @@ The most common memory allocation method of malloc/free is never a good idea. Fl
 There are two big memory arenas.
 One for odd frames and one for even frames.
 Every frame we read memory from the previous frame arena and write new memory to the current frame arena.
-Everything that should persist can has to be copied to the new arena.
+Everything that should persist has to be copied to the new arena.
 Everything else is lost after this frame is finished.
 At the end of the frame we clear the previous frame arena and swap the two frame arenas.
 
@@ -196,11 +196,11 @@ At the end of the frame we clear the previous frame arena and swap the two frame
 ### Conclusion
 This is not good.
 
-While we don't have to think about freeing it actually complicates memory by making me think constantly of coping. Also it is very inefficient.
-If your game uses ~10MB of memory and runs at 144 FPS you would need a memory throughput of 1.4 GB/s.
+While we don't have to think about freeing it actually complicates memory by making me think constantly of coping. Also, it is very inefficient.
+If your game uses ~10 MB of memory and runs at 144 FPS you would need a memory throughput of 1.4 GB/s.
 
-While we can combine all memory updates in this copy. 
-However the overhead of copying the data.
+While we can combine all memory updates in this copy.
+However, the overhead of copying the data.
 Basically garbage collection.
 
 This could also be achieved with Flexible Arenas
