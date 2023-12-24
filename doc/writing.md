@@ -2,7 +2,7 @@
 <!-- writing.md - Learning writing -->
 # Writing
 
-During the devleopment of this game I would also like to learn writing correctly about my discoveries.
+During the development of this game I would also like to learn writing correctly about my discoveries.
 I love reading technical blogs and explanations that are made by individuals with interesting ideas.
 
 ## Keep things simple
@@ -10,7 +10,7 @@ Exaclty like writing code, keeping the text short and simple is probably the bes
 
 ## Use the "I" form
 Everything in this project is written by me.
-This means that there is no 'we'. The writing should be personal and writen from my perspective.
+This means that there is no 'we'. The writing should be personal and written from my perspective.
 Everything is my opinion, it is up to the reader what to do with that.
 So there is no 'we', no one else wrote that text except for me.
 
@@ -26,14 +26,18 @@ Except it doesn't yet have a spell checker. I wish it had one.
 - [Discussion: Spellchecking based on Tree-Sitter queries?](https://github.com/helix-editor/helix/discussions/3637)
 
 ### aspell / hunspell
-Aspell and hunspell are very simmilar. They are ok with markdown but do not work well with code however.
+Aspell and hunspell are very similar. They are ok with Markdown but do not work well with code.
 
 - `aspell check doc/writing.md`
 - `hunspell doc/writing.md`
 - `typos src/`, for checking code
 
-
 None of thse are very good. Suggestions are welcome.
 
-
 ### Language Tool
+
+- `languagetool doc/writing.md`
+
+Langague tool seems to be better as it also checks grammar.
+
+### VSCode marodkwn spell check

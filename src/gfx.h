@@ -1,18 +1,21 @@
+// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// gfx.h - Graphics API abstraction
 #pragma once
 #include "mem.h"
 #include "math.h"
 #include "mat.h"
 
 // A good Graphics API should be
-// - Immediate and simple
-// - Flexible
+// - Simple and Flexible
+// - Immediate mode?
 // - Support 3d and 2d
 static gfx_pass *gfx_pass_new(void);
 static u32 gfx_put_vertex(gfx_pass *pass, v3 pos, v2 uv, v3 norm);
 static void gfx_put_index(gfx_pass *pass, u32 ix);
 
-// What is rendering?
-// image *render_image(vtx *, frag_shader, vert_shader)
+// What is rendering? This is basically the api we want right?
+// UI
+// image *render_image(m4 *mtx, vtx *)
 
 // NOTE: Should an image have a uuid? (u32/u64?)
 
@@ -45,13 +48,13 @@ struct gfx_vertex {
 };
 
 
-// graphix pass
+// graphics pass
 // - shader
 // - settings
 // - transform
-// - verticies
+// - vertices
 //
-// Allocating the max number of verticies and indicies would use the following
+// Allocating the max number of vertices and indicies would use the following
 // 65536*(8*4 + 2) = 2.12 MB
 //
 // u16 is a limit we could reach, so lets just use u32 for flexibility and simplicity

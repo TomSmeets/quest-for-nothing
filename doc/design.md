@@ -65,8 +65,8 @@ Platform Targets:
 - Game speed keeps increasing
 - Some way to introduce temporary slow-motion.
 - Slow-motion 'tokens' can be collected
-- Slow-motion is stackable
-- Using too much slowmotion reverses time (cool hidden feature?)
+- Slow-motion is stack-able
+- Using too much slow-motion reverses time (cool hidden feature?)
 - Reversing time past the start will exit the simulation and start a completely different side story.
 - You can still re-enter the the game, but now you are Neo or something
-- The slowmotion tool works by temporarily increasing the complexity of the simulation.
+- The slow-motion tool works by temporarily increasing the complexity of the simulation.

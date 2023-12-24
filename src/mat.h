@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// mat.h - Math for 4d Matricies on homogeneous coordinates
+// mat.h - Math for 4d matrices on homogeneous coordinates
 #pragma once
 #include "vec.h"
 
@@ -207,7 +207,7 @@ static m4 m4_perspective_to_clip(f32 fov, f32 aspect_ratio, f32 near_v, f32 far_
     return m;
 }
 
-// Screen to Clip oordinates
+// Screen to Clip coordinates
 static m4 m4_screen_to_clip(v2 size) {
     f32 sx = 2.0 / size.x;
     f32 sy = 2.0 / size.y;
