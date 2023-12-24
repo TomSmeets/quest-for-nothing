@@ -1,5 +1,6 @@
+<!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
+<!-- wayland.md - Learning about wayland and writing a wayland compositor -->
 # Creating a Wayland Compositor
-
 
 ## Run a wayland compositor 
 To access the eventloop I have to be able to access the insides of the `wl_display`.

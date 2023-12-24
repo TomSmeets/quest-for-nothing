@@ -1,3 +1,5 @@
+<!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
+<!-- design.md: Explore and learn game design -->
 # Design
 
 ## Goal

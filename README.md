@@ -1,3 +1,5 @@
+<!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
+<!-- README.md - Quick introduction to this project -->
 # Quest For Nothing
 
 A game entirely developed from scratch in very straightforward and simple C code.
@@ -28,4 +30,4 @@ I want to focus on simplicity, all the code should be straightforward.
 Simple code is the best code.
 
 ## License
-This project is licensed under the MIT license.
+This project is licensed under the [MIT license](LICENSE.txt).

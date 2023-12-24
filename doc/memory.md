@@ -1,3 +1,5 @@
+<!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
+<!-- memory.md: Explore and document different memory allocation techniques -->
 # Memory methods
 
 # Good Idea

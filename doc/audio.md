@@ -1,3 +1,5 @@
+<!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
+<!-- audio.md - Learning about Music, Synthesizers, and Digital Audio -->
 # Audio
 
 ## Music Theory

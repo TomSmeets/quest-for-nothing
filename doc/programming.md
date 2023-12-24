@@ -1,3 +1,5 @@
+<!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
+<!-- programming.md - Describing how and why I like to program in C -->
 # Programming in C
 I like the C programming language due to it's simplicity, compilation speed, and runtime performance.
 
