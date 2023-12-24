@@ -1,5 +1,5 @@
 <!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
-<!-- graphics.md - Learning about OpenGL, Vulkan, and desinging a graphics API -->
+<!-- graphics.md - Learning about OpenGL, Vulkan, and designing a graphics API -->
 # Graphics
 
 - [gl_VertexIndex 1](https://www.youtube.com/watch?v=R-bjXOEQyX8)

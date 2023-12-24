@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// input.h - Defines datatyles for storing per frame user input
+// input.h - Defines datatypes for storing per frame user input
 #pragma once
 #include "inc.h"
 #include "math.h"

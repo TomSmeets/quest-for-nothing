@@ -107,7 +107,7 @@ static void os_copy_file(char *src, char *dst) {
     assert(src_fd >= 0);
     assert(dst_fd >= 0);
 
-    // sendfine limitation (2GB)
+    // sendfile limitation (2GB)
     assert(buffer_size <= 0x7ffff000);
     i64 ret = sendfile(dst_fd, src_fd, 0, buffer_size);
     assert(ret > 0);

@@ -6,7 +6,7 @@ During the development of this game I would also like to learn writing correctly
 I love reading technical blogs and explanations that are made by individuals with interesting ideas.
 
 ## Keep things simple
-Exaclty like writing code, keeping the text short and simple is probably the best solution.
+Exactly like writing code, keeping the text short and simple is probably the best solution.
 
 ## Use the "I" form
 Everything in this project is written by me.
@@ -25,6 +25,17 @@ Except it doesn't yet have a spell checker. I wish it had one.
 - [Note talking with Helix, Tp-Note and LanguageTool](https://blog.getreu.net/20220828-tp-note-new8/)
 - [Discussion: Spellchecking based on Tree-Sitter queries?](https://github.com/helix-editor/helix/discussions/3637)
 
+### CSpell and VSCode Code Spell Checker
+Works pretty well.
+
+- [CSpell](https://cspell.org/)
+
+### Language Tool
+
+- `languagetool doc/writing.md`
+
+Language tool seems to be better as it also checks grammar.
+
 ### aspell / hunspell
 Aspell and hunspell are very similar. They are ok with Markdown but do not work well with code.
 
@@ -32,12 +43,4 @@ Aspell and hunspell are very similar. They are ok with Markdown but do not work 
 - `hunspell doc/writing.md`
 - `typos src/`, for checking code
 
-None of thse are very good. Suggestions are welcome.
-
-### Language Tool
-
-- `languagetool doc/writing.md`
-
-Langague tool seems to be better as it also checks grammar.
-
-### VSCode marodkwn spell check
+None of these are very good. Suggestions are welcome.

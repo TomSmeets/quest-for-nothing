@@ -76,10 +76,10 @@ struct ctx {
 
     // Temporary memory for the current frame
     mem_arena mem_frame;
-    // memory stored for TWO frames, so you can duble buffer
+    // memory stored for TWO frames, so you can double buffer
     mem_arena mem_prev_frame;
 
-    // "Global" data stored for ecach module
+    // "Global" data stored for each module
     // can store cached data, debug data, and whatever
     ctx_module mods[64];
 };
