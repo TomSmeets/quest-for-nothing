@@ -2,6 +2,9 @@
 <!-- audio.md - Learning about Music, Synthesizers, and Digital Audio -->
 # Audio
 
+During development I am probably listening to [this playlist](https://open.spotify.com/playlist/7bSrm9AXuFLnqxjLaTvzrD).
+This game will probably have the same music vibe.
+
 ## Music Theory
 - [Note Scale Reference](https://pages.mtu.edu/~suits/NoteFreqCalcs.html)
 - [Music BPM Examples](https://crypt-of-the-necrodancer.fandom.com/wiki/Music)

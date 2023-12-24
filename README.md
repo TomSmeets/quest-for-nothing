@@ -29,5 +29,15 @@ For a detailed design document see [doc/design.md](doc/design.md).
 I want to focus on simplicity, all the code should be straightforward.
 Simple code is the best code.
 
+For more information see [doc/programming.md](doc/programming.md).
+
+## Documentation
+- [Design](doc/design.md)
+- [Programming](doc/programming.md)
+- [Memory](doc/memory.md)
+- [Audio](doc/audio.md)
+- [Graphics](doc/graphics.md)
+- [Writing](doc/writing.md)
+
 ## License
 This project is licensed under the [MIT license](LICENSE.txt).
