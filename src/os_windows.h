@@ -3,6 +3,7 @@
 #pragma once
 #include "inc.h"
 #include "os.h"
+#include "os_mem_caching.h"
 
 #include <windows.h>
 #include <stdio.h>
@@ -52,24 +53,7 @@ static void os_sleep_until(u64 target_time) {
 }
 
 // ==== Memory ====
-#define OS_ALLOC_INC (1 * SIZE_MB)
-
-// It is a cache, so we can just clear it on a hot reload
-static mem_page *os_page_cache = 0;
-
-static mem_page *os_alloc_page(u64 size) {
-    if (size <= OS_ALLOC_INC)
-        size = OS_ALLOC_INC;
-
-    // use a previously allocated page
-    if (os_page_cache && size == OS_ALLOC_INC) {
-        mem_page *p = os_page_cache;
-        os_page_cache = p->next;
-        p->next = 0;
-        assert(p->size == OS_ALLOC_INC);
-        return p;
-    }
-
+static mem_page *os_alloc_page_uncached(u64 size) {
     mem_page *page = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     assert(page);
     page->size = size;
@@ -77,13 +61,6 @@ static mem_page *os_alloc_page(u64 size) {
     return page;
 }
 
-static void os_free_page(mem_page *page) {
-    // put cached pages back into the cache;
-    if (page->size == OS_ALLOC_INC) {
-        page->next = os_page_cache;
-        os_page_cache = page;
-        return;
-    }
-
+static void os_free_page_uncached(mem_page *page) {
     assert(VirtualFree(page, page->size, MEM_RELEASE));
 }

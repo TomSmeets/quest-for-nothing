@@ -9,10 +9,17 @@
 - [Lighting](https://www.youtube.com/watch?v=x2FHHU50ktQ)
 
 
-## UI
+A good API does not limit itself to the implementation details. It should not leak implementation details.
+To help with this, start with desiging the API first.
+1. Consider the usecaes
+2. Design the perfect api for these
+3. Create an implementation for this api
 
 There are two kinds of graphics in this game.
 1. A 2D user interface.
 2. A 3D World.
 
-Do I want to combine these?
+Do I want to combine these? Idk.
+
+## UI
+

@@ -9,7 +9,7 @@
 // - Simple and Flexible
 // - Immediate mode?
 // - Support 3d and 2d
-static gfx_pass *gfx_pass_new(void);
+static gfx_pass *gfx_pass_new(mem *m);
 static u32 gfx_put_vertex(gfx_pass *pass, v3 pos, v2 uv, v3 norm);
 static void gfx_put_index(gfx_pass *pass, u32 ix);
 

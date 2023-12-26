@@ -9,6 +9,7 @@ This game will probably have the same music vibe as [this playlist](https://open
 - [Music BPM Examples](https://crypt-of-the-necrodancer.fandom.com/wiki/Music)
 - [Musical Form](https://en.wikipedia.org/wiki/Musical_form)
 - [Analyzing KRAFTWERK's drum patterns](https://www.youtube.com/watch?v=2qhcp6iVWbw)
+- [7 Days To Learning Piano (Beginner Lesson)](https://www.youtube.com/watch?v=bzNKQ2FkEJI)
 
 Music is structured.
 
