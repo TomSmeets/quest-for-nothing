@@ -54,7 +54,7 @@ static void handle_file(mem *m, char *path) {
 
     bool new_statement = 0;
     while(tok) {
-        if(new_statement && tok_is_symbol(tok, "struct")) {
+        if(new_statement && tok_is_symbol(tok, "struct") && tok->next && tok->next->next && tok_is_op(tok->next->next, "{")) {
             tok = tok->next;
             char *name = tok->str;
             os_printf("typedef struct %s %s;\n", name, name);
@@ -64,18 +64,18 @@ static void handle_file(mem *m, char *path) {
             tok = tok->next;
 
             char *name = tok->str;
-            os_printf("const char *enum_to_str_%s[] = {\n", name);
+            os_printf("static const char *enum_to_str_%s[] = {\n", name);
 
             tok = tok->next; // {
             assert(tok_is_op(tok, "{"));
 
             while(tok && !tok_is_op(tok, "}")) {
                 if(tok->type == Token_Symbol) {
-                    os_printf("  \"%s\",\n", tok->str);
+                    os_printf("    \"%s\",\n", tok->str);
                 }
                 tok = tok->next;
             }
-            os_printf("}\n");
+            os_printf("};\n");
         }
 
         new_statement = tok_is_op(tok, ";") || tok->type == Token_Macro;
@@ -83,11 +83,20 @@ static void handle_file(mem *m, char *path) {
     }
 }
 
+static void handle_dir(mem *m, char *dir) {
+    for(os_dir *d = os_read_dir(m, dir); d; d = d->next) {
+        if(!d->is_file) continue;
+        char *path = fmt(m, "%s/%s", dir, d->file_name);
+        os_printf("// ==== %s ====\n", path);
+        handle_file(m, path);
+    }
+}
+
 void *main_init(int argc, char *argv[]) {
     mem m = {};
-    handle_file(&m, "src/mem.h");
-    handle_file(&m, "src/parse.h");
-    handle_file(&m, "src/input.h");
+    os_printf("#pragma once\n");
+    handle_dir(&m, "src");
+    handle_dir(&m, "app");
     return 0;
 }
 

@@ -1,6 +1,8 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // inc.h - defines various types and macros that are used everywhere
 #pragma once
+#include "generated.h"
+
 // Simplicity
 // every small file should be reusable
 // everything static and single header files

@@ -13,6 +13,7 @@
 #include <sys/stat.h> // stat
 #include <time.h>     // clock_gettime
 #include <unistd.h>   // write
+#include <dirent.h>
 
 // ==== Main Entrypoint ====
 int main(int argc, char *argv[]) {
@@ -118,6 +119,43 @@ static u64 os_file_mtime(char *path) {
     struct stat sb = {};
     stat(path, &sb);
     return linux_time_to_u64(&sb.st_mtim);
+}
+
+static os_dir *os_read_dir(mem *m, char *path) {
+    os_dir *first = 0;
+    os_dir *last  = 0;
+
+    DIR *c_dir = opendir(path);
+    for(;;) {
+        struct dirent *ent = readdir(c_dir);
+
+        // check if done
+        if(!ent) break;
+
+        char *file_name = ent->d_name;
+
+        // skip these
+        if(str_eq(file_name, "."))  continue;
+        if(str_eq(file_name, "..")) continue;
+
+        os_dir *dir = mem_struct(m, os_dir);
+        dir->file_name = str_dup(m, file_name);
+        dir->is_file = ent->d_type == DT_REG;
+        dir->is_dir  = ent->d_type == DT_DIR;
+        dir->is_link = ent->d_type == DT_LNK;
+
+        // append to the list
+        if(!last) {
+            first = dir;
+            last = dir;
+        } else {
+            last->next = dir;
+            last = dir;
+        }
+    }
+    closedir(c_dir);
+
+    return first;
 }
 
 // ==== Dynamic Libraries ====

@@ -18,13 +18,6 @@ struct Token {
 };
 
 
-static u8 *str_dup(mem *m, u8 *str, u32 len) {
-    u8 *out = mem_push(m, len + 1);
-    std_memcpy(out, str, len);
-    out[len] = 0;
-    return out;
-}
-
 static u8 parse_peek(Parse *p) {
     return *p->start;
 }
@@ -92,7 +85,7 @@ static u8 *parse_word(Parse *p) {
             if(c == first_char) break;
         }
     }
-    return str_dup(&p->m, start, p->start - start);
+    return (u8 *) str_dup_len(&p->m, (char *) start, p->start - start);
 }
 
 void *main_init(int argc, char *argv[]) {

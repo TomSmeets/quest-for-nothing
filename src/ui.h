@@ -26,7 +26,7 @@ static gfx_pass *ui_end(UI *ui) {
 }
 
 
-static void ui_button(UI *ui, const char *text) {
+static bool ui_button(UI *ui, const char *text) {
     v2 l = ui->cursor;
     v2 h = l + ui->component_size;
     ui->cursor.x = h.x;

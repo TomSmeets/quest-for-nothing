@@ -37,6 +37,9 @@ static void os_free_page(mem_page *page);
 // ==== Filesystem ====
 struct os_dir {
     char *file_name;
+    bool is_file;
+    bool is_dir;
+    bool is_link;
     os_dir *next;
 };
 

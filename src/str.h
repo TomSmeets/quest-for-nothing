@@ -2,6 +2,7 @@
 // str.h - simple string handling functions
 #pragma once
 #include "inc.h"
+#include "mem.h"
 
 // Simplicity
 // - no 'const' chars, we don't use 'const'
@@ -45,4 +46,16 @@ static bool str_chr(char *str, char chr) {
         if(*str == chr) return 1;
         str++;
     }
+}
+
+// ==== Using Memory allocation ====
+static char *str_dup_len(mem *m, char *str, u32 len) {
+    char *out = mem_push(m, len + 1);
+    std_memcpy(out, str, len);
+    out[len] = 0;
+    return out;
+}
+
+static char *str_dup(mem *m, char *str) {
+    return str_dup_len(m, str, str_len(str));
 }

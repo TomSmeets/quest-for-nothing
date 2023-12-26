@@ -59,13 +59,6 @@ static bool is_op(char c) {
     return str_chr(ops, c);
 }
 
-static char *str_dup(mem *m, char *str, u32 len) {
-    char *out = mem_push(m, len + 1);
-    std_memcpy(out, str, len);
-    out[len] = 0;
-    return out;
-}
-
 static Token *parse_token(mem *m, char *str) {
     Token *first = 0;
     Token *last  = 0;
@@ -120,7 +113,7 @@ static Token *parse_token(mem *m, char *str) {
 
         Token *tok = mem_struct(m, Token);
         tok->type = type;
-        tok->str  = str_dup(m, tok_start, tok_end - tok_start);
+        tok->str  = str_dup_len(m, tok_start, tok_end - tok_start);
 
         // append token
         if(last) {

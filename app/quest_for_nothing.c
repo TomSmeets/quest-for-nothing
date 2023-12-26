@@ -1,9 +1,9 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // quest_for_nothing.c - Main entry point for "Quest For Nothing"
+#include "inc.h"
 #include "color.h"
 #include "fmt.h"
 #include "gl.h"
-#include "inc.h"
 #include "input.h"
 #include "math.h"
 #include "mem.h"
@@ -21,7 +21,7 @@ static void input_key_dbg(input *in) {
         input_key *key = in->key + i;
         if (!key->code) break;
         if (!key->click) continue;
-        os_print(fmt(&m, "key=%s\n", input_key_to_str[key->code]));
+        os_print(fmt(&m, "key=%s\n", enum_to_str_input_key_code[key->code]));
     }
     mem_clear(&m);
 }
