@@ -1,6 +1,8 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // inc.h - defines various types and macros that are used everywhere
 #pragma once
+
+// typedef all structs beforehand. I don't like adding typedef struct, so I use this
 #include "generated.h"
 
 // Simplicity
@@ -14,10 +16,6 @@ typedef unsigned long long u64;
 typedef signed long long i64;
 typedef float f32;
 typedef _Bool bool;
-
-// typedef all structs beforehand. I don't like adding typedef struct, so we use this
-// I am thinking of doing the same for methods by declaring them.
-#include "typedefs.h"
 
 #define static_assert(x) _Static_assert(x, #x)
 #define array_count(a) (sizeof(a) / sizeof(a[0]))

@@ -30,4 +30,5 @@ void *main_init(int argc, char **argv) {
     print_time(dt_min, i);
     return 0;
 }
+
 void main_update(void *handle) { os_exit(0); }

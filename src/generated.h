@@ -4,6 +4,8 @@
 typedef struct fmt_t fmt_t;
 typedef struct gfx_vertex gfx_vertex;
 typedef struct gfx_pass gfx_pass;
+typedef struct gfx_atlas_item gfx_atlas_item;
+typedef struct gl_t gl_t;
 typedef struct gl_api gl_api;
 typedef struct image image;
 typedef struct buf buf;
@@ -89,13 +91,22 @@ static const char * const enum_to_str_Token_Type[] = {
     "Token_Macro",
 };
 typedef struct Token Token;
+typedef struct Parse Parse;
 typedef struct sdl_win sdl_win;
 typedef struct SDL_Keysym SDL_Keysym;
 typedef struct SDL_CommonEvent SDL_CommonEvent;
 typedef struct SDL_WindowEvent SDL_WindowEvent;
+typedef struct SDL_KeyboardEvent SDL_KeyboardEvent;
+typedef struct SDL_MouseMotionEvent SDL_MouseMotionEvent;
+typedef struct SDL_MouseButtonEvent SDL_MouseButtonEvent;
+typedef struct SDL_MouseWheelEvent SDL_MouseWheelEvent;
+typedef struct SDL_DropEvent SDL_DropEvent;
+typedef union SDL_Event SDL_Event;
 typedef struct sdl_api sdl_api;
 typedef struct sound sound;
+typedef struct Note Note;
 typedef struct UI UI;
 typedef struct Global Global;
 typedef struct gen_enum gen_enum;
 typedef struct hello hello;
+typedef struct App App;

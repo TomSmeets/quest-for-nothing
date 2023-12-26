@@ -55,14 +55,15 @@ static void handle_file(mem *m, char *path) {
     assert(file);
 
     // for(Token *t = tok;t;t = t->next)
-    //     os_printf("tok: %s\n", t->str);
+    //     os_printf("// tok: %s\n", t->str);
 
     bool new_statement = 0;
     while(tok) {
-        if(new_statement && tok_is_symbol(tok, "struct") && tok->next && tok->next->next && tok_is_op(tok->next->next, "{")) {
+        if(new_statement && (tok_is_symbol(tok, "struct") || tok_is_symbol(tok, "union")) && tok->next && tok->next->next && tok_is_op(tok->next->next, "{")) {
+            char *kind = tok->str;
             tok = tok->next;
             char *name = tok->str;
-            os_printf("typedef struct %s %s;\n", name, name);
+            os_printf("typedef %s %s %s;\n", kind, name, name);
         }
 
         if(new_statement && tok_is_symbol(tok, "enum")) {
@@ -83,7 +84,7 @@ static void handle_file(mem *m, char *path) {
             os_printf("};\n");
         }
 
-        new_statement = tok_is_op(tok, ";") || tok->type == Token_Macro;
+        new_statement = tok_is_op(tok, "}") || tok_is_op(tok, ";") || tok->type == Token_Macro;
         tok = tok->next;
     }
 }

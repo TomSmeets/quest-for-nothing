@@ -24,9 +24,13 @@ function cc_opt() {
   clang -O2 -g0 -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc "$@"
 }
 
-# "Slow" (build executables)
 if [ $MODE == 's' ]; then
-  cc_opt -o out/code_gen          app/code_gen.c
+  cc -o out/code_gen app/code_gen.c
+fi
+
+./out/code_gen > src/generated.h
+
+if [ $MODE == 's' ]; then
   cc_opt -o out/hot               app/hot.c
   cc_opt -o out/hello             app/hello.c
   cc_opt -o out/quest_for_nothing app/quest_for_nothing.c
@@ -38,6 +42,5 @@ if [ $MODE == 'c' ]; then
   cc -target x86_64-unknown-windows-gnu -o out/hello             app/hello.c
 fi
 
-./out/code_gen > src/generated.h
 cc -shared -o out/quest_for_nothing.so app/quest_for_nothing.c
 touch out/trigger

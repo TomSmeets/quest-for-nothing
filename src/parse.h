@@ -93,7 +93,22 @@ static Token *parse_token(mem *m, char *str) {
             str++;
             while(!is_eol(*str)) str++;
 
-            // We can include comments
+            // Maybe we could include comments
+            continue;
+        } else if(c0 == '/' && c1 == '*') {
+            // block comment
+            type = Token_Comment;
+            str++;
+            str++;
+            for(;;) {
+                if(*str == 0) break;
+
+                if(str[-1] == '*' && str[0] == '/') {
+                    str++;
+                    break;
+                }
+                str++;
+            }
             continue;
         } else if(c0 == '#') {
             // Define, or import
