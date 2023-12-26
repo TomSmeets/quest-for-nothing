@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// global.h - all globals in the entire program
+// global.h - Keep track of all globals here
 #pragma once
 #include "os.h"
 
@@ -8,3 +8,5 @@ struct Global {
 };
 
 static Global *GLOBAL;
+
+static void global_set(Global *global) { GLOBAL = global; }

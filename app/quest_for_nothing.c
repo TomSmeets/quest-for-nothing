@@ -46,6 +46,7 @@ static void audio_callback(f32 dt, u32 count, v2 *buffer) {
 struct App {
     mem tmp;
     mem perm;
+    Global global;
     u32 counter;
 
     sdl_win *window;
@@ -83,6 +84,7 @@ void *main_init(int argc, char **argv) {
 
 void main_update(void *handle) {
     App *app = handle;
+    global_set(&app->global);
     mem *m = &app->tmp;
 
     sdl_win *win = app->window;

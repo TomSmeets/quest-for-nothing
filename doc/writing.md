@@ -5,6 +5,8 @@
 During the development of this game I would also like to learn writing correctly about my discoveries.
 I love reading technical blogs and explanations that are made by individuals with interesting ideas.
 
+- https://github.com/Ericson2314/baccumulation/blob/main/README.adoc
+
 ## Keep things simple
 Exactly like writing code, keeping the text short and simple is probably the best solution.
 

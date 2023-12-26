@@ -75,6 +75,7 @@ struct gfx_pass {
     gfx_pass *next;
 };
 
+#if 0
 static gfx_pass *gfx_pass_new(mem *m, u32 vertex_count, u32 index_count) {
     gfx_pass *pass = mem_struct(m, gfx_pass);
     pass->vtx_cap = vertex_count;
@@ -139,3 +140,4 @@ static void gfx_put_quad(gfx_pass *pass, image *img, v3 a, v3 b, v3 c, v3 d) {
     gfx_put_idx(pass, ib);
     gfx_put_idx(pass, id);
 }
+#endif

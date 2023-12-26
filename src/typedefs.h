@@ -12,6 +12,7 @@ typedef struct SDL_MouseMotionEvent SDL_MouseMotionEvent;
 typedef struct SDL_MouseWheelEvent SDL_MouseWheelEvent;
 typedef struct SDL_WindowEvent SDL_WindowEvent;
 typedef struct Token Token;
+typedef struct UI UI;
 typedef struct buf buf;
 typedef struct fmt_t fmt_t;
 typedef struct gen_enum gen_enum;

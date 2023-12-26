@@ -17,7 +17,7 @@ static mem_page *os_alloc_page(u64 size) {
         size = OS_ALLOC_INC;
 
     // Try the cache
-    if(GLOBAL->os_page_cache && size == OS_ALLOC_INC) {
+    if(GLOBAL && GLOBAL->os_page_cache && size == OS_ALLOC_INC) {
         mem_page *page = GLOBAL->os_page_cache;
         GLOBAL->os_page_cache = page->next;
         page->next = 0;
@@ -31,7 +31,7 @@ static mem_page *os_alloc_page(u64 size) {
 
 static void os_free_page(mem_page *page) {
     // Return the page to the cache
-    if (page->size == OS_ALLOC_INC) {
+    if (GLOBAL && page->size == OS_ALLOC_INC) {
         page->next = GLOBAL->os_page_cache;
         GLOBAL->os_page_cache = page;
         return;
