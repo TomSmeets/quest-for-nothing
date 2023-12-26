@@ -6,6 +6,11 @@
 // - Enum to String
 // - Automatically add typedefs
 // - ... that is all?
+
+// Current timings, N=2048
+//   O0 -> 5.8 ms
+//   O1 -> 3.8 ms
+//   O2 -> 3.7 ms
 #include "fmt.h"
 #include "os_generic.h"
 #include "parse.h"
@@ -87,7 +92,7 @@ static void handle_dir(mem *m, char *dir) {
     for(os_dir *d = os_read_dir(m, dir); d; d = d->next) {
         if(!d->is_file) continue;
         char *path = fmt(m, "%s/%s", dir, d->file_name);
-        os_printf("// ==== %s ====\n", path);
+        // os_printf("// ==== %s ====\n", path);
         handle_file(m, path);
     }
 }
