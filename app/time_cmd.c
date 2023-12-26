@@ -12,7 +12,7 @@ static void print_time(u64 dt_min, u32 i) {
 void *main_init(int argc, char **argv) {
     assert(argc == 2);
     char *cmd = argv[1];
-    os_printf("Timing: %s\n", cmd);
+    os_printf("Timing: '%s'\n", cmd);
 
     u64 dt_min = U64_MAX;
     u32 i = 0;
