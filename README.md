@@ -6,6 +6,13 @@ A game entirely developed from scratch in very straightforward and simple C code
 
 ![](doc/screenshot.png)
 
+
+## Building and Running
+
+1. Install `watchexec` and `clang`
+2. run `./watch.sh`
+3. run `./opt/hot ./out/quest_for_nothing.so`
+
 ## Game Design
 A 3D retro FPS dungeon crawler like game but inside a spaceship.
 

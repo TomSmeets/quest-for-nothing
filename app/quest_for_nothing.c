@@ -74,6 +74,8 @@ void *main_init(int argc, char **argv) {
     os_printf("main_init called :)\n");
     mem m = {};
     App *app = mem_struct(&m, App);
+    global_set(&app->global);
+
     app->perm = m;
     app->window = sdl_new(&m, "Hello World");
     app->start_time = os_time();

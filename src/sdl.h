@@ -152,7 +152,6 @@ static void sdl_begin(sdl_win *sdl) {
         if ((event.type == SDL_KEYDOWN || event.type == SDL_KEYUP) && !event.key.repeat) {
             u32 sym = event.key.keysym.sym;
             input_key_code key = sdl_translate_key(event.key.keysym.sym);
-            os_printf("sdl=%s\n", enum_to_str_input_key_code[key]);
             input_emit(&sdl->input, key, event.key.state);
         }
     }
