@@ -31,7 +31,7 @@ struct sdl_win {
     v2 mouse_pos;
     v2 mouse_rel;
 
-    input input;
+    Input input;
 };
 
 // TODO: locking?? -> just expose sdl_lock and sdl_unlock audio

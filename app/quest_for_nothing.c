@@ -51,7 +51,7 @@ void *main_init(int argc, char **argv) {
 
 void main_update(void *handle) {
     App *app = handle;
-    mem *m = &app->tmp;
+    mem *tmp = &app->tmp;
 
     sdl_win *win = app->window;
     gl_api  *gl  = win->gl;
@@ -69,7 +69,7 @@ void main_update(void *handle) {
     // os_printf("%f %f\n", win->input.mouse_pos.x, win->input.mouse_pos.y);
 
     // Draw ui
-    ui_begin(ui, &win->input, m);
+    ui_begin(ui, &win->input, tmp);
 
     if(ui_button(ui, "Click Me!")) {
         os_print("Hello, World!\n");
@@ -83,6 +83,7 @@ void main_update(void *handle) {
     ui_button(ui, "A");
     ui_button(ui, "B");
     ui_end(ui);
+
 
     sdl_end(win);
 

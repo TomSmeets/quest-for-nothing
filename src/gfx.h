@@ -9,9 +9,82 @@
 // - Simple and Flexible
 // - Immediate mode?
 // - Support 3d and 2d
-static gfx_pass *gfx_pass_new(mem *m);
-static u32 gfx_put_vertex(gfx_pass *pass, v3 pos, v2 uv, v3 norm);
-static void gfx_put_index(gfx_pass *pass, u32 ix);
+
+struct Gfx_Vertex {
+    v3 pos;
+    v2 uv;
+    v3 normal;
+};
+
+// Graphics pass
+struct Gfx {
+    // Model to Screen transformation matrix
+    m4 mtx;
+    bool depth;
+
+    u32 vertex_max;
+    u32 vertex_count;
+    Gfx_Vertex *vertex;
+
+    u32 index_max;
+    u32 index_count;
+    u32 *index;
+
+    Gfx *next;
+};
+
+static Gfx *gfx_begin(mem *m) {
+    Gfx *gfx = mem_struct(m, Gfx);
+    gfx->vertex_max = 1024;
+    gfx->vertex = mem_array_uninit(m, Gfx_Vertex, gfx->vertex_max);
+
+    gfx->index_max = 1024;
+    gfx->index = mem_array_uninit(m, u32, gfx->index_max);
+    return gfx;
+}
+
+static u32 gfx_vertex(Gfx *gfx, v3 pos, v2 uv, v3 normal) {
+    assert(gfx->vertex_count < gfx->vertex_max);
+    u32 ix = gfx->vertex_count++;
+    gfx->vertex[ix] = (Gfx_Vertex) {
+        .pos = pos,
+        .uv = uv,
+        .normal = normal,
+    };
+    return ix;
+};
+
+static void gfx_index(Gfx *gfx, u32 index) {
+    assert(gfx->index_count < gfx->index_max);
+    gfx->index[gfx->index_count++] = index;
+}
+
+// c---d
+// | \ |
+// a---b
+static void gfx_quad(Gfx *gfx, image *img, v3 normal, v3 a, v3 b, v3 c, v3 d) {
+    u32 ia = gfx_vertex(gfx, a, (v2){0, 0}, normal);
+    u32 ib = gfx_vertex(gfx, b, (v2){1, 0}, normal);
+    u32 ic = gfx_vertex(gfx, c, (v2){0, 1}, normal);
+    u32 id = gfx_vertex(gfx, d, (v2){1, 1}, normal);
+
+    gfx_index(gfx, ia);
+    gfx_index(gfx, ib);
+    gfx_index(gfx, ic);
+
+    gfx_index(gfx, ic);
+    gfx_index(gfx, ib);
+    gfx_index(gfx, id);
+}
+
+static void gfx_rect(Gfx *gfx, v2 min, v2 max, v4 color) {
+    v3 normal = { 0, 0, 1 };
+    v3 a = { min.x, min.y, 0 };
+    v3 b = { max.x, min.y, 0 };
+    v3 c = { min.x, max.y, 0 };
+    v3 d = { max.x, max.y, 0 };
+    gfx_quad(gfx, 0, normal, a, b, c, d);
+}
 
 // What is rendering? This is basically the api we want right?
 // UI
@@ -34,18 +107,13 @@ static void gfx_put_index(gfx_pass *pass, u32 ix);
 
 // For 3D graphics -> 8 floats
 // For 2D graphics we would only need 4 floats:
-//    struct gfx_vertex {
+//    struct Gfx_Vertex {
 //        v2 pos;
 //        v2 uv;
 //    };
 // But for simplicity and flexibility we will use the same
 // vertex structure for both.
 // We could use two variants in the future if we decide so.
-struct gfx_vertex {
-    v3 pos;
-    v2 uv;
-    v3 normal;
-};
 
 
 // graphics pass
@@ -66,7 +134,7 @@ struct gfx_pass {
     // NOTE: We might need to split this up in the future
     u32 vtx_cap;
     u32 vtx_count;
-    gfx_vertex *vtx;
+    Gfx_Vertex *vtx;
 
     u32 idx_cap;
     u32 idx_count;
@@ -79,27 +147,11 @@ struct gfx_pass {
 static gfx_pass *gfx_pass_new(mem *m, u32 vertex_count, u32 index_count) {
     gfx_pass *pass = mem_struct(m, gfx_pass);
     pass->vtx_cap = vertex_count;
-    pass->vtx     = mem_array_uninit(m, gfx_vertex, pass->vtx_cap);
+    pass->vtx     = mem_array_uninit(m, Gfx_Vertex, pass->vtx_cap);
     pass->idx_cap = index_count;
     pass->idx     = mem_array_uninit(m, u32, pass->idx_cap);
     pass->m = m;
     return pass;
-}
-
-static u32 gfx_put_vtx(gfx_pass *pass, v3 pos, v2 uv, v3 normal) {
-    assert(pass->vtx_count < pass->vtx_cap);
-    u32 ix = pass->vtx_count++;
-    pass->vtx[ix] = (gfx_vertex) {
-        .pos = pos,
-        .uv = uv,
-        .normal = normal,
-    };
-    return ix;
-};
-
-static void gfx_put_idx(gfx_pass *pass, u32 idx) {
-    assert(pass->idx_count < pass->idx_cap);
-    pass->idx[pass->idx_count++] = idx;
 }
 
 // Texture Atlas
@@ -117,27 +169,5 @@ static gfx_atlas_item gfx_put_image(gfx_pass *pass, image *img) {
 static void example_code(mem *m) {
     gfx_pass *pass = gfx_pass_new(m, model->vtx_count, model->idx_count);
     load_obj(read_file(obj));
-}
-
-// c---d
-// | \ |
-// a---b
-static void gfx_put_quad(gfx_pass *pass, image *img, v3 a, v3 b, v3 c, v3 d) {
-    v3 normal = { 0, 0, 1 };
-
-    v4 uv = gfx_put_image(img);
-
-    u32 ia = gfx_put_vtx(pass, a, (v2){0, 0}, normal);
-    u32 ib = gfx_put_vtx(pass, b, (v2){1, 0}, normal);
-    u32 ic = gfx_put_vtx(pass, c, (v2){0, 1}, normal);
-    u32 id = gfx_put_vtx(pass, d, (v2){1, 1}, normal);
-
-    gfx_put_idx(pass, ia);
-    gfx_put_idx(pass, ib);
-    gfx_put_idx(pass, ic);
-
-    gfx_put_idx(pass, ic);
-    gfx_put_idx(pass, ib);
-    gfx_put_idx(pass, id);
 }
 #endif

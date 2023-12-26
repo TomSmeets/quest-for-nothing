@@ -3,6 +3,7 @@
 #pragma once
 #include "inc.h"
 #include "math.h"
+#include "vec.h"
 #include "os.h"
 
 struct input_key {
@@ -15,7 +16,7 @@ struct input_key {
 // kbd + mouse
 // game pad
 // wii remote + nunchuck
-struct input {
+struct Input {
     v2 window_size;
 
     v2 mouse_pos;
@@ -105,7 +106,7 @@ enum input_key_code {
 
 static_assert(KEY_COUNT <= 256);
 
-static input_key *input_key_get(input *in, input_key_code code) {
+static input_key *input_key_get(Input *in, input_key_code code) {
     if (!code)
         return 0;
 
@@ -126,7 +127,7 @@ static input_key *input_key_get(input *in, input_key_code code) {
     return 0;
 }
 
-static void input_emit(input *in, input_key_code code, bool is_down) {
+static void input_emit(Input *in, input_key_code code, bool is_down) {
     input_key *key = input_key_get(in, code);
     if (!key)
         return;
@@ -134,17 +135,17 @@ static void input_emit(input *in, input_key_code code, bool is_down) {
     key->click |= is_down;
 }
 
-static bool input_is_down(input *in, input_key_code code) {
+static bool input_is_down(Input *in, input_key_code code) {
     input_key *key = input_key_get(in, code);
     return key && key->down;
 }
 
-static bool input_is_click(input *in, input_key_code code) {
+static bool input_is_click(Input *in, input_key_code code) {
     input_key *key = input_key_get(in, code);
     return key && key->click;
 }
 
-static void input_update(input *in) {
+static void input_update(Input *in) {
     in->mouse_rel = 0;
 
     for (u32 i = 0; i < array_count(in->key); ++i) {

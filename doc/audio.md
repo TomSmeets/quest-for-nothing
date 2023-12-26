@@ -41,6 +41,7 @@ C040
 ## Digital Audio And Synths
 - [Intro to Synthesizers, A Beginner's Guide](https://www.youtube.com/watch?v=UmcOvAv-egI)
 - [R-Scope mk.2 synth](https://www.youtube.com/watch?v=2XhaSXmPdKI)
+- [NES](https://www.copetti.org/writings/consoles/nes/#going-beyond-existing-capabilities)
 
 ## Filters
 - [Digital Filters For Music Synthesis](https://karmafx.net/docs/karmafx_digitalfilters.pdf)
