@@ -25,7 +25,7 @@ function cc_opt() {
 }
 
 if [ $MODE == 's' ]; then
-  cc -o out/code_gen app/code_gen.c
+  cc_opt -o out/code_gen app/code_gen.c
 fi
 
 ./out/code_gen > src/generated.h

@@ -7,6 +7,7 @@
 #include "gfx.h"
 #include "input.h"
 #include "color.h"
+#include "fmt.h"
 
 // Simple grid like layout
 struct UI {

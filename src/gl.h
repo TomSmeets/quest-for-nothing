@@ -5,6 +5,7 @@
 #include "gl_api.h"
 #include "mem.h"
 #include "vec.h"
+#include "gfx.h"
 
 static void gl_debug_callback(
     GLenum source,
@@ -89,14 +90,23 @@ static GLuint gl_program_compile_and_link(gl_api *gl, char *vert, char *frag) {
 struct gl_t {
     gl_api *api;
 
+    // Vertex Array Object, Stores bound vertex and index buffers
     GLuint vao;
+
+    // Vertex Buffer Object, Stores verticies
     GLuint vbo;
+
+    // Element Buffer Object, Stores indicies
     GLuint ebo;
+
+    // Shader Program
     GLuint shader;
 
+    // Uniform locations
     GLint shader_uniform_img;
     GLint shader_uniform_mat;
 
+    // Texture
     u32 texture_size;
     GLuint texture;
     v4 *empty_image;
@@ -106,12 +116,12 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     gl_t *gl = mem_struct(m, gl_t);
     gl->api = api;
 
-    // Create the needed OpenGL objects
-    // where we store the vertices
+    // First create and bind the VAO
     api->glGenVertexArrays(1, &gl->vao);
     api->glBindVertexArray(gl->vao);
-    api->glGenBuffers(1, &gl->vbo); // vertex buffer object, for vertecies
-    api->glGenBuffers(1, &gl->ebo); // element buffer object, for vertex indices
+
+    api->glGenBuffers(1, &gl->vbo);
+    api->glGenBuffers(1, &gl->ebo);
 
     // load GLSL shader files
     char *vert = (char *)os_read_file(m, "src/gl_shader.vert").ptr;

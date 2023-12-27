@@ -7,6 +7,8 @@
 - [VAO & Core Profiles](https://www.youtube.com/watch?v=JwAH_YGOcVo)
 - [Debugging & API Trace](https://www.youtube.com/watch?v=Wk145_jUsBk)
 - [Lighting](https://www.youtube.com/watch?v=x2FHHU50ktQ)
+- [OpenGL 4.6 Core Profile Spec](https://registry.khronos.org/OpenGL/specs/gl/glspec46.core.pdf)
+- [OpenGL 3.3 Core Profile Spec](https://registry.khronos.org/OpenGL/specs/gl/glspec33.core.pdf)
 
 
 A good API does not limit itself to the implementation details. It should not leak implementation details.

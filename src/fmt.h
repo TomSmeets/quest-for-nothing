@@ -8,44 +8,75 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-// Note we can look into the future, create a fmt with empty buffer
-typedef struct fmt_t fmt_t;
 struct fmt_t {
     u8 *buffer;
     u64 size;
     u64 used;
+    mem *mem;
 };
 
+// Grow the internal buffer if needed
+static void fmt_ensure_size(fmt_t *f, u64 target_size) {
+    // Check if we need to grow
+    if(target_size <= f->size) return;
+
+    // We will need memory now
+    assert(f->mem);
+
+    // Determine a good size
+    u64 new_size = 32;
+    while(new_size < target_size) new_size *= 1.5;
+
+    // Copy data to a new buffer
+    u8 *new_buffer = mem_push(f->mem, new_size);
+    std_memcpy(new_buffer, f->buffer, f->used);
+    assert(new_buffer);
+
+    // Done
+    f->size   = new_size;
+    f->buffer = new_buffer;
+}
+
+// Push a buffer
 static void fmt_buf(fmt_t *f, u64 size, u8 *data) {
-    if (f->used + size <= f->size)
-        std_memcpy(f->buffer + f->used, data, size);
+    fmt_ensure_size(f, f->used + size);
+    std_memcpy(f->buffer + f->used, data, size);
     f->used += size;
 }
 
+// Push a substring
 static void fmt_str_len(fmt_t *f, u32 len, char *str) {
     fmt_buf(f, len, (u8 *)str);
 }
 
-// Push a string onto this buffer
+// Push a null terminated string
 static void fmt_str(fmt_t *f, char *str) {
     fmt_str_len(f, str_len(str), str);
 }
 
+// Push a single character
 static void fmt_chr(fmt_t *f, u8 c) {
-    if (f->used < f->size)
-        f->buffer[f->used] = c;
+    fmt_ensure_size(f, f->used + 1);
+    f->buffer[f->used] = c;
     f->used++;
 }
 
 static char *fmt_end(fmt_t *f) {
-    if (f->used >= f->size)
-        return 0;
+    fmt_chr(f, 0);
+    char *ret = (char *) f->buffer;
 
-    f->buffer[f->used] = 0;
-    return (char *)f->buffer;
+    // Reset the formatter
+    // We can still re-use the last part
+    // that was not yet used.
+    f->buffer += f->used;
+    f->size   -= f->used;
+    f->used   = 0;
+
+    return ret;
 }
 
-//
+
+// Fancy integer formatting
 static void fmt_u64(fmt_t *f, u64 v, u64 base, u64 pad, u8 prefix, u8 sign) {
     assert(base >= 2 && base < 36);
     assert(pad <= 64);
@@ -161,44 +192,21 @@ static void fmt_f(fmt_t *f, char *format, ...) {
 
 static char *fmt(mem *m, char *format, ...) {
     va_list args;
-
-    fmt_t f = {};
+    fmt_t f = { .mem = m };
     va_start(args, format);
     fmt_va(&f, format, args);
     va_end(args);
-
-    f.size = f.used + 1;
-    f.buffer = mem_push(m, f.size);
-    f.used = 0;
-
-    va_start(args, format);
-    fmt_va(&f, format, args);
-    va_end(args);
-
-    char *ret = fmt_end(&f);
-    assert(ret);
-    return ret;
+    return fmt_end(&f);
 }
 
 static void os_printf(char *format, ...) {
     va_list args;
 
-    fmt_t f = {};
-    va_start(args, format);
-    fmt_va(&f, format, args);
-    va_end(args);
-
     mem m = {};
-    f.size = f.used + 1;
-    f.buffer = mem_push(&m, f.size);
-    f.used = 0;
-
+    fmt_t f = { .mem = &m };
     va_start(args, format);
     fmt_va(&f, format, args);
     va_end(args);
-
-    char *ret = fmt_end(&f);
-    assert(ret);
-    os_print(ret);
+    os_print(fmt_end(&f));
     mem_clear(&m);
 }
