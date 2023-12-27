@@ -214,6 +214,5 @@ static m4 m4_screen_to_clip(v2 size) {
     m4 m = m4_id();
     m4_scale(&m, (v3){sx, sy, 1});
     m4_trans(&m, (v3){-1, -1, 0});
-    m4_inv(&m);
     return m;
 }

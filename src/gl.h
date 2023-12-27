@@ -129,8 +129,8 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     gl->shader = gl_program_compile_and_link(api, vert, frag);
     gl->shader_uniform_img = api->glGetUniformLocation(gl->shader, "img");
     gl->shader_uniform_mat = api->glGetUniformLocation(gl->shader, "mat");
-    assert(gl->shader_uniform_img >= 0);
-    assert(gl->shader_uniform_mat >= 0);
+    // assert(gl->shader_uniform_img >= 0);
+    // assert(gl->shader_uniform_mat >= 0);
 
     // create a texture atlas where we dynamically write all textures to
     u32 texture_size = 1024;
@@ -160,25 +160,57 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     return gl;
 }
 
-static void gl_draw(gl_t *gl, v2 window_size) {
+static void gl_clear(gl_t *gl, v2 window_size) {
     gl_api *api = gl->api;
 
-    // We will use full f32 bit textures and framebuffer
-    api->glViewport(0, 0, window_size.x, window_size.y);
+    
+    // Global settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
+    api->glEnable(GL_CULL_FACE);
+    api->glCullFace(GL_BACK);
+
+    api->glViewport(0, 0, window_size.x, window_size.y);
     api->glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
     api->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-    api->glUseProgram(gl->shader);
+static void gl_draw(gl_t *gl, Gfx *gfx) {
+    gl_api *api = gl->api;
+
+    if(gfx->depth) api->glEnable(GL_DEPTH_TEST);
+    // api->glEnable(GL_BLEND);
+    // gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // We will use full f32 bit textures and framebuffer
     api->glBindVertexArray(gl->vao);
+    api->glUseProgram(gl->shader);
     api->glActiveTexture(GL_TEXTURE0);
 
-    // Clear the texture
-    // u32 texture_size = gxl->texture_size;
-    // gl->glBindTexture(GL_TEXTURE_2D, gxl->texture);
-    // gl->glTexSubImage2D(GL_TEXTURE_2D, 0,
-    //     0, 0, texture_size, texture_size,
-    //     GL_RGBA, GL_FLOAT,
-    //     gxl->empty_image
-    // );
+    api->glBindBuffer(GL_ARRAY_BUFFER, gl->vbo);
+    api->glBufferData(GL_ARRAY_BUFFER, gfx->vertex_count*sizeof(gfx->vertex[0]), gfx->vertex, GL_STREAM_DRAW);
+
+
+    api->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl->ebo);
+    api->glBufferData(GL_ELEMENT_ARRAY_BUFFER, gfx->index_count*sizeof(gfx->index[0]), gfx->index, GL_STREAM_DRAW);
+
+    // TODO: move to vao construction
+    Gfx_Vertex *v0 = 0;
+    api->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->pos);
+    api->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->uv);
+    // api->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->color);
+
+    api->glEnableVertexAttribArray(0);
+    api->glEnableVertexAttribArray(1);
+    // api->glEnableVertexAttribArray(2);
+
+    api->glUniform1i(gl->shader_uniform_img, 0);
+
+    // Matrix is: Model -> Screen
+    // Which is exactly what we need
+    GLboolean row_major = GL_FALSE;
+    api->glUniformMatrix4fv(gl->shader_uniform_mat, 1, row_major, (GLfloat *) &gfx->mtx.fwd);
+    api->glDrawElements(GL_TRIANGLES, gfx->index_count, GL_UNSIGNED_INT, 0);
+
+    // Restore state
+    api->glDisable(GL_DEPTH_TEST);
 }

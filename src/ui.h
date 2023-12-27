@@ -34,10 +34,10 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
     ui->index = 1;
     ui->size = 80;
     ui->pad   = 4;
-    ui->pos   = (v2) { 0, 0 };
+    ui->pos   = (v2) { 0, input->window_size.y };
     ui->input = input;
     ui->gfx = gfx_begin(tmp);
-    ui->gfx->mtx = m4_id();
+    ui->gfx->mtx = m4_screen_to_clip(input->window_size);
     ui->gfx->depth = 0;
 
     if(ui->active && !input_is_down(ui->input, KEY_MOUSE_LEFT))
@@ -50,8 +50,8 @@ static void ui_end(UI *ui) {
 static bool ui_button(UI *ui, const char *text) {
     u32 id = ui->index++;
 
-    v2 outer_min = ui->pos;
-    v2 outer_max = ui->pos + (v2) { 2 * ui->size, ui->size };
+    v2 outer_min = ui->pos - (v2) { 0,            ui->size };
+    v2 outer_max = ui->pos + (v2) { 2 * ui->size, 0   };
 
     v2 inner_min = outer_min + (v2) { ui->pad, ui->pad };
     v2 inner_max = outer_max - (v2) { ui->pad, ui->pad };
@@ -90,6 +90,6 @@ static bool ui_button(UI *ui, const char *text) {
 }
 
 static void ui_newline(UI *ui) {
-    ui->pos.y += ui->size;
+    ui->pos.y -= ui->size;
     ui->pos.x = 0;
 }

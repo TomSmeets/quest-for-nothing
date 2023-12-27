@@ -54,11 +54,11 @@ void main_update(void *handle) {
     mem *tmp = &app->tmp;
 
     sdl_win *win = app->window;
-    gl_api  *gl  = win->gl;
     UI *ui = app->ui;
 
     global_set(&app->global);
     sdl_begin(win);
+    gl_clear(app->gl, win->input.window_size);
 
     // Handle quit
     if (win->input.quit || input_is_down(&win->input, KEY_Q)) {
@@ -84,6 +84,12 @@ void main_update(void *handle) {
     ui_button(ui, "B");
     ui_end(ui);
 
+
+    Gfx *gfx = gfx_begin(tmp);
+    gfx->mtx = m4_id();
+    gfx_rect(gfx, (v2) { -1, -1 }, (v2) { 1, 1 }, 0);
+    gl_draw(app->gl, gfx);
+    gl_draw(app->gl, ui->gfx);
 
     sdl_end(win);
 

@@ -13,6 +13,11 @@ in vec2 v_uv;
 in float v_color;
 
 void main() {
+    if(true) {
+        out_color = vec4(v_uv, 1, 1);
+        return;
+    }
+
     // Lookup the color in the texture atlas
     out_color = texture(img, v_uv);
 
