@@ -124,8 +124,8 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     api->glGenBuffers(1, &gl->ebo);
 
     // load GLSL shader files
-    char *vert = (char *)os_read_file(m, "src/gl_shader.vert").ptr;
-    char *frag = (char *)os_read_file(m, "src/gl_shader.frag").ptr;
+    char *vert = (char*) &GL_SHADER_VERT_DATA[0];
+    char *frag = (char*) &GL_SHADER_FRAG_DATA[0];
     gl->shader = gl_program_compile_and_link(api, vert, frag);
     gl->shader_uniform_img = api->glGetUniformLocation(gl->shader, "img");
     gl->shader_uniform_mat = api->glGetUniformLocation(gl->shader, "mat");

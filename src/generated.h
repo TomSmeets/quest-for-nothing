@@ -8,6 +8,7 @@ typedef struct gfx_pass gfx_pass;
 typedef struct gfx_atlas_item gfx_atlas_item;
 typedef struct gl_t gl_t;
 typedef struct gl_api gl_api;
+typedef struct Global Global;
 typedef struct image image;
 typedef struct buf buf;
 typedef struct input_key input_key;
@@ -107,11 +108,11 @@ typedef struct sdl_api sdl_api;
 typedef struct sound sound;
 typedef struct Note Note;
 typedef struct UI UI;
-typedef struct Global Global;
 typedef struct gen_enum gen_enum;
 typedef struct hello hello;
 typedef struct App App;
-static const unsigned char gl_shader_vert[] = {
+#define GL_SHADER_VERT_SIZE 649
+static const unsigned char GL_SHADER_VERT_DATA[] = {
     47,47,32,67,111,112,121,114,105,103,104,116,32,40,99,41,
     32,50,48,50,51,32,45,32,84,111,109,32,83,109,101,101,
     116,115,32,60,116,111,109,64,116,115,109,101,101,116,115,46,
@@ -154,7 +155,8 @@ static const unsigned char gl_shader_vert[] = {
     104,97,100,101,114,10,32,32,32,32,118,95,117,118,32,61,
     32,97,95,117,118,59,10,125,10,0,
 };
-static const unsigned char gl_shader_frag[] = {
+#define GL_SHADER_FRAG_SIZE 740
+static const unsigned char GL_SHADER_FRAG_DATA[] = {
     47,47,32,67,111,112,121,114,105,103,104,116,32,40,99,41,
     32,50,48,50,51,32,45,32,84,111,109,32,83,109,101,101,
     116,115,32,60,116,111,109,64,116,115,109,101,101,116,115,46,

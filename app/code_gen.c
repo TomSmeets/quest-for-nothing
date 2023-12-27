@@ -96,11 +96,16 @@ static void handle_dir(fmt_t *f, mem *m, char *dir) {
     }
 }
 
-
+// Convert the data to a
 static void c_encode(fmt_t *f, char *name, buf data) {
+    fmt_str(f, "#define ");
+    fmt_str(f, name);
+    fmt_str(f, "_SIZE ");
+    fmt_u64(f, data.size, 10, 0, 0, 0);
+    fmt_str(f, "\n");
     fmt_str(f, "static const unsigned char ");
     fmt_str(f, name);
-    fmt_str(f, "[] = {");
+    fmt_str(f, "_DATA[] = {");
     for(u64 i = 0; i < data.size + 1; ++i) {
         if(i % 16 == 0) fmt_str(f, "\n    ");
         u8 b = ((u8 *) data.ptr)[i];
@@ -119,8 +124,8 @@ void *main_init(int argc, char *argv[]) {
     handle_dir(&f, &m, "src");
     handle_dir(&f, &m, "app");
 
-    c_encode(&f, "gl_shader_vert", os_read_file(&m, "src/gl_shader.vert"));
-    c_encode(&f, "gl_shader_frag", os_read_file(&m, "src/gl_shader.frag"));
+    c_encode(&f, "GL_SHADER_VERT", os_read_file(&m, "src/gl_shader.vert"));
+    c_encode(&f, "GL_SHADER_FRAG", os_read_file(&m, "src/gl_shader.frag"));
     os_print(fmt_end(&f));
     return 0;
 }
