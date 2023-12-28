@@ -85,9 +85,10 @@ void main_update(void *handle) {
     ui_end(ui);
 
     Gfx *gfx = gfx_begin(tmp);
-    gfx->mtx = m4_id();
-    gfx_rect(gfx, (v2) { -1, -1 }, (v2) { 1, 1 }, 0);
+    gfx->mtx = m4_screen_to_clip(win->input.window_size);
+    gfx_rect(gfx, (v2) { -20, -20 } + win->input.mouse_pos, (v2) { 20, 20 } + win->input.mouse_pos, 0);
     gl_draw(app->gl, gfx);
+
     gl_draw(app->gl, ui->gfx);
 
     sdl_end(win);

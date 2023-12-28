@@ -135,9 +135,9 @@ static void sdl_begin(sdl_win *sdl) {
 
         if (event.type == SDL_MOUSEMOTION) {
             sdl->input.mouse_pos.x = event.motion.x;
-            sdl->input.mouse_pos.y = sdl->input.window_size.y - event.motion.y;
+            sdl->input.mouse_pos.y = event.motion.y;
             sdl->input.mouse_rel.x += event.motion.xrel;
-            sdl->input.mouse_rel.y -= event.motion.yrel;
+            sdl->input.mouse_rel.y += event.motion.yrel;
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {

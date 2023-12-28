@@ -59,9 +59,9 @@ static void gfx_index(Gfx *gfx, u32 index) {
     gfx->index[gfx->index_count++] = index;
 }
 
-// c---d
-// | \ |
 // a---b
+// | / |
+// c---d
 static void gfx_quad(Gfx *gfx, image *img, v3 normal, v3 a, v3 b, v3 c, v3 d) {
     u32 ia = gfx_vertex(gfx, a, (v2){0, 0}, normal);
     u32 ib = gfx_vertex(gfx, b, (v2){1, 0}, normal);

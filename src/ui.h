@@ -55,15 +55,25 @@ static bool rect_contains(Rect *r, v2 p) {
         && p.y >= r->min.y && p.y < r->max.y;
 }
 
+static Rect rect_flip_y(Rect *r, f32 h) {
+    Rect out = *r;
+    out.min.y = h - r->max.y;
+    out.max.y = h - r->min.y;
+    return out;
+}
+
 static UI_Component ui_component(UI *ui, v2 offset, v2 size, f32 pad) {
     u32 id = ++ui->current_component_id;
 
     // NOTE: we start at a high 'y' and grow towards 0
-    v2 pos = ui->row.max + offset;
+    v2 pos = {};
+    pos.x = ui->row.max.x;
+    pos.y = ui->row.min.y;
+    pos += offset;
     
     Rect outer = {
-        .min = pos - (v2) { 0, size.y },
-        .max = pos + (v2) { size.x, 0 },
+        .min = pos,
+        .max = pos + size,
     };
 
     Rect inner = {
@@ -71,8 +81,9 @@ static UI_Component ui_component(UI *ui, v2 offset, v2 size, f32 pad) {
         .max = outer.max - (v2) { pad, pad },
     };
 
+    v2 mouse_pos = ui->input->mouse_pos;
 
-    bool hover = rect_contains(&inner, ui->input->mouse_pos);
+    bool hover = rect_contains(&inner, mouse_pos);
     bool down  = hover && input_is_down(ui->input, KEY_MOUSE_LEFT);
     bool click = hover && input_is_click(ui->input, KEY_MOUSE_LEFT);
 
@@ -89,11 +100,12 @@ static UI_Component ui_component(UI *ui, v2 offset, v2 size, f32 pad) {
         click = 0;
     }
 
-    // grow size of the row
-    if(outer.min.y < ui->row.min.y) ui->row.min.y = outer.min.y;
+    // grow size of the row and window
     if(outer.max.x > ui->row.max.x) ui->row.max.x = outer.max.x;
-    if(outer.min.y < ui->window.min.y) ui->window.min.y = outer.min.y;
+    if(outer.max.y > ui->row.max.y) ui->row.max.y = outer.max.y;
+
     if(outer.max.x > ui->window.max.x) ui->window.max.x = outer.max.x;
+    if(outer.max.y > ui->window.max.y) ui->window.max.y = outer.max.y;
 
     return (UI_Component) {
         .inner = inner,
@@ -114,6 +126,7 @@ static bool ui_button(UI *ui, const char *text) {
     v4 color = WHITE;
     if(comp.down) color = BLUE;
     if(comp.click) color = GREEN;
+
     gfx_rect(ui->gfx, comp.inner.min, comp.inner.max, color);
 
     // NOTE: Parameters, or pass function pointer?
@@ -124,45 +137,56 @@ static bool ui_button(UI *ui, const char *text) {
 }
 
 static void ui_newline(UI *ui) {
-    ui->row.max = ui->row.min;
+    ui->row.max.x = ui->row.min.x;
+    ui->row.min.y = ui->row.max.y;
 }
 
 static void ui_begin(UI *ui, Input *input, mem *tmp) {
+    // Reset basic settings
     ui->current_component_id = 0;
     ui->size = 50;
     ui->pad  = 4;
-
-    ui->row.min.x = ui->window.min.x;
-    ui->row.min.y = ui->window.max.y;
-    ui->row.max = ui->row.min;
-
     ui->input = input;
+
+    // Start new render pass
     ui->gfx = gfx_begin(tmp);
     ui->gfx->mtx = m4_screen_to_clip(input->window_size);
-    ui->gfx->depth = 0;
+
+    // Draw previous window pos
+    v2 window_size = rect_size(&ui->window);
+
+    // Move the window to 0,0
+//    ui->window.min = (v2){};
+    ui->window.max = ui->window.min;
+
+    // Reset current row
+    ui->row.min = ui->window.min;
+    ui->row.max = ui->window.min;
 
     if(ui->active && !input_is_down(ui->input, KEY_MOUSE_LEFT))
         ui->active = 0;
 
-    gfx_rect(ui->gfx, ui->window.min, ui->window.max, WHITE);
+    gfx_rect(ui->gfx, ui->window.min, ui->window.min + window_size, WHITE);
 
-    // title bar
-    UI_Component comp = ui_component(ui, 0, (v2){rect_size(&ui->window).x, 20}, 0);
-    UI_Component c2 = ui_component(ui, (v2){ -20, 0 }, (v2){20, 20}, 5);
-    ui->window.max.x = ui->window.min.x;
-    ui->window.min.y = ui->window.max.y;
-    if(comp.down) {
-        v2 window_pos = (v2){ui->window.min.x, ui->window.max.y};
-        ui->window.min += input->mouse_pos - window_pos - ui->drag_offset;
-        ui->window.max += input->mouse_pos - window_pos - ui->drag_offset;
-    }
-    gfx_rect(ui->gfx, comp.inner.min, comp.inner.max, WHITE);
-
-    if(c2.click) {
-    }
+    // Close Button
+    UI_Component c2  = ui_component(ui, (v2){ 0, 0 }, (v2){20, 20}, 3);
     gfx_rect(ui->gfx, c2.inner.min, c2.inner.max, WHITE);
 
+    // title bar
+    UI_Component title_bar = ui_component(ui, 0, (v2){window_size.x - 20, 20},  0);
+    gfx_rect(ui->gfx, title_bar.inner.min, title_bar.inner.max, WHITE);
+
+    if(title_bar.down) {
+        v2 move_amount = -ui->drag_offset - title_bar.outer.min + input->mouse_pos;
+        ui->window.min += move_amount;
+        ui->window.max += move_amount;
+        ui->row.min += move_amount;
+        ui->row.max += move_amount;
+    }
+
+    // Start new line, and forget the min width
     ui_newline(ui);
+    ui->window.max.x = ui->window.min.x;
 }
 
 static void ui_end(UI *ui) {
@@ -172,6 +196,6 @@ static void ui_end(UI *ui) {
     error.x += f_max(ui->row.max.x - ui->input->window_size.x, 0);
     error.y += f_max(ui->row.max.y - ui->input->window_size.y, 0);
 
-    ui->window.min -= error*.5;
-    ui->window.max -= error*.5;
+    ui->window.min -= error;
+    ui->window.max -= error;
 }

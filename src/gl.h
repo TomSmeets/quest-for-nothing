@@ -167,7 +167,7 @@ static void gl_clear(gl_t *gl, v2 window_size) {
     // Global settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
     api->glEnable(GL_CULL_FACE);
-    api->glCullFace(GL_BACK);
+    api->glCullFace(GL_FRONT);
 
     api->glViewport(0, 0, window_size.x, window_size.y);
     api->glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
