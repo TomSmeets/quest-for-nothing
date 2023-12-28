@@ -6,6 +6,8 @@
 #include "mem.h"
 #include "vec.h"
 #include "gfx.h"
+#include "image.h"
+#include "global.h"
 
 static void gl_debug_callback(
     GLenum source,
@@ -109,8 +111,21 @@ struct gl_t {
     // Texture
     u32 texture_size;
     GLuint texture;
-    v4 *empty_image;
+    image *empty_image;
 };
+
+static void gl_compile_default_shader(gl_t *gl) {
+    gl_api *api = gl->api;
+    char *vert = (char*) &GL_SHADER_VERT_DATA[0];
+    char *frag = (char*) &GL_SHADER_FRAG_DATA[0];
+    gl->shader = gl_program_compile_and_link(api, vert, frag);
+    gl->shader_uniform_img = api->glGetUniformLocation(gl->shader, "img");
+    gl->shader_uniform_mat = api->glGetUniformLocation(gl->shader, "mat");
+
+    api->glBindVertexArray(gl->vao);
+    api->glUseProgram(gl->shader);
+    api->glUniform1i(gl->shader_uniform_img, 0);
+}
 
 static gl_t *gl_init(mem *m, gl_api *api) {
     gl_t *gl = mem_struct(m, gl_t);
@@ -121,25 +136,28 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     api->glBindVertexArray(gl->vao);
 
     api->glGenBuffers(1, &gl->vbo);
-    api->glGenBuffers(1, &gl->ebo);
+    api->glBindBuffer(GL_ARRAY_BUFFER, gl->vbo);
 
-    // load GLSL shader files
-    char *vert = (char*) &GL_SHADER_VERT_DATA[0];
-    char *frag = (char*) &GL_SHADER_FRAG_DATA[0];
-    gl->shader = gl_program_compile_and_link(api, vert, frag);
-    gl->shader_uniform_img = api->glGetUniformLocation(gl->shader, "img");
-    gl->shader_uniform_mat = api->glGetUniformLocation(gl->shader, "mat");
-    // assert(gl->shader_uniform_img >= 0);
-    // assert(gl->shader_uniform_mat >= 0);
+    api->glGenBuffers(1, &gl->ebo);
+    api->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl->ebo);
+
+    gl_compile_default_shader(gl);
+
+    Gfx_Vertex *v0 = 0;
+    api->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->pos);
+    api->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->uv);
+    api->glEnableVertexAttribArray(0);
+    api->glEnableVertexAttribArray(1);
 
     // create a texture atlas where we dynamically write all textures to
-    u32 texture_size = 1024;
+    u32 texture_size = 8;
     gl->texture_size = texture_size;
     api->glGenTextures(1, &gl->texture);
     assert(gl->texture > 0);
 
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
-    gl->empty_image = mem_array(m, v4, texture_size * texture_size);
+    gl->empty_image = img_new_uninit(m, texture_size, texture_size);
+    img_fill_pattern(gl->empty_image);
 
     // enable textures, and bind our texture atlas
     api->glActiveTexture(GL_TEXTURE0);
@@ -156,13 +174,12 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     api->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     // NOTE: We store the images in linear color space!!!
-    api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texture_size, texture_size, 0, GL_RGBA, GL_FLOAT, gl->empty_image);
+    api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texture_size, texture_size, 0, GL_RGBA, GL_FLOAT, gl->empty_image->data);
     return gl;
 }
 
 static void gl_clear(gl_t *gl, v2 window_size) {
     gl_api *api = gl->api;
-
     
     // Global settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
@@ -181,29 +198,13 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     // api->glEnable(GL_BLEND);
     // gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    if(GLOBAL->did_reload)
+        gl_compile_default_shader(gl);
+
     // We will use full f32 bit textures and framebuffer
     api->glBindVertexArray(gl->vao);
-    api->glUseProgram(gl->shader);
-    api->glActiveTexture(GL_TEXTURE0);
-
-    api->glBindBuffer(GL_ARRAY_BUFFER, gl->vbo);
     api->glBufferData(GL_ARRAY_BUFFER, gfx->vertex_count*sizeof(gfx->vertex[0]), gfx->vertex, GL_STREAM_DRAW);
-
-
-    api->glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl->ebo);
     api->glBufferData(GL_ELEMENT_ARRAY_BUFFER, gfx->index_count*sizeof(gfx->index[0]), gfx->index, GL_STREAM_DRAW);
-
-    // TODO: move to vao construction
-    Gfx_Vertex *v0 = 0;
-    api->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->pos);
-    api->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->uv);
-    // api->glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->color);
-
-    api->glEnableVertexAttribArray(0);
-    api->glEnableVertexAttribArray(1);
-    // api->glEnableVertexAttribArray(2);
-
-    api->glUniform1i(gl->shader_uniform_img, 0);
 
     // Matrix is: Model -> Screen
     // Which is exactly what we need

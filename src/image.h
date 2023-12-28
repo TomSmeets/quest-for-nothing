@@ -18,13 +18,25 @@ static image *img_new_uninit(mem *m, u32 sx, u32 sy) {
     image *img = mem_struct(m, image);
     img->size_x = sx;
     img->size_y = sy;
-    img->data = mem_push(m, sx * sy * sizeof(v4));
+    img->data = mem_array_uninit(m, v4, sx * sy);
     return img;
 }
 
 // Fill entire image with a single color
 static void img_fill(image *img, v4 value) {
     for (u32 i = 0; i < img->size_y * img->size_x; ++i) {
+        img->data[i] = value;
+    }
+}
+
+static void img_fill_pattern(image *img) {
+    for (u32 i = 0; i < img->size_y * img->size_x; ++i) {
+        v4 value = BLACK;
+
+        u32 x = i % img->size_x;
+        u32 y = i / img->size_x;
+        if (((x ^ y) & 1) == 0)
+            value = WHITE;
         img->data[i] = value;
     }
 }
