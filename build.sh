@@ -14,33 +14,32 @@ set -euo pipefail
 # Full build vs quick build
 MODE="${1:-s}"
 
+REL="-O2 -g0"
+OPT="-O2 -g"
+DBG="-O0 -g"
+
+WIN="-target x86_64-unknown-windows-gnu"
+
 function cc() {
-  echo "cc $@"
-  clang -O0 -g -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc "$@"
+    echo "cc $@"
+    clang -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc "$@"
 }
 
-function cc_opt() {
-  echo "cc_opt $@"
-  clang -O2 -g0 -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc "$@"
-}
-
-if [ $MODE == 's' ]; then
-  cc_opt -o out/code_gen app/code_gen.c
+if [ $MODE == "s" ]; then
+    cc $OPT -o out/code_gen app/code_gen.c
 fi
 
 ./out/code_gen > src/generated.h
 
-if [ $MODE == 's' ]; then
-  cc_opt -o out/hot               app/hot.c
-  cc_opt -o out/hello             app/hello.c
-  cc_opt -o out/quest_for_nothing app/quest_for_nothing.c
-  cc_opt -o out/time_cmd          app/time_cmd.c
+if [ $MODE == "s" ]; then
+  cc $OPT -o out/hot               app/hot.c
+  cc $OPT -o out/hello             app/hello.c
+  cc $OPT -o out/quest_for_nothing app/quest_for_nothing.c
+  cc $OPT -o out/time_cmd          app/time_cmd.c
+
+  cc $OPT $WIN -o out/hello.exe app/hello.c
+  # cc $OPT $WIN -o out/quest_for_nothing.exe app/quest_for_nothing.c
 fi
 
-# Cross compilation
-if [ $MODE == 'c' ]; then
-  cc -target x86_64-unknown-windows-gnu -o out/hello             app/hello.c
-fi
-
-cc -shared -o out/quest_for_nothing.so app/quest_for_nothing.c
+cc $DBG -shared -o out/quest_for_nothing.so app/quest_for_nothing.c
 touch out/trigger
