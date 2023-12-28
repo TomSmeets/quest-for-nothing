@@ -15,6 +15,7 @@
 #include "sound.h"
 #include "gfx.h"
 #include "ui.h"
+#include "parse_qoi.h"
 
 struct App {
     mem tmp;
@@ -30,6 +31,8 @@ struct App {
 
     gl_t *gl;
     UI *ui;
+
+    image *img;
 };
 
 // You can choose how to run this app
@@ -46,6 +49,8 @@ void *main_init(int argc, char **argv) {
     app->gl   = gl_init(&m, app->window->gl);
     app->dt   = 1000 * 1000 / 200;
     app->ui   = mem_struct(&m, UI);
+
+    app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
     return app;
 }
 

@@ -9,6 +9,9 @@
 #include "image.h"
 #include "global.h"
 
+#include "parse_qoi.h"
+#include "os.h"
+
 static void gl_debug_callback(
     GLenum source,
     GLenum type,
@@ -109,7 +112,6 @@ struct gl_t {
     GLint shader_uniform_mat;
 
     // Texture
-    u32 texture_size;
     GLuint texture;
     image *empty_image;
 };
@@ -150,14 +152,11 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     api->glEnableVertexAttribArray(1);
 
     // create a texture atlas where we dynamically write all textures to
-    u32 texture_size = 8;
-    gl->texture_size = texture_size;
-    api->glGenTextures(1, &gl->texture);
-    assert(gl->texture > 0);
+    // ...
 
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
-    gl->empty_image = img_new_uninit(m, texture_size, texture_size);
-    img_fill_pattern(gl->empty_image);
+    gl->empty_image = parse_qoi(m, os_read_file(m, "res/space_wall.qoi"));
+    api->glGenTextures(1, &gl->texture);
 
     // enable textures, and bind our texture atlas
     api->glActiveTexture(GL_TEXTURE0);
@@ -174,7 +173,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     api->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     // NOTE: We store the images in linear color space!!!
-    api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texture_size, texture_size, 0, GL_RGBA, GL_FLOAT, gl->empty_image->data);
+    api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, gl->empty_image->size_x, gl->empty_image->size_y, 0, GL_RGBA, GL_FLOAT, gl->empty_image->data);
     return gl;
 }
 
