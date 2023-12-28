@@ -88,13 +88,18 @@ void main_update(void *handle) {
     ui_button(ui, "A");
     ui_button(ui, "B");
     ui_end(ui);
-
-    Gfx *gfx = gfx_begin(tmp);
-    gfx->mtx = m4_screen_to_clip(win->input.window_size);
-    gfx_rect(gfx, (v2) { -20, -20 } + win->input.mouse_pos, (v2) { 20, 20 } + win->input.mouse_pos, 0);
-    gl_draw(app->gl, gfx);
-
     gl_draw(app->gl, ui->gfx);
+
+    // Draw a mouse cursor
+    {
+        Gfx *gfx = gfx_begin(tmp);
+        m4_scale(&gfx->mtx, (v3) { 20, 20, 1});
+        m4_rot_z(&gfx->mtx, (app->time % 4000000) / 4000000.0f * -R4);
+        m4_trans(&gfx->mtx, (v3){ win->input.mouse_pos.x, win->input.mouse_pos.y });
+        m4_screen_to_clip(&gfx->mtx, win->input.window_size);
+        gfx_rect(gfx, (v2) { -1, -1 }, (v2) { 1, 1 }, 0);
+        gl_draw(app->gl, gfx);
+    }
 
     sdl_end(win);
 

@@ -40,6 +40,8 @@ static Gfx *gfx_begin(mem *m) {
 
     gfx->index_max = 1024;
     gfx->index = mem_array_uninit(m, u32, gfx->index_max);
+
+    gfx->mtx = m4_id();
     return gfx;
 }
 
