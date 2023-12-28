@@ -10,6 +10,7 @@
 // Current timings, N=2048
 //   O0 -> 5.3 ms
 //   O2 -> 3.3 ms
+#define BOOTSTRAP 1
 #include "fmt.h"
 #include "os_generic.h"
 #include "parse.h"

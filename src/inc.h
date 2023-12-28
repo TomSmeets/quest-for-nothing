@@ -3,7 +3,11 @@
 #pragma once
 
 // typedef all structs beforehand. I don't like adding typedef struct, so I use this
+#ifdef BOOTSTRAP
+#include "generated-small.h"
+#else
 #include "generated.h"
+#endif
 
 // Simplicity
 // every small file should be reusable
