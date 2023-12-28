@@ -84,7 +84,6 @@ void main_update(void *handle) {
     ui_button(ui, "B");
     ui_end(ui);
 
-
     Gfx *gfx = gfx_begin(tmp);
     gfx->mtx = m4_id();
     gfx_rect(gfx, (v2) { -1, -1 }, (v2) { 1, 1 }, 0);
