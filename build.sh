@@ -22,14 +22,14 @@ WIN="-target x86_64-unknown-windows-gnu"
 
 function cc() {
     echo "cc $@"
-    clang -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc "$@"
+    clang -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc -Iout "$@"
 }
 
 if [ $MODE == "s" ]; then
     cc $OPT -o out/code_gen app/code_gen.c
 fi
 
-./out/code_gen > src/generated.h
+./out/code_gen > out/generated.h
 
 if [ $MODE == "s" ]; then
   cc $OPT -o out/hot               app/hot.c

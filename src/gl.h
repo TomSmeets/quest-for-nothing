@@ -10,7 +10,6 @@
 #include "global.h"
 
 #include "parse_qoi.h"
-#include "os.h"
 
 static void gl_debug_callback(
     GLenum source,
@@ -155,7 +154,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     // ...
 
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
-    gl->empty_image = parse_qoi(m, os_read_file(m, "res/space_wall.qoi"));
+    gl->empty_image = parse_qoi(m, (buf) { .ptr = (void *) &GL_WALL_IMAGE_DATA[0], .size = GL_WALL_IMAGE_SIZE, });
     api->glGenTextures(1, &gl->texture);
 
     // enable textures, and bind our texture atlas
