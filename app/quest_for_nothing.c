@@ -23,7 +23,7 @@ struct App {
     Global global;
     u32 counter;
 
-    sdl_win *window;
+    Sdl *window;
 
     u64 dt;
     u64 time;
@@ -58,7 +58,7 @@ void main_update(void *handle) {
     App *app = handle;
     mem *tmp = &app->tmp;
 
-    sdl_win *win = app->window;
+    Sdl *win = app->window;
     UI *ui = app->ui;
 
     global_set(&app->global);

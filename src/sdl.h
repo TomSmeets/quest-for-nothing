@@ -14,8 +14,7 @@
 
 typedef void SDL_Audio_Callback(f32 dt, u32 count, v2 *output);
 
-typedef struct sdl_win sdl_win;
-struct sdl_win {
+struct Sdl {
     sdl_api api;
     SDL_Window *win;
 
@@ -36,7 +35,7 @@ struct sdl_win {
 
 // TODO: locking?? -> just expose sdl_lock and sdl_unlock audio
 static void sdl_call_audio_callback(void *user, u8 *data, i32 len) {
-    sdl_win *sdl = user;
+    Sdl *sdl = user;
     f32 dt = sdl->audio_dt;
     u32 output_count = len / sizeof(v2);
     v2 *output = (v2 *)data;
@@ -54,8 +53,8 @@ static void sdl_call_audio_callback(void *user, u8 *data, i32 len) {
 }
 
 // Create a new sdl instance
-static sdl_win *sdl_new(mem *m, const char *title) {
-    sdl_win *sdl = mem_struct(m, sdl_win);
+static Sdl *sdl_new(mem *m, const char *title) {
+    Sdl *sdl = mem_struct(m, Sdl);
     sdl_api *api = &sdl->api;
     sdl_api_load(api);
 
@@ -111,7 +110,7 @@ static sdl_win *sdl_new(mem *m, const char *title) {
     return sdl;
 }
 
-static void sdl_quit(sdl_win *sdl) {
+static void sdl_quit(Sdl *sdl) {
     sdl_api *api = &sdl->api;
     api->SDL_Quit();
 }
@@ -121,7 +120,7 @@ static input_key_code sdl_translate_key(SDL_Keycode code) {
     return input_key_from_char(code);
 }
 
-static void sdl_begin(sdl_win *sdl) {
+static void sdl_begin(Sdl *sdl) {
     sdl_api *api = &sdl->api;
 
     input_update(&sdl->input);
@@ -162,7 +161,7 @@ static void sdl_begin(sdl_win *sdl) {
     sdl->input.window_size.y = y;
 }
 
-static void sdl_end(sdl_win *sdl) {
+static void sdl_end(Sdl *sdl) {
     sdl_api *api = &sdl->api;
     api->SDL_GL_SwapWindow(sdl->win);
 }

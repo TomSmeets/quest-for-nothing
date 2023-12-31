@@ -118,9 +118,6 @@ struct SDL_WindowEvent {
     i32 data2;
 };
 
-/**
- *  \brief Keyboard button event structure (event.key.*)
- */
 struct SDL_KeyboardEvent {
     u32 type;
     u32 timestamp;
@@ -132,9 +129,6 @@ struct SDL_KeyboardEvent {
     SDL_Keysym keysym;
 };
 
-/**
- *  \brief Mouse motion event structure (event.motion.*)
- */
 struct SDL_MouseMotionEvent {
     u32 type;
     u32 timestamp;
@@ -147,9 +141,6 @@ struct SDL_MouseMotionEvent {
     i32 yrel;
 };
 
-/**
- *  \brief Mouse button event structure (event.button.*)
- */
 struct SDL_MouseButtonEvent {
     u32 type;
     u32 timestamp;
@@ -163,9 +154,6 @@ struct SDL_MouseButtonEvent {
     i32 y;
 };
 
-/**
- *  \brief Mouse wheel event structure (event.wheel.*)
- */
 struct SDL_MouseWheelEvent {
     u32 type;
     u32 timestamp;
@@ -178,11 +166,6 @@ struct SDL_MouseWheelEvent {
     float preciseY;
 };
 
-/**
- *  \brief An event used to request a file open by the system (event.drop.*)
- *         This event is enabled by default, you can disable it with SDL_EventState().
- *  \note If this event is enabled, you must free the filename in the event.
- */
 struct SDL_DropEvent {
     u32 type;
     u32 timestamp;
@@ -198,7 +181,7 @@ union SDL_Event {
     SDL_MouseButtonEvent button;
     SDL_MouseWheelEvent wheel;
     SDL_DropEvent drop;
-    u64 padding[8]; // reserve 64 bytes, and force 64 bit align
+    u64 padding[8];
 };
 static_assert(sizeof(SDL_Event) == 64);
 
@@ -211,9 +194,6 @@ extern int SDL_PollEvent(SDL_Event *event);
 typedef void SDL_Window;
 typedef void SDL_GLContext;
 
-/**
- *  \brief OpenGL configuration attributes
- */
 typedef enum {
     SDL_GL_RED_SIZE,
     SDL_GL_GREEN_SIZE,
@@ -276,13 +256,7 @@ extern int SDL_GetWindowDisplayMode(SDL_Window *window, SDL_DisplayMode *mode);
 extern SDL_GLContext *SDL_GL_CreateContext(SDL_Window *window);
 extern int SDL_SetRelativeMouseMode(int enabled);
 
-/**
- *  \brief The flags on a window
- *
- *  \sa SDL_GetWindowFlags()
- */
-typedef enum
-{
+typedef enum {
     SDL_WINDOW_FULLSCREEN = 0x00000001,
     SDL_WINDOW_OPENGL = 0x00000002,
     SDL_WINDOW_SHOWN = 0x00000004,
@@ -296,9 +270,7 @@ typedef enum
     SDL_WINDOW_MOUSE_FOCUS = 0x00000400,
     SDL_WINDOW_FULLSCREEN_DESKTOP = ( SDL_WINDOW_FULLSCREEN | 0x00001000 ),
     SDL_WINDOW_FOREIGN = 0x00000800,
-    SDL_WINDOW_ALLOW_HIGHDPI = 0x00002000,      /**< window should be created in high-DPI mode if supported.
-                                                     On macOS NSHighResolutionCapable must be set true in the
-                                                     application's Info.plist for this to have any effect. */
+    SDL_WINDOW_ALLOW_HIGHDPI = 0x00002000,
     SDL_WINDOW_MOUSE_CAPTURE    = 0x00004000,
     SDL_WINDOW_ALWAYS_ON_TOP    = 0x00008000,
     SDL_WINDOW_SKIP_TASKBAR     = 0x00010000,
@@ -312,26 +284,7 @@ typedef enum
     SDL_WINDOW_INPUT_GRABBED = SDL_WINDOW_MOUSE_GRABBED
 } SDL_WindowFlags;
 
-
-// audio
-
-
-/**
- *  This function is called when the audio device needs more data.
- *
- *  \param userdata An application-specific parameter saved in
- *                  the SDL_AudioSpec structure
- *  \param stream A pointer to the audio data buffer.
- *  \param len    The length of that buffer in bytes.
- *
- *  Once the callback returns, the buffer will no longer be valid.
- *  Stereo samples are stored in a LRLRLR ordering.
- *
- *  You can choose to avoid callbacks and use SDL_QueueAudio() instead, if
- *  you like. Just open your audio device with a NULL callback.
- */
 typedef void (*SDL_AudioCallback)(void *userdata, u8 *stream, int len);
-
 typedef u16 SDL_AudioFormat;
 
 #define AUDIO_F32 0x8120
