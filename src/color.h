@@ -7,7 +7,8 @@
 #define BLACK ((v4){0, 0, 0, 1})
 #define RED   ((v4){1, 0, 0, 1})
 #define GREEN ((v4){0, 1, 0, 1})
-#define BLUE  ((v4){0, 1, 0, 1})
+#define BLUE  ((v4){0, 0, 1, 1})
+#define GRAY  ((v4){0.8, .8, .8, 1})
 
 // All color is always stored in linear space
 static u32 col_to_u32(v4 c) {
