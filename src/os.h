@@ -11,7 +11,7 @@ void main_update(void *handle);
 
 // ==== Basics ====
 static void os_print(char *out);
-static void os_assert(bool assertion, char *message);
+static void os_error(char *out);
 static void os_exit(u32 code);
 
 // Get the current time in micro seconds

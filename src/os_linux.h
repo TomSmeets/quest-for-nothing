@@ -26,10 +26,10 @@ static void os_print(char *msg) {
     write(1, msg, str_len(msg));
 }
 
-static void os_assert(bool cond, char *msg) {
-    if (cond) return;
+static void os_error(char *msg) {
     write(2, msg, str_len(msg));
     __builtin_debugtrap();
+    os_exit(1);
 }
 
 static void os_exit(u32 code) {

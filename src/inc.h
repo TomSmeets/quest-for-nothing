@@ -44,8 +44,9 @@ static_assert(sizeof(f32) == 4);
 #define tostring0(x) #x
 #define tostring1(x) tostring0(x)
 
-#define assert(cond) os_assert(cond, __FILE__ ":" tostring1(__LINE__) ": Assertion failed assert(" #cond ")\n")
-static void os_assert(bool cond, char *msg);
+#define assert(cond) if(!(cond)) os_error( __FILE__ ":" tostring1(__LINE__) " Assertion failed: assert(" #cond ")\n")
+
+static void os_error(char *msg);
 
 struct buf {
     void *ptr;

@@ -20,10 +20,10 @@ static void os_print(char *msg) {
     fputs(msg, stdout);
 }
 
-static void os_assert(bool cond, char *msg) {
-    if (cond) return;
-    os_print(msg);
+static void os_error(char *msg) {
+    fputs(msg, stderr);
     __builtin_debugtrap();
+    os_exit(1);
 }
 
 static void os_exit(u32 code) {
