@@ -11,13 +11,19 @@ The experience gained from creating such a game and designing a standard library
 Whether it will be used or not.
 I don't care too much about the end result. I like the journey too much.
 
+
+## Inspiration
+
+- [2001 A Space Odyssey](https://www.imdb.com/title/tt0062622/)
+- [Boarding Party](https://steamcommunity.com/sharedfiles/filedetails/?id=889907960)
+
 ## Space Game: Quest for Nothing
 Something has happened to the universe. Everything seems to be slowing down.
 Guess what, the universe is a simulation things just got bloated and busy.
 What is the root problem? How are you going to solve it?
 
 - Doom like shooter. Indoor environment with interesting lighting.
-- Some inspiration can be taken from [Boarding Party](https://steamcommunity.com/sharedfiles/filedetails/?id=889907960) I like the dark indoor environments.
+- Dark indoor environments with strong lights
 - Randomly generated levels and enemies.
 - Fully synthesized music and sound effects.
 - Lots of gore and particles. Blood on the wall, bullets flying around, aliens thorn into pieces.
@@ -51,6 +57,105 @@ Platform Targets:
 - Windows
 - Wasm
 - Wii
+
+
+## Features
+
+- CO-OP Multiplayer
+- Procedural generated spaceships and aliens
+- Pretty colored Lighting
+- Over use bloom effect, buttons, lights, eyes.
+- The Cat-Cannon, shoots a cat, which attacks the target, and the returns back to the owner. A boomerang, but a cat.
+
+# Theme
+
+This game should feel exactly like the movie "2001 A Space Odyssey".
+After analyzing the movie I noticed the following design ideas.
+
+High contrast between "Artificial" and "Natural".
+
+## Natural
+
+- Dirty
+- High detailed
+
+This means
+
+- textured polygons
+
+## Artificial
+
+- Clean
+- Flat polygons
+- White with a few strong contrasting colors
+- Every button and indicator Glows
+
+This means
+
+- Flat, untextured polygons
+- Emissive colors
+
+- Glowing buttons and indicator lights
+- Strong contrasting colors. Mostly white with Black, Red, Green, Blue, Yellow, where appropriate.
+- Life and natural things are very 'dirty' and not flat at all. They contrast the human made things.
+
+## Lighting
+- roughness: mirror like <--> diffuse
+- color
+- Emissive color
+
+Idea: we could make the world with polygons directly. No textures.
+
+## Color
+
+Analysis from the following video combined with my own interpretations.
+
+- [The Colors of Stanley Kubrick — Color Theory from The Shining to 2001: A Space Odyssey and More](https://www.youtube.com/watch?v=yVdhm9P8I6o)
+
+### Red
+
+- Threat
+- Danger
+- Emotional intensity
+
+### Orange
+
+- Destructive
+- Candles
+- Fire
+
+### Yellow & Gold
+
+- Grandeur
+- Isolate character from background
+
+### Green
+
+- Natural
+- Life
+- Death
+
+### Blue
+
+- Moonlight
+- Sin
+- Guilt
+
+### Purple
+
+- Temptation
+
+### White
+
+- Contrast
+- for other colors
+- Purity
+
+### Natural Things
+- Textured high detail
+
+### Artificial Things
+- Flat polygons
 
 # Other Design ideas
 - You wake up in a spaceship, deserted. But all aliens were hiding.
