@@ -205,8 +205,11 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     api->glEnable(GL_BLEND);
     api->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    if(GLOBAL->did_reload)
+    if(GLOBAL->did_reload) {
+        api->glUseProgram(0);
+        api->glDeleteProgram(gl->shader);
         gl_compile_default_shader(gl);
+    }
 
     // We will use full f32 bit textures and framebuffer
     api->glBindVertexArray(gl->vao);
