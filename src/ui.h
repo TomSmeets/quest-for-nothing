@@ -165,13 +165,26 @@ static void ui_newline(UI *ui) {
     ui->row.max = pos;
 }
 
+static void ui_char(Gfx *g, v2 p, f32 size, char c);
 static void ui_text(Gfx *g, v2 p, f32 size) {
     size*=.5;
-    f32 sx = size*.8;
-    f32 sy = size;
-
     // width of things
-    gfx_stroke_width(g, size/20);
+    gfx_color(g, WHITE);
+    gfx_stroke_width(g, size/8);
+    gfx_line_cap(g, 'c', 'c');
+
+    for(char c = 'A'; c <= 'F'; ++c) {
+        ui_char(g, p, size, c);
+        p.x += size*1.5;
+    }
+}
+
+static void ui_char(Gfx *g, v2 p, f32 size, char c) {
+    // upper case
+    if(c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+
+    f32 sx = size;
+    f32 sy = size;
     f32 b = size*.125;
 
     f32 line_height = sy/3;
@@ -186,82 +199,90 @@ static void ui_text(Gfx *g, v2 p, f32 size) {
     f32 x1 = sx*.5;
     f32 x2 = sx;
 
-    // A
-    gfx_color(g, WHITE);
-    gfx_line(g, p + (v2){x0, y2}, p + (v2){x1, 0});
-    gfx_line(g, p + (v2){x2, y2}, p + (v2){x1, 0});
+    f32 w = g->stroke_width;
 
-    gfx_line(g,
-        p + (v2){line_height*slope,      sy - line_height},
-        p + (v2){sx - line_height*slope, sy - line_height}
-    );
+    gfx_line_cap(g, 0, 0);
+    if(c == 'A') {
+        gfx_line_cap(g, 'x', 'x');
+        gfx_line(g, p + (v2){x0, y2+w}, p + (v2){x1, -w});
+        gfx_line(g, p + (v2){x2, y2+w}, p + (v2){x1, -w});
+        gfx_line_cap(g, 0, 0);
+        gfx_line(g,
+            p + (v2){line_height*slope,      sy - line_height},
+            p + (v2){sx - line_height*slope, sy - line_height}
+        );
+        return;
+    }
 
-    p.x += sx*1.5;
+    if(c == 'B') {
+        // vertical line
+        gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0, y2+w});
 
-    /// B
-    // vertical line
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0,   y2});
+        // horizontal lines
+        gfx_line_cap(g, 0, 0);
+        gfx_line(g, p + (v2){x0, y0}, p + (v2){x2-b, y0});
+        gfx_line(g, p + (v2){x0, y1}, p + (v2){x2-b, y1});
+        gfx_line(g, p + (v2){x0, y2}, p + (v2){x2-b, y2});
 
-    // horizontal lines
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x0, y1}, p + (v2){x2-b, y1});
-    gfx_line(g, p + (v2){x0, y2}, p + (v2){x2-b, y2});
+        // vertical lines (right)
+        gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y1-b});
+        gfx_line(g, p + (v2){x2, y1+b}, p + (v2){x2, y2-b});
 
-    // vertical lines (right)
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y1-b});
-    gfx_line(g, p + (v2){x2, y1+b}, p + (v2){x2, y2-b});
+        // diagonal lines
+        gfx_line_cap(g, 'X', 'Y');
+        gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
+        gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
+        gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1+b});
+        gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
+        return;
+    }
 
-    // diagonal lines
-    gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
-    gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
-    gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1+b});
-    gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
+    if(c == 'C') {
+        // vertical line
+        gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});
 
-    p.x += sx*1.5;
+        // horizontal lines
+        gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2, y0});
+        gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2, y2});
 
-    /// C
-    // vertical line
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});
+        // diagonal lines
+        gfx_line_cap(g, 'Y', 'X');
+        gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0+b, y0});
+        gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
+        return;
+    }
 
-    // horizontal lines
-    gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2, y0});
-    gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2, y2});
+    if(c == 'D') {
+        // Left and Right vertical line
+        gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0, y2+w});
+        gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y2-b});
 
-    // diagonal lines
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0+b, y0});
-    gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
+        // Horizontal Lines
+        gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x0, y0});
+        gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x0, y2});
 
-    p.x += sx*1.5;
+        // Diagonal lines
+        gfx_line_cap(g, 'Y', 'X');
+        gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2-b, y0});
+        gfx_line(g, p + (v2){x2, y2-b}, p + (v2){x2-b, y2});
+        return;
+    }
 
-    /// D
-    // Left and Right vertical line
-    gfx_line(g, p + (v2){x0, y0  }, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y2-b});
+    if(c == 'E' || c == 'F') {
+        gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0, y2+w});
+        gfx_line(g, p + (v2){x0, y0}, p + (v2){x2, y0});
+    }
 
-    // Horizontal Lines
-    gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x0, y0});
-    gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x0, y2});
+    if(c == 'E') {
+        gfx_line(g, p + (v2){x0, y1}, p + (v2){x2, y1});
+        gfx_line(g, p + (v2){x0, y2}, p + (v2){x2, y2});
+        return;
+    }
 
-    // Diagonal lines
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x2, y2-b}, p + (v2){x2-b, y2});
-
-    p.x += sx*1.5;
-
-    // E
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2, y0});
-    gfx_line(g, p + (v2){x0, y1}, p + (v2){x2, y1});
-    gfx_line(g, p + (v2){x0, y2}, p + (v2){x2, y2});
-
-    p.x += sx*1.5;
-
-    // F
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0,   y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2,   y0});
-    gfx_line(g, p + (v2){x0, y1}, p + (v2){x2-b, y1});
-
-    p.x += sx*1.5;
+    if(c == 'F') {
+        gfx_line(g, p + (v2){x0, y1}, p + (v2){x2-b, y1});
+        return;
+    }
 
     // G
     gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});

@@ -32,6 +32,8 @@ struct Gfx {
     u32 index_count;
     u32 *index;
 
+    u8 cap_start;
+    u8 cap_end;
     f32 stroke_width;
     Gfx_Vertex stamp;
 
@@ -79,6 +81,12 @@ static u32 gfx_vertex(Gfx *gfx, v3 pos) {
 
 static void gfx_stroke_width(Gfx *gfx, f32 w) {
     gfx->stroke_width = w;
+}
+
+
+static void gfx_line_cap(Gfx *gfx, u8 start, u8 end) {
+    gfx->cap_start = start;
+    gfx->cap_end = end;
 }
 
 static void gfx_index(Gfx *gfx, u32 index) {
@@ -190,14 +198,73 @@ static void gfx_circle(Gfx *g, v2 p, f32 r) {
 }
 
 static void gfx_line(Gfx *g, v2 a, v2 b) {
-    v2 d = v2_rot90(v2_normalize(a - b));
+    v2 d = v2_normalize(b - a);
+    v2 n = v2_rot90(d);
     f32 w = g->stroke_width;
-    gfx_quad(g,
-       (v3){a.x - d.x*w, a.y - d.y*w},
-       (v3){a.x + d.x*w, a.y + d.y*w},
-       (v3){b.x - d.x*w, b.y - d.y*w},
-       (v3){b.x + d.x*w, b.y + d.y*w}
-    );
-    gfx_circle(g, a, w);
-    gfx_circle(g, b, w);
+
+
+    v2 q1 = a - w*n;
+    v2 q2 = a + w*n;
+    v2 q3 = b - w*n;
+    v2 q4 = b + w*n;
+    
+    {
+        v2 f1 = w * d * (d.x/d.y);
+        v2 f2 = w * (d / f_abs(d.y));
+
+        if(g->cap_start == 'x') {
+            q1 +=  f1;
+            q2 += -f1;
+        }
+
+        if(g->cap_end == 'x') {
+            q3 +=  f1;
+            q4 += -f1;
+        }
+
+        if(g->cap_start == 'X') {
+            q1 +=  f1 - f2;
+            q2 += -f1 - f2;
+        }
+
+        if(g->cap_end == 'X') {
+            q3 +=  f1 + f2;
+            q4 += -f1 + f2;
+        }
+    }
+
+    {
+        v2 f1 = w * d * (d.y/d.x);
+        v2 f2 = w * (d / f_abs(d.x));
+
+        if(g->cap_start == 'y') {
+            q1 += -f1;
+            q2 += +f1;
+        }
+
+        if(g->cap_end == 'y') {
+            q3 += -f1;
+            q4 += +f1;
+        }
+
+        if(g->cap_start == 'Y') {
+            q1 += -f1 - f2;
+            q2 += +f1 - f2;
+        }
+
+        if(g->cap_end == 'Y') {
+            q3 += -f1 + f2;
+            q4 += +f1 + f2;
+        }
+    }
+
+    v3 p1 = {q1.x, q1.y};
+    v3 p2 = {q2.x, q2.y};
+    v3 p3 = {q3.x, q3.y};
+    v3 p4 = {q4.x, q4.y};
+
+    gfx_quad(g, p1, p2, p3, p4);
+
+    if(g->cap_start == 'c') gfx_circle(g, a, w);
+    if(g->cap_end   == 'c') gfx_circle(g, b, w);
 }
