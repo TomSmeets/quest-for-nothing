@@ -187,7 +187,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
 
 static void gl_clear(gl_t *gl, v2 window_size) {
     gl_api *api = gl->api;
-    
+
     // Global settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
     api->glDisable(GL_CULL_FACE);

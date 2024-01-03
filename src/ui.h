@@ -169,7 +169,7 @@ static void ui_text(Gfx *g, v2 p, f32 size) {
     size*=.5;
     f32 sx = size*.8;
     f32 sy = size;
-    
+
     // width of things
     gfx_stroke_width(g, size/20);
     f32 b = size*.125;
@@ -308,7 +308,7 @@ static void ui_text(Gfx *g, v2 p, f32 size) {
     gfx_line(g, p + (v2){x0,   y1+b}, p + (v2){x2, y0});
     gfx_line(g, p + (v2){x0+b*2*sx/sy, y1},   p + (v2){x2, y2});
 
-    
+
   //  gfx_line(g, p + (v2){x0, y2}, p + (v2){x0, y1+b});
 }
 

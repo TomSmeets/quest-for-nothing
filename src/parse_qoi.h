@@ -49,7 +49,7 @@ static u32 pixel_hash(pixel px) {
 static image *parse_qoi(mem *m, buf file) {
     u8 *file_start = file.ptr;
     u8 *file_end   = file.ptr + file.size;
-    
+
     // 'p' is the current read cursor
     u8 *p = file_start;
 
