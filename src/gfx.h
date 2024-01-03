@@ -207,6 +207,16 @@ static void gfx_line(Gfx *g, v2 a, v2 b) {
     v2 q2 = a + w*n;
     v2 q3 = b - w*n;
     v2 q4 = b + w*n;
+
+    if(g->cap_start == 'b') {
+        q1 -= w*d;
+        q2 -= w*d;
+    }
+
+    if(g->cap_end == 'b') {
+        q3 += w*d;
+        q4 += w*d;
+    }
     
     {
         v2 f1 = w * d * (d.x/d.y);

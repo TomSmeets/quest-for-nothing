@@ -165,28 +165,40 @@ static void ui_newline(UI *ui) {
     ui->row.max = pos;
 }
 
-static void ui_char(Gfx *g, v2 p, f32 size, char c);
-static void ui_text(Gfx *g, v2 p, f32 size) {
-    size*=.5;
+static void ui_char(Gfx *g, v2 p, f32 sx, f32 sy, char c);
+static void ui_text(Gfx *g, v2 start, f32 size) {
+    size *= .8;
+    f32 sx = size*.5;
+    f32 sy = size;
+    f32 pad = size*0.1;
+
     // width of things
     gfx_color(g, WHITE);
-    gfx_stroke_width(g, size/8);
+    gfx_stroke_width(g, size*.04);
     gfx_line_cap(g, 'c', 'c');
 
-    for(char c = 'A'; c <= 'F'; ++c) {
-        ui_char(g, p, size, c);
-        p.x += size*1.5;
+    char *text = "Hello World!\nABCDEFGHIJK\nLMNOPQRSTUV\nWXYZ";
+
+    v2 p = start;
+    for(;;) {
+        char c = *text++;
+        if(!c) break;
+        p.x += pad;
+        ui_char(g, p, sx, sy, c);
+        p.x += sx;
+        p.x += pad;
+        if(c == '\n') {
+            p.x = start.x;
+            p.y += sy + pad*2;
+        }
     }
 }
 
-static void ui_char(Gfx *g, v2 p, f32 size, char c) {
+static void ui_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
     // upper case
     if(c >= 'a' && c <= 'z') c = c - 'a' + 'A';
 
-    f32 sx = size;
-    f32 sy = size;
-    f32 b = size*.125;
-
+    f32 b = f_min(sx, sy)*.125;
     f32 line_height = sy/3;
     f32 slope = sx / sy / 2;
 
@@ -211,194 +223,120 @@ static void ui_char(Gfx *g, v2 p, f32 size, char c) {
             p + (v2){line_height*slope,      sy - line_height},
             p + (v2){sx - line_height*slope, sy - line_height}
         );
-        return;
     }
 
-    if(c == 'B') {
-        // vertical line
-        gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0, y2+w});
+    // Veritcal (L-L)
+    if(str_chr("BDEFHKLMNPRW", c)) gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0,   y2+w});
+    if(str_chr("IT", c))          gfx_line(g, p + (v2){x1, y0-w}, p + (v2){x1,   y2+w});
+    if(str_chr("HMNW", c))        gfx_line(g, p + (v2){x2, y0-w}, p + (v2){x2,   y2+w});
 
-        // horizontal lines
-        gfx_line_cap(g, 0, 0);
-        gfx_line(g, p + (v2){x0, y0}, p + (v2){x2-b, y0});
-        gfx_line(g, p + (v2){x0, y1}, p + (v2){x2-b, y1});
-        gfx_line(g, p + (v2){x0, y2}, p + (v2){x2-b, y2});
+    // Veritcal (S-S)
+    if(str_chr("CGOQ", c))        gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0,   y2-b});
+    if(str_chr("J", c))           gfx_line(g, p + (v2){x0, y1},   p + (v2){x0,   y2-b});
+    if(str_chr("DOQ", c))         gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2,   y2-b});
 
-        // vertical lines (right)
-        gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y1-b});
-        gfx_line(g, p + (v2){x2, y1+b}, p + (v2){x2, y2-b});
+    if(str_chr("BS", c))          gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y1-b});
 
-        // diagonal lines
-        gfx_line_cap(g, 'X', 'Y');
-        gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
-        gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
-        gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1+b});
-        gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
-        return;
-    }
+    if(str_chr("BPR", c))         gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y1-b});
+    if(str_chr("BS", c))          gfx_line(g, p + (v2){x2, y1+b}, p + (v2){x2, y2-b});
 
-    if(c == 'C') {
-        // vertical line
-        gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});
+    // Veritcal (L-S)
+    if(str_chr("U", c))           gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0,   y2-b});
+    if(str_chr("JU", c))          gfx_line(g, p + (v2){x2, y0-w}, p + (v2){x2,   y2-b});
 
-        // horizontal lines
-        gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2, y0});
-        gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2, y2});
+    // Horizontal (L-L)
+    if(str_chr("EFIJTZ", c))       gfx_line(g, p + (v2){x0-w, y0}, p + (v2){x2+w, y0});
+    if(str_chr("EFH", c))         gfx_line(g, p + (v2){x0-w, y1}, p + (v2){x2+w, y1});
+    if(str_chr("EILZ", c))         gfx_line(g, p + (v2){x0-w, y2}, p + (v2){x2+w, y2});
 
-        // diagonal lines
-        gfx_line_cap(g, 'Y', 'X');
-        gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0+b, y0});
-        gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
-        return;
-    }
+    // Horizontal (L-S)
+    if(str_chr("BDPR", c))        gfx_line(g, p + (v2){x0-w, y0}, p + (v2){x2-b, y0});
+    if(str_chr("BPR", c))         gfx_line(g, p + (v2){x0-w, y1}, p + (v2){x2-b, y1});
+    if(str_chr("BD", c))          gfx_line(g, p + (v2){x0-w, y2}, p + (v2){x2-b, y2});
 
-    if(c == 'D') {
-        // Left and Right vertical line
-        gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0, y2+w});
-        gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y2-b});
+    // Horizontal (S-S)
+    if(str_chr("OQS", c))         gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2-b, y0});
+    if(str_chr("S", c))           gfx_line(g, p + (v2){x0+b, y1}, p + (v2){x2-b, y1});
+    if(str_chr("JOQSU", c))        gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
 
-        // Horizontal Lines
-        gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x0, y0});
-        gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x0, y2});
+    // Horizontal (S-L)
+    if(str_chr("CG", c))          gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2+w, y0});
+    if(str_chr("", c))            gfx_line(g, p + (v2){x0+b, y1}, p + (v2){x2+w, y1});
+    if(str_chr("CG", c))          gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2+w, y2});
 
-        // Diagonal lines
-        gfx_line_cap(g, 'Y', 'X');
-        gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2-b, y0});
-        gfx_line(g, p + (v2){x2, y2-b}, p + (v2){x2-b, y2});
-        return;
-    }
+    // diagonal lines
+    gfx_line_cap(g, 'X', 'Y');
 
-    if(c == 'E' || c == 'F') {
-        gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0, y2+w});
-        gfx_line(g, p + (v2){x0, y0}, p + (v2){x2, y0});
-    }
+    // Right
+    if(str_chr("BDOPQRS", c))      gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
+    if(str_chr("BPR", c))         gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
+    if(str_chr("BS", c))           gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1+b});
+    if(str_chr("BDJOQSU", c))       gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
 
-    if(c == 'E') {
-        gfx_line(g, p + (v2){x0, y1}, p + (v2){x2, y1});
-        gfx_line(g, p + (v2){x0, y2}, p + (v2){x2, y2});
-        return;
-    }
+    // Left
+    if(str_chr("CGOQS", c))        gfx_line(g, p + (v2){x0+b, y0}, p +(v2){x0, y0+b});
+    if(str_chr("S", c))            gfx_line(g, p + (v2){x0+b, y1}, p +(v2){x0, y1-b});
+    if(str_chr("CGJOQSU", c))       gfx_line(g, p + (v2){x0+b, y2}, p +(v2){x0, y2-b});
 
-    if(c == 'F') {
-        gfx_line(g, p + (v2){x0, y1}, p + (v2){x2-b, y1});
-        return;
-    }
+    gfx_line_cap(g, 0, 0);
 
     // G
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});
+    if(c == 'G') {
+        // extra corner
+        gfx_line(g, p + (v2){x1, y1}, p + (v2){x2, y1});
+        gfx_line(g, p + (v2){x2, y2}, p + (v2){x2, y1-w});
+    }
 
-    // horizontal lines
-    gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2, y0});
-    gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2, y2});
+    if(c == 'K') {
+        f32 dy = sx*0.25;
+        gfx_line_cap(g, 0, 'x');
+        gfx_line(g, p + (v2){x0, y1+dy}, p + (v2){x2-w, y0-w});
+        gfx_line(g, p + (v2){x0+dy, y1}, p + (v2){x2-w, y2+w});
+        gfx_line_cap(g, 0, 0);
+    }
 
-    // extra corner
-    gfx_line(g, p + (v2){x1, y1}, p + (v2){x2, y1});
-    gfx_line(g, p + (v2){x2, y2}, p + (v2){x2, y1});
+    if(c == 'M') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0+w, y0}, p + (v2){x1-w*.5, sy*.6});
+        gfx_line(g, p + (v2){x2-w, y0}, p + (v2){x1+w*.5, sy*.6});
+        gfx_line_cap(g, 0, 0);
+    }
 
-    // diagonal lines
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0+b, y0});
-    gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
+    gfx_line_cap(g, 'X', 'X');
+    if(c == 'N' || c == 'X') {
+        gfx_line(g, p + (v2){x0+w, y0}, p + (v2){x2-w, y2});
+    }
 
-    p.x += sx*1.5;
+    if(c == 'X') gfx_line(g, p + (v2){x0+w, y2}, p + (v2){x2-w, y0});
 
-    // H
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x2, y0}, p + (v2){x2, y2});
-    gfx_line(g, p + (v2){x0, y1}, p + (v2){x2, y1});
+    gfx_line_cap(g, 'x', 'x');
+    if(c == 'Z') gfx_line(g, p + (v2){x0, y2-w}, p + (v2){x2, y0+w});
 
-    p.x += sx*1.5;
+    if(c == 'Q') {
+        gfx_line(g, p + (v2){x2-b-w, y2-b-w}, p + (v2){x2+w, y2+w});
+    }
 
-    // I
-    gfx_line(g, p + (v2){x1, y0}, p + (v2){x1, y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2, y0});
-    gfx_line(g, p + (v2){x0, y2}, p + (v2){x2, y2});
+    if(c == 'R') {
+        f32 dy = sx*.25;
+        gfx_line_cap(g, 0, 'x');
+        gfx_line(g, p + (v2){x0+dy, y1}, p + (v2){x2-w, y2+w});
+        gfx_line_cap(g, 0, 0);
+    }
 
-    p.x += sx*1.5;
+    if(c == 'V') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0, y0}, p + (v2){x1-w*.5, y2});
+        gfx_line(g, p + (v2){x2, y0}, p + (v2){x1+w*.5, y2});
+        gfx_line_cap(g, 0, 0);
+    }
 
-    // J
-    gfx_line(g, p + (v2){x2, y0}, p + (v2){x2, y2-b});
-    gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
-    gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
-    gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2, y0});
-//    gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0, y1+b});
+    if(c == 'W') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0+w, y2}, p + (v2){x1-w*.5, sy*.4});
+        gfx_line(g, p + (v2){x2-w, y2}, p + (v2){x1+w*.5, sy*.4});
+        gfx_line_cap(g, 0, 0);
+    }
 
-    p.x += sx*1.5;
-
-    // K
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x0,   y1+b}, p + (v2){x2, y0});
-    gfx_line(g, p + (v2){x0+b*2*sx/sy, y1},   p + (v2){x2, y2});
-
-
-    p.x -= sx*1.5*10;
-    p.y += sy*1.5;
-
-    // L
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x0, y2}, p + (v2){x2, y2});
-
-    p.x += sx*1.5;
-
-    // M
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x2, y0}, p + (v2){x2, y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x1, y1});
-    gfx_line(g, p + (v2){x2, y0}, p + (v2){x1, y1});
-
-    p.x += sx*1.5;
-
-    // N
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0, y2});
-    gfx_line(g, p + (v2){x2, y0}, p + (v2){x2, y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2, y2});
-
-    p.x += sx*1.5;
-
-    // O
-    // vertical line
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y2-b});
-
-    // horizontal lines
-    gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
-
-    // diagonal lines
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0+b, y0});
-    gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x2, y2-b}, p + (v2){x2-b, y2});
-
-    p.x += sx*1.5;
-
-    // P
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x0,   y2});
-    gfx_line(g, p + (v2){x0, y0}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y1-b});
-    gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
-    gfx_line(g, p + (v2){x2-b, y1}, p + (v2){0, y1});
-
-    p.x += sx*1.5;
-
-    // Q
-    // vertical line
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y2-b});
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y2-b});
-
-    // horizontal lines
-    gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
-
-    // diagonal lines
-    gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0+b, y0});
-    gfx_line(g, p + (v2){x0, y2-b}, p + (v2){x0+b, y2});
-    gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2-b, y0});
-    gfx_line(g, p + (v2){x2, y2-b}, p + (v2){x2-b, y2});
-    gfx_line(g, p + (v2){x1, y1}, p + (v2){x2, y2});
-
-  //  gfx_line(g, p + (v2){x0, y2}, p + (v2){x0, y1+b});
 }
 
 static void ui_begin(UI *ui, Input *input, mem *tmp) {
