@@ -147,12 +147,19 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     Gfx_Vertex *v0 = 0;
     api->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->pos);
     api->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->uv);
+    api->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->normal);
+    api->glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->color);
+    api->glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->emissive);
     api->glEnableVertexAttribArray(0);
     api->glEnableVertexAttribArray(1);
+    api->glEnableVertexAttribArray(2);
+    api->glEnableVertexAttribArray(3);
+    api->glEnableVertexAttribArray(4);
 
     // create a texture atlas where we dynamically write all textures to
     // ...
 
+    #if 0
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
     gl->empty_image = parse_qoi(m, (buf) { .ptr = (void *) &GL_WALL_IMAGE_DATA[0], .size = GL_WALL_IMAGE_SIZE, });
     api->glGenTextures(1, &gl->texture);
@@ -173,6 +180,8 @@ static gl_t *gl_init(mem *m, gl_api *api) {
 
     // NOTE: We store the images in linear color space!!!
     api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, gl->empty_image->size_x, gl->empty_image->size_y, 0, GL_RGBA, GL_FLOAT, gl->empty_image->data);
+    #endif
+
     return gl;
 }
 
@@ -181,7 +190,7 @@ static void gl_clear(gl_t *gl, v2 window_size) {
     
     // Global settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
-    api->glEnable(GL_CULL_FACE);
+    api->glDisable(GL_CULL_FACE);
     api->glCullFace(GL_FRONT);
 
     api->glViewport(0, 0, window_size.x, window_size.y);
@@ -193,8 +202,8 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     gl_api *api = gl->api;
 
     if(gfx->depth) api->glEnable(GL_DEPTH_TEST);
-    // api->glEnable(GL_BLEND);
-    // gl->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    api->glEnable(GL_BLEND);
+    api->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     if(GLOBAL->did_reload)
         gl_compile_default_shader(gl);
@@ -210,6 +219,5 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     api->glUniformMatrix4fv(gl->shader_uniform_mat, 1, row_major, (GLfloat *) &gfx->mtx.fwd);
     api->glDrawElements(GL_TRIANGLES, gfx->index_count, GL_UNSIGNED_INT, 0);
 
-    // Restore state
-    api->glDisable(GL_DEPTH_TEST);
+    if(gfx->depth) api->glDisable(GL_DEPTH_TEST);
 }

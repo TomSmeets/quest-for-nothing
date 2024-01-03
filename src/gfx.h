@@ -14,6 +14,8 @@ struct Gfx_Vertex {
     v3 pos;
     v2 uv;
     v3 normal;
+    v4 color;
+    f32 emissive;
 };
 
 // Graphics pass
@@ -30,146 +32,172 @@ struct Gfx {
     u32 index_count;
     u32 *index;
 
+    f32 stroke_width;
+    Gfx_Vertex stamp;
+
     Gfx *next;
 };
 
 static Gfx *gfx_begin(mem *m) {
     Gfx *gfx = mem_struct(m, Gfx);
-    gfx->vertex_max = 1024;
+    gfx->vertex_max = 1024*10;
     gfx->vertex = mem_array_uninit(m, Gfx_Vertex, gfx->vertex_max);
 
-    gfx->index_max = 1024;
+    gfx->index_max = 1024*10;
     gfx->index = mem_array_uninit(m, u32, gfx->index_max);
 
     gfx->mtx = m4_id();
     return gfx;
 }
 
-static u32 gfx_vertex(Gfx *gfx, v3 pos, v2 uv, v3 normal) {
+
+static void gfx_material(Gfx *gfx, v4 color, f32 emissive) {
+    gfx->stamp.color    = color;
+    gfx->stamp.emissive = emissive;
+}
+
+static void gfx_color(Gfx *gfx, v4 color) {
+    gfx->stamp.color = color;
+}
+
+static void gfx_uv(Gfx *gfx, f32 u, f32 v) {
+    gfx->stamp.uv.x = u;
+    gfx->stamp.uv.y = v;
+}
+
+static void gfx_normal(Gfx *gfx, v3 normal) {
+    gfx->stamp.normal = normal;
+}
+
+static u32 gfx_vertex(Gfx *gfx, v3 pos) {
     assert(gfx->vertex_count < gfx->vertex_max);
     u32 ix = gfx->vertex_count++;
-    gfx->vertex[ix] = (Gfx_Vertex) {
-        .pos = pos,
-        .uv = uv,
-        .normal = normal,
-    };
+    gfx->stamp.pos = pos;
+    gfx->vertex[ix] = gfx->stamp;
     return ix;
 };
+
+static void gfx_stroke_width(Gfx *gfx, f32 w) {
+    gfx->stroke_width = w;
+}
 
 static void gfx_index(Gfx *gfx, u32 index) {
     assert(gfx->index_count < gfx->index_max);
     gfx->index[gfx->index_count++] = index;
 }
 
+
+static u32 gfx_vertex_uv(Gfx *gfx, v3 pos, f32 u, f32 v) {
+    gfx_uv(gfx, u, v);
+    return gfx_vertex(gfx, pos);
+};
+
+
 // a---b
 // | / |
 // c---d
-static void gfx_quad(Gfx *gfx, image *img, v3 normal, v3 a, v3 b, v3 c, v3 d) {
-    u32 ia = gfx_vertex(gfx, a, (v2){0, 0}, normal);
-    u32 ib = gfx_vertex(gfx, b, (v2){1, 0}, normal);
-    u32 ic = gfx_vertex(gfx, c, (v2){0, 1}, normal);
-    u32 id = gfx_vertex(gfx, d, (v2){1, 1}, normal);
+static void gfx_quad(Gfx *gfx, v3 a, v3 b, v3 c, v3 d) {
+    u32 ia = gfx_vertex_uv(gfx, a, 0, 0);
+    u32 ib = gfx_vertex_uv(gfx, b, 1, 0);
+    u32 ic = gfx_vertex_uv(gfx, c, 0, 1);
+    u32 id = gfx_vertex_uv(gfx, d, 1, 1);
 
     gfx_index(gfx, ia);
-    gfx_index(gfx, ib);
     gfx_index(gfx, ic);
+    gfx_index(gfx, ib);
 
     gfx_index(gfx, ic);
-    gfx_index(gfx, ib);
     gfx_index(gfx, id);
+    gfx_index(gfx, ib);
 }
 
-static void gfx_rect(Gfx *gfx, v2 min, v2 max, v4 color) {
-    v3 normal = { 0, 0, 1 };
+static void gfx_border(Gfx *gfx, v2 min, v2 max) {
+    f32 r = gfx->stroke_width;
+    u32 iao = gfx_vertex(gfx, (v3) { min.x, min.y, 0});
+    u32 ibo = gfx_vertex(gfx, (v3) { max.x, min.y, 0});
+    u32 ico = gfx_vertex(gfx, (v3) { min.x, max.y, 0});
+    u32 ido = gfx_vertex(gfx, (v3) { max.x, max.y, 0});
+
+    u32 iai = gfx_vertex(gfx, (v3) { min.x + r, min.y + r, 0 });
+    u32 ibi = gfx_vertex(gfx, (v3) { max.x - r, min.y + r, 0 });
+    u32 ici = gfx_vertex(gfx, (v3) { min.x + r, max.y - r, 0 });
+    u32 idi = gfx_vertex(gfx, (v3) { max.x - r, max.y - r, 0 });
+
+    gfx_index(gfx, iao);
+    gfx_index(gfx, ibi);
+    gfx_index(gfx, ibo);
+    gfx_index(gfx, iao);
+    gfx_index(gfx, iai);
+    gfx_index(gfx, ibi);
+
+    gfx_index(gfx, ibo);
+    gfx_index(gfx, idi);
+    gfx_index(gfx, ido);
+    gfx_index(gfx, ibo);
+    gfx_index(gfx, ibi);
+    gfx_index(gfx, idi);
+
+    gfx_index(gfx, ido);
+    gfx_index(gfx, ici);
+    gfx_index(gfx, ico);
+    gfx_index(gfx, ido);
+    gfx_index(gfx, idi);
+    gfx_index(gfx, ici);
+
+    gfx_index(gfx, ico);
+    gfx_index(gfx, iai);
+    gfx_index(gfx, iao);
+    gfx_index(gfx, ico);
+    gfx_index(gfx, ici);
+    gfx_index(gfx, iai);
+}
+
+static void gfx_rect(Gfx *gfx, v2 min, v2 max) {
     v3 a = { min.x, min.y, 0 };
     v3 b = { max.x, min.y, 0 };
     v3 c = { min.x, max.y, 0 };
     v3 d = { max.x, max.y, 0 };
-    gfx_quad(gfx, 0, normal, a, b, c, d);
+    gfx_normal(gfx, (v3) { 0, 0, 1 });
+    gfx_quad(gfx, a, b, c, d);
 }
 
-// What is rendering? This is basically the api we want right?
-// UI
-// image *render_image(m4 *mtx, vtx *)
+static void gfx_circle(Gfx *g, v2 p, f32 r) {
+    u32 n = 8;
+    f32 a = R4 / n;
 
-// NOTE: Should an image have a uuid? (u32/u64?)
+    f32 r_cos = f_cos(a);
+    f32 r_sin = f_sin(a);
 
+    v2 rx = {  r_cos, r_sin };
+    v2 ry = { -r_sin, r_cos };
 
-// Textures
-// What is the advantage of a texture atlas?
+    v2 d = (v2) { 1, 0 };
 
-// 1. Entity
-// 2. Quad + Image (optional)
-// 3. Verts + Atlas
-// 4. Upload To GPU
+    u32 i_center = gfx_vertex(g, (v3){p.x, p.y});
+    u32 i0       = 0;
+    for(u32 i = 0; i <= n; ++i) {
+        v2 o =  p + d*r;
+        u32 i1 = gfx_vertex_uv(g, (v3){o.x, o.y, 0}, d.x*.5+.5, d.y*.5+.5);
 
-// 1. Entity
-// 2. Verts
-
-
-// For 3D graphics -> 8 floats
-// For 2D graphics we would only need 4 floats:
-//    struct Gfx_Vertex {
-//        v2 pos;
-//        v2 uv;
-//    };
-// But for simplicity and flexibility we will use the same
-// vertex structure for both.
-// We could use two variants in the future if we decide so.
-
-
-// graphics pass
-// - shader
-// - settings
-// - transform
-// - vertices
-//
-// Allocating the max number of vertices and indicies would use the following
-// 65536*(8*4 + 2) = 2.12 MB
-//
-// u16 is a limit we could reach, so lets just use u32 for flexibility and simplicity
-//
-struct gfx_pass {
-    m4 transform;
-    mem *m;
-
-    // NOTE: We might need to split this up in the future
-    u32 vtx_cap;
-    u32 vtx_count;
-    Gfx_Vertex *vtx;
-
-    u32 idx_cap;
-    u32 idx_count;
-    u32 *idx;
-
-    gfx_pass *next;
-};
-
-#if 0
-static gfx_pass *gfx_pass_new(mem *m, u32 vertex_count, u32 index_count) {
-    gfx_pass *pass = mem_struct(m, gfx_pass);
-    pass->vtx_cap = vertex_count;
-    pass->vtx     = mem_array_uninit(m, Gfx_Vertex, pass->vtx_cap);
-    pass->idx_cap = index_count;
-    pass->idx     = mem_array_uninit(m, u32, pass->idx_cap);
-    pass->m = m;
-    return pass;
+        if(i > 0) {
+            gfx_index(g, i_center);
+            gfx_index(g, i0);
+            gfx_index(g, i1);
+        }
+        d = rx * d.x + ry * d.y;
+        i0 = i1;
+    }
 }
 
-// Texture Atlas
-struct gfx_atlas_item {
-    v2 uv_min;
-    v2 uv_max;
-};
-
-static gfx_atlas_item gfx_put_image(gfx_pass *pass, image *img) {
-    // TODO
-    return (gfx_atlas_item) {};
+static void gfx_line(Gfx *g, v2 a, v2 b) {
+    v2 d = v2_rot90(v2_normalize(a - b));
+    f32 w = g->stroke_width;
+    gfx_quad(g,
+       (v3){a.x - d.x*w, a.y - d.y*w},
+       (v3){a.x + d.x*w, a.y + d.y*w},
+       (v3){b.x - d.x*w, b.y - d.y*w},
+       (v3){b.x + d.x*w, b.y + d.y*w}
+    );
+    gfx_circle(g, a, w);
+    gfx_circle(g, b, w);
 }
-
-// gfx_begin_pass
-static void example_code(mem *m) {
-    gfx_pass *pass = gfx_pass_new(m, model->vtx_count, model->idx_count);
-    load_obj(read_file(obj));
-}
-#endif

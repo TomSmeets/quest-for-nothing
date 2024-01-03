@@ -34,6 +34,9 @@ static f32 v3_len(v3 v)  { return f_sqrt(v3_len_squared(v)); }
 static v2 v2_normalize(v2 v)  { return v * f_inv_sqrt(v2_len_squared(v)); }
 static v3 v3_normalize(v3 v)  { return v * f_inv_sqrt(v3_len_squared(v)); }
 
+// Rotate vector by 90* (Counter Clockwise)
+static v2 v2_rot90(v2 v) { return (v2) { -v.y, v.x }; };
+
 // Limit the length of a vector to some maximum
 static v3 v3_limit(v3 v, f32 lim) {
     f32 len2 = v3_len_squared(v);

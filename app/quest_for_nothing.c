@@ -93,11 +93,21 @@ void main_update(void *handle) {
     // Draw a mouse cursor
     {
         Gfx *gfx = gfx_begin(tmp);
-        m4_scale(&gfx->mtx, (v3) { 20, 20, 1});
-        m4_rot_z(&gfx->mtx, (app->time % 4000000) / 4000000.0f * -R4);
-        m4_trans(&gfx->mtx, (v3){ win->input.mouse_pos.x, win->input.mouse_pos.y });
+        gfx_stroke_width(gfx, 8);
+        // m4_scale(&gfx->mtx, (v3) { 20, 20, 1});
+        // m4_rot_z(&gfx->mtx, (app->time % 4000000) / 4000000.0f * -R4);
+        // m4_trans(&gfx->mtx, (v3){ win->input.mouse_pos.x, win->input.mouse_pos.y });
         m4_screen_to_clip(&gfx->mtx, win->input.window_size);
-        gfx_rect(gfx, (v2) { -1, -1 }, (v2) { 1, 1 }, 0);
+
+        gfx_color(gfx, BLACK);
+        gfx_line(gfx, win->input.window_size/2, win->input.mouse_pos);
+
+        gfx_color(gfx, WHITE);
+        gfx_stroke_width(gfx, 4);
+        gfx_line(gfx, win->input.window_size/2, win->input.mouse_pos);
+
+        gfx_color(gfx, RED);
+        gfx_circle(gfx, win->input.mouse_pos, 20);
         gl_draw(app->gl, gfx);
     }
 
