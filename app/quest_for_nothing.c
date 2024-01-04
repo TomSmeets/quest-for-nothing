@@ -116,4 +116,5 @@ void main_update(void *handle) {
     // Wait for the next frame
     app->time += app->dt;
     os_sleep_until(app->time);
+    mem_clear(&app->tmp);
 }
