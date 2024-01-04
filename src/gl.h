@@ -159,7 +159,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
     // create a texture atlas where we dynamically write all textures to
     // ...
 
-    #if 0
+    #if 1
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
     gl->empty_image = parse_qoi(m, (buf) { .ptr = (void *) &GL_WALL_IMAGE_DATA[0], .size = GL_WALL_IMAGE_SIZE, });
     api->glGenTextures(1, &gl->texture);
