@@ -2,6 +2,7 @@
 // gfx_draw.h - Draw 2d shapes
 #pragma once
 #include "gfx.h"
+#include "str.h"
 
 static void gfx_stroke_width(Gfx *gfx, f32 w) {
     gfx->stroke_width = w;
@@ -152,4 +153,176 @@ static void gfx_line(Gfx *g, v2 a, v2 b) {
 
     if(g->cap_start == 'c') gfx_circle(g, a, w);
     if(g->cap_end   == 'c') gfx_circle(g, b, w);
+}
+
+static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
+    // upper case
+    if(c >= 'a' && c <= 'z') c = c - 'a' + 'A';
+
+    f32 b = f_min(sx, sy)*.125;
+    f32 line_height = sy/3;
+    f32 slope = sx / sy / 2;
+
+    f32 y0 = 0;
+    f32 y1 = sy*.5;
+    f32 y2 = sy;
+    f32 y3 = sy*.6;
+
+    f32 x0 = 0;
+    f32 x1 = sx*.5;
+    f32 x2 = sx;
+
+    f32 w = g->stroke_width;
+
+    gfx_line_cap(g, 0, 0);
+    if(c == 'A') {
+        gfx_line_cap(g, 'x', 'x');
+        gfx_line(g, p + (v2){x0, y2+w}, p + (v2){x1, -w});
+        gfx_line(g, p + (v2){x2, y2+w}, p + (v2){x1, -w});
+        gfx_line_cap(g, 0, 0);
+        gfx_line(g,
+            p + (v2){line_height*slope,      sy - line_height},
+            p + (v2){sx - line_height*slope, sy - line_height}
+        );
+    }
+
+    // Veritcal (L-L)
+    if(str_chr("BDEFHKLMNPRW", c)) gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0,   y2+w});
+    if(str_chr("IT", c))           gfx_line(g, p + (v2){x1, y0-w}, p + (v2){x1,   y2+w});
+    if(str_chr("HMNW", c))         gfx_line(g, p + (v2){x2, y0-w}, p + (v2){x2,   y2+w});
+
+    // Veritcal (S-S)
+    if(str_chr("CGOQ", c))         gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0,   y2-b});
+    if(str_chr("J", c))            gfx_line(g, p + (v2){x0, y1},   p + (v2){x0,   y2-b});
+    if(str_chr("DOQ", c))          gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2,   y2-b});
+
+    if(str_chr("BS", c))           gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y1-b});
+
+    if(str_chr("BPR", c))          gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2, y1-b});
+    if(str_chr("BS", c))           gfx_line(g, p + (v2){x2, y1+b}, p + (v2){x2, y2-b});
+
+    // Veritcal (L-S)
+    if(str_chr("U", c))            gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0,   y2-b});
+    if(str_chr("JU", c))           gfx_line(g, p + (v2){x2, y0-w}, p + (v2){x2,   y2-b});
+
+    // Horizontal (L-L)
+    if(str_chr("EFIJTZ", c))       gfx_line(g, p + (v2){x0-w, y0}, p + (v2){x2+w, y0});
+    if(str_chr("EFH", c))          gfx_line(g, p + (v2){x0-w, y1}, p + (v2){x2+w, y1});
+    if(str_chr("EILZ", c))         gfx_line(g, p + (v2){x0-w, y2}, p + (v2){x2+w, y2});
+
+    // Horizontal (L-S)
+    if(str_chr("BDPR", c))         gfx_line(g, p + (v2){x0-w, y0}, p + (v2){x2-b, y0});
+    if(str_chr("BPR", c))          gfx_line(g, p + (v2){x0-w, y1}, p + (v2){x2-b, y1});
+    if(str_chr("BD", c))           gfx_line(g, p + (v2){x0-w, y2}, p + (v2){x2-b, y2});
+
+    // Horizontal (S-S)
+    if(str_chr("OQS", c))          gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2-b, y0});
+    if(str_chr("S", c))            gfx_line(g, p + (v2){x0+b, y1}, p + (v2){x2-b, y1});
+    if(str_chr("JOQSU", c))        gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
+
+    // Horizontal (S-L)
+    if(str_chr("CG", c))           gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2+w, y0});
+    if(str_chr("", c))             gfx_line(g, p + (v2){x0+b, y1}, p + (v2){x2+w, y1});
+    if(str_chr("CG", c))           gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2+w, y2});
+
+    // diagonal lines
+    gfx_line_cap(g, 'X', 'Y');
+
+    // Right
+    if(str_chr("BDOPQRS", c))      gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
+    if(str_chr("BPR", c))          gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
+    if(str_chr("BS", c))           gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1+b});
+    if(str_chr("BDJOQSU", c))      gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
+
+    // Left
+    if(str_chr("CGOQS", c))        gfx_line(g, p + (v2){x0+b, y0}, p +(v2){x0, y0+b});
+    if(str_chr("S", c))            gfx_line(g, p + (v2){x0+b, y1}, p +(v2){x0, y1-b});
+    if(str_chr("CGJOQSU", c))      gfx_line(g, p + (v2){x0+b, y2}, p +(v2){x0, y2-b});
+
+    gfx_line_cap(g, 0, 0);
+
+    // G
+    if(c == 'G') {
+        // extra corner
+        gfx_line(g, p + (v2){x1, y1}, p + (v2){x2, y1});
+        gfx_line(g, p + (v2){x2, y2}, p + (v2){x2, y1-w});
+    }
+
+    if(c == 'K') {
+        f32 dy = sx*0.25;
+        gfx_line_cap(g, 0, 'x');
+        gfx_line(g, p + (v2){x0, y1+dy}, p + (v2){x2-w, y0-w});
+        gfx_line(g, p + (v2){x0+dy, y1}, p + (v2){x2-w, y2+w});
+        gfx_line_cap(g, 0, 0);
+    }
+
+    if(c == 'M') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0+w, y0}, p + (v2){x1-w*.5, sy*.6});
+        gfx_line(g, p + (v2){x2-w, y0}, p + (v2){x1+w*.5, sy*.6});
+        gfx_line_cap(g, 0, 0);
+    }
+
+    gfx_line_cap(g, 'X', 'X');
+    if(c == 'N' || c == 'X') {
+        gfx_line(g, p + (v2){x0+w, y0}, p + (v2){x2-w, y2});
+    }
+
+    if(c == 'X') gfx_line(g, p + (v2){x0+w, y2}, p + (v2){x2-w, y0});
+
+    gfx_line_cap(g, 'x', 'x');
+    if(c == 'Z') gfx_line(g, p + (v2){x0, y2-w}, p + (v2){x2, y0+w});
+
+    if(c == 'Q') {
+        gfx_line(g, p + (v2){x2-b-w, y2-b-w}, p + (v2){x2+w, y2+w});
+    }
+
+    if(c == 'R') {
+        f32 dy = sx*.25;
+        gfx_line_cap(g, 0, 'x');
+        gfx_line(g, p + (v2){x0+dy, y1}, p + (v2){x2-w, y2+w});
+        gfx_line_cap(g, 0, 0);
+    }
+
+    if(c == 'V') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0, y0}, p + (v2){x1-w*.5, y2});
+        gfx_line(g, p + (v2){x2, y0}, p + (v2){x1+w*.5, y2});
+        gfx_line_cap(g, 0, 0);
+    }
+
+    if(c == 'W') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0+w, y2}, p + (v2){x1-w*.5, sy*.4});
+        gfx_line(g, p + (v2){x2-w, y2}, p + (v2){x1+w*.5, sy*.4});
+        gfx_line_cap(g, 0, 0);
+    }
+}
+
+static void gfx_text(Gfx *g, v2 start, f32 size) {
+    size *= .8;
+    f32 sx = size*.5;
+    f32 sy = size;
+    f32 pad = size*0.1;
+
+    // width of things
+    gfx_color(g, WHITE);
+    gfx_stroke_width(g, size*.04);
+    gfx_line_cap(g, 'c', 'c');
+
+    char *text = "Hello World!\nABCDEFGHIJK\nLMNOPQRSTUV\nWXYZ\n0123456789";
+
+    v2 p = start;
+    for(;;) {
+        char c = *text++;
+        if(!c) break;
+        p.x += pad;
+        gfx_char(g, p, sx, sy, c);
+        p.x += sx;
+        p.x += pad;
+        if(c == '\n') {
+            p.x = start.x;
+            p.y += sy + pad*2;
+        }
+    }
 }

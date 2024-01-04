@@ -4,6 +4,7 @@
 #include "mem.h"
 #include "math.h"
 #include "mat.h"
+#include "color.h"
 
 // A good Graphics API should be
 // - Simple and Flexible
