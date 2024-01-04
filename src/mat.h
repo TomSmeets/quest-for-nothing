@@ -208,6 +208,12 @@ static m4 m4_perspective_to_clip(f32 fov, f32 aspect_ratio, f32 near_v, f32 far_
 }
 
 // Screen to Clip coordinates
+//
+//      | top_left |  bottom_right
+// -----+----------+---------------
+// From |   0, 0   | width,  height
+// To   |  -1, 1   |     1,      -1
+//
 static void m4_screen_to_clip(m4 *m, v2 size) {
     f32 sx = 2.0 / size.x;
     f32 sy = 2.0 / size.y;

@@ -3,7 +3,7 @@
 #pragma once
 #include "inc.h"
 
-#define PI 3.1415926535897931
+#define PI  3.1415926535897931
 #define PI2 6.2831853071795862
 
 // 360, 180, and 90 turn

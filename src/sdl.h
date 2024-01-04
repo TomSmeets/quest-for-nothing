@@ -60,7 +60,7 @@ static Sdl *sdl_new(mem *m, const char *title) {
 
     // Use wayland if possible
     // See: https://www.phoronix.com/news/SDL2-Reverts-Wayland-Default
-    api->SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
+    // api->SDL_SetHint(SDL_HINT_VIDEODRIVER, "wayland,x11");
 
     // init sdl
     api->SDL_Init(SDL_INIT_EVERYTHING);

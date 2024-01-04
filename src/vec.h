@@ -4,6 +4,7 @@
 #include "math.h"
 
 // TODO: how much do I actually use this? Can we do without vector extensions?
+// NOTE: maybe we just always use v3 for everything? That way we don't need any conversions.
 // A 2d vector using clang vector extensions
 typedef f32 v2 __attribute__((ext_vector_type(2)));
 typedef f32 v3 __attribute__((ext_vector_type(3)));
