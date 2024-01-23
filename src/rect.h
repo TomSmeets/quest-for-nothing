@@ -21,6 +21,10 @@ static v2 rect_pos(Rect *rect) {
     return rect->min;
 }
 
+static v2 rect_center(Rect *rect) {
+    return 0.5*rect->min + 0.5*rect->max;
+}
+
 static v2 rect_top_right_corner(Rect *rect) {
     return (v2) { rect->max.x, rect->min.y };
 }
