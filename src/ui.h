@@ -92,31 +92,32 @@ static UI_Component ui_component(UI *ui, v2 offset, v2 size, f32 pad) {
 static void ui_text(UI *ui, Rect *rect, char *text) {
     v2 center = rect_center(rect);
     f32 sy = rect_size(rect).y*.75;
-    f32 sx = sy*1.1;
+    f32 sx = sy*1.2;
     v2 size = { str_len(text)*sx, sy };
     gfx_text(ui->gfx, center - size*.5, sx, sy, text);
 }
 
 static bool ui_button(UI *ui, char *text) {
-    UI_Component comp = ui_component(ui, 0, (v2){ui->size*8, ui->size}, ui->pad);
+    UI_Component comp = ui_component(ui, 0, (v2){ui->size*5, ui->size}, ui->pad);
 
     if(comp.click)
         os_printf("Clicked Button: %s\n", text);
 
     // Draw the component
     v4 color = WHITE;
-    if(comp.hover) color = RED;
-    if(comp.down)  color = BLUE;
+    if(comp.hover) color = (v4){1, 0, 0, 1};
+    if(comp.down)  color = (v4){0.4, 0, 0, 1};
     Rect smaller = comp.inner;
     rect_shrink_border(&smaller, 2);
 
-    gfx_material(ui->gfx, WHITE, 0);
+    gfx_material(ui->gfx, BLACK, 0);
     gfx_rect(ui->gfx, comp.inner.min, comp.inner.max);
 
     gfx_material(ui->gfx, color, 0);
     gfx_rect(ui->gfx, smaller.min, smaller.max);
 
     gfx_material(ui->gfx, BLACK, 0);
+    rect_shrink_border(&smaller, 8);
     ui_text(ui, &smaller, text);
     // NOTE: Parameters, or pass function pointer?
     // I like the very direct function pointer method
@@ -132,6 +133,8 @@ static void ui_newline(UI *ui) {
 }
 
 static void ui_begin(UI *ui, Input *input, mem *tmp) {
+    f32 title_height = 25;
+    
     // Reset basic settings
     ui->current_component_id = 0;
     ui->size = 50;
@@ -165,18 +168,13 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
     if(ui->active && !input_is_down(ui->input, KEY_MOUSE_LEFT))
         ui->active = 0;
 
-    gfx_color(ui->gfx, (v4){1, 1, 1, .1});
+    gfx_color(ui->gfx, (v4){.1, .1, .1, 1});
     gfx_rect(ui->gfx, ui->window.min, ui->window.min + window_size);
 
-    // Close Button
-    UI_Component c2  = ui_component(ui, (v2){ 0, 0 }, (v2){20, 20}, 3);
-    gfx_color(ui->gfx, WHITE);
-    gfx_rect(ui->gfx, c2.inner.min, c2.inner.max);
-
     // title bar
-    UI_Component title_bar = ui_component(ui, 0, (v2){window_size.x - 20, 20},  0);
+    UI_Component title_bar = ui_component(ui, 0, (v2){window_size.x, title_height},  0);
 
-    gfx_color(ui->gfx, WHITE);
+    gfx_color(ui->gfx, BLACK);
     gfx_rect(ui->gfx, title_bar.inner.min, title_bar.inner.max);
 
     if(title_bar.down) {
@@ -187,12 +185,14 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
         ui->row.max += move_amount;
     }
 
+    gfx_material(ui->gfx, WHITE, 0);
+    Rect text_rect = title_bar.inner;
+    rect_shrink_border(&text_rect, 2);
+    ui_text(ui, &text_rect, "Hello World!");
+
     // Start new line, and forget the min width
     ui_newline(ui);
     ui->window.max.x = ui->window.min.x;
-
-    gfx_material(ui->gfx, BLACK, 0);
-    ui_text(ui, &title_bar.inner, "Hello World!");
 }
 
 static void ui_end(UI *ui) { }

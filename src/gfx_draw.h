@@ -311,7 +311,7 @@ static void gfx_text(Gfx *g, v2 start, f32 sx, f32 sy, char *text) {
     // size *= .8;
     // f32 sx = size*.5;
     // f32 sy = size;
-    f32 pad = sy*0.25;
+    f32 pad = sy*0.20;
 
     // width of things
     // gfx_color(g, WHITE);
