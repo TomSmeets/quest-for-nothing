@@ -202,7 +202,7 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     gl_api *api = gl->api;
 
     if(gfx->depth) api->glEnable(GL_DEPTH_TEST);
-    api->glEnable(GL_BLEND);
+    if(!gfx->depth) api->glEnable(GL_BLEND);
     api->glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     if(GLOBAL->did_reload) {
@@ -222,5 +222,6 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     api->glUniformMatrix4fv(gl->shader_uniform_mat, 1, row_major, (GLfloat *) &gfx->mtx.fwd);
     api->glDrawElements(GL_TRIANGLES, gfx->index_count, GL_UNSIGNED_INT, 0);
 
-    if(gfx->depth) api->glDisable(GL_DEPTH_TEST);
+    api->glDisable(GL_DEPTH_TEST);
+    api->glDisable(GL_BLEND);
 }

@@ -23,7 +23,7 @@ void main() {
     // In the future we want to do some HDR stuff such as bloom.
     // out_color.rgb /= max(length(out_color.rgb) / length(vec3(1,1,1)), 1);
     out_color = clamp(out_color, 0, 1);
-    // out_color = vec4(v_uv, 1, 1);
+//    out_color = vec4(v_uv, 1, 1);
 
     // Discard transparent pixels
     // if (out_color.a <= 0.1)

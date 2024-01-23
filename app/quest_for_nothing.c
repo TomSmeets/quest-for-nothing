@@ -29,6 +29,8 @@ struct App {
     u64 time;
     u64 start_time;
 
+    f32 t;
+
     gl_t *gl;
     UI *ui;
 
@@ -71,6 +73,23 @@ void main_update(void *handle) {
     }
 
     // os_printf("%f %f\n", win->input.mouse_pos.x, win->input.mouse_pos.y);
+    {
+        // Draw something 3d
+        Gfx *gfx = gfx_begin(tmp);
+        gfx->depth = 1;
+        // m4_screen_to_clip(&gfx->mtx, win->input.window_size);
+        // Camera at 0,0,0 looking to (0, 0, -inf)
+        m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
+        m4_rot_y(&gfx->mtx, (f32) app->t);
+        m4_trans(&gfx->mtx, (v3){0,0,-5});
+        gfx_color(gfx, (v4){1, .5, 0, 1});
+        gfx_circle(gfx, (v2){-1, 0}, 1);
+        gfx_text(gfx, 0, 1, 1, "Hallo\nich bin Tom");
+        // gfx_rect(gfx, (v2){0,0}, (v2){1,1});
+
+        m4_perspective_to_clip(&gfx->mtx, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 20);
+        gl_draw(app->gl, gfx);
+    }
 
     {
         // Draw ui
@@ -99,15 +118,11 @@ void main_update(void *handle) {
         gl_draw(app->gl, gfx);
     }
 
-    {
-        // Draw something 3d
-
-    }
-
     sdl_end(win);
 
     // Wait for the next frame
     app->time += app->dt;
+    app->t    += app->dt / 1e6;
     os_sleep_until(app->time);
     mem_clear(&app->tmp);
 }
