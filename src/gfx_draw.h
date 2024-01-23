@@ -291,6 +291,14 @@ static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
         gfx_line_cap(g, 0, 0);
     }
 
+    if(c == 'Y') {
+        gfx_line_cap(g, 'X', 'X');
+        gfx_line(g, p + (v2){x0, y0}, p + (v2){x1-w*.5, y1});
+        gfx_line(g, p + (v2){x2, y0}, p + (v2){x1+w*.5, y1});
+        gfx_line(g, p + (v2){x1, y1}, p + (v2){x1, y2});
+        gfx_line_cap(g, 0, 0);
+    }
+
     if(c == 'W') {
         gfx_line_cap(g, 'X', 'X');
         gfx_line(g, p + (v2){x0+w, y2}, p + (v2){x1-w*.5, sy*.4});
