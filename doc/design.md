@@ -175,3 +175,5 @@ Analysis from the following video combined with my own interpretations.
 - Reversing time past the start will exit the simulation and start a completely different side story.
 - You can still re-enter the game, but now you are Neo or something.
 - The slow motion tool works by temporarily increasing the complexity of the simulation.
+- Speed increases when killing aliens. But next level resets speed again.
+- Level is a spaceship where you go through the entire ship to initiaite a self destruct sequence. Then you need to return back to your ship.

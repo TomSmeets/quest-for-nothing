@@ -22,7 +22,7 @@ WIN="-target x86_64-unknown-windows-gnu"
 
 function cc() {
     echo "cc $@"
-    clang -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc -Iout "$@"
+    clang -march=native -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc -Iout "$@"
 }
 
 if [ $MODE == "s" ]; then
@@ -37,7 +37,7 @@ if [ $MODE == "s" ]; then
   cc $OPT -o out/quest_for_nothing app/quest_for_nothing.c
   cc $OPT -o out/time_cmd          app/time_cmd.c
 
-  cc $OPT $WIN -o out/hello.exe app/hello.c
+  # cc $OPT $WIN -o out/hello.exe app/hello.c
   # cc $OPT $WIN -o out/quest_for_nothing.exe app/quest_for_nothing.c
 fi
 
