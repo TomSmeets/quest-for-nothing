@@ -90,8 +90,8 @@ static UI_Component ui_component(UI *ui, v2 offset, v2 size, f32 pad) {
 
 
 
-static bool ui_button(UI *ui, const char *text) {
-    UI_Component comp = ui_component(ui, 0, (v2){ui->size*3, ui->size}, ui->pad);
+static bool ui_button(UI *ui, char *text) {
+    UI_Component comp = ui_component(ui, 0, (v2){ui->size*8, ui->size}, ui->pad);
 
     if(comp.click)
         os_printf("Clicked Button: %s\n", text);
@@ -108,6 +108,14 @@ static bool ui_button(UI *ui, const char *text) {
 
     gfx_material(ui->gfx, color, 0);
     gfx_rect(ui->gfx, smaller.min, smaller.max);
+
+    gfx_material(ui->gfx, BLACK, 0);
+
+    v2 center = (smaller.max + smaller.min)/2;
+    f32 sy = rect_size(&smaller).y*.75;
+    f32 sx = 30;
+    v2 size = { str_len(text)*sx, sy };
+    gfx_text(ui->gfx, center - size*.5, sx, sy, text);
 
     // NOTE: Parameters, or pass function pointer?
     // I like the very direct function pointer method
@@ -181,7 +189,7 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
     // Start new line, and forget the min width
     ui_newline(ui);
     ui->window.max.x = ui->window.min.x;
-    gfx_text(ui->gfx, (v2){100, 100}, 100);
+//    gfx_text(ui->gfx, (v2){100, 100}, 100);
 }
 
 static void ui_end(UI *ui) { }

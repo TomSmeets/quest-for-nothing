@@ -15,7 +15,8 @@ in vec4 v_color;
 void main() {
     // Lookup the color in the texture atlas
 
-    out_color = texture(img, v_uv)*v_color;
+    // out_color = texture(img, v_uv)*v_color;
+    out_color = v_color;
 
     // Limit the color to [0-1]
     // All colors are in [0-inf] range, this allows us to have very bright lights

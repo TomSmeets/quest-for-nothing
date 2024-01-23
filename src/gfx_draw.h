@@ -307,26 +307,27 @@ static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
     }
 }
 
-static void gfx_text(Gfx *g, v2 start, f32 size) {
-    size *= .8;
-    f32 sx = size*.5;
-    f32 sy = size;
-    f32 pad = size*0.1;
+static void gfx_text(Gfx *g, v2 start, f32 sx, f32 sy, char *text) {
+    // size *= .8;
+    // f32 sx = size*.5;
+    // f32 sy = size;
+    f32 pad = sy*0.25;
 
     // width of things
-    gfx_color(g, WHITE);
-    gfx_stroke_width(g, size*.04);
+    // gfx_color(g, WHITE);
+    gfx_stroke_width(g, sy*.08);
     gfx_line_cap(g, 'c', 'c');
+    // sy -= pad;
 
-    char *text = "Hello World!\nABCDEFGHIJK\nLMNOPQRSTUV\nWXYZ\n0123456789";
+    // char *text = "Hello World!\nABCDEFGHIJK\nLMNOPQRSTUV\nWXYZ\n0123456789";
 
     v2 p = start;
     for(;;) {
         char c = *text++;
         if(!c) break;
         p.x += pad;
-        gfx_char(g, p, sx, sy, c);
-        p.x += sx;
+        gfx_char(g, p, sx - pad*2, sy, c);
+        p.x += sx - pad*2;
         p.x += pad;
         if(c == '\n') {
             p.x = start.x;
