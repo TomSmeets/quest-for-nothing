@@ -107,7 +107,7 @@ static os_dir *os_read_dir(mem *m, char *path) {
 }
 
 static buf os_read_file(mem *m, char *path) {
-    HANDLE fd = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    HANDLE fd = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     assert(fd != INVALID_HANDLE_VALUE);
 
     u64 size = GetFileSize(fd, 0);
@@ -118,6 +118,7 @@ static buf os_read_file(mem *m, char *path) {
     DWORD bytes_read = 0;
     assert(ReadFile(fd, buffer, size, &bytes_read, 0));
     assert((u64) bytes_read == size);
+    buffer[size] = 0;
 
     return (buf) { .ptr = buffer, .size = size };
 }
