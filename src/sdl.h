@@ -86,7 +86,7 @@ static Sdl *sdl_new(mem *m, const char *title) {
     sdl->ctx = api->SDL_GL_CreateContext(sdl->win);
     assert(sdl->ctx);
 
-    // enable vsync
+    // disable vsync
     assert(api->SDL_GL_SetSwapInterval(0) == 0);
 
     // load opengl ptrs
