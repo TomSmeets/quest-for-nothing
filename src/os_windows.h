@@ -19,12 +19,15 @@ int main(int argc, char *argv[]) {
 
 // ==== Basics ====
 static void os_print(char *msg) {
-    fputs(msg, stdout);
+    HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
+    assert(con != INVALID_HANDLE_VALUE);
+    assert(WriteConsole(con, msg, str_len(msg), 0, 0));
 }
 
 static void os_error(char *msg) {
-    fputs(msg, stderr);
-    __builtin_debugtrap();
+    HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
+    assert(con != INVALID_HANDLE_VALUE);
+    assert(WriteConsole(con, msg, str_len(msg), 0, 0));
     os_exit(1);
 }
 
@@ -77,13 +80,12 @@ static os_dir *os_read_dir(mem *m, char *path) {
     WIN32_FIND_DATA ent;
     HANDLE c_dir = FindFirstFile(query, &ent);
     assert(c_dir != INVALID_HANDLE_VALUE);
-    for(;;) {
+    do {
         char *file_name = ent.cFileName;
 
-
         // skip these
-        // if(str_eq(file_name, "."))  continue;
-        // if(str_eq(file_name, "..")) continue;
+        if(str_eq(file_name, "."))  continue;
+        if(str_eq(file_name, "..")) continue;
 
         os_dir *dir = mem_struct(m, os_dir);
         dir->file_name = str_dup(m, file_name);
