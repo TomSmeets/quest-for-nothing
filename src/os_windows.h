@@ -21,13 +21,13 @@ int main(int argc, char *argv[]) {
 static void os_print(char *msg) {
     HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
     assert(con != INVALID_HANDLE_VALUE);
-    assert(WriteConsole(con, msg, str_len(msg), 0, 0));
+    assert(WriteFile(con, msg, str_len(msg), 0, 0));
 }
 
 static void os_error(char *msg) {
     HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
     assert(con != INVALID_HANDLE_VALUE);
-    assert(WriteConsole(con, msg, str_len(msg), 0, 0));
+    assert(WriteFile(con, msg, str_len(msg), 0, 0));
     os_exit(1);
 }
 
