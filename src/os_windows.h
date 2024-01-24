@@ -1,8 +1,9 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // os_windows.h - Windows API wrapper and platform implementation
 #pragma once
-#include "fmt.h"
 #include "inc.h"
+#include "mem.h"
+#include "fmt.h"
 #include "os.h"
 #include "os_mem_caching.h"
 
@@ -101,4 +102,20 @@ static os_dir *os_read_dir(mem *m, char *path) {
     FindClose(c_dir);
 
     return first;
+}
+
+static buf os_read_file(mem *m, char *path) {
+    HANDLE fd = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    assert(fd != INVALID_HANDLE_VALUE);
+
+    u64 size = GetFileSize(fd, 0);
+    assert(size != INVALID_FILE_SIZE);
+
+    u8 *buffer = mem_push(m, size+1);
+
+    DWORD bytes_read = 0;
+    assert(ReadFile(fd, buffer, size, &bytes_read, 0));
+    assert((u64) bytes_read == size);
+
+    return (buf) { .ptr = buffer, .size = size };
 }
