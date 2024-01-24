@@ -1,6 +1,7 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // os_windows.h - Windows API wrapper and platform implementation
 #pragma once
+#include "fmt.h"
 #include "inc.h"
 #include "os.h"
 #include "os_mem_caching.h"
@@ -63,4 +64,41 @@ static mem_page *os_alloc_page_uncached(u64 size) {
 
 static void os_free_page_uncached(mem_page *page) {
     assert(VirtualFree(page, page->size, MEM_RELEASE));
+}
+
+static os_dir *os_read_dir(mem *m, char *path) {
+    os_dir *first = 0;
+    os_dir *last  = 0;
+
+
+    char *query = fmt(m, "%s\\*", path);
+
+    WIN32_FIND_DATA ent;
+    HANDLE c_dir = FindFirstFile(query, &ent);
+    assert(c_dir != INVALID_HANDLE_VALUE);
+    for(;;) {
+        char *file_name = ent.cFileName;
+
+
+        // skip these
+        // if(str_eq(file_name, "."))  continue;
+        // if(str_eq(file_name, "..")) continue;
+
+        os_dir *dir = mem_struct(m, os_dir);
+        dir->file_name = str_dup(m, file_name);
+        dir->is_dir  = (ent.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+        dir->is_file = !dir->is_dir;
+
+        // append to the list
+        if(!last) {
+            first = dir;
+            last = dir;
+        } else {
+            last->next = dir;
+            last = dir;
+        }
+    } while(FindNextFile(c_dir, &ent) != 0);
+    FindClose(c_dir);
+
+    return first;
 }
