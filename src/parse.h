@@ -36,7 +36,6 @@ static bool is_eol(u8 c) {
 }
 
 // ==== Token ====
-typedef enum Token_Type Token_Type;
 enum Token_Type {
     Token_None,
     Token_Symbol,
@@ -47,6 +46,7 @@ enum Token_Type {
     Token_Op,
     Token_Macro,
 };
+typedef enum Token_Type Token_Type;
 
 struct Token {
     u32 type;
