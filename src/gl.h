@@ -27,6 +27,8 @@ static void gl_debug_callback(
         case GL_DEBUG_SEVERITY_LOW:          prefix = "LOW"; break;
         case GL_DEBUG_SEVERITY_NOTIFICATION: prefix = "NOTIFICATION"; break;
     }
+    if(severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+        return;
     os_printf("[%s] %s\n", prefix, message);
 }
 
