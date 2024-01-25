@@ -132,3 +132,12 @@ static buf os_read_file(mem *m, char *path) {
 static i32 os_command(char *cmd) {
     return system(cmd);
 }
+
+
+static void *os_dlopen(char *file) {
+    return LoadLibrary(file);
+}
+
+static void *os_dlsym(void *handle, char *name) {
+    return GetProcAddress(handle, name);
+}

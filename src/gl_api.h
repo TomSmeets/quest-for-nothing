@@ -1472,7 +1472,7 @@ void APIENTRY (*glDebugMessageCallbackARB) (GLDEBUGPROCARB callback, const void 
 
 static void gl_api_load(gl_api *gl, void *load(const char *)) {
 #define load_new(k) gl->k = load(#k); assert(gl->k);
-#if OS_IS_WINDOWS
+#if OS_WINDOWS
 #define load_old(k) gl->k = k; assert(gl->k);
 #else
 #define load_old(k) load_new(k)
@@ -1843,26 +1843,5 @@ static void gl_api_load(gl_api *gl, void *load(const char *)) {
     load_new(glUniformMatrix4x2dv);
     load_new(glUniformMatrix4x3dv);
     load_new(glGetUniformdv);
-    load_new(glGetSubroutineUniformLocation);
-    load_new(glGetSubroutineIndex);
-    load_new(glGetActiveSubroutineUniformiv);
-    load_new(glGetActiveSubroutineUniformName);
-    load_new(glGetActiveSubroutineName);
-    load_new(glUniformSubroutinesuiv);
-    load_new(glGetUniformSubroutineuiv);
-    load_new(glGetProgramStageiv);
-    load_new(glPatchParameteri);
-    load_new(glPatchParameterfv);
-    load_new(glBindTransformFeedback);
-    load_new(glDeleteTransformFeedbacks);
-    load_new(glGenTransformFeedbacks);
-    load_new(glIsTransformFeedback);
-    load_new(glPauseTransformFeedback);
-    load_new(glResumeTransformFeedback);
-    load_new(glDrawTransformFeedback);
-    load_new(glDrawTransformFeedbackStream);
-    load_new(glBeginQueryIndexed);
-    load_new(glEndQueryIndexed);
-    load_new(glGetQueryIndexediv);
     load_new(glDebugMessageCallbackARB);
 }

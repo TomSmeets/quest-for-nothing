@@ -28,7 +28,6 @@ struct Input {
     input_key key[16];
 };
 
-typedef enum input_key_code input_key_code;
 enum input_key_code {
     KEY_NONE,
 
@@ -103,6 +102,7 @@ enum input_key_code {
 
     KEY_COUNT
 };
+typedef enum input_key_code input_key_code;
 
 static_assert(KEY_COUNT <= 256);
 
