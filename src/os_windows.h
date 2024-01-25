@@ -26,8 +26,13 @@ static void os_print(char *msg) {
 
 static void os_error(char *msg) {
     HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
-    assert(con != INVALID_HANDLE_VALUE);
-    assert(WriteFile(con, msg, str_len(msg), 0, 0));
+    WriteFile(con, msg, str_len(msg), 0, 0);
+
+    // check windows error
+    DWORD last_error = GetLastError();
+    char *last_error_msg = 0;
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0, (LPTSTR) &last_error_msg, 0, 0);
+    WriteFile(con, last_error_msg, str_len(last_error_msg), 0, 0);
     os_exit(1);
 }
 
@@ -67,7 +72,8 @@ static mem_page *os_alloc_page_uncached(u64 size) {
 }
 
 static void os_free_page_uncached(mem_page *page) {
-    assert(VirtualFree(page, page->size, MEM_RELEASE));
+    assert(page);
+    assert(VirtualFree(page, 0, MEM_RELEASE));
 }
 
 static os_dir *os_read_dir(mem *m, char *path) {
