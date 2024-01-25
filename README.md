@@ -9,9 +9,18 @@ A game entirely developed from scratch in very straightforward and simple C code
 
 ## Building and Running
 
-1. Install `watchexec` and `clang`
+### Linux
+
+1. Install `watchexec` `sdl2` and `clang`
 2. run `./watch.sh`
 3. run `./out/hot ./out/quest_for_nothing.so`
+
+### Windows
+
+1. Install [llvm + clang](https://github.com/llvm/llvm-project/releases/latest)
+2. Put the 64 bit [SDL2.dll](https://github.com/libsdl-org/SDL/releases/latest) in the current folder
+3. Run `./build.bat`
+4. Run `./out/quest_for_nothing.exe`
 
 ## Game Design
 A 3D retro FPS dungeon crawler like game but inside a spaceship.
