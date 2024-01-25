@@ -35,6 +35,7 @@ struct App {
     UI *ui;
 
     image *img;
+    m4 cam;
 };
 
 // You can choose how to run this app
@@ -51,7 +52,7 @@ void *main_init(int argc, char **argv) {
     app->gl   = gl_init(&m, app->window->gl);
     app->dt   = 1000 * 1000 / 200;
     app->ui   = mem_struct(&m, UI);
-
+    app->cam = m4_id();
     app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
     return app;
 }
@@ -59,6 +60,7 @@ void *main_init(int argc, char **argv) {
 void main_update(void *handle) {
     App *app = handle;
     mem *tmp = &app->tmp;
+    f32 dt = (f32) app->dt / 1e6;
 
     Sdl *win = app->window;
 
@@ -71,6 +73,13 @@ void main_update(void *handle) {
         sdl_quit(win);
         os_exit(0);
     }
+
+    v3 fwd = { 0, 0, -1 };
+    v3 rgt = { 1, 0, 0  };
+    if (input_is_down(&win->input, KEY_W)) m4_trans(&app->cam, +fwd*dt);
+    if (input_is_down(&win->input, KEY_S)) m4_trans(&app->cam, -fwd*dt);
+    if (input_is_down(&win->input, KEY_A)) m4_trans(&app->cam, -rgt*dt);
+    if (input_is_down(&win->input, KEY_D)) m4_trans(&app->cam, +rgt*dt);
 
     // os_printf("%f %f\n", win->input.mouse_pos.x, win->input.mouse_pos.y);
     {
@@ -87,6 +96,9 @@ void main_update(void *handle) {
         gfx_text(gfx, 0, 1, 1, "Hallo\nich bin Tom");
         // gfx_rect(gfx, (v2){0,0}, (v2){1,1});
 
+        // model_to_clip = view_to_clip * world_to_view * model_to_world
+        // model_to_world = Translate * Rotate * Scale
+        m4_mul_inv(&gfx->mtx, &app->cam);
         m4_perspective_to_clip(&gfx->mtx, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 20);
         gl_draw(app->gl, gfx);
     }
@@ -112,9 +124,10 @@ void main_update(void *handle) {
     {
         // Draw a mouse cursor
         Gfx *gfx = gfx_begin(tmp);
-        m4_screen_to_clip(&gfx->mtx, win->input.window_size);
         gfx_color(gfx, RED);
         gfx_circle(gfx, win->input.mouse_pos, 4);
+
+        m4_screen_to_clip(&gfx->mtx, win->input.window_size);
         gl_draw(app->gl, gfx);
     }
 

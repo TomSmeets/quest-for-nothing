@@ -79,6 +79,15 @@ static void m4_mul(m4 *m, m4 *b) {
     m->inv = m4_mul_single(&m->inv, &b->inv);
 }
 
+// left multiply by b
+// m = 1/b * m
+static void m4_mul_inv(m4 *m, m4 *b) {
+    // m.fwd = b.fwd * m.fwd
+    // m.inv = m.inv * b.inv
+    m->fwd = m4_mul_single(&b->inv, &m->fwd);
+    m->inv = m4_mul_single(&m->inv, &b->fwd);
+}
+
 // Scale on the x, y, and z axis
 // m = S * m
 static void m4_scale(m4 *m, v3 s) {

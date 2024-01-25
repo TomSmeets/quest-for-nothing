@@ -143,7 +143,6 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
 
     // Start new render pass
     ui->gfx = gfx_begin(tmp);
-    m4_screen_to_clip(&ui->gfx->mtx, input->window_size);
 
     // Draw previous window pos
     v2 window_size = rect_size(&ui->window);
@@ -195,4 +194,6 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
     ui->window.max.x = ui->window.min.x;
 }
 
-static void ui_end(UI *ui) { }
+static void ui_end(UI *ui) {
+    m4_screen_to_clip(&ui->gfx->mtx, ui->input->window_size);
+}
