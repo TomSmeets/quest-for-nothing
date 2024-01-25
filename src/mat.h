@@ -79,6 +79,15 @@ static void m4_mul(m4 *m, m4 *b) {
     m->inv = m4_mul_single(&m->inv, &b->inv);
 }
 
+// righ multiply by b
+// m = m * b
+static void m4_mul_right(m4 *m, m4 *b) {
+    // m.fwd = b.fwd * m.fwd
+    // m.inv = m.inv * b.inv
+    m->fwd = m4_mul_single(&m->fwd, &b->fwd);
+    m->inv = m4_mul_single(&b->inv, &m->inv);
+}
+
 // left multiply by b
 // m = 1/b * m
 static void m4_mul_inv(m4 *m, m4 *b) {

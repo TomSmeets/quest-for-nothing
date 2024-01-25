@@ -35,6 +35,10 @@ struct App {
     UI *ui;
 
     image *img;
+
+    v3 pos;
+    f32 pitch;
+    f32 yaw;
     m4 cam;
 };
 
@@ -52,8 +56,8 @@ void *main_init(int argc, char **argv) {
     app->gl   = gl_init(&m, app->window->gl);
     app->dt   = 1000 * 1000 / 200;
     app->ui   = mem_struct(&m, UI);
-    app->cam = m4_id();
     app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
+    app->cam = m4_id();
     return app;
 }
 
@@ -74,12 +78,24 @@ void main_update(void *handle) {
         os_exit(0);
     }
 
-    v3 fwd = { 0, 0, -1 };
-    v3 rgt = { 1, 0, 0  };
-    if (input_is_down(&win->input, KEY_W)) m4_trans(&app->cam, +fwd*dt);
-    if (input_is_down(&win->input, KEY_S)) m4_trans(&app->cam, -fwd*dt);
-    if (input_is_down(&win->input, KEY_A)) m4_trans(&app->cam, -rgt*dt);
-    if (input_is_down(&win->input, KEY_D)) m4_trans(&app->cam, +rgt*dt);
+    v3 fwd = m4_mul_dir(&app->cam.fwd, (v3){ 0, 0, -1 });
+    v3 rgt = m4_mul_dir(&app->cam.fwd, (v3){ 1, 0,  0 });
+    if (input_is_down(&win->input, KEY_W)) app->pos += fwd*dt;
+    if (input_is_down(&win->input, KEY_S)) app->pos -= fwd*dt;
+    if (input_is_down(&win->input, KEY_A)) app->pos -= rgt*dt;
+    if (input_is_down(&win->input, KEY_D)) app->pos += rgt*dt;
+    if (input_is_down(&win->input, KEY_J)) app->yaw += dt;
+    if (input_is_down(&win->input, KEY_L)) app->yaw -= dt;
+    if (input_is_down(&win->input, KEY_I)) app->pitch += dt;
+    if (input_is_down(&win->input, KEY_K)) app->pitch -= dt;
+
+    if(app->pitch < -R1) app->pitch = -R1;
+    if(app->pitch >  R1) app->pitch =  R1;
+
+    app->cam = m4_id();
+    m4_rot_x(&app->cam, -app->pitch);
+    m4_rot_y(&app->cam, app->yaw);
+    m4_trans(&app->cam, app->pos);
 
     // os_printf("%f %f\n", win->input.mouse_pos.x, win->input.mouse_pos.y);
     {

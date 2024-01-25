@@ -7,25 +7,8 @@
 #include "os.h"
 
 struct input_key {
-    u16 code;
     u8 down;
     u8 click;
-};
-
-// There are multiple 'Controllers', they always belong together
-// kbd + mouse
-// game pad
-// wii remote + nunchuck
-struct Input {
-    v2 window_size;
-
-    v2 mouse_pos;
-    v2 mouse_rel;
-
-    bool quit;
-
-    // 16 keys per frame should be enough
-    input_key key[16];
 };
 
 enum input_key_code {
@@ -106,33 +89,30 @@ typedef enum input_key_code input_key_code;
 
 static_assert(KEY_COUNT <= 256);
 
+// There are multiple 'Controllers', they always belong together
+// kbd + mouse
+// game pad
+// wii remote + nunchuck
+struct Input {
+    v2 window_size;
+
+    v2 mouse_pos;
+    v2 mouse_rel;
+
+    bool quit;
+    input_key key[KEY_COUNT];
+};
 static input_key *input_key_get(Input *in, input_key_code code) {
-    if (!code)
-        return 0;
-
-    for (u32 i = 0; i < array_count(in->key); ++i) {
-        input_key *key = in->key + i;
-
-        // already exists
-        if (key->code == code)
-            return key;
-
-        if (key->code == 0) {
-            key->code = code;
-            return key;
-        }
-    }
-
-    // no more space for the key
-    return 0;
+    if (!code) return 0;
+    assert(code < KEY_COUNT);
+    return &in->key[code];
 }
 
 static void input_emit(Input *in, input_key_code code, bool is_down) {
     input_key *key = input_key_get(in, code);
-    if (!key)
-        return;
-    key->down = is_down;
-    key->click |= is_down;
+    if (!key) return;
+    key->down  = is_down;
+    if(is_down) key->click = 1;
 }
 
 static bool input_is_down(Input *in, input_key_code code) {
@@ -151,19 +131,6 @@ static void input_update(Input *in) {
     for (u32 i = 0; i < array_count(in->key); ++i) {
         input_key *key = in->key + i;
         key->click = 0;
-        if (!key->down)
-            key->code = 0;
-    }
-
-    // shirnk
-    u32 w = 0;
-    for (u32 r = 0; r < array_count(in->key); ++r) {
-        input_key *key = in->key + r;
-        if (key->code == 0)
-            continue;
-        if (w != r)
-            in->key[w] = *key;
-        w++;
     }
 }
 
