@@ -14,7 +14,13 @@ static void *load_module(char *path, u64 mtime) {
 
     // We have to copy the .so file to a unique destination
     // The linux dynamic library loader will silently return a cached copy otherwise.
-    char *new_path = fmt(&m, "/tmp/main-%u.so", mtime);
+    #if OS_WINDOWS
+    // TODO: better location
+    // TODO: FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE
+    char *new_path = fmt(&m, "out/tmp-main-%u.so", mtime);
+    #else
+    char *new_path = fmt(&m, "/tmp/tmp-main-%u.so", mtime);
+    #endif
     os_printf("reloading %s\n", new_path);
     os_copy_file(path, new_path);
 

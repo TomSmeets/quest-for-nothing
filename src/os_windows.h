@@ -126,6 +126,8 @@ static buf os_read_file(mem *m, char *path) {
     assert((u64) bytes_read == size);
     buffer[size] = 0;
 
+    CloseHandle(fd);
+
     return (buf) { .ptr = buffer, .size = size };
 }
 
@@ -140,4 +142,23 @@ static void *os_dlopen(char *file) {
 
 static void *os_dlsym(void *handle, char *name) {
     return GetProcAddress(handle, name);
+}
+
+static void os_copy_file(char *src, char *dst) {
+    assert(CopyFile(src, dst, 0));
+}
+
+static u64 os_file_mtime(char *path) {
+    HANDLE fd = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+    assert(fd != INVALID_HANDLE_VALUE);
+
+    FILETIME ft_create, ft_access, ft_write;
+    GetFileTime(fd, &ft_create, &ft_access, &ft_write);
+
+    ULARGE_INTEGER uli;
+    uli.LowPart = ft_write.dwLowDateTime;
+    uli.HighPart = ft_write.dwHighDateTime;
+    u64 time = uli.QuadPart / 10;
+    CloseHandle(fd);
+    return time;
 }
