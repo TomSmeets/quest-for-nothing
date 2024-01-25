@@ -78,23 +78,29 @@ void main_update(void *handle) {
         os_exit(0);
     }
 
-    v3 fwd = m4_mul_dir(&app->cam.fwd, (v3){ 0, 0, -1 });
+    m4 look = m4_id();
+    m4_rot_y(&look, app->yaw);
+    m4_trans(&look, app->pos);
+
+    v3 fwd = m4_mul_dir(&app->cam.fwd, (v3){ 0, 0,  -1 });
     v3 rgt = m4_mul_dir(&app->cam.fwd, (v3){ 1, 0,  0 });
     if (input_is_down(&win->input, KEY_W)) app->pos += fwd*dt;
     if (input_is_down(&win->input, KEY_S)) app->pos -= fwd*dt;
     if (input_is_down(&win->input, KEY_A)) app->pos -= rgt*dt;
     if (input_is_down(&win->input, KEY_D)) app->pos += rgt*dt;
-    if (input_is_down(&win->input, KEY_J)) app->yaw += dt;
-    if (input_is_down(&win->input, KEY_L)) app->yaw -= dt;
-    if (input_is_down(&win->input, KEY_I)) app->pitch += dt;
-    if (input_is_down(&win->input, KEY_K)) app->pitch -= dt;
+    if (input_is_down(&win->input, KEY_J)) app->yaw -= dt;
+    if (input_is_down(&win->input, KEY_L)) app->yaw += dt;
+    if (input_is_down(&win->input, KEY_I)) app->pitch -= dt;
+    if (input_is_down(&win->input, KEY_K)) app->pitch += dt;
 
     if(app->pitch < -R1) app->pitch = -R1;
     if(app->pitch >  R1) app->pitch =  R1;
 
     app->cam = m4_id();
-    m4_rot_x(&app->cam, -app->pitch);
-    m4_rot_y(&app->cam, app->yaw);
+    // m4_rot_z(&app->cam, R2);
+    m4_rot_x(&app->cam, -R1);
+    m4_rot_x(&app->cam, app->pitch);
+    m4_rot_z(&app->cam, app->yaw);
     m4_trans(&app->cam, app->pos);
 
     // os_printf("%f %f\n", win->input.mouse_pos.x, win->input.mouse_pos.y);
@@ -105,11 +111,12 @@ void main_update(void *handle) {
         // m4_screen_to_clip(&gfx->mtx, win->input.window_size);
         // Camera at 0,0,0 looking to (0, 0, -inf)
         m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
-        m4_rot_y(&gfx->mtx, (f32) app->t);
-        m4_trans(&gfx->mtx, (v3){0,0,-5});
+        m4_rot_x(&gfx->mtx, -R1); // make text upright
+        m4_rot_z(&gfx->mtx, (f32) app->t); // rotate around z axis
+        m4_trans(&gfx->mtx, (v3){0,0, 0}); // move into position
         gfx_color(gfx, (v4){1, .5, 0, 1});
         gfx_circle(gfx, (v2){-1, 0}, 1);
-        gfx_text(gfx, 0, 1, 1, "Hallo\nich bin Tom");
+        gfx_text(gfx, 0, 1, 1, "The Quick Brown fox jumps\nover the lazy dog");
         // gfx_rect(gfx, (v2){0,0}, (v2){1,1});
 
         // model_to_clip = view_to_clip * world_to_view * model_to_world
