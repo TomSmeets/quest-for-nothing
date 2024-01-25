@@ -128,3 +128,7 @@ static buf os_read_file(mem *m, char *path) {
 
     return (buf) { .ptr = buffer, .size = size };
 }
+
+static i32 os_command(char *cmd) {
+    return system(cmd);
+}
