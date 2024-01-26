@@ -1,5 +1,5 @@
-mkdir out
-set args=-march=native -O0 -g -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc -Iout
+if not exist out mkdir out
+set args=-march=native -O0 -g -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc -Iout -Wl,/INCREMENTAL:NO
 
 clang %args%         -o out/code_gen.exe          app/code_gen.c
 .\out\code_gen.exe > .\out\generated.h
