@@ -59,6 +59,14 @@ static bool is_op(char c) {
     return str_chr(ops, c);
 }
 
+static bool tok_is_op(Token *tok, char *op) {
+    return tok->type == Token_Op && str_eq(tok->str, op);
+}
+
+static bool tok_is_symbol(Token *tok, char *sym) {
+    return tok->type == Token_Symbol && str_eq(tok->str, sym);
+}
+
 static Token *parse_token(mem *m, char *str) {
     Token *first = 0;
     Token *last  = 0;
@@ -142,9 +150,3 @@ static Token *parse_token(mem *m, char *str) {
 
     return first;
 }
-
-struct Parse {
-    mem m;
-    u8 *start;
-    u8 *end;
-};
