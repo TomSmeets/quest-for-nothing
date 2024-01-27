@@ -31,6 +31,8 @@ struct UI {
     // TODO: sound effects
 
     v2 drag_offset;
+
+    bool disable_interaction;
 };
 
 struct UI_Component {
@@ -55,7 +57,7 @@ static UI_Component ui_component(UI *ui, v2 offset, v2 size, f32 pad) {
 
     v2 mouse_pos = ui->input->mouse_pos;
 
-    bool hover = rect_contains(&inner, mouse_pos);
+    bool hover = !ui->disable_interaction && rect_contains(&inner, mouse_pos);
     bool down  = hover && input_is_down(ui->input, KEY_MOUSE_LEFT);
     bool click = hover && input_is_click(ui->input, KEY_MOUSE_LEFT);
 

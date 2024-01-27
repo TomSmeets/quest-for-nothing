@@ -40,6 +40,8 @@ struct App {
     f32 pitch;
     f32 yaw;
     m4 cam;
+
+    bool grab_mouse;
 };
 
 // You can choose how to run this app
@@ -72,6 +74,7 @@ void main_update(void *handle) {
     sdl_begin(win);
     gl_clear(app->gl, win->input.window_size);
 
+
     // Handle quit
     if (win->input.quit || input_is_down(&win->input, KEY_Q)) {
         sdl_quit(win);
@@ -92,6 +95,16 @@ void main_update(void *handle) {
     if (input_is_down(&win->input, KEY_L)) app->yaw += dt;
     if (input_is_down(&win->input, KEY_I)) app->pitch -= dt;
     if (input_is_down(&win->input, KEY_K)) app->pitch += dt;
+
+    if (input_is_click(&win->input, KEY_G)) {
+        app->grab_mouse = !app->grab_mouse;
+        sdl_grab_mouse(win, app->grab_mouse);
+    }
+
+    if(app->grab_mouse) {
+        app->yaw   += win->input.mouse_rel.x*0.002;
+        app->pitch += win->input.mouse_rel.y*0.002;
+    }
 
     if(app->pitch < -R1) app->pitch = -R1;
     if(app->pitch >  R1) app->pitch =  R1;
@@ -130,6 +143,7 @@ void main_update(void *handle) {
         // Draw ui
         UI *ui = app->ui;
         ui_begin(ui, &win->input, tmp);
+        ui->disable_interaction =  app->grab_mouse;
         if(ui_button(ui, "Click Me!")) {
             os_print("Hello, World!\n");
         }
@@ -144,7 +158,7 @@ void main_update(void *handle) {
         gl_draw(app->gl, ui->gfx);
     }
 
-    {
+    if(!app->grab_mouse) {
         // Draw a mouse cursor
         Gfx *gfx = gfx_begin(tmp);
         gfx_color(gfx, RED);

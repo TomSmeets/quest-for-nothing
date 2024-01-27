@@ -14,6 +14,7 @@
 #include "os_generic.h"
 #include "parse.h"
 
+// Parse a source file and generate code
 static void handle_file(fmt_t *f, mem *m, char *path) {
     char *file = os_read_file(m, path).ptr;
     assert(file);
@@ -49,22 +50,21 @@ static void handle_file(fmt_t *f, mem *m, char *path) {
         }
 
         // TODO: handle #include and create a dep graph
-
         new_statement = tok_is_op(tok, "}") || tok_is_op(tok, ";") || tok->type == Token_Macro;
         tok = tok->next;
     }
 }
 
+// Parse a directory and generate code
 static void handle_dir(fmt_t *f, mem *m, char *dir) {
     for(os_dir *d = os_read_dir(m, dir); d; d = d->next) {
         if(!d->is_file) continue;
         char *path = fmt(m, "%s/%s", dir, d->file_name);
-        // fmt_f(f, "// ==== %s ====\n", path);
         handle_file(f, m, path);
     }
 }
 
-// Convert the data to a
+// Convert binary data to c source code
 static void c_encode(fmt_t *f, char *name, buf data) {
     fmt_str(f, "#define ");
     fmt_str(f, name);

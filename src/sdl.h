@@ -167,3 +167,8 @@ static void sdl_end(Sdl *sdl) {
     sdl_api *api = &sdl->api;
     api->SDL_GL_SwapWindow(sdl->win);
 }
+
+static void sdl_grab_mouse(Sdl *sdl, bool grab) {
+    sdl_api *api = &sdl->api;
+    api->SDL_SetRelativeMouseMode(grab);
+}
