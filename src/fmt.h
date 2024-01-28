@@ -190,7 +190,9 @@ static void fmt_f(fmt_t *f, char *format, ...) {
     va_end(args);
 }
 
-static char *fmt(mem *m, char *format, ...) {
+__attribute__((format(printf, 2, 3)))
+static char *fmt(mem *m, char *format, ...)
+{
     va_list args;
     fmt_t f = { .mem = m };
     va_start(args, format);

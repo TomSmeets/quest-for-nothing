@@ -41,5 +41,7 @@ if [ $MODE == "s" ]; then
   # cc $OPT $WIN -o out/quest_for_nothing.exe app/quest_for_nothing.c
 fi
 
+cc $DBG -o out/test app/test.c
+./out/test
 cc $DBG -shared -o out/quest_for_nothing.so app/quest_for_nothing.c
 touch out/trigger
