@@ -211,18 +211,17 @@ static m4 m4_perspective_to_clip(m4 *mtx, f32 fov, f32 aspect_ratio, f32 near_v,
     f32 e = (2 * far_v * near_v) / (near_v - far_v);
 
     m4 m = {};
-    m.inv.x.x = ax * focal_length;
-    m.inv.y.y = -ay * focal_length;
-    m.inv.z.z = d;
-    m.inv.w.z = e;
-    m.inv.z.w = -1;
+    m.fwd.x.x = ax * focal_length;
+    m.fwd.y.y = -ay * focal_length;
+    m.fwd.z.z = d;
+    m.fwd.w.z = e;
+    m.fwd.z.w = -1;
 
-    m.fwd.x.x = 1 / (ax * focal_length);
-    m.fwd.y.y = 1 / (ay * focal_length);
-    m.fwd.w.z = -1;
-    m.fwd.z.w = 1 / e;
-    m.fwd.w.w = d / e;
-    m4_inv(&m);
+    m.inv.x.x = 1 / (ax * focal_length);
+    m.inv.y.y = 1 / (ay * focal_length);
+    m.inv.w.z = -1;
+    m.inv.z.w = 1 / e;
+    m.inv.w.w = d / e;
     m4_mul(mtx, &m);
     return m;
 }

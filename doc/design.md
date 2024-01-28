@@ -2,6 +2,7 @@
 title: Quest For Nothing
 author: Tom Smeets
 toc: true
+colorlinks: true
 ---
 <!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
 <!-- design.md: Explore and learn game design -->
@@ -79,6 +80,8 @@ What is the root problem? How are you going to solve it?
 This game should feel like the movie "2001 A Space Odyssey".
 High contrast between "Natural" and "Artificial".
 
+![](doc/img/2001-buttons-more.jpg)
+
 ### Natural
 - Not Perfect / Dirty
 - High detailed
@@ -135,6 +138,10 @@ Based on: [The Colors of Stanley Kubrick — Color Theory from The Shining to 20
 - Contrast
 - for other colors
 - Purity
+
+## UI
+
+![](doc/img/2001-buttons.jpg)
 
 ## Other Design ideas
 - You wake up in a spaceship, deserted. But all aliens were hiding.

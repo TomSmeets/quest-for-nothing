@@ -307,6 +307,10 @@ static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
     }
 }
 
+static void gfx_mtx(Gfx *g, m4 *mtx) {
+    g->mtx = *mtx;
+}
+
 static void gfx_text(Gfx *g, v2 start, f32 sx, f32 sy, char *text) {
     // size *= .8;
     // f32 sx = size*.5;

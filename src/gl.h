@@ -221,7 +221,7 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
     // Matrix is: Model -> Screen
     // Which is exactly what we need
     GLboolean row_major = GL_FALSE;
-    api->glUniformMatrix4fv(gl->shader_uniform_mat, 1, row_major, (GLfloat *) &gfx->mtx.fwd);
+    api->glUniformMatrix4fv(gl->shader_uniform_mat, 1, row_major, (GLfloat *) &gfx->world_to_clip.fwd);
     api->glDrawElements(GL_TRIANGLES, gfx->index_count, GL_UNSIGNED_INT, 0);
 
     api->glDisable(GL_DEPTH_TEST);

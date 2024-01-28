@@ -145,21 +145,12 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
 
     // Start new render pass
     ui->gfx = gfx_begin(tmp);
+    m4_screen_to_clip(&ui->gfx->world_to_clip, ui->input->window_size);
 
     // Draw previous window pos
     v2 window_size = rect_size(&ui->window);
 
-    // Move the window to fit
-    // v2 error = { 0 };
-    // error.x += f_min(ui->row.min.x, 0);
-    // error.y += f_min(ui->row.min.y, 0);
-    // error.x += f_max(ui->row.max.x - ui->input->window_size.x, 0);
-    // error.y += f_max(ui->row.max.y - ui->input->window_size.y, 0);
-    // ui->window.min -= error;
-    // ui->window.max -= error;
-
     // Move the window to 0,0
-//    ui->window.min = (v2){};
     ui->window.max = ui->window.min;
 
     // Reset current row
@@ -196,6 +187,4 @@ static void ui_begin(UI *ui, Input *input, mem *tmp) {
     ui->window.max.x = ui->window.min.x;
 }
 
-static void ui_end(UI *ui) {
-    m4_screen_to_clip(&ui->gfx->mtx, ui->input->window_size);
-}
+static void ui_end(UI *ui) { }

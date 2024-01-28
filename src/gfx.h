@@ -22,7 +22,8 @@ struct Gfx_Vertex {
 // Graphics pass
 struct Gfx {
     // Model to Screen transformation matrix
-    m4 mtx;
+    m4 mtx;           // Transform to apply to verticies
+    m4 world_to_clip; // Camera Transform applied at the end
     bool depth;
 
     // Verticies
@@ -66,6 +67,7 @@ static Gfx *gfx_begin(mem *m) {
     gfx->index = mem_array_uninit(m, u32, gfx->index_max);
 
     gfx->mtx = m4_id();
+    gfx->world_to_clip = m4_id();
     return gfx;
 }
 
@@ -85,7 +87,7 @@ static void gfx_uv(Gfx *gfx, f32 u, f32 v) {
 }
 
 static void gfx_normal(Gfx *gfx, v3 normal) {
-    gfx->next_vertex.normal = normal;
+    gfx->next_vertex.normal = m4_mul_dir(&gfx->mtx.fwd, normal);
 }
 
 // Submit a vertex to the vertex array with the current material/uv and normal state
@@ -93,7 +95,7 @@ static u32 gfx_vertex(Gfx *gfx, v3 pos) {
     // TODO: when full, dynamically grow, either the array or create a new pass
     assert(gfx->vertex_count < gfx->vertex_max);
     u32 ix = gfx->vertex_count++;
-    gfx->next_vertex.pos = pos;
+    gfx->next_vertex.pos = m4_mul_pos(&gfx->mtx.fwd, pos);
     gfx->vertex[ix] = gfx->next_vertex;
     return ix;
 }

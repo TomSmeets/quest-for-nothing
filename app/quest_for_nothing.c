@@ -17,6 +17,57 @@
 #include "ui.h"
 #include "parse_qoi.h"
 
+struct Camera {
+    v3 pos;
+    f32 pitch;
+    f32 yaw;
+
+    m4 view_to_world;
+    m4 world_to_clip;
+
+    bool grab_mouse;
+};
+
+static void cam_update(Camera *cam, Sdl *win, f32 dt) {
+    m4 look = m4_id();
+    m4_rot_y(&look, cam->yaw);
+    m4_trans(&look, cam->pos);
+
+    v3 fwd = m4_mul_dir(&cam->view_to_world.fwd, (v3){ 0, 0, -1 });
+    v3 rgt = m4_mul_dir(&cam->view_to_world.fwd, (v3){ 1, 0,  0 });
+    if (input_is_down(&win->input, KEY_W)) cam->pos += fwd*dt;
+    if (input_is_down(&win->input, KEY_S)) cam->pos -= fwd*dt;
+    if (input_is_down(&win->input, KEY_A)) cam->pos -= rgt*dt;
+    if (input_is_down(&win->input, KEY_D)) cam->pos += rgt*dt;
+    if (input_is_down(&win->input, KEY_J)) cam->yaw -= dt;
+    if (input_is_down(&win->input, KEY_L)) cam->yaw += dt;
+    if (input_is_down(&win->input, KEY_I)) cam->pitch -= dt;
+    if (input_is_down(&win->input, KEY_K)) cam->pitch += dt;
+
+    if (input_is_click(&win->input, KEY_G)) {
+        cam->grab_mouse = !cam->grab_mouse;
+        sdl_grab_mouse(win, cam->grab_mouse);
+    }
+
+    if(cam->grab_mouse) {
+        cam->yaw   += win->input.mouse_rel.x*0.002;
+        cam->pitch += win->input.mouse_rel.y*0.002;
+    }
+
+    if(cam->pitch < -R1) cam->pitch = -R1;
+    if(cam->pitch >  R1) cam->pitch =  R1;
+
+    cam->view_to_world = m4_id();
+    m4_rot_x(&cam->view_to_world, -R1);
+    m4_rot_x(&cam->view_to_world, cam->pitch);
+    m4_rot_z(&cam->view_to_world, cam->yaw);
+    m4_trans(&cam->view_to_world, cam->pos);
+   
+    cam->world_to_clip = m4_id();
+    m4_mul_inv(&cam->world_to_clip, &cam->view_to_world);
+    m4_perspective_to_clip(&cam->world_to_clip, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 20);
+}
+
 struct App {
     mem tmp;
     mem perm;
@@ -35,13 +86,7 @@ struct App {
     UI *ui;
 
     image *img;
-
-    v3 pos;
-    f32 pitch;
-    f32 yaw;
-    m4 cam;
-
-    bool grab_mouse;
+    Camera cam;
 };
 
 // You can choose how to run this app
@@ -59,7 +104,6 @@ void *main_init(int argc, char **argv) {
     app->dt   = 1000 * 1000 / 200;
     app->ui   = mem_struct(&m, UI);
     app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
-    app->cam = m4_id();
     return app;
 }
 
@@ -71,9 +115,9 @@ void main_update(void *handle) {
     Sdl *win = app->window;
 
     global_set(&app->global);
+
     sdl_begin(win);
     gl_clear(app->gl, win->input.window_size);
-
 
     // Handle quit
     if (win->input.quit || input_is_down(&win->input, KEY_Q)) {
@@ -81,61 +125,31 @@ void main_update(void *handle) {
         os_exit(0);
     }
 
-    m4 look = m4_id();
-    m4_rot_y(&look, app->yaw);
-    m4_trans(&look, app->pos);
+    // freecam movement
+    cam_update(&app->cam, win, dt);
 
-    v3 fwd = m4_mul_dir(&app->cam.fwd, (v3){ 0, 0,  -1 });
-    v3 rgt = m4_mul_dir(&app->cam.fwd, (v3){ 1, 0,  0 });
-    if (input_is_down(&win->input, KEY_W)) app->pos += fwd*dt;
-    if (input_is_down(&win->input, KEY_S)) app->pos -= fwd*dt;
-    if (input_is_down(&win->input, KEY_A)) app->pos -= rgt*dt;
-    if (input_is_down(&win->input, KEY_D)) app->pos += rgt*dt;
-    if (input_is_down(&win->input, KEY_J)) app->yaw -= dt;
-    if (input_is_down(&win->input, KEY_L)) app->yaw += dt;
-    if (input_is_down(&win->input, KEY_I)) app->pitch -= dt;
-    if (input_is_down(&win->input, KEY_K)) app->pitch += dt;
-
-    if (input_is_click(&win->input, KEY_G)) {
-        app->grab_mouse = !app->grab_mouse;
-        sdl_grab_mouse(win, app->grab_mouse);
-    }
-
-    if(app->grab_mouse) {
-        app->yaw   += win->input.mouse_rel.x*0.002;
-        app->pitch += win->input.mouse_rel.y*0.002;
-    }
-
-    if(app->pitch < -R1) app->pitch = -R1;
-    if(app->pitch >  R1) app->pitch =  R1;
-
-    app->cam = m4_id();
-    // m4_rot_z(&app->cam, R2);
-    m4_rot_x(&app->cam, -R1);
-    m4_rot_x(&app->cam, app->pitch);
-    m4_rot_z(&app->cam, app->yaw);
-    m4_trans(&app->cam, app->pos);
-
-    // os_printf("%f %f\n", win->input.mouse_pos.x, win->input.mouse_pos.y);
     {
         // Draw something 3d
         Gfx *gfx = gfx_begin(tmp);
         gfx->depth = 1;
-        // m4_screen_to_clip(&gfx->mtx, win->input.window_size);
-        // Camera at 0,0,0 looking to (0, 0, -inf)
+        gfx->world_to_clip = app->cam.world_to_clip;
+
+        gfx->mtx = m4_id();
         m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
         m4_rot_x(&gfx->mtx, -R1); // make text upright
-        // m4_rot_z(&gfx->mtx, (f32) app->t); // rotate around z axis
-        m4_trans(&gfx->mtx, (v3){0,0, 0}); // move into position
+        m4_trans(&gfx->mtx, (v3){0,0,0}); // move into position
         gfx_color(gfx, (v4){1, .5, 0, 1});
         gfx_circle(gfx, (v2){-1, 0}, 1);
         gfx_text(gfx, 0, 1, 1, "The Quick Brown fox jumps\nover the lazy dog");
-        // gfx_rect(gfx, (v2){0,0}, (v2){1,1});
 
-        // model_to_clip = view_to_clip * world_to_view * model_to_world
-        // model_to_world = Translate * Rotate * Scale
-        m4_mul_inv(&gfx->mtx, &app->cam);
-        m4_perspective_to_clip(&gfx->mtx, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 20);
+        gfx->mtx = m4_id();
+        m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
+        m4_rot_x(&gfx->mtx, -R1); // make text upright
+        m4_trans(&gfx->mtx, (v3){0,1,0}); // move into position
+        gfx_color(gfx, (v4){0, .5, 0, 1});
+        gfx_circle(gfx, (v2){-1, 0}, 1);
+        gfx_text(gfx, 0, 1, 1, "The Quick Brown fox jumps\nover the lazy dog");
+
         gl_draw(app->gl, gfx);
     }
 
@@ -143,7 +157,7 @@ void main_update(void *handle) {
         // Draw ui
         UI *ui = app->ui;
         ui_begin(ui, &win->input, tmp);
-        ui->disable_interaction =  app->grab_mouse;
+        ui->disable_interaction =  app->cam.grab_mouse;
         if(ui_button(ui, "Click Me!")) {
             os_print("Hello, World!\n");
         }
@@ -158,13 +172,12 @@ void main_update(void *handle) {
         gl_draw(app->gl, ui->gfx);
     }
 
-    if(!app->grab_mouse) {
+    if(!app->cam.grab_mouse) {
         // Draw a mouse cursor
         Gfx *gfx = gfx_begin(tmp);
         gfx_color(gfx, RED);
         gfx_circle(gfx, win->input.mouse_pos, 4);
-
-        m4_screen_to_clip(&gfx->mtx, win->input.window_size);
+        m4_screen_to_clip(&gfx->world_to_clip, win->input.window_size);
         gl_draw(app->gl, gfx);
     }
 
