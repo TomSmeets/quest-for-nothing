@@ -135,11 +135,13 @@ void main_update(void *handle) {
         gfx->world_to_clip = app->cam.world_to_clip;
 
         gfx->mtx = m4_id();
+        gfx_circle(gfx, (v2){-1, 0}, 1);
+
+        gfx->mtx = m4_id();
         m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
         m4_rot_x(&gfx->mtx, -R1); // make text upright
         m4_trans(&gfx->mtx, (v3){0,0,0}); // move into position
         gfx_color(gfx, (v4){1, .5, 0, 1});
-        gfx_circle(gfx, (v2){-1, 0}, 1);
         gfx_text(gfx, 0, 1, 1, "The Quick Brown fox jumps\nover the lazy dog");
 
         gfx->mtx = m4_id();
@@ -147,7 +149,6 @@ void main_update(void *handle) {
         m4_rot_x(&gfx->mtx, -R1); // make text upright
         m4_trans(&gfx->mtx, (v3){0,1,0}); // move into position
         gfx_color(gfx, (v4){0, .5, 0, 1});
-        gfx_circle(gfx, (v2){-1, 0}, 1);
         gfx_text(gfx, 0, 1, 1, "The Quick Brown fox jumps\nover the lazy dog");
 
         gl_draw(app->gl, gfx);

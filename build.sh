@@ -22,7 +22,7 @@ WIN="-target x86_64-unknown-windows-gnu"
 
 function cc() {
     echo "cc $@"
-    clang -march=native -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Isrc -Iout "$@"
+    clang -march=native -Wall -Werror -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function -Wno-format -Isrc -Iout "$@"
 }
 
 if [ $MODE == "s" ]; then
