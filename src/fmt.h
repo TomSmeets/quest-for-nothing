@@ -128,9 +128,13 @@ static void fmt_i64(fmt_t *f, i64 v, u64 base, u64 pad, u8 prefix, u8 sign) {
 }
 
 static void fmt_f32(fmt_t *f, f32 v, u64 pad, u8 prefix, u8 sign) {
-    v += 0.0005;
-    i32 i_part = f_trunc(v);
-    f32 f_part = f_fract(v);
+    f32 vp = v;
+    if (v < 0) vp = -v;
+
+    vp += 0.0005;
+    i32 i_part = f_trunc(vp);
+    f32 f_part = f_fract(vp);
+    if(v < 0) fmt_chr(f, '-');
     fmt_i64(f, i_part, 10, pad, prefix, 0);
     fmt_i64(f, f_part * 1000, 10, 3, '.', 0);
 }
@@ -138,7 +142,7 @@ static void fmt_f32(fmt_t *f, f32 v, u64 pad, u8 prefix, u8 sign) {
 // %xa.b
 static void fmt_va(fmt_t *f, char *s, va_list args) {
     bool in_arg = 0;
-    bool sign = 0;
+    u32 sign = 0;
     u32 pad = 0;
     for (;;) {
         char c = *s++;
@@ -201,6 +205,7 @@ static char *fmt(mem *m, char *format, ...)
     return fmt_end(&f);
 }
 
+__attribute__((format(printf, 1, 2)))
 static void os_printf(char *format, ...) {
     va_list args;
 
