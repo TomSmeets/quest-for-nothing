@@ -3,6 +3,11 @@
 # Programming in C
 I like the C programming language due to its simplicity, compilation speed, and runtime performance.
 
+## Interesting Resources
+- [Ryan Fleury - Hidden Grove](https://www.rfleury.com/)
+- [Casey Muratori - Computer Enhance](https://www.computerenhance.com/)
+- [Casey Muratori - Handmade Hero](https://guide.handmadehero.org/)
+
 ## Compilation Speed
 
 Compilation speed is very important to me.
@@ -57,9 +62,9 @@ C does not have constructors and I almost never need them if I use zero as the d
 - `char *` vs `const char *`? I never use `const`, so why would I use this with strings? Are they special?
 
 
-# Questionable Ideas
+## Questionable Ideas
 
-## Context
+### Context
 
 Tired of passing too many arguments? Just pack everything into a big 'context' struct.
 This can be done with a global or a local argument.

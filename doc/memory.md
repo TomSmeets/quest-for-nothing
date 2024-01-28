@@ -2,9 +2,9 @@
 <!-- memory.md: Explore and document different memory allocation techniques -->
 # Memory methods
 
-# Good Idea
+## Good Idea
 
-## Flexible arenas
+### Flexible arenas
 Allocating memory is easy but freeing memory is difficult. I don't want to constantly think about freeing individual objects.
 Memory arenas help with this.
 
@@ -87,19 +87,19 @@ When freeing big pages that are used for files, we want to return that memory to
 This method is very flexible. It allows us to create huge arenas that have very long lifetimes.
 But I can also create very short-lived arenas and use it as a very rough malloc/free.
 
-### Flexible
+#### Flexible
 An example is the `printf` function.
 I need some memory to create the formatted string.
 But the memory can be freed directly after the print is performed.
 I don't want to pass a temporary memory arena every time to this function. Fortunately I can just use a memory page directly.
 This will only use one page and return it to the page cache directly.
 
-### Advantages
+#### Advantages
 - Flexible
 - Simple
 - Performant
 
-### Disadvantages
+#### Disadvantages
 - ?
 
 ```c
@@ -109,18 +109,18 @@ print(out);
 mem_clear(&m);
 ```
 
-# Bad Ideas (Don't use these)
+## Bad Ideas (Don't use these)
 
-## Malloc / Free
+### Malloc / Free
 The most common memory allocation method of malloc/free is never a good idea. Flexible Arenas is strictly better.
 
-### Disadvantages
+#### Disadvantages
 - Complex to implement
 - Slow
 - Very Fragmented Memory
 - I have to track the lifetime of every object
 
-## Permanent + Frame Arena
+### Permanent + Frame Arena
 
         Permanent             Frame
     +---------------+     +---------------+
@@ -138,13 +138,13 @@ The most common memory allocation method of malloc/free is never a good idea. Fl
     .               .     .               .
     . . . . . . . . .     . . . . . . . . .
 
-### Advantages
+#### Advantages
 - Very simple
 
-### Disadvantage
+#### Disadvantage
 - Not flexible enough
 
-## Two Frame Arenas
+### Two Frame Arenas
 
      Previous Frame                    Next Frame
     +---------------+               +---------------+
@@ -182,18 +182,18 @@ Everything else is lost after this frame is finished.
 At the end of the frame we clear the previous frame arena and swap the two frame arenas.
 
 
-### Advantages
+#### Advantages
 - Simple
 - Unused memory is instantly freed, basically garbage collection
 - I don't have to think about memory freeing
 
-### Disadvantages
+#### Disadvantages
 - Unsuitable for static data, everything has to be iterated and copied every time.
 - In practice, the copying cannot be easily combined with the modifying of the memory.
 - Only suitable for small memory footprint
 - Pointers are not stable
 
-### Conclusion
+#### Conclusion
 This is not good.
 
 While we don't have to think about freeing it actually complicates memory by making me think constantly of coping. Also, it is very inefficient.

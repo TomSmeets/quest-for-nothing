@@ -1,23 +1,33 @@
+---
+title: Quest For Nothing
+author: Tom Smeets
+toc: true
+---
 <!-- Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl> -->
 <!-- design.md: Explore and learn game design -->
-# Design
 
-## Goal
-Why am I developing a game?
+# Motivation
 
-I just want to program something interactive and create a standard library that I can reuse.
-However, I realize that rewriting thins is usually more fun, so maybe I won't be using this in practice.
-The experience gained from creating such a game and designing a standard library will never be wasted time.
-Whether it will be used or not.
-I don't care too much about the end result. I like the journey too much.
+I like creating something big from scrach where I can explain every detail.
 
+A game is interesting because it is so diverse. It includes topics such as:
 
-## Inspiration
+- Game Design
+- Performance
+- Low Latency
+- Music
+- Sound Effects
+- Distribution
+- Multiple Platforms
+- Level Design
+- Networking
+- 3D Math
+- Publishing A Game
+- Procedural Generation
 
-- [2001 A Space Odyssey](https://www.imdb.com/title/tt0062622/)
-- [Boarding Party](https://steamcommunity.com/sharedfiles/filedetails/?id=889907960)
+# Game Design
 
-## Space Game: Quest for Nothing
+## General Idea
 Something has happened to the universe. Everything seems to be slowing down.
 Guess what, the universe is a simulation things just got bloated and busy.
 What is the root problem? How are you going to solve it?
@@ -32,132 +42,101 @@ What is the root problem? How are you going to solve it?
 - Some psychological aspects.
 - Entropy reversal?
 
-## Implementation
-A very simplified sequence might look like:
+## Inspiration
 
-1. Dock
-2. Kill all aliens
-3. Start self-destruct sequence
-4. Escape
+- [2001 A Space Odyssey](https://www.imdb.com/title/tt0062622/)
+- [Boarding Party](https://steamcommunity.com/sharedfiles/filedetails/?id=889907960)
 
-or
+## The Game Loop
 
-1. Dock
-2. Talk to aliens
-3. Solve some problems
-4. Leave
+1. Dock with alien spaceship
+2. Perform Some Task
+3. Escape
 
-Memory can be split in three primary arenas:
-- Game*,  mem_game
-- Level*, mem_level
-- Frame*, mem_frame
+### The Task
+- Self destruct
+- Some Repair
+- Gather Intel
 
-Platform Targets:
-- Linux
-- Windows
-- Wasm
-- Wii
+### Challanges
+- Aliens might attack you
+- Aliens might talk to you
+- Items and weapons found can be collected
 
+### Weapons
+- The Milo Gun: Cat shooting gun
+- ...
 
 ## Features
-
 - CO-OP Multiplayer
 - Procedural generated spaceships and aliens
 - Pretty colored Lighting
 - Over use bloom effect, buttons, lights, eyes.
 - The Cat-Cannon, shoots a cat, which attacks the target, and the returns back to the owner. A boomerang, but a cat.
 
-# Theme
+## Theme
 
-This game should feel exactly like the movie "2001 A Space Odyssey".
-After analyzing the movie I noticed the following design ideas.
+This game should feel like the movie "2001 A Space Odyssey".
+High contrast between "Natural" and "Artificial".
 
-High contrast between "Artificial" and "Natural".
-
-## Natural
-
-- Dirty
+### Natural
+- Not Perfect / Dirty
 - High detailed
+- Textured polygons
+- Green
 
-This means
-
-- textured polygons
-
-## Artificial
-
-- Clean
-- Flat polygons
-- White with a few strong contrasting colors
-- Every button and indicator Glows
-
-This means
-
+### Artificial
+- Perfrect / Clean
 - Flat, untextured polygons
-- Emissive colors
-
+- White with a few strong contrasting colors
+- Emissive Material in Flat colors
 - Glowing buttons and indicator lights
-- Strong contrasting colors. Mostly white with Black, Red, Green, Blue, Yellow, where appropriate.
-- Life and natural things are very 'dirty' and not flat at all. They contrast the human made things.
 
-## Lighting
-- roughness: mirror like <--> diffuse
-- color
-- Emissive color
 
-Idea: we could make the world with polygons directly. No textures.
+### Color
 
-## Color
+Based on: [The Colors of Stanley Kubrick — Color Theory from The Shining to 2001: A Space Odyssey and More](https://www.youtube.com/watch?v=yVdhm9P8I6o)
 
-Analysis from the following video combined with my own interpretations.
-
-- [The Colors of Stanley Kubrick — Color Theory from The Shining to 2001: A Space Odyssey and More](https://www.youtube.com/watch?v=yVdhm9P8I6o)
-
-### Red
+#### Red
 
 - Threat
 - Danger
 - Emotional intensity
 
-### Orange
+#### Orange
 
 - Destructive
 - Candles
 - Fire
 
-### Yellow & Gold
+#### Yellow & Gold
 
 - Grandeur
 - Isolate character from background
 
-### Green
+#### Green
 
 - Natural
 - Life
 - Death
 
-### Blue
+#### Blue
 
 - Moonlight
 - Sin
 - Guilt
 
-### Purple
+#### Purple
 
 - Temptation
 
-### White
+#### White
 
 - Contrast
 - for other colors
 - Purity
 
-### Natural Things
-- Textured high detail
-
-### Artificial Things
-- Flat polygons
-
-# Other Design ideas
+## Other Design ideas
 - You wake up in a spaceship, deserted. But all aliens were hiding.
 - You can talk to an alien.
 - You can kill or hurt an alien.
