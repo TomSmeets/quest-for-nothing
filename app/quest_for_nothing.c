@@ -125,7 +125,7 @@ void main_update(void *handle) {
         // Camera at 0,0,0 looking to (0, 0, -inf)
         m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
         m4_rot_x(&gfx->mtx, -R1); // make text upright
-        m4_rot_z(&gfx->mtx, (f32) app->t); // rotate around z axis
+        // m4_rot_z(&gfx->mtx, (f32) app->t); // rotate around z axis
         m4_trans(&gfx->mtx, (v3){0,0, 0}); // move into position
         gfx_color(gfx, (v4){1, .5, 0, 1});
         gfx_circle(gfx, (v2){-1, 0}, 1);
