@@ -17,7 +17,7 @@ static void *load_module(char *path, u64 mtime) {
     #if OS_WINDOWS
     // TODO: better location
     // TODO: FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE
-    char *new_path = fmt(&m, "out/tmp-main-%u.dll", mtime);
+    char *new_path = fmt(&m, "out\\tmp-main-%u.dll", mtime);
     #else
     char *new_path = fmt(&m, "/tmp/tmp-main-%u.so", mtime);
     #endif
@@ -48,7 +48,7 @@ void *main_init(int argc, char *argv[]) {
 
     // Parse arguments
     char *module_path  = argv[1];
-    char *trigger_path = "out/trigger";
+    char *trigger_path = "out\\trigger";
 
     // Load application
     u64 prev_mtime = os_file_mtime(trigger_path);

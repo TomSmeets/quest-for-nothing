@@ -141,7 +141,9 @@ static void *os_dlopen(char *file) {
 }
 
 static void *os_dlsym(void *handle, char *name) {
-    return GetProcAddress(handle, name);
+    void *addr = GetProcAddress(handle, name);
+    assert(addr);
+    return addr;
 }
 
 static void os_copy_file(char *src, char *dst) {

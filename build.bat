@@ -7,5 +7,5 @@ clang %args%         -o out/hello.exe             app/hello.c
 clang %args%         -o out/time_cmd.exe          app/time_cmd.c
 clang %args%         -o out/quest_for_nothing.exe app/quest_for_nothing.c
 clang %args%         -o out/hot.exe               app/hot.c
-clang %args% -shared -o out/quest_for_nothing.dll app/quest_for_nothing.c
+clang %args% -Wl,-export:main_init,-export:main_update -shared -o out/quest_for_nothing.dll app/quest_for_nothing.c
 touch out/trigger
