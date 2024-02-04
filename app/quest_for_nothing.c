@@ -52,7 +52,7 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
     v3 vel_inst = cam->pos - cam->old_pos;
     cam->old_pos = cam->pos;
     cam->pos += v3_limit(move, 1)*dt*0.60;
-    cam->pos += vel_inst - 0.5*dt*dt*(v3){0,0,9.81*0.5};
+    cam->pos += vel_inst - 0.5*dt*dt*(v3){0,0,9.81};
     
     // Floor collision
     cam->pos.xy -= dt*vel_inst.xy*30;
@@ -61,12 +61,12 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
         cam->can_jump_again = 0;
         if (input_is_click(&win->input, KEY_SPACE)) {
             cam->can_jump_again = 1;
-            cam->pos.z += dt*4;
+            cam->pos.z += dt*2;
         }
     } else {
         if (cam->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
             cam->can_jump_again = 0;
-            cam->pos.z += dt*4;
+            cam->pos.z += dt*2;
         }
     }
 
@@ -140,6 +140,9 @@ void *main_init(int argc, char **argv) {
     return app;
 }
 
+
+double acos(double);
+
 void main_update(void *handle) {
     App *app = handle;
     mem *tmp = &app->tmp;
@@ -168,55 +171,33 @@ void main_update(void *handle) {
         gfx->world_to_clip = app->cam.world_to_clip;
 
         rand_t rng = {};
-        for(u32 i = 0; i < 64*8; ++i) {
+        for(u32 i = 0; i < 64*8*4; ++i) {
 
-            f32 angle    = rand_f32(&rng)*R4;
-            f32 distance = rand_f32(&rng);
+            f32 angle = rand_f32(&rng)*2*PI;
+            f32 theta = acos(2*rand_f32(&rng) - 1);
 
-            v3 pos = (v3){f_cos(angle), f_sin(angle), 0}*f_sqrt(distance);
-            pos.z = f_sqrt(1 - distance*distance);
-            v4 color = { rand_f32(&rng), rand_f32(&rng), rand_f32(&rng), 1 };
-
-            pos.z *= 1.5;
-            pos.z -= .5;
-            if((rand_next(&rng) & 1) == 0) {
-                pos.z *= -1;
-            }
-
-            // pos.z *= 2;
-            pos *= 40;
-
+            v4 color = { 1, 1, 1, 1 };
+            color = color*.2 + 0.8*(v4){ rand_f32(&rng), rand_f32(&rng), rand_f32(&rng), 1 };
             f32 r = 0.05;
 
             gfx->mtx = m4_id();
-            m4_rot_x(&gfx->mtx, -R1); // make text upright
-            m4_trans(&gfx->mtx, pos);
+            m4_rot_x(&gfx->mtx, -R1);
+            m4_trans(&gfx->mtx, (v3){0, 40, 0});
+            m4_rot_x(&gfx->mtx, theta+R1);
+            m4_rot_z(&gfx->mtx, angle);
             //m4_rot_z(&gfx->mtx, 0.5*i);
             gfx_color(gfx, color);
             gfx_circle(gfx, (v2){0, 0}, r);
 
-            gfx->mtx = m4_id();
-            m4_rot_x(&gfx->mtx, -R1);
-            m4_rot_z(&gfx->mtx, -R1);
-            m4_trans(&gfx->mtx, pos);
-            gfx_color(gfx, color);
-            gfx_circle(gfx, (v2){0, 0}, r);
-
-            gfx->mtx = m4_id();
-            m4_rot_x(&gfx->mtx, -R1);
-            m4_rot_x(&gfx->mtx, -R1);
-            m4_trans(&gfx->mtx, pos);
-            gfx_color(gfx, color);
-            gfx_circle(gfx, (v2){0, 0}, r);
         }
 
 
         gfx->mtx = m4_id();
         gfx_color(gfx, (v4){0.1, 0.2, 0.1, 1});
-        gfx_circle(gfx, (v2){0, 0}, 20);
+//        gfx_circle(gfx, (v2){0, 0}, 20);
 
         gfx_color(gfx, (v4){0.2, 0.2, 0.1, 1});
-        gfx_circle(gfx, (v2){0, 0}, 40);
+  //      gfx_circle(gfx, (v2){0, 0}, 40);
 
         gfx->mtx = m4_id();
         m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
