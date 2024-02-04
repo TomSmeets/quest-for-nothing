@@ -196,7 +196,8 @@ static void gl_clear(gl_t *gl, v2 window_size) {
     api->glCullFace(GL_FRONT);
 
     api->glViewport(0, 0, window_size.x, window_size.y);
-    api->glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    // api->glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    api->glClearColor(0,0,0, 1.0f);
     api->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

@@ -163,3 +163,14 @@ Based on: [The Colors of Stanley Kubrick — Color Theory from The Shining to 20
 - The slow motion tool works by temporarily increasing the complexity of the simulation.
 - Speed increases when killing aliens. But next level resets speed again.
 - Level is a spaceship where you go through the entire ship to initiaite a self destruct sequence. Then you need to return back to your ship.
+
+# Progress
+
+## Step 1
+
+Kill aliens in space
+- [ ] Shooting
+- [x] 3d Camera movement
+- [ ] Starry background
+- [ ] Billboard alien graphics
+- [ ] sound effect

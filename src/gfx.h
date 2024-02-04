@@ -60,10 +60,10 @@ struct Gfx {
 
 static Gfx *gfx_begin(mem *m) {
     Gfx *gfx = mem_struct(m, Gfx);
-    gfx->vertex_max = 1024*10;
+    gfx->vertex_max = 1024*64;
     gfx->vertex = mem_array_uninit(m, Gfx_Vertex, gfx->vertex_max);
 
-    gfx->index_max = 1024*10;
+    gfx->index_max = 1024*64;
     gfx->index = mem_array_uninit(m, u32, gfx->index_max);
 
     gfx->mtx = m4_id();

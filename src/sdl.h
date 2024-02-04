@@ -31,6 +31,7 @@ struct Sdl {
     v2 mouse_rel;
 
     Input input;
+    bool has_mouse_grab;
 };
 
 // TODO: locking?? -> just expose sdl_lock and sdl_unlock audio
@@ -135,10 +136,13 @@ static void sdl_begin(Sdl *sdl) {
         }
 
         if (event.type == SDL_MOUSEMOTION) {
-            sdl->input.mouse_pos.x = event.motion.x;
-            sdl->input.mouse_pos.y = event.motion.y;
-            sdl->input.mouse_rel.x += event.motion.xrel;
-            sdl->input.mouse_rel.y += event.motion.yrel;
+            if(sdl->has_mouse_grab) {
+                sdl->input.mouse_rel.x += event.motion.xrel;
+                sdl->input.mouse_rel.y += event.motion.yrel;
+            } else {
+                sdl->input.mouse_pos.x = event.motion.x;
+                sdl->input.mouse_pos.y = event.motion.y;
+            }
         }
 
         if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
@@ -170,5 +174,6 @@ static void sdl_end(Sdl *sdl) {
 
 static void sdl_grab_mouse(Sdl *sdl, bool grab) {
     sdl_api *api = &sdl->api;
+    sdl->has_mouse_grab = grab;
     api->SDL_SetRelativeMouseMode(grab);
 }
