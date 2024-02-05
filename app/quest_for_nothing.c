@@ -31,8 +31,30 @@ struct Camera {
     bool can_jump_again;
 };
 
-static void cam_update(Camera *cam, Sdl *win, f32 dt) {
 
+static f32 time_to_snd(u64 us, f32 hz) {
+    u64 one_second = 1000000;
+    u64 factor = 10;
+    return (f32)((us * (u64) (hz * factor)) % (one_second*factor)) / (one_second*factor);
+}
+
+static f32 time_seconds(u64 us) {
+    return us / 1e6;
+}
+
+static f32 snd_pew(u64 us) {
+    f32 lfo_amp  = 0.0001;
+    f32 lfo_freq = 2;
+    f32 compression = 8*2;
+
+    f32 t = time_seconds(us);
+    f32 volume = f_max(1 - t*2, 0);
+    f32 o = f_sin(time_to_snd(us + lfo_amp*1e6*f_sin(t*lfo_freq), 80*2)*R4)*volume;
+    o = f_clamp(o*(volume*compression+1), -1, 1);
+    return o;
+}
+
+static void cam_update(Camera *cam, Sdl *win, f32 dt) {
     m4 look = m4_id();
     m4_rot_x(&look, -R1);
     m4_rot_z(&look, cam->yaw);
@@ -92,12 +114,6 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
     m4_mul_inv(&cam->world_to_clip, &cam->view_to_world);
     m4_perspective_to_clip(&cam->world_to_clip, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 80);
 
-
-    // Shooting
-    if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
-        // Play sound effect
-        os_print("FIRE!\n");
-    }
 }
 
 struct App {
@@ -120,7 +136,18 @@ struct App {
 
     image *img;
     Camera cam;
+
+    u64 audio_time;
 };
+
+static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
+    App *app = user;
+    u64 dt_us = dt * 1e6;
+    for(u32 i = 0; i < count; ++i) {
+        output[i].y = output[i].x = snd_pew(app->audio_time);
+        app->audio_time += dt_us;
+    }
+}
 
 // You can choose how to run this app
 // - dynamically: use ./hot main.so
@@ -150,6 +177,9 @@ void main_update(void *handle) {
     global_set(&app->global);
 
     sdl_begin(win);
+    win->audio_callback = qfo_audio_callback;
+    win->audio_user_data = app;
+
     gl_clear(app->gl, win->input.window_size);
 
     // Handle quit
@@ -160,6 +190,12 @@ void main_update(void *handle) {
 
     // freecam movement
     cam_update(&app->cam, win, dt);
+
+    // Shooting
+    if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
+        os_print("FIRE!\n");
+        app->audio_time = 0;
+    }
 
     {
         // Draw something 3d
@@ -191,10 +227,10 @@ void main_update(void *handle) {
 
         gfx->mtx = m4_id();
         gfx_color(gfx, (v4){0.1, 0.2, 0.1, 1});
-//        gfx_circle(gfx, (v2){0, 0}, 20);
+        gfx_circle(gfx, (v2){0, 0}, 10);
 
         gfx_color(gfx, (v4){0.2, 0.2, 0.1, 1});
-  //      gfx_circle(gfx, (v2){0, 0}, 40);
+        gfx_circle(gfx, (v2){0, 0}, 20);
 
         gfx->mtx = m4_id();
         m4_scale(&gfx->mtx, (v3){1,1,1}*.2);
@@ -234,6 +270,7 @@ void main_update(void *handle) {
     // Wait for the next frame
     app->time += app->dt;
     app->t    += app->dt / 1e6;
+    os_printf("t = %u\n", app->audio_time);
     os_sleep_until(app->time);
     mem_clear(&app->tmp);
 }

@@ -12,7 +12,7 @@
 
 #include <stdlib.h>
 
-typedef void SDL_Audio_Callback(f32 dt, u32 count, v2 *output);
+typedef void SDL_Audio_Callback(void *user, f32 dt, u32 count, v2 *output);
 
 struct Sdl {
     sdl_api api;
@@ -25,6 +25,7 @@ struct Sdl {
     // audio
     f32 audio_dt;
     SDL_Audio_Callback *audio_callback;
+    void *audio_user_data;
 
     // input
     v2 mouse_pos;
@@ -42,7 +43,7 @@ static void sdl_call_audio_callback(void *user, u8 *data, i32 len) {
     v2 *output = (v2 *)data;
 
     if (sdl->audio_callback) {
-        sdl->audio_callback(dt, output_count, output);
+        sdl->audio_callback(sdl->audio_user_data, dt, output_count, output);
         for (u32 i = 0; i < output_count; ++i) {
             output[i] *= 0.2;
             output[i].x = f_clamp(output[i].x, -1, 1);

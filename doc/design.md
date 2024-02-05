@@ -169,8 +169,9 @@ Based on: [The Colors of Stanley Kubrick — Color Theory from The Shining to 20
 ## Step 1
 
 Kill aliens in space
+
 - [ ] Shooting
 - [x] 3d Camera movement
-- [ ] Starry background
+- [x] Starry background
 - [ ] Billboard alien graphics
 - [ ] sound effect
