@@ -140,9 +140,6 @@ void *main_init(int argc, char **argv) {
     return app;
 }
 
-
-double acos(double);
-
 void main_update(void *handle) {
     App *app = handle;
     mem *tmp = &app->tmp;
@@ -174,7 +171,7 @@ void main_update(void *handle) {
         for(u32 i = 0; i < 64*8*4; ++i) {
 
             f32 angle = rand_f32(&rng)*2*PI;
-            f32 theta = acos(2*rand_f32(&rng) - 1);
+            f32 theta = f_acos(2*rand_f32(&rng) - 1);
 
             v4 color = { 1, 1, 1, 1 };
             color = color*.2 + 0.8*(v4){ rand_f32(&rng), rand_f32(&rng), rand_f32(&rng), 1 };

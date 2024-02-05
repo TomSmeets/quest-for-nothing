@@ -149,3 +149,8 @@ static f32 f_inv_sqrt(f32 v) {
 static f32 f_sqrt(f32 v) {
     return f_inv_sqrt(v) * v;
 }
+
+static f32 f_acos(f32 x) {
+// asin(x) = atan2 (x, sqrt ((1.0 + x) * (1.0 - x)))
+    return f_atan2(f_sqrt((1.0 + x) * (1.0 - x)), x);
+}
