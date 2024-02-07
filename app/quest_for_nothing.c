@@ -270,7 +270,6 @@ void main_update(void *handle) {
     // Wait for the next frame
     app->time += app->dt;
     app->t    += app->dt / 1e6;
-    os_printf("t = %u\n", app->audio_time);
     os_sleep_until(app->time);
     mem_clear(&app->tmp);
 }
