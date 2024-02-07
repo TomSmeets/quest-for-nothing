@@ -42,17 +42,66 @@ static f32 time_seconds(u64 us) {
     return us / 1e6;
 }
 
-static f32 snd_pew(u64 us) {
-    f32 lfo_amp  = 0.0001;
-    f32 lfo_freq = 2;
-    f32 compression = 8*2;
+struct sound_t {
+    // Time in seconds
+    bool play;
+    f32 time;
 
-    f32 t = time_seconds(us);
-    f32 volume = f_max(1 - t*2, 0);
-    f32 o = f_sin(time_to_snd(us + lfo_amp*1e6*f_sin(t*lfo_freq), 80*2)*R4)*volume;
-    o = f_clamp(o*(volume*compression+1), -1, 1);
+    rand_t rng;
+    f32 t0; // Wave
+    f32 t1; // Lfo
+    f32 t_noise;
+    f32 o_noise;
+
+    f32 filter;
+
+    // params
+    f32 base_freq;
+    f32 lfo_amp;
+    f32 lfo_freq;
+    f32 compression;
+    f32 noise;
+    f32 vel;
+};
+
+static f32 f_sin2pi(f32 x) {
+    return f_sin(x*R4);
+}
+
+static f32 snd_play(f32 dt, sound_t *snd) {
+    if(!snd->play)
+        return 0;
+
+
+    f32 volume = 1 / (snd->time*20 + 1);
+    f32 o = f_sin2pi(snd->t0 + snd->lfo_amp*f_sin2pi(snd->t1));
+//    o += snd->o_noise*snd->noise;
+    o = f_clamp(o + o*volume*snd->compression, -1, 1)*volume;
+
+    snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
+    o = snd->filter;
+
+    snd->t0 = f_fract(snd->t0 + dt*snd->base_freq);
+    snd->t1 = f_fract(snd->t1 + dt*snd->lfo_freq);
+    snd->base_freq += snd->vel*dt;
+
+    if(snd->base_freq < 0) snd->base_freq = 0;
+
+    snd->t_noise = snd->t_noise + dt*400;
+    if(snd->t_noise > 1) {
+        snd->t_noise -= 1;
+        snd->o_noise = (rand_next(&snd->rng) & 1) == 0 ? 1 : -1;
+    }
+
+    snd->time += dt;
+
+    if(volume < 0.02) {
+        *snd = (sound_t) { 0 };
+        os_printf("Done\n");
+    }
     return o;
 }
+
 
 static void cam_update(Camera *cam, Sdl *win, f32 dt) {
     m4 look = m4_id();
@@ -137,15 +186,17 @@ struct App {
     image *img;
     Camera cam;
 
-    u64 audio_time;
+    sound_t sounds[8];
+    rand_t rng;
 };
 
 static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
     App *app = user;
-    u64 dt_us = dt * 1e6;
     for(u32 i = 0; i < count; ++i) {
-        output[i].y = output[i].x = snd_pew(app->audio_time);
-        app->audio_time += dt_us;
+        f32 o = 0;
+        for(u32 i = 0; i < array_count(app->sounds); ++i)
+            o += snd_play(dt, &app->sounds[i]);
+        output[i].y = output[i].x = o;
     }
 }
 
@@ -165,6 +216,13 @@ void *main_init(int argc, char **argv) {
     app->ui   = mem_struct(&m, UI);
     app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
     return app;
+}
+
+static sound_t *snd_get(App *app) {
+    for(u32 i =0; i < array_count(app->sounds); ++i)
+        if(!app->sounds[i].play)
+            return &app->sounds[i];
+    return 0;
 }
 
 void main_update(void *handle) {
@@ -194,7 +252,27 @@ void main_update(void *handle) {
     // Shooting
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
         os_print("FIRE!\n");
-        app->audio_time = 0;
+
+        sound_t *snd = snd_get(app);
+        if(snd) {
+            snd->base_freq = 80 + rand_f32(&app->rng)*10;
+            snd->lfo_amp  = 0.1;
+            snd->lfo_freq = 4 + rand_f32_signed(&app->rng)*10;
+            snd->compression = 20;
+            snd->noise = 0.1;
+            snd->vel = -40;
+            snd->play = 1;
+        }
+
+        snd = snd_get(app);
+        if(snd) {
+            snd->base_freq = 440;
+            snd->lfo_amp  = 0.5;
+            snd->lfo_freq = 4;
+            snd->compression = 1;
+            snd->vel = -100;
+            snd->play = 1;
+        }
     }
 
     {
