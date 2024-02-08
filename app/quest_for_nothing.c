@@ -1,4 +1,4 @@
-// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // quest_for_nothing.c - Main entry point for "Quest For Nothing"
 #include "inc.h"
 #include "color.h"
@@ -32,28 +32,18 @@ struct Camera {
 };
 
 
-static f32 time_to_snd(u64 us, f32 hz) {
-    u64 one_second = 1000000;
-    u64 factor = 10;
-    return (f32)((us * (u64) (hz * factor)) % (one_second*factor)) / (one_second*factor);
-}
-
-static f32 time_seconds(u64 us) {
-    return us / 1e6;
-}
-
 struct sound_t {
     // Time in seconds
     bool play;
-    f32 time;
 
-    rand_t rng;
-    f32 t0; // Wave
-    f32 t1; // Lfo
-    f32 t_noise;
-    f32 o_noise;
+    // Time in seconds
+    f32 adsr_attack;
+    f32 adsr_decay;
+    f32 adsr_sustain;
+    f32 adsr_release;
 
-    f32 filter;
+    // volume
+    f32 adsr_sustain_level;
 
     // params
     f32 base_freq;
@@ -62,29 +52,52 @@ struct sound_t {
     f32 compression;
     f32 noise;
     f32 vel;
-};
 
-static f32 f_sin2pi(f32 x) {
-    return f_sin(x*R4);
-}
+    // Other Variables
+    f32 time;
+
+    rand_t rng;
+    f32 t_wave;
+    f32 t_lfo;
+    f32 t_noise;
+    f32 o_noise;
+
+    f32 filter;
+};
 
 static f32 snd_play(f32 dt, sound_t *snd) {
     if(!snd->play)
         return 0;
 
+    f32 volume = 0;
 
-    f32 volume = 1 / (snd->time*20 + 1);
-    f32 o = f_sin2pi(snd->t0 + snd->lfo_amp*f_sin2pi(snd->t1));
-//    o += snd->o_noise*snd->noise;
+    f32 t_attack = snd->adsr_attack;
+    f32 t_decay  = t_attack + snd->adsr_decay;
+    f32 t_sustain = t_decay + snd->adsr_sustain;
+    f32 t_release = t_sustain + snd->adsr_release;
+
+    if(0) {}
+    else if(snd->time < t_attack) volume = f_remap(snd->time, 0, t_attack, 0, 1);
+    else if(snd->time < t_decay)  volume = f_remap(snd->time, t_attack, t_decay, 1, snd->adsr_sustain_level);
+    else if(snd->time < t_sustain) volume = snd->adsr_sustain_level;
+    else if(snd->time < t_release) volume = f_remap(snd->time, t_sustain, t_release, snd->adsr_sustain_level, 0);
+
+    if(snd->time > t_release) {
+        *snd = (sound_t) { 0 };
+        os_printf("Done\n");
+        return 0;
+    }
+
+
+    f32 o = f_sin2pi(snd->t_wave + snd->lfo_amp*f_sin2pi(snd->t_lfo));
     o = f_clamp(o + o*volume*snd->compression, -1, 1)*volume;
 
-    snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
-    o = snd->filter;
+    // snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
+    // o = snd->filter;
 
-    snd->t0 = f_fract(snd->t0 + dt*snd->base_freq);
-    snd->t1 = f_fract(snd->t1 + dt*snd->lfo_freq);
+    snd->t_wave = f_fract(snd->t_wave + dt*snd->base_freq);
+    snd->t_lfo  = f_fract(snd->t_lfo  + dt*snd->lfo_freq);
     snd->base_freq += snd->vel*dt;
-
     if(snd->base_freq < 0) snd->base_freq = 0;
 
     snd->t_noise = snd->t_noise + dt*400;
@@ -94,11 +107,6 @@ static f32 snd_play(f32 dt, sound_t *snd) {
     }
 
     snd->time += dt;
-
-    if(volume < 0.02) {
-        *snd = (sound_t) { 0 };
-        os_printf("Done\n");
-    }
     return o;
 }
 
@@ -186,7 +194,7 @@ struct App {
     image *img;
     Camera cam;
 
-    sound_t sounds[8];
+    sound_t sounds[32];
     rand_t rng;
 };
 
@@ -232,12 +240,12 @@ void main_update(void *handle) {
 
     Sdl *win = app->window;
 
+    // Little bit ugly
     global_set(&app->global);
 
+    // Create a window
     sdl_begin(win);
-    win->audio_callback = qfo_audio_callback;
-    win->audio_user_data = app;
-
+    sdl_audio(win, qfo_audio_callback, app);
     gl_clear(app->gl, win->input.window_size);
 
     // Handle quit
@@ -254,22 +262,18 @@ void main_update(void *handle) {
         os_print("FIRE!\n");
 
         sound_t *snd = snd_get(app);
-        if(snd) {
-            snd->base_freq = 80 + rand_f32(&app->rng)*10;
-            snd->lfo_amp  = 0.1;
-            snd->lfo_freq = 4 + rand_f32_signed(&app->rng)*10;
-            snd->compression = 20;
-            snd->noise = 0.1;
-            snd->vel = -40;
-            snd->play = 1;
-        }
-
         snd = snd_get(app);
         if(snd) {
-            snd->base_freq = 440;
-            snd->lfo_amp  = 0.5;
-            snd->lfo_freq = 4;
-            snd->compression = 1;
+            snd->adsr_attack  = 0.01;
+            snd->adsr_decay   = 0.10;
+            snd->adsr_sustain = 0.50;
+            snd->adsr_release = 1.00;
+            snd->adsr_sustain_level = 0.8;
+
+            snd->base_freq = 220;
+            snd->lfo_amp  = 0.1;
+            snd->lfo_freq = 20;
+            snd->compression = 10;
             snd->vel = -100;
             snd->play = 1;
         }

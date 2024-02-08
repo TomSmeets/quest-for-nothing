@@ -127,7 +127,6 @@ static bool input_is_click(Input *in, input_key_code code) {
 
 static void input_update(Input *in) {
     in->mouse_rel = 0;
-
     for (u32 i = 0; i < array_count(in->key); ++i) {
         input_key *key = in->key + i;
         key->click = 0;
@@ -135,19 +134,12 @@ static void input_update(Input *in) {
 }
 
 static input_key_code input_key_from_char(u32 c) {
-    if (c >= 'a' && c <= 'z')
-        return KEY_A + (c - 'a');
-    if (c >= 'A' && c <= 'Z')
-        return KEY_A + (c - 'A');
-    if (c >= '0' && c <= '9')
-        return KEY_0 + (c - '0');
-    if (c == '-')
-        return KEY_MINUS;
-    if (c == '=')
-        return KEY_EQUALS;
-    if (c == ' ')
-        return KEY_SPACE;
-    if (c == ';')
-        return KEY_SEMICOLON;
+    if (c >= 'a' && c <= 'z') return KEY_A + (c - 'a');
+    if (c >= 'A' && c <= 'Z') return KEY_A + (c - 'A');
+    if (c >= '0' && c <= '9') return KEY_0 + (c - '0');
+    if (c == '-') return KEY_MINUS;
+    if (c == '=') return KEY_EQUALS;
+    if (c == ' ') return KEY_SPACE;
+    if (c == ';') return KEY_SEMICOLON;
     return KEY_NONE;
 }

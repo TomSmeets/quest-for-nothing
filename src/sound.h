@@ -125,6 +125,10 @@ static f32 snd_tri(sound *snd, f32 freq) {
     return v;
 }
 
+static f32 f_square(f32 x) {
+    return f_fract(x) > .5;
+}
+
 // ==== Effects ====
 static f32 snd_compress(f32 v, f32 amount) {
     return f_clamp(v*amount, -1, 1);

@@ -1,4 +1,4 @@
-// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // sdl.h - SDL2 wrapper for a single window with both audio and opengl
 #pragma once
 
@@ -44,6 +44,8 @@ static void sdl_call_audio_callback(void *user, u8 *data, i32 len) {
 
     if (sdl->audio_callback) {
         sdl->audio_callback(sdl->audio_user_data, dt, output_count, output);
+
+        // Protect my ears
         for (u32 i = 0; i < output_count; ++i) {
             output[i] *= 0.2;
             output[i].x = f_clamp(output[i].x, -1, 1);
@@ -52,6 +54,11 @@ static void sdl_call_audio_callback(void *user, u8 *data, i32 len) {
     } else {
         std_memzero(data, len);
     }
+}
+
+static void sdl_audio(Sdl *sdl, SDL_Audio_Callback *cb, void *user) {
+    sdl->audio_callback = cb;
+    sdl->audio_user_data = user;
 }
 
 // Create a new sdl instance
@@ -126,7 +133,6 @@ static input_key_code sdl_translate_key(SDL_Keycode code) {
 
 static void sdl_begin(Sdl *sdl) {
     sdl_api *api = &sdl->api;
-
     input_update(&sdl->input);
 
     // -- input --

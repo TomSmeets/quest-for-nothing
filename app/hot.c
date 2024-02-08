@@ -48,7 +48,7 @@ void *main_init(int argc, char *argv[]) {
 
     // Parse arguments
     char *module_path  = argv[1];
-    char *trigger_path = "out\\trigger";
+    char *trigger_path = "out/trigger";
 
     // Load application
     u64 prev_mtime = os_file_mtime(trigger_path);

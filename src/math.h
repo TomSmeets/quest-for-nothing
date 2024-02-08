@@ -58,17 +58,19 @@ static f32 f_clamp(f32 x, f32 l, f32 h) {
 
 // ==== Trigonometric functions ====
 
-// fast sine approximation
-static f32 f_sin(f32 x) {
-    x = f_wrap(x, -R2, R2);
-    f32 b = 4.0f / PI;
-    f32 c = -4.0f / (PI * PI);
-    f32 y = b * x + c * x * f_abs(x);
-    return 0.225 * (y * f_abs(y) - y) + y;
+// Very good and simple sine approximation
+static f32 f_sin2pi(f32 x) {
+    x = x - (u32) (x + .5f);
+    f32 y = 8 * x - 16 * x * f_abs(x);
+    return 0.225f * (y * f_abs(y) - y) + y;
 }
 
-// fast cosine approximation
-static f32 f_cos(f32 x) { return f_sin(x + R1); }
+static f32 f_cos2pi(f32 x) {
+    return f_sin2pi(x + .25);
+}
+
+static f32 f_sin(f32 x) { return f_sin2pi(x * 1.0 / R4); }
+static f32 f_cos(f32 x) { return f_cos2pi(x * 1.0 / R4); }
 
 // fast tangent approximation
 static f32 f_tan(f32 x) { return f_sin(x) / f_cos(x); }
@@ -156,4 +158,9 @@ static f32 f_acos(f32 x) {
 
 static f32 f_asin(f32 x) {
     return f_atan2(x, f_sqrt((1.0 + x) * (1.0 - x)));
+}
+
+static f32 f_remap(f32 x, f32 xl, f32 xh, f32 yl, f32 yh) {
+    f32 y = (x - xl) / (xh - xl);
+    return y*(yh - yl) + yl;
 }
