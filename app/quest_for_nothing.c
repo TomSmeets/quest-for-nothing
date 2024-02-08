@@ -59,7 +59,8 @@ struct sound_t {
     rand_t rng;
     f32 t_wave;
     f32 t_lfo;
-    f32 t_noise;
+
+    bool is_noise;
     f32 o_noise;
 
     f32 filter;
@@ -89,22 +90,31 @@ static f32 snd_play(f32 dt, sound_t *snd) {
     }
 
 
-    f32 o = f_sin2pi(snd->t_wave + snd->lfo_amp*f_sin2pi(snd->t_lfo));
-    o = f_clamp(o + o*volume*snd->compression, -1, 1)*volume;
+    f32 o = 0;
+    if(snd->is_noise) {
+        o = snd->o_noise*volume;
+    } else {
+        o = f_sin2pi(snd->t_wave + snd->lfo_amp*f_sin2pi(snd->t_lfo));
+        o = f_clamp(o + o*volume*snd->compression, -1, 1)*volume;
+    }
 
-    // snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
-    // o = snd->filter;
+    snd->filter += (o - snd->filter)*(dt / (1/(R4*3000) + dt));
+    o = snd->filter;
 
-    snd->t_wave = f_fract(snd->t_wave + dt*snd->base_freq);
+
+    if(snd->is_noise) {
+        snd->t_wave = snd->t_wave + dt*snd->base_freq*(1+ snd->lfo_amp*f_sin2pi(snd->t_lfo));
+        if(snd->t_wave > 1) {
+            snd->o_noise = (rand_next(&snd->rng) & 1) == 0 ? 1 : -1;
+            snd->t_wave = f_fract(snd->t_wave);
+        }
+    } else {
+        snd->t_wave = f_fract(snd->t_wave + dt*snd->base_freq);
+    }
     snd->t_lfo  = f_fract(snd->t_lfo  + dt*snd->lfo_freq);
+
     snd->base_freq += snd->vel*dt;
     if(snd->base_freq < 0) snd->base_freq = 0;
-
-    snd->t_noise = snd->t_noise + dt*400;
-    if(snd->t_noise > 1) {
-        snd->t_noise -= 1;
-        snd->o_noise = (rand_next(&snd->rng) & 1) == 0 ? 1 : -1;
-    }
 
     snd->time += dt;
     return o;
@@ -265,16 +275,32 @@ void main_update(void *handle) {
         snd = snd_get(app);
         if(snd) {
             snd->adsr_attack  = 0.01;
-            snd->adsr_decay   = 0.10;
-            snd->adsr_sustain = 0.50;
+            snd->adsr_decay   = 1.00;
+            snd->adsr_sustain = 0.00;
             snd->adsr_release = 1.00;
-            snd->adsr_sustain_level = 0.8;
+            snd->adsr_sustain_level = 0.0;
 
             snd->base_freq = 220;
-            snd->lfo_amp  = 0.1;
-            snd->lfo_freq = 20;
+            snd->is_noise = 0;
+            snd->lfo_amp  = 0;
+            snd->lfo_freq = 0;
             snd->compression = 10;
-            snd->vel = -100;
+            snd->vel = -400;
+            snd->play = 1;
+        }
+
+        snd = snd_get(app);
+        if(snd) {
+            snd->adsr_attack  = 0.10;
+            snd->adsr_decay   = 0.50;
+            snd->adsr_sustain = 1.00;
+            snd->adsr_release = 4.00;
+            snd->adsr_sustain_level = 0.5;
+
+            snd->base_freq = 440*4;
+            snd->is_noise = 1;
+            snd->compression = 10;
+            snd->vel = -1000;
             snd->play = 1;
         }
     }
