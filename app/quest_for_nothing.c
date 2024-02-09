@@ -155,6 +155,8 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
     } else {
         if (cam->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
             cam->can_jump_again = 0;
+            // Reset z velocity
+            cam->old_pos.z = cam->pos.z;
             cam->pos.z += dt*2;
         }
     }
