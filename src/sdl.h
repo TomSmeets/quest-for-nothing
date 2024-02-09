@@ -47,7 +47,7 @@ static void sdl_call_audio_callback(void *user, u8 *data, i32 len) {
 
         // Protect my ears
         for (u32 i = 0; i < output_count; ++i) {
-            output[i] *= 0.2;
+            output[i] *= 0.5;
             output[i].x = f_clamp(output[i].x, -1, 1);
             output[i].y = f_clamp(output[i].y, -1, 1);
         }
@@ -106,7 +106,7 @@ static Sdl *sdl_new(mem *m, const char *title) {
 
     // load Audio
     u32 sample_rate = 48000;
-    u32 audio_buffer_size = sample_rate / 200;
+    u32 audio_buffer_size = sample_rate / 60;
     SDL_AudioSpec want = {
         .freq     = sample_rate,
         .format   = AUDIO_F32,

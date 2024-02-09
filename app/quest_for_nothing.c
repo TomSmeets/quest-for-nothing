@@ -66,6 +66,56 @@ struct sound_t {
     f32 filter;
 };
 
+struct App {
+    mem tmp;
+    mem perm;
+    Global global;
+
+    Sdl *window;
+
+    // Frame Limiter
+    u64 dt;
+    u64 time;
+    u64 start_time;
+
+    // Animation
+    f32 t;
+
+    gl_t *gl;
+    UI *ui;
+
+    image *img;
+    Camera cam;
+
+    sound_t sounds[32];
+    rand_t rng;
+};
+
+static sound_t *snd_get(App *app) {
+    for(u32 i =0; i < array_count(app->sounds); ++i) {
+        sound_t *snd = app->sounds + i;
+        if(snd->play) continue;
+        *snd = (sound_t) { 0 };
+        return snd;
+    }
+    return 0;
+}
+
+static void jump_sound(App *app) {
+    sound_t *snd = snd_get(app);
+    if(!snd) return;
+    snd->adsr_attack  = 0.005;
+    snd->adsr_decay   = 0.40;
+
+    snd->base_freq = 300 + rand_f32_signed(&app->rng)*80;
+    snd->is_noise = 0;
+    snd->lfo_amp  = .5;
+    snd->lfo_freq = 10;
+    snd->compression = 3;
+    snd->vel = 200;
+    snd->play = 1;
+};
+
 static f32 snd_play(f32 dt, sound_t *snd) {
     if(!snd->play)
         return 0;
@@ -95,11 +145,10 @@ static f32 snd_play(f32 dt, sound_t *snd) {
         o = snd->o_noise*volume;
     } else {
         o = f_sin2pi(snd->t_wave + snd->lfo_amp*f_sin2pi(snd->t_lfo));
-        o = f_clamp(o + o*volume*snd->compression, -1, 1)*volume;
+        o = f_clamp(o + o*snd->compression, -1, 1)*volume;
     }
 
-    snd->filter += (o - snd->filter)*(dt / (1/(R4*3000) + dt));
-    o = snd->filter;
+    o = snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
 
 
     if(snd->is_noise) {
@@ -121,7 +170,7 @@ static f32 snd_play(f32 dt, sound_t *snd) {
 }
 
 
-static void cam_update(Camera *cam, Sdl *win, f32 dt) {
+static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
     m4 look = m4_id();
     m4_rot_x(&look, -R1);
     m4_rot_z(&look, cam->yaw);
@@ -151,6 +200,7 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
         if (input_is_click(&win->input, KEY_SPACE)) {
             cam->can_jump_again = 1;
             cam->pos.z += dt*2;
+            jump_sound(app);
         }
     } else {
         if (cam->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
@@ -158,6 +208,7 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
             // Reset z velocity
             cam->old_pos.z = cam->pos.z;
             cam->pos.z += dt*2;
+            jump_sound(app);
         }
     }
 
@@ -185,30 +236,6 @@ static void cam_update(Camera *cam, Sdl *win, f32 dt) {
 
 }
 
-struct App {
-    mem tmp;
-    mem perm;
-    Global global;
-
-    Sdl *window;
-
-    // Frame Limiter
-    u64 dt;
-    u64 time;
-    u64 start_time;
-
-    // Animation
-    f32 t;
-
-    gl_t *gl;
-    UI *ui;
-
-    image *img;
-    Camera cam;
-
-    sound_t sounds[32];
-    rand_t rng;
-};
 
 static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
     App *app = user;
@@ -238,12 +265,6 @@ void *main_init(int argc, char **argv) {
     return app;
 }
 
-static sound_t *snd_get(App *app) {
-    for(u32 i =0; i < array_count(app->sounds); ++i)
-        if(!app->sounds[i].play)
-            return &app->sounds[i];
-    return 0;
-}
 
 void main_update(void *handle) {
     App *app = handle;
@@ -267,14 +288,13 @@ void main_update(void *handle) {
     }
 
     // freecam movement
-    cam_update(&app->cam, win, dt);
+    cam_update(app, &app->cam, win, dt);
 
     // Shooting
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
         os_print("FIRE!\n");
 
         sound_t *snd = snd_get(app);
-        snd = snd_get(app);
         if(snd) {
             snd->adsr_attack  = 0.01;
             snd->adsr_decay   = 1.00;
@@ -282,7 +302,7 @@ void main_update(void *handle) {
             snd->adsr_release = 1.00;
             snd->adsr_sustain_level = 0.0;
 
-            snd->base_freq = 220;
+            snd->base_freq = 220*4;
             snd->is_noise = 0;
             snd->lfo_amp  = 0;
             snd->lfo_freq = 0;
@@ -320,7 +340,7 @@ void main_update(void *handle) {
             f32 theta = f_acos(2*rand_f32(&rng) - 1);
 
             v4 color = { 1, 1, 1, 1 };
-            color = color*.2 + 0.8*(v4){ rand_f32(&rng), rand_f32(&rng), rand_f32(&rng), 1 };
+            // color = color*.2 + 0.8*(v4){ rand_f32(&rng), rand_f32(&rng), rand_f32(&rng), 1 };
             f32 r = 0.05;
 
             gfx->mtx = m4_id();

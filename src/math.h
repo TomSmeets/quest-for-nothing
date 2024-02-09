@@ -60,7 +60,7 @@ static f32 f_clamp(f32 x, f32 l, f32 h) {
 
 // Very good and simple sine approximation
 static f32 f_sin2pi(f32 x) {
-    x = x - (u32) (x + .5f);
+    x = x - f_floor(x + .5f);
     f32 y = 8 * x - 16 * x * f_abs(x);
     return 0.225f * (y * f_abs(y) - y) + y;
 }
