@@ -36,6 +36,8 @@ struct sound_t {
     // Time in seconds
     bool play;
 
+    f32 base_volume;
+
     // Time in seconds
     f32 adsr_attack;
     f32 adsr_decay;
@@ -101,15 +103,16 @@ static sound_t *snd_get(App *app) {
     return 0;
 }
 
-static void jump_sound(App *app) {
+static void jump_sound(App *app, u32 kind) {
     sound_t *snd = snd_get(app);
     if(!snd) return;
     snd->adsr_attack  = 0.005;
     snd->adsr_decay   = 0.40;
+    snd->base_volume  = 1;
 
-    snd->base_freq = 300 + rand_f32_signed(&app->rng)*80;
+    snd->base_freq = 300 + kind*80;
     snd->is_noise = 0;
-    snd->lfo_amp  = .5;
+    snd->lfo_amp  = .25 + .5*kind;
     snd->lfo_freq = 10;
     snd->compression = 3;
     snd->vel = 200;
@@ -127,17 +130,19 @@ static f32 snd_play(f32 dt, sound_t *snd) {
     f32 t_sustain = t_decay + snd->adsr_sustain;
     f32 t_release = t_sustain + snd->adsr_release;
 
+    if(snd->time > t_release) {
+        *snd = (sound_t) { 0 };
+        os_printf("Done\n");
+        return 0;
+    }
+
     if(0) {}
     else if(snd->time < t_attack) volume = f_remap(snd->time, 0, t_attack, 0, 1);
     else if(snd->time < t_decay)  volume = f_remap(snd->time, t_attack, t_decay, 1, snd->adsr_sustain_level);
     else if(snd->time < t_sustain) volume = snd->adsr_sustain_level;
     else if(snd->time < t_release) volume = f_remap(snd->time, t_sustain, t_release, snd->adsr_sustain_level, 0);
 
-    if(snd->time > t_release) {
-        *snd = (sound_t) { 0 };
-        os_printf("Done\n");
-        return 0;
-    }
+    volume *= snd->base_volume;
 
 
     f32 o = 0;
@@ -200,7 +205,7 @@ static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
         if (input_is_click(&win->input, KEY_SPACE)) {
             cam->can_jump_again = 1;
             cam->pos.z += dt*2;
-            jump_sound(app);
+            jump_sound(app, 0);
         }
     } else {
         if (cam->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
@@ -208,7 +213,7 @@ static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
             // Reset z velocity
             cam->old_pos.z = cam->pos.z;
             cam->pos.z += dt*2;
-            jump_sound(app);
+            jump_sound(app, 1);
         }
     }
 
@@ -296,6 +301,7 @@ void main_update(void *handle) {
 
         sound_t *snd = snd_get(app);
         if(snd) {
+            snd->base_volume  = .5;
             snd->adsr_attack  = 0.01;
             snd->adsr_decay   = 1.00;
             snd->adsr_sustain = 0.00;
@@ -313,6 +319,7 @@ void main_update(void *handle) {
 
         snd = snd_get(app);
         if(snd) {
+            snd->base_volume  = .5;
             snd->adsr_attack  = 0.10;
             snd->adsr_decay   = 0.50;
             snd->adsr_sustain = 1.00;
