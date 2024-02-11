@@ -121,10 +121,13 @@ static void player_update(App *app, Player *player, Sdl *win, f32 dt) {
     if (input_is_down(&win->input, KEY_A)) move -= rgt;
     if (input_is_down(&win->input, KEY_D)) move += rgt;
 
+    f32 speed = 1;
+    if (input_is_down(&win->input, KEY_SHIFT)) speed = 2;
+
     // Velocity
     v3 vel_inst = player->pos - player->old_pos;
     player->old_pos = player->pos;
-    player->pos += v3_limit(move, 1)*dt*0.60;
+    player->pos += v3_limit(move, 1)*dt*0.60*speed;
     player->pos += vel_inst - 0.5*dt*dt*(v3){0,0,9.81};
     
     // Floor collision
@@ -375,6 +378,11 @@ void main_update(void *handle) {
         m4_screen_to_clip(&gfx->world_to_clip, win->input.window_size);
         gl_draw(app->gl, gfx);
     }
+
+    ui_begin(app->ui, &win->input, tmp);
+    ui_button(app->ui, "Hello World!");
+    ui_end(app->ui);
+    gl_draw(app->gl, app->ui->gfx);
 
     sdl_end(win);
 
