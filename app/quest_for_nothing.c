@@ -53,12 +53,12 @@ struct App {
     image *img;
     Player player;
 
-    sound_system_t sound;
+    Sound_System sound;
     rand_t rng;
 };
 
 static void jump_sound(App *app, u32 kind) {
-    sound_t *snd = snd_get(&app->sound);
+    Sound *snd = snd_get(&app->sound);
     if(!snd) return;
     snd->adsr_attack  = 0.005;
     snd->adsr_decay   = 0.40;
@@ -194,7 +194,7 @@ void main_update(void *handle) {
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
         os_print("FIRE!\n");
 
-        sound_t *snd = snd_get(&app->sound);
+        Sound *snd = snd_get(&app->sound);
         if(snd) {
             snd->base_volume  = .5;
             snd->adsr_attack  = 0.01;

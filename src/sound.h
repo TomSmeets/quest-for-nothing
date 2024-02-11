@@ -6,7 +6,7 @@
 #include "rand.h"
 
 // See [doc/audio.md](doc/audio.md) for information
-struct sound_t {
+struct Sound {
     // Time in seconds
     bool play;
 
@@ -42,15 +42,15 @@ struct sound_t {
     f32 filter;
 };
 
-struct sound_system_t {
-    sound_t sounds[32];
+struct Sound_System {
+    Sound sounds[32];
 };
 
-static sound_t *snd_get(sound_system_t *sys) {
+static Sound *snd_get(Sound_System *sys) {
     for(u32 i =0; i < array_count(sys->sounds); ++i) {
-        sound_t *snd = sys->sounds + i;
+        Sound *snd = sys->sounds + i;
         if(snd->play) continue;
-        *snd = (sound_t) { 0 };
+        *snd = (Sound) { 0 };
         return snd;
     }
     return 0;
@@ -142,7 +142,7 @@ static f32 snd_cut(f32 v, f32 amount) {
 }
 
 // ==== Filters ====
-static f32 snd_play(sound_t *snd, f32 dt) {
+static f32 snd_play(Sound *snd, f32 dt) {
     if(!snd->play)
         return 0;
 
@@ -152,7 +152,7 @@ static f32 snd_play(sound_t *snd, f32 dt) {
     f32 t_release = t_sustain + snd->adsr_release;
 
     if(snd->time > t_release) {
-        *snd = (sound_t) { 0 };
+        *snd = (Sound) { 0 };
         return 0;
     }
 
@@ -195,7 +195,7 @@ static f32 snd_play(sound_t *snd, f32 dt) {
     return o;
 }
 
-static v2 snd_system_play(sound_system_t *sys, f32 dt) {
+static v2 snd_system_play(Sound_System *sys, f32 dt) {
     f32 o = 0;
     for(u32 i = 0; i < array_count(sys->sounds); ++i)
         o += snd_play( &sys->sounds[i], dt);
