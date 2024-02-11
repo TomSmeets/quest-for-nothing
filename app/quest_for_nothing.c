@@ -25,6 +25,8 @@ struct Monster {
 
     bool has_target;
     v3 target_pos;
+    f32 life;
+    f32 angle;
 };
 
 struct Player {
@@ -84,6 +86,23 @@ static void jump_sound(App *app, u32 kind) {
     snd->vel = 200;
     snd->play = 1;
 };
+
+static void squish_sound(App *app) {
+    Sound *snd = snd_get(&app->sound);
+    if(!snd) return;
+    snd->adsr_attack  = 0.005;
+    snd->adsr_decay   = 0.40;
+    snd->base_volume  = 1;
+
+    snd->base_freq = 300;
+    snd->is_noise = 0;
+    snd->lfo_freq = 8;
+    snd->lfo_amp = 1;
+    snd->compression = 10;
+    snd->vel = -5000;
+    snd->play = 1;
+};
+
 
 
 static void player_update(App *app, Player *player, Sdl *win, f32 dt) {
@@ -160,34 +179,45 @@ static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
 }
 
 static void mon_update(App *app, Monster *mon, Gfx *gfx) {
+    bool is_dead  = mon->life <= 0;
+    bool is_alive = mon->life > 0;
+    f32 dt = (f32) app->dt / 1e6;
+
     v3 player_dir = app->player.pos - mon->pos;
     f32 player_dist = v3_len(player_dir);
     player_dir.z = 0;
 
-    gfx->mtx = m4_id();
-    m4_trans(&gfx->mtx, (v3){-.5, 0, 0});
-    m4_rot_x(&gfx->mtx, R1);
-    m4_rot_z(&gfx->mtx, f_atan2(player_dir.y, player_dir.x) + R1);
-    m4_trans(&gfx->mtx, mon->pos); // move into position
+    if(is_alive)
+        mon->angle = f_atan2(player_dir.y, player_dir.x);
+
+    m4 mtx = m4_id();
+    m4_trans(&mtx, (v3){-.5, 0, 0.001});
+    if(is_alive) m4_rot_x(&mtx, R1);
+    m4_rot_z(&mtx, mon->angle + R1);
+    m4_trans(&mtx, mon->pos); // move into position
+    gfx->mtx = mtx;
+
     gfx_image(gfx, app->img);
     gfx_color(gfx, (v4){1, 1, 1, 1});
     gfx_rect(gfx, (v2){0,0}, (v2){1,1});
 
 
-    if(player_dist < 0.5) {
-        mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
-    }
+    if(is_alive) {
+        if(player_dist < 0.5) {
+            mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
+            mon->life = 0;
+            squish_sound(app);
+        }
     
-    f32 dt = (f32) app->dt / 1e6;
-    v3 move_dir = mon->target_pos - mon->pos;
-    f32 move_len = v3_len(move_dir);
-    v3 move_dir_norm = move_dir / move_len;
-    if(move_len < 0.5 || !mon->has_target) {
-        mon->has_target = 1;
-        mon->target_pos.x = rand_f_signed(&app->rng)*20;
-        mon->target_pos.y = rand_f_signed(&app->rng)*20;
-    } else {
-        mon->pos += move_dir_norm*dt;
+        v3 move_dir = mon->target_pos - mon->pos;
+        f32 move_len = v3_len(move_dir);
+        v3 move_dir_norm = move_dir / move_len;
+        if(move_len < 0.5 || !mon->has_target) {
+            mon->has_target = 1;
+            mon->target_pos = rand_v2(&app->rng)*20;
+        } else {
+            mon->pos += move_dir_norm*dt*.25;
+        }
     }
 
     if(mon->pos.z > 0) {
@@ -309,18 +339,23 @@ void main_update(void *handle) {
         // Image *i = img_new_uninit(tmp, 8, 8);
         // img_fill_pattern(i);
 
-        while(app->mon_count < 16) {
-            f32 a = rand_f32(&app->rng)*R4;
-            Monster *mon = app->mon_list + app->mon_count++;
-            mon->pos = (v3){f_cos(a)*20, f_sin(a)*20, 0};
-            mon->radius = .5;
-            mon->height = 1;
-        }
-
+        u32 alive_count = 0;
         for(u32 i = 0; i < app->mon_count; ++i) {
             Monster *mon = app->mon_list + i;
+            if(mon->life > 0)
+                alive_count++;
             mon_update(app, mon, gfx);
         }
+
+        while(alive_count < 32 && app->mon_count < array_count(app->mon_list)) {
+            Monster *mon = app->mon_list + app->mon_count++;
+            mon->pos    = rand_v2(&app->rng)*20;
+            mon->radius = .5;
+            mon->height = 1;
+            mon->life   = 1;
+            alive_count++;
+        }
+
 
         gl_draw(app->gl, gfx);
     }
