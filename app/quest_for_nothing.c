@@ -18,7 +18,7 @@
 #include "parse_qoi.h"
 #include "rand.h"
 
-struct Camera {
+struct Player {
     v3 pos;
     f32 pitch;
     f32 yaw;
@@ -51,7 +51,7 @@ struct App {
     UI *ui;
 
     image *img;
-    Camera cam;
+    Player player;
 
     sound_system_t sound;
     rand_t rng;
@@ -74,11 +74,11 @@ static void jump_sound(App *app, u32 kind) {
 };
 
 
-static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
+static void player_update(App *app, Player *player, Sdl *win, f32 dt) {
     m4 look = m4_id();
     m4_rot_x(&look, -R1);
-    m4_rot_z(&look, cam->yaw);
-    m4_trans(&look, cam->pos);
+    m4_rot_z(&look, player->yaw);
+    m4_trans(&look, player->pos);
 
     v3 fwd = m4_mul_dir(&look.fwd, (v3){ 0, 0, -1 });
     v3 rgt = m4_mul_dir(&look.fwd, (v3){ 1, 0,  0 });
@@ -91,27 +91,27 @@ static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
     if (input_is_down(&win->input, KEY_D)) move += rgt;
 
     // Velocity
-    v3 vel_inst = cam->pos - cam->old_pos;
-    cam->old_pos = cam->pos;
-    cam->pos += v3_limit(move, 1)*dt*0.60;
-    cam->pos += vel_inst - 0.5*dt*dt*(v3){0,0,9.81};
+    v3 vel_inst = player->pos - player->old_pos;
+    player->old_pos = player->pos;
+    player->pos += v3_limit(move, 1)*dt*0.60;
+    player->pos += vel_inst - 0.5*dt*dt*(v3){0,0,9.81};
     
     // Floor collision
-    cam->pos.xy -= dt*vel_inst.xy*30;
-    if(cam->pos.z < 0) {
-        cam->pos.z = 0;
-        cam->can_jump_again = 0;
+    player->pos.xy -= dt*vel_inst.xy*30;
+    if(player->pos.z < 0) {
+        player->pos.z = 0;
+        player->can_jump_again = 0;
         if (input_is_click(&win->input, KEY_SPACE)) {
-            cam->can_jump_again = 1;
-            cam->pos.z += dt*2;
+            player->can_jump_again = 1;
+            player->pos.z += dt*2;
             jump_sound(app, 0);
         }
     } else {
-        if (cam->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
-            cam->can_jump_again = 0;
+        if (player->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
+            player->can_jump_again = 0;
             // Reset z velocity
-            cam->old_pos.z = cam->pos.z;
-            cam->pos.z += dt*2;
+            player->old_pos.z = player->pos.z;
+            player->pos.z += dt*2;
             jump_sound(app, 1);
         }
     }
@@ -120,23 +120,23 @@ static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
     if (input_is_click(&win->input, KEY_G))
         sdl_grab_mouse(win, !win->has_mouse_grab);
 
-    cam->yaw   += win->input.mouse_rel.x*0.002;
-    cam->pitch += win->input.mouse_rel.y*0.002;
+    player->yaw   += win->input.mouse_rel.x*0.002;
+    player->pitch += win->input.mouse_rel.y*0.002;
 
-    if(cam->pitch < -R1) cam->pitch = -R1;
-    if(cam->pitch >  R1) cam->pitch =  R1;
+    if(player->pitch < -R1) player->pitch = -R1;
+    if(player->pitch >  R1) player->pitch =  R1;
 
     // Calculate matricies
-    cam->view_to_world = m4_id();
-    m4_rot_x(&cam->view_to_world, -R1);
-    m4_rot_x(&cam->view_to_world, cam->pitch);
-    m4_rot_z(&cam->view_to_world, cam->yaw);
-    m4_trans(&cam->view_to_world, cam->pos);
-    m4_trans(&cam->view_to_world, (v3){0,0,.5});
+    player->view_to_world = m4_id();
+    m4_rot_x(&player->view_to_world, -R1);
+    m4_rot_x(&player->view_to_world, player->pitch);
+    m4_rot_z(&player->view_to_world, player->yaw);
+    m4_trans(&player->view_to_world, player->pos);
+    m4_trans(&player->view_to_world, (v3){0,0,.5});
    
-    cam->world_to_clip = m4_id();
-    m4_mul_inv(&cam->world_to_clip, &cam->view_to_world);
-    m4_perspective_to_clip(&cam->world_to_clip, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 80);
+    player->world_to_clip = m4_id();
+    m4_mul_inv(&player->world_to_clip, &player->view_to_world);
+    m4_perspective_to_clip(&player->world_to_clip, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 80);
 
 }
 
@@ -188,7 +188,7 @@ void main_update(void *handle) {
     }
 
     // freecam movement
-    cam_update(app, &app->cam, win, dt);
+    player_update(app, &app->player, win, dt);
 
     // Shooting
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
@@ -233,7 +233,7 @@ void main_update(void *handle) {
         // Draw something 3d
         Gfx *gfx = gfx_begin(tmp);
         gfx->depth = 1;
-        gfx->world_to_clip = app->cam.world_to_clip;
+        gfx->world_to_clip = app->player.world_to_clip;
 
         rand_t rng = {};
         for(u32 i = 0; i < 64*8*4; ++i) {
