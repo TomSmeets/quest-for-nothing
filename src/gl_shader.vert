@@ -4,13 +4,13 @@
 
 // Vertex attributes, this information is passed directly from the cpu
 layout(location = 0) in vec3 a_pos;
-layout(location = 1) in vec2 a_uv;
+layout(location = 1) in vec3 a_uv;
 layout(location = 2) in vec3 a_normal;
 layout(location = 3) in vec4 a_color;
 layout(location = 4) in float a_emissive;
 
 // Outputs we send to the fragment shader
-out vec2 v_uv;
+out vec3 v_uv;
 out vec4 v_color;
 
 // Uniforms are passed directly from the cpu per draw call

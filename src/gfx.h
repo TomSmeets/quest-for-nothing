@@ -13,7 +13,7 @@
 
 struct Gfx_Vertex {
     v3 pos;
-    v2 uv;
+    v3 uv;
     v3 normal;
     v4 color;
     f32 emissive;
@@ -56,6 +56,8 @@ struct Gfx {
     // Not used yet
     // Possible use to chain mutiple passes
     Gfx *next;
+
+    Image *image;
 };
 
 static Gfx *gfx_begin(mem *m) {
@@ -84,10 +86,15 @@ static void gfx_color(Gfx *gfx, v4 color) {
 static void gfx_uv(Gfx *gfx, f32 u, f32 v) {
     gfx->next_vertex.uv.x = u;
     gfx->next_vertex.uv.y = v;
+    gfx->next_vertex.uv.z = gfx->image != 0;
 }
 
 static void gfx_normal(Gfx *gfx, v3 normal) {
     gfx->next_vertex.normal = m4_mul_dir(&gfx->mtx.fwd, normal);
+}
+
+static void gfx_image(Gfx *gfx, Image *image) {
+    gfx->image = image;
 }
 
 // Submit a vertex to the vertex array with the current material/uv and normal state
@@ -121,10 +128,10 @@ static u32 gfx_vertex_uv(Gfx *gfx, v3 pos, f32 u, f32 v) {
 // | / |
 // c---d
 static void gfx_quad(Gfx *gfx, v3 a, v3 b, v3 c, v3 d) {
-    u32 ia = gfx_vertex_uv(gfx, a, 0, 0);
-    u32 ib = gfx_vertex_uv(gfx, b, 1, 0);
-    u32 ic = gfx_vertex_uv(gfx, c, 0, 1);
-    u32 id = gfx_vertex_uv(gfx, d, 1, 1);
+    u32 ia = gfx_vertex_uv(gfx, a, 0, 1);
+    u32 ib = gfx_vertex_uv(gfx, b, 1, 1);
+    u32 ic = gfx_vertex_uv(gfx, c, 0, 0);
+    u32 id = gfx_vertex_uv(gfx, d, 1, 0);
 
     gfx_triangle(gfx, ia, ic, ib);
     gfx_triangle(gfx, ic, id, ib);

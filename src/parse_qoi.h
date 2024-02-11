@@ -46,7 +46,7 @@ static u32 pixel_hash(pixel px) {
 }
 
 // Read a image file with the "Quite OK Image" format
-static image *parse_qoi(mem *m, buf file) {
+static Image *parse_qoi(mem *m, buf file) {
     u8 *file_start = file.ptr;
     u8 *file_end   = file.ptr + file.size;
 
@@ -67,7 +67,7 @@ static image *parse_qoi(mem *m, buf file) {
     assert(hdr.colorspace == 0);
 
     // allocate memory for the image
-    image *img = img_new_uninit(m, hdr.width, hdr.height);
+    Image *img = img_new_uninit(m, hdr.width, hdr.height);
 
     // keep track of the last pixel, for run-length encoding
     pixel px = { .a = 255 };

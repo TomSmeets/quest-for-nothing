@@ -42,10 +42,6 @@ static f32 rand_f_signed(rand_t *r) {
     return rand_f32(r)*2.0 - 1.0;
 }
 
-static f32 rand_f32_signed(rand_t *r) {
-    return rand_f32(r)*2.0 - 1.0;
-}
-
 static u32 rand_range(rand_t *r, u32 lim) {
 #if 1
     u32 threshold = (-lim) % lim;

@@ -18,6 +18,10 @@
 #include "parse_qoi.h"
 #include "rand.h"
 
+struct Monster {
+    v3 pos;
+};
+
 struct Player {
     v3 pos;
     f32 pitch;
@@ -50,11 +54,14 @@ struct App {
     gl_t *gl;
     UI *ui;
 
-    image *img;
+    Image *img;
     Player player;
 
     Sound_System sound;
     rand_t rng;
+
+    u32 mon_count;
+    Monster mon_list[1024];
 };
 
 static void jump_sound(App *app, u32 kind) {
@@ -147,6 +154,29 @@ static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
         output[i] = snd_system_play(&app->sound, dt);
 }
 
+static void mon_update(App *app, Monster *mon, Gfx *gfx) {
+    v3 dir = app->player.pos - mon->pos;
+    dir.z = 0;
+
+    gfx->mtx = m4_id();
+    m4_rot_x(&gfx->mtx, R1);
+    m4_rot_z(&gfx->mtx, f_atan2(dir.y, dir.x) + R1);
+    m4_trans(&gfx->mtx, mon->pos); // move into position
+    gfx_image(gfx, app->img);
+    gfx_color(gfx, (v4){1, 1, 1, 1});
+    gfx_rect(gfx, (v2){-.5,0}, (v2){.5,1});
+
+    f32 len = v3_len(dir);
+    v3 dir_norm = dir / len;
+    if(len == 0) { dir_norm.x = 0; }
+    if(len > 1) {
+        mon->pos += dir_norm*((f32) app->dt / 1e6);
+    }
+    if(len < 0.8) {
+        mon->pos -= dir_norm*((f32) app->dt / 1e6);
+    }
+}
+
 // You can choose how to run this app
 // - dynamically: use ./hot main.so
 // - directly:    use ./main
@@ -198,33 +228,14 @@ void main_update(void *handle) {
         if(snd) {
             snd->base_volume  = .5;
             snd->adsr_attack  = 0.01;
-            snd->adsr_decay   = 1.00;
-            snd->adsr_sustain = 0.00;
-            snd->adsr_release = 1.00;
-            snd->adsr_sustain_level = 0.0;
+            snd->adsr_decay   = 0.20;
 
-            snd->base_freq = 220*4;
+            snd->base_freq = 220*5*(1 + 0.1*rand_f_signed(&app->rng));
             snd->is_noise = 0;
             snd->lfo_amp  = 0;
             snd->lfo_freq = 0;
             snd->compression = 10;
-            snd->vel = -400;
-            snd->play = 1;
-        }
-
-        snd = snd_get(&app->sound);
-        if(snd) {
-            snd->base_volume  = .5;
-            snd->adsr_attack  = 0.10;
-            snd->adsr_decay   = 0.50;
-            snd->adsr_sustain = 1.00;
-            snd->adsr_release = 4.00;
-            snd->adsr_sustain_level = 0.5;
-
-            snd->base_freq = 440*4;
-            snd->is_noise = 1;
-            snd->compression = 10;
-            snd->vel = -1000;
+            snd->vel = -2000;
             snd->play = 1;
         }
     }
@@ -274,6 +285,20 @@ void main_update(void *handle) {
         m4_trans(&gfx->mtx, (v3){0,2,1}); // move into position
         gfx_color(gfx, (v4){0, .5, 0, 1});
         gfx_text(gfx, 0, 1, 1, "The Quick Brown fox jumps\nover the lazy dog");
+
+        // Image *i = img_new_uninit(tmp, 8, 8);
+        // img_fill_pattern(i);
+
+        while(app->mon_count < 16) {
+            f32 a = rand_f32(&app->rng)*R4;
+            Monster *mon = app->mon_list + app->mon_count++;
+            mon->pos = (v3){f_cos(a)*20, f_sin(a)*20, 0};
+        }
+
+        for(u32 i = 0; i < app->mon_count; ++i) {
+            Monster *mon = app->mon_list + i;
+            mon_update(app, mon, gfx);
+        }
 
         gl_draw(app->gl, gfx);
     }

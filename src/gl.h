@@ -54,6 +54,7 @@ static GLuint gl_compile_shader(gl_api *gl, GLenum type, char *source) {
         if (type == GL_VERTEX_SHADER)   shader_type = "vertex";
         if (type == GL_FRAGMENT_SHADER) shader_type = "fragment";
         os_printf("error while compiling the %s shader: %s\n", shader_type, buffer);
+        assert(0);
         return 0;
     }
 
@@ -114,7 +115,7 @@ struct gl_t {
 
     // Texture
     GLuint texture;
-    image *empty_image;
+    Image *empty_image;
 };
 
 static void gl_compile_default_shader(gl_t *gl) {
@@ -148,7 +149,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
 
     Gfx_Vertex *v0 = 0;
     api->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->pos);
-    api->glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->uv);
+    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->uv);
     api->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->normal);
     api->glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->color);
     api->glVertexAttribPointer(4, 1, GL_FLOAT, GL_FALSE, sizeof(*v0), (void*) &v0->emissive);
@@ -163,7 +164,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
 
     #if 1
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
-    gl->empty_image = parse_qoi(m, (buf) { .ptr = (void *) &GL_WALL_IMAGE_DATA[0], .size = GL_WALL_IMAGE_SIZE, });
+    gl->empty_image = parse_qoi(m, (buf) { .ptr = (void *) &GL_ALIEN_IMAGE_DATA[0], .size = GL_ALIEN_IMAGE_SIZE, });
     api->glGenTextures(1, &gl->texture);
 
     // enable textures, and bind our texture atlas
@@ -213,6 +214,10 @@ static void gl_draw(gl_t *gl, Gfx *gfx) {
         api->glDeleteProgram(gl->shader);
         gl_compile_default_shader(gl);
     }
+
+    // if(gfx->image) {
+    //     api->glCopyTexImage2D()
+    // }
 
     // We will use full f32 bit textures and framebuffer
     api->glBindVertexArray(gl->vao);
