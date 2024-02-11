@@ -20,6 +20,11 @@
 
 struct Monster {
     v3 pos;
+    f32 radius;
+    f32 height;
+
+    bool has_target;
+    v3 target_pos;
 };
 
 struct Player {
@@ -155,25 +160,27 @@ static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
 }
 
 static void mon_update(App *app, Monster *mon, Gfx *gfx) {
-    v3 dir = app->player.pos - mon->pos;
-    dir.z = 0;
+    v3 look_dir = app->player.pos - mon->pos;
+    look_dir.z = 0;
 
     gfx->mtx = m4_id();
+    m4_trans(&gfx->mtx, (v3){-.5, 0, 0});
     m4_rot_x(&gfx->mtx, R1);
-    m4_rot_z(&gfx->mtx, f_atan2(dir.y, dir.x) + R1);
+    m4_rot_z(&gfx->mtx, f_atan2(look_dir.y, look_dir.x) + R1);
     m4_trans(&gfx->mtx, mon->pos); // move into position
     gfx_image(gfx, app->img);
     gfx_color(gfx, (v4){1, 1, 1, 1});
-    gfx_rect(gfx, (v2){-.5,0}, (v2){.5,1});
+    gfx_rect(gfx, (v2){0,0}, (v2){1,1});
 
-    f32 len = v3_len(dir);
-    v3 dir_norm = dir / len;
-    if(len == 0) { dir_norm.x = 0; }
-    if(len > 1) {
-        mon->pos += dir_norm*((f32) app->dt / 1e6);
-    }
-    if(len < 0.8) {
-        mon->pos -= dir_norm*((f32) app->dt / 1e6);
+    v3 move_dir = mon->target_pos - mon->pos;
+    f32 move_len = v3_len(move_dir);
+    v3 move_dir_norm = move_dir / move_len;
+    if(move_len < 0.5 || !mon->has_target) {
+        mon->has_target = 1;
+        mon->target_pos.x = rand_f_signed(&app->rng)*20;
+        mon->target_pos.y = rand_f_signed(&app->rng)*20;
+    } else {
+        mon->pos += move_dir_norm*((f32) app->dt / 1e6);
     }
 }
 
@@ -293,6 +300,8 @@ void main_update(void *handle) {
             f32 a = rand_f32(&app->rng)*R4;
             Monster *mon = app->mon_list + app->mon_count++;
             mon->pos = (v3){f_cos(a)*20, f_sin(a)*20, 0};
+            mon->radius = .5;
+            mon->height = 1;
         }
 
         for(u32 i = 0; i < app->mon_count; ++i) {

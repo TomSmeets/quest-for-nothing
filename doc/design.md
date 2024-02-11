@@ -173,5 +173,12 @@ Kill aliens in space
 - [ ] Shooting
 - [x] 3d Camera movement
 - [x] Starry background
-- [ ] Billboard alien graphics
-- [ ] sound effect
+- [x] Billboard alien graphics
+- [x] sound effect
+
+
+## Step 2
+- Uniform coordinate system, +y/z is up, 0,0 in top left
+- [ ] Uniform coordniate system
+- [ ] Generated aliens
+
