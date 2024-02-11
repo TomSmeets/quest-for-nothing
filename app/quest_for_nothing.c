@@ -160,18 +160,25 @@ static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
 }
 
 static void mon_update(App *app, Monster *mon, Gfx *gfx) {
-    v3 look_dir = app->player.pos - mon->pos;
-    look_dir.z = 0;
+    v3 player_dir = app->player.pos - mon->pos;
+    f32 player_dist = v3_len(player_dir);
+    player_dir.z = 0;
 
     gfx->mtx = m4_id();
     m4_trans(&gfx->mtx, (v3){-.5, 0, 0});
     m4_rot_x(&gfx->mtx, R1);
-    m4_rot_z(&gfx->mtx, f_atan2(look_dir.y, look_dir.x) + R1);
+    m4_rot_z(&gfx->mtx, f_atan2(player_dir.y, player_dir.x) + R1);
     m4_trans(&gfx->mtx, mon->pos); // move into position
     gfx_image(gfx, app->img);
     gfx_color(gfx, (v4){1, 1, 1, 1});
     gfx_rect(gfx, (v2){0,0}, (v2){1,1});
 
+
+    if(player_dist < 0.5) {
+        mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
+    }
+    
+    f32 dt = (f32) app->dt / 1e6;
     v3 move_dir = mon->target_pos - mon->pos;
     f32 move_len = v3_len(move_dir);
     v3 move_dir_norm = move_dir / move_len;
@@ -180,7 +187,13 @@ static void mon_update(App *app, Monster *mon, Gfx *gfx) {
         mon->target_pos.x = rand_f_signed(&app->rng)*20;
         mon->target_pos.y = rand_f_signed(&app->rng)*20;
     } else {
-        mon->pos += move_dir_norm*((f32) app->dt / 1e6);
+        mon->pos += move_dir_norm*dt;
+    }
+
+    if(mon->pos.z > 0) {
+        mon->pos.z -= dt;
+    } else {
+        mon->pos.z = 0;
     }
 }
 
