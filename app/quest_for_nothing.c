@@ -32,42 +32,6 @@ struct Camera {
 };
 
 
-struct sound_t {
-    // Time in seconds
-    bool play;
-
-    f32 base_volume;
-
-    // Time in seconds
-    f32 adsr_attack;
-    f32 adsr_decay;
-    f32 adsr_sustain;
-    f32 adsr_release;
-
-    // volume
-    f32 adsr_sustain_level;
-
-    // params
-    f32 base_freq;
-    f32 lfo_amp;
-    f32 lfo_freq;
-    f32 compression;
-    f32 noise;
-    f32 vel;
-
-    // Other Variables
-    f32 time;
-
-    rand_t rng;
-    f32 t_wave;
-    f32 t_lfo;
-
-    bool is_noise;
-    f32 o_noise;
-
-    f32 filter;
-};
-
 struct App {
     mem tmp;
     mem perm;
@@ -89,22 +53,12 @@ struct App {
     image *img;
     Camera cam;
 
-    sound_t sounds[32];
+    sound_system_t sound;
     rand_t rng;
 };
 
-static sound_t *snd_get(App *app) {
-    for(u32 i =0; i < array_count(app->sounds); ++i) {
-        sound_t *snd = app->sounds + i;
-        if(snd->play) continue;
-        *snd = (sound_t) { 0 };
-        return snd;
-    }
-    return 0;
-}
-
 static void jump_sound(App *app, u32 kind) {
-    sound_t *snd = snd_get(app);
+    sound_t *snd = snd_get(&app->sound);
     if(!snd) return;
     snd->adsr_attack  = 0.005;
     snd->adsr_decay   = 0.40;
@@ -118,61 +72,6 @@ static void jump_sound(App *app, u32 kind) {
     snd->vel = 200;
     snd->play = 1;
 };
-
-static f32 snd_play(f32 dt, sound_t *snd) {
-    if(!snd->play)
-        return 0;
-
-    f32 volume = 0;
-
-    f32 t_attack = snd->adsr_attack;
-    f32 t_decay  = t_attack + snd->adsr_decay;
-    f32 t_sustain = t_decay + snd->adsr_sustain;
-    f32 t_release = t_sustain + snd->adsr_release;
-
-    if(snd->time > t_release) {
-        *snd = (sound_t) { 0 };
-        os_printf("Done\n");
-        return 0;
-    }
-
-    if(0) {}
-    else if(snd->time < t_attack) volume = f_remap(snd->time, 0, t_attack, 0, 1);
-    else if(snd->time < t_decay)  volume = f_remap(snd->time, t_attack, t_decay, 1, snd->adsr_sustain_level);
-    else if(snd->time < t_sustain) volume = snd->adsr_sustain_level;
-    else if(snd->time < t_release) volume = f_remap(snd->time, t_sustain, t_release, snd->adsr_sustain_level, 0);
-
-    volume *= snd->base_volume;
-
-
-    f32 o = 0;
-    if(snd->is_noise) {
-        o = snd->o_noise*volume;
-    } else {
-        o = f_sin2pi(snd->t_wave + snd->lfo_amp*f_sin2pi(snd->t_lfo));
-        o = f_clamp(o + o*snd->compression, -1, 1)*volume;
-    }
-
-    o = snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
-
-
-    if(snd->is_noise) {
-        snd->t_wave = snd->t_wave + dt*snd->base_freq*(1+ snd->lfo_amp*f_sin2pi(snd->t_lfo));
-        if(snd->t_wave > 1) {
-            snd->o_noise = (rand_next(&snd->rng) & 1) == 0 ? 1 : -1;
-            snd->t_wave = f_fract(snd->t_wave);
-        }
-    } else {
-        snd->t_wave = f_fract(snd->t_wave + dt*snd->base_freq);
-    }
-    snd->t_lfo  = f_fract(snd->t_lfo  + dt*snd->lfo_freq);
-
-    snd->base_freq += snd->vel*dt;
-    if(snd->base_freq < 0) snd->base_freq = 0;
-
-    snd->time += dt;
-    return o;
-}
 
 
 static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
@@ -244,12 +143,8 @@ static void cam_update(App *app, Camera *cam, Sdl *win, f32 dt) {
 
 static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
     App *app = user;
-    for(u32 i = 0; i < count; ++i) {
-        f32 o = 0;
-        for(u32 i = 0; i < array_count(app->sounds); ++i)
-            o += snd_play(dt, &app->sounds[i]);
-        output[i].y = output[i].x = o;
-    }
+    for(u32 i = 0; i < count; ++i)
+        output[i] = snd_system_play(&app->sound, dt);
 }
 
 // You can choose how to run this app
@@ -299,7 +194,7 @@ void main_update(void *handle) {
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
         os_print("FIRE!\n");
 
-        sound_t *snd = snd_get(app);
+        sound_t *snd = snd_get(&app->sound);
         if(snd) {
             snd->base_volume  = .5;
             snd->adsr_attack  = 0.01;
@@ -317,7 +212,7 @@ void main_update(void *handle) {
             snd->play = 1;
         }
 
-        snd = snd_get(app);
+        snd = snd_get(&app->sound);
         if(snd) {
             snd->base_volume  = .5;
             snd->adsr_attack  = 0.10;
@@ -363,10 +258,7 @@ void main_update(void *handle) {
 
 
         gfx->mtx = m4_id();
-        gfx_color(gfx, (v4){0.1, 0.2, 0.1, 1});
-        gfx_circle(gfx, (v2){0, 0}, 10);
-
-        gfx_color(gfx, (v4){0.2, 0.2, 0.1, 1});
+        gfx_color(gfx, (v4){0.01, 0.02, 0.01, 1});
         gfx_circle(gfx, (v2){0, 0}, 20);
 
         gfx->mtx = m4_id();

@@ -3,46 +3,57 @@
 #pragma once
 #include "inc.h"
 #include "math.h"
+#include "rand.h"
 
 // See [doc/audio.md](doc/audio.md) for information
-// Tracks a number of oscillators
-struct sound {
-    f32 dt;
+struct sound_t {
+    // Time in seconds
+    bool play;
 
-    u32 beat;
-    f32 bpm;
-    f32 beat_time;
+    f32 base_volume;
 
-    u32 index;
-    f32 vars[64];
+    // Time in seconds
+    f32 adsr_attack;
+    f32 adsr_decay;
+    f32 adsr_sustain;
+    f32 adsr_release;
+
+    // volume
+    f32 adsr_sustain_level;
+
+    // params
+    f32 base_freq;
+    f32 lfo_amp;
+    f32 lfo_freq;
+    f32 compression;
+    f32 noise;
+    f32 vel;
+
+    // Other Variables
+    f32 time;
+
+    rand_t rng;
+    f32 t_wave;
+    f32 t_lfo;
+
+    bool is_noise;
+    f32 o_noise;
+
+    f32 filter;
 };
 
-// ==== Base ====
-static void snd_begin(sound *snd, f32 dt, f32 bpm) {
-    snd->dt  = dt;
-    snd->bpm = bpm;
-    snd->index = 0;
+struct sound_system_t {
+    sound_t sounds[32];
+};
 
-    // Calculate beat number
-    snd->beat_time = snd->beat_time + dt*bpm / 60;
-    if(snd->beat_time > 1) {
-        snd->beat_time -= 1;
-        snd->beat++;
+static sound_t *snd_get(sound_system_t *sys) {
+    for(u32 i =0; i < array_count(sys->sounds); ++i) {
+        sound_t *snd = sys->sounds + i;
+        if(snd->play) continue;
+        *snd = (sound_t) { 0 };
+        return snd;
     }
-}
-
-// Access a persistent sound variable
-static f32 *snd_var(sound *snd) {
-    assert(snd->index < array_count(snd->vars));
-    return snd->vars + snd->index++;
-}
-
-// A simple ramp from 0 to 1 with the given frequency
-static f32 snd_ramp(sound *snd, f32 freq) {
-    f32 *v = snd_var(snd);
-    f32 ret = *v;
-    *v = f_fract(*v + snd->dt*freq);
-    return ret;
+    return 0;
 }
 
 // ==== Music ====
@@ -106,27 +117,17 @@ static Note parse_note(char **note) {
 
 // ==== Generators ====
 
-// Sine wave
-static f32 snd_sin(sound *snd, f32 freq) {
-    return f_sin(snd_ramp(snd, freq)*R4);
-}
-
-// Square wave
-static f32 snd_square(sound *snd, f32 freq, f32 mod) {
-    f32 v = snd_ramp(snd, freq)*2;
-    return v > 1 + mod ? 1 : -1;
-}
-
 // Triangle wave
-static f32 snd_tri(sound *snd, f32 freq) {
-    f32 v = snd_ramp(snd, freq)*4;
+static f32 f_triangle(f32 x) {
+    f32 v = f_fract(x)*4;
     if(v > 3) return (v - 3) - 1;
     if(v > 1) return 1 - (v - 1);
     return v;
 }
 
+// Square wave
 static f32 f_square(f32 x) {
-    return f_fract(x) > .5;
+    return (f_fract(x) > .5)*2 - 1;
 }
 
 // ==== Effects ====
@@ -141,3 +142,62 @@ static f32 snd_cut(f32 v, f32 amount) {
 }
 
 // ==== Filters ====
+static f32 snd_play(sound_t *snd, f32 dt) {
+    if(!snd->play)
+        return 0;
+
+    f32 t_attack = snd->adsr_attack;
+    f32 t_decay  = t_attack + snd->adsr_decay;
+    f32 t_sustain = t_decay + snd->adsr_sustain;
+    f32 t_release = t_sustain + snd->adsr_release;
+
+    if(snd->time > t_release) {
+        *snd = (sound_t) { 0 };
+        return 0;
+    }
+
+    f32 volume = snd->base_volume;
+    if(0) {}
+    else if(snd->time < t_attack) volume *= f_remap(snd->time, 0, t_attack, 0, 1);
+    else if(snd->time < t_decay)  volume *= f_remap(snd->time, t_attack, t_decay, 1, snd->adsr_sustain_level);
+    else if(snd->time < t_sustain) volume *= snd->adsr_sustain_level;
+    else if(snd->time < t_release) volume *= f_remap(snd->time, t_sustain, t_release, snd->adsr_sustain_level, 0);
+
+
+    f32 o = 0;
+    if(snd->is_noise) {
+        o = snd->o_noise;
+    } else {
+        o = f_sin2pi(snd->t_wave + snd->lfo_amp*f_sin2pi(snd->t_lfo));
+        o = snd_compress(o, 1 + snd->compression);
+    }
+    o *= volume;
+
+    // low pass filter
+    o = snd->filter += (o - snd->filter)*(dt / (1/(R4*2000) + dt));
+
+    // Advance time
+    if(snd->is_noise) {
+        snd->t_wave = snd->t_wave + dt*snd->base_freq*(1+ snd->lfo_amp*f_sin2pi(snd->t_lfo));
+        if(snd->t_wave > 1) {
+            snd->o_noise = (rand_next(&snd->rng) & 1) == 0 ? 1 : -1;
+            snd->t_wave = f_fract(snd->t_wave);
+        }
+    } else {
+        snd->t_wave = f_fract(snd->t_wave + dt*snd->base_freq);
+    }
+    snd->t_lfo  = f_fract(snd->t_lfo  + dt*snd->lfo_freq);
+
+    snd->base_freq += snd->vel*dt;
+    if(snd->base_freq < 0) snd->base_freq = 0;
+
+    snd->time += dt;
+    return o;
+}
+
+static v2 snd_system_play(sound_system_t *sys, f32 dt) {
+    f32 o = 0;
+    for(u32 i = 0; i < array_count(sys->sounds); ++i)
+        o += snd_play( &sys->sounds[i], dt);
+    return (v2) { o, o };
+}
