@@ -1,6 +1,7 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // os_windows.h - Windows API wrapper and platform implementation
 #pragma once
+#include "generated.h"
 #include "inc.h"
 #include "mem.h"
 #include "fmt.h"
@@ -112,7 +113,7 @@ static os_dir *os_read_dir(mem *m, char *path) {
     return first;
 }
 
-static buf os_read_file(mem *m, char *path) {
+static Buffer os_read_file(mem *m, char *path) {
     HANDLE fd = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     assert(fd != INVALID_HANDLE_VALUE);
 
@@ -128,7 +129,7 @@ static buf os_read_file(mem *m, char *path) {
 
     CloseHandle(fd);
 
-    return (buf) { .ptr = buffer, .size = size };
+    return (Buffer) { .ptr = buffer, .size = size };
 }
 
 static i32 os_command(char *cmd) {

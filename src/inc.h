@@ -48,8 +48,8 @@ static_assert(sizeof(f32) == 4);
 
 static void os_error(char *msg);
 
-struct buf {
-    void *ptr;
+struct Buffer {
+    u8 *ptr;
     u64 size;
 };
 

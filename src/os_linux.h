@@ -93,7 +93,7 @@ static void os_copy_file(char *src, char *dst) {
     close(dst_fd);
 }
 
-static buf os_read_file(mem *m, char *path) {
+static Buffer os_read_file(mem *m, char *path) {
     assert(path);
     struct stat sb;
     assert(stat(path, &sb) == 0);
@@ -112,7 +112,7 @@ static buf os_read_file(mem *m, char *path) {
 
     // zero terminate
     buffer[buffer_size] = 0;
-    return (buf){buffer, buffer_size};
+    return (Buffer) { buffer, buffer_size };
 }
 
 static u64 os_file_mtime(char *path) {

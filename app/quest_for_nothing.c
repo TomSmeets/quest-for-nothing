@@ -2,14 +2,11 @@
 // quest_for_nothing.c - Main entry point for "Quest For Nothing"
 #include "inc.h"
 #include "color.h"
-#include "fmt.h"
 #include "gl.h"
 #include "input.h"
 #include "math.h"
 #include "mem.h"
-#include "os_generic.h"
 #include "sdl.h"
-#include "str.h"
 #include "vec.h"
 #include "mat.h"
 #include "sound.h"
@@ -17,6 +14,7 @@
 #include "ui.h"
 #include "parse_qoi.h"
 #include "rand.h"
+#include "os_generic.h"
 
 struct Monster {
     v3 pos;

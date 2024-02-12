@@ -16,7 +16,7 @@
 
 // Parse a source file and generate code
 static void handle_file(fmt_t *f, mem *m, char *path) {
-    char *file = os_read_file(m, path).ptr;
+    char *file = (char *) os_read_file(m, path).ptr;
     assert(file);
 
     Token *tok = parse_token(m, file);
@@ -65,7 +65,7 @@ static void handle_dir(fmt_t *f, mem *m, char *dir) {
 }
 
 // Convert binary data to c source code
-static void c_encode(fmt_t *f, char *name, buf data) {
+static void c_encode(fmt_t *f, char *name, Buffer data) {
     fmt_str(f, "#define ");
     fmt_str(f, name);
     fmt_str(f, "_SIZE ");

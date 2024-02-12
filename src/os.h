@@ -44,7 +44,7 @@ struct os_dir {
 };
 
 static void os_copy_file(char *src, char *dst);
-static buf os_read_file(mem *m, char *path);
+static Buffer os_read_file(mem *m, char *path);
 static u64 os_file_mtime(char *path);
 static os_dir *os_read_dir(mem *m, char *path);
 

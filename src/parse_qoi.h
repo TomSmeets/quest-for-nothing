@@ -46,7 +46,7 @@ static u32 pixel_hash(pixel px) {
 }
 
 // Read a image file with the "Quite OK Image" format
-static Image *parse_qoi(mem *m, buf file) {
+static Image *parse_qoi(mem *m, Buffer file) {
     u8 *file_start = file.ptr;
     u8 *file_end   = file.ptr + file.size;
 

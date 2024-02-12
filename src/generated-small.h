@@ -4,7 +4,7 @@
 
 typedef struct mem mem;
 typedef struct mem_page mem_page;
-typedef struct buf buf;
+typedef struct Buffer Buffer;
 typedef struct fmt_t fmt_t;
 typedef struct os_dir os_dir;
 typedef struct Token Token;

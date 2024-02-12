@@ -164,7 +164,7 @@ static gl_t *gl_init(mem *m, gl_api *api) {
 
     #if 1
     // there is not a good way to clear a texture, so we have to copy an empty texture to the image
-    gl->empty_image = parse_qoi(m, (buf) { .ptr = (void *) &GL_ALIEN_IMAGE_DATA[0], .size = GL_ALIEN_IMAGE_SIZE, });
+    gl->empty_image = parse_qoi(m, (Buffer) { .ptr = (void *) &GL_ALIEN_IMAGE_DATA[0], .size = GL_ALIEN_IMAGE_SIZE, });
     api->glGenTextures(1, &gl->texture);
 
     // enable textures, and bind our texture atlas
