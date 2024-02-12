@@ -40,7 +40,6 @@ struct Player {
     bool can_jump_again;
 };
 
-
 struct App {
     mem tmp;
     mem perm;
@@ -48,9 +47,12 @@ struct App {
 
     Sdl *window;
 
+    f32 dt;
+    f32 time;
+
     // Frame Limiter
-    u64 dt;
-    u64 time;
+    u64 dt_us;
+    u64 time_us;
     u64 start_time;
 
     // Animation
@@ -103,7 +105,7 @@ static void squish_sound(App *app) {
 
 
 
-static void player_update(App *app, Player *player, Sdl *win, f32 dt) {
+static void player_update(App *app, Player *player, Sdl *win) {
     m4 look = m4_id();
     m4_rot_x(&look, -R1);
     m4_rot_z(&look, player->yaw);
@@ -125,17 +127,17 @@ static void player_update(App *app, Player *player, Sdl *win, f32 dt) {
     // Velocity
     v3 vel_inst = player->pos - player->old_pos;
     player->old_pos = player->pos;
-    player->pos += v3_limit(move, 1)*dt*0.60*speed;
-    player->pos += vel_inst - 0.5*dt*dt*(v3){0,0,9.81};
+    player->pos += v3_limit(move, 1)*app->dt*0.60*speed;
+    player->pos += vel_inst - 0.5*app->dt*app->dt*(v3){0,0,9.81};
     
     // Floor collision
-    player->pos.xy -= dt*vel_inst.xy*30;
+    player->pos.xy -= app->dt*vel_inst.xy*30;
     if(player->pos.z < 0) {
         player->pos.z = 0;
         player->can_jump_again = 0;
         if (input_is_click(&win->input, KEY_SPACE)) {
             player->can_jump_again = 1;
-            player->pos.z += dt*2;
+            player->pos.z += app->dt*2;
             jump_sound(app, 0);
         }
     } else {
@@ -143,7 +145,7 @@ static void player_update(App *app, Player *player, Sdl *win, f32 dt) {
             player->can_jump_again = 0;
             // Reset z velocity
             player->old_pos.z = player->pos.z;
-            player->pos.z += dt*2;
+            player->pos.z += app->dt*2;
             jump_sound(app, 1);
         }
     }
@@ -180,9 +182,7 @@ static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
 }
 
 static void mon_update(App *app, Monster *mon, Gfx *gfx) {
-    bool is_dead  = mon->life <= 0;
     bool is_alive = mon->life > 0;
-    f32 dt = (f32) app->dt / 1e6;
 
     v3 player_dir = app->player.pos - mon->pos;
     f32 player_dist = v3_len(player_dir);
@@ -217,12 +217,12 @@ static void mon_update(App *app, Monster *mon, Gfx *gfx) {
             mon->has_target = 1;
             mon->target_pos = rand_v2(&app->rng)*20;
         } else {
-            mon->pos += move_dir_norm*dt*.25;
+            mon->pos += move_dir_norm*app->dt*.25;
         }
     }
 
     if(mon->pos.z > 0) {
-        mon->pos.z -= dt;
+        mon->pos.z -= app->dt;
     } else {
         mon->pos.z = 0;
     }
@@ -232,15 +232,18 @@ static void mon_update(App *app, Monster *mon, Gfx *gfx) {
 // - dynamically: use ./hot main.so
 // - directly:    use ./main
 void *main_init(int argc, char **argv) {
+    u32 fps = 200;
+
     mem m = {};
     App *app = mem_struct(&m, App);
     global_set(&app->global);
     app->perm = m;
     app->window = sdl_new(&m, "Hello World");
     app->start_time = os_time();
-    app->time = app->start_time;
     app->gl   = gl_init(&m, app->window->gl);
-    app->dt   = 1000 * 1000 / 200;
+    app->dt_us   = 1000 * 1000 / fps;
+    app->time_us = app->start_time;
+    app->dt = (f32) 1.0f / fps;
     app->ui   = mem_struct(&m, UI);
     app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
     return app;
@@ -269,7 +272,7 @@ void main_update(void *handle) {
     }
 
     // freecam movement
-    player_update(app, &app->player, win, dt);
+    player_update(app, &app->player, win);
 
     // Shooting
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
@@ -385,8 +388,8 @@ void main_update(void *handle) {
     sdl_end(win);
 
     // Wait for the next frame
-    app->time += app->dt;
-    app->t    += app->dt / 1e6;
+    app->time_us += app->dt_us;
+    app->time    += app->dt;
     os_sleep_until(app->time);
     mem_clear(&app->tmp);
 }
