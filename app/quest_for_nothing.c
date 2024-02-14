@@ -68,7 +68,7 @@ struct App {
     rand_t rng;
 
     u32 mon_count;
-    Monster mon_list[1024];
+    Monster mon_list[100];
 };
 
 
@@ -259,6 +259,24 @@ void main_update(void *handle) {
             snd->vel = -2000;
             snd->play = 1;
         }
+
+
+        f32 min_dist = 1000;
+        Monster *min_mon = 0;
+        for(u32 i = 0; i < app->mon_count; ++i) {
+            Monster *mon = app->mon_list + i;
+            guard(mon->life > 0);
+            v3 d = m4_mul_pos(&app->player.view_to_world.inv, mon->pos);
+            f32 dist = -d.z;
+            if(d.x > -.5 && d.x < .5 && d.y <= 1 && d.y > 0 && dist >= 0 && dist < min_dist) {
+                min_mon = mon;
+                min_dist = dist;
+            }
+        }
+        if(min_mon) {
+            min_mon->life = 0;
+            snd_play_squish(&app->sound);
+        }
     }
 
     {
@@ -318,7 +336,7 @@ void main_update(void *handle) {
             mon_update(app, mon, gfx);
         }
 
-        while(alive_count < 32 && app->mon_count < array_count(app->mon_list)) {
+        while(app->mon_count < array_count(app->mon_list)) {
             Monster *mon = app->mon_list + app->mon_count++;
             mon->pos    = rand_v2(&app->rng)*20;
             mon->radius = .5;
@@ -347,10 +365,10 @@ void main_update(void *handle) {
         gl_draw(app->gl, gfx);
     }
 
-    ui_begin(app->ui, &win->input, tmp);
-    ui_button(app->ui, "Hello World!");
-    ui_end(app->ui);
-    gl_draw(app->gl, app->ui->gfx);
+    // ui_begin(app->ui, &win->input, tmp);
+    // ui_button(app->ui, "Hello World!");
+    // ui_end(app->ui);
+    // gl_draw(app->gl, app->ui->gfx);
 
     sdl_end(win);
 
