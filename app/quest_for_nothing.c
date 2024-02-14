@@ -71,38 +71,6 @@ struct App {
     Monster mon_list[1024];
 };
 
-static void jump_sound(App *app, u32 kind) {
-    Sound *snd = snd_get(&app->sound);
-    if(!snd) return;
-    snd->adsr_attack  = 0.005;
-    snd->adsr_decay   = 0.40;
-    snd->base_volume  = 1;
-
-    snd->base_freq = 300 + kind*80;
-    snd->is_noise = 0;
-    snd->lfo_amp  = .25 + .5*kind;
-    snd->lfo_freq = 10;
-    snd->compression = 3;
-    snd->vel = 200;
-    snd->play = 1;
-};
-
-static void squish_sound(App *app) {
-    Sound *snd = snd_get(&app->sound);
-    if(!snd) return;
-    snd->adsr_attack  = 0.005;
-    snd->adsr_decay   = 0.40;
-    snd->base_volume  = 1;
-
-    snd->base_freq = 300;
-    snd->is_noise = 0;
-    snd->lfo_freq = 8;
-    snd->lfo_amp = 1;
-    snd->compression = 10;
-    snd->vel = -5000;
-    snd->play = 1;
-};
-
 
 
 static void player_update(App *app, Player *player, Sdl *win) {
@@ -138,7 +106,7 @@ static void player_update(App *app, Player *player, Sdl *win) {
         if (input_is_click(&win->input, KEY_SPACE)) {
             player->can_jump_again = 1;
             player->pos.z += app->dt*2;
-            jump_sound(app, 0);
+            snd_play_jump(&app->sound, 0);
         }
     } else {
         if (player->can_jump_again && input_is_click(&win->input, KEY_SPACE)) {
@@ -146,7 +114,7 @@ static void player_update(App *app, Player *player, Sdl *win) {
             // Reset z velocity
             player->old_pos.z = player->pos.z;
             player->pos.z += app->dt*2;
-            jump_sound(app, 1);
+            snd_play_jump(&app->sound, 1);
         }
     }
 
@@ -207,7 +175,7 @@ static void mon_update(App *app, Monster *mon, Gfx *gfx) {
         if(player_dist < 0.5) {
             mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
             mon->life = 0;
-            squish_sound(app);
+            snd_play_squish(&app->sound);
         }
     
         v3 move_dir = mon->target_pos - mon->pos;
@@ -253,7 +221,6 @@ void *main_init(int argc, char **argv) {
 void main_update(void *handle) {
     App *app = handle;
     mem *tmp = &app->tmp;
-    f32 dt = (f32) app->dt / 1e6;
 
     Sdl *win = app->window;
 

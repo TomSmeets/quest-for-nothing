@@ -201,3 +201,36 @@ static v2 snd_system_play(Sound_System *sys, f32 dt) {
         o += snd_play( &sys->sounds[i], dt);
     return (v2) { o, o };
 }
+
+static void snd_play_jump(Sound_System *sound, u32 kind) {
+    Sound *snd = snd_get(sound);
+    if(!snd) return;
+    snd->adsr_attack  = 0.005;
+    snd->adsr_decay   = 0.40;
+    snd->base_volume  = 1;
+
+    snd->base_freq = 300 + kind*80;
+    snd->is_noise = 0;
+    snd->lfo_amp  = .25 + .5*kind;
+    snd->lfo_freq = 10;
+    snd->compression = 3;
+    snd->vel = 200;
+    snd->play = 1;
+};
+
+static void snd_play_squish(Sound_System *sound) {
+    Sound *snd = snd_get(sound);
+    if(!snd) return;
+    snd->adsr_attack  = 0.005;
+    snd->adsr_decay   = 0.40;
+    snd->base_volume  = 1;
+
+    snd->base_freq = 300;
+    snd->is_noise = 0;
+    snd->lfo_freq = 8;
+    snd->lfo_amp = 1;
+    snd->compression = 10;
+    snd->vel = -5000;
+    snd->play = 1;
+};
+
