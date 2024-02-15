@@ -71,8 +71,6 @@ struct App {
     Monster mon_list[100];
 };
 
-
-
 static void player_update(App *app, Player *player, Sdl *win) {
     m4 look = m4_id();
     m4_rot_x(&look, -R1);
@@ -244,22 +242,7 @@ void main_update(void *handle) {
     // Shooting
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
         os_print("FIRE!\n");
-
-        Sound *snd = snd_get(&app->sound);
-        if(snd) {
-            snd->base_volume  = .5;
-            snd->adsr_attack  = 0.01;
-            snd->adsr_decay   = 0.20;
-
-            snd->base_freq = 220*5*(1 + 0.1*rand_f_signed(&app->rng));
-            snd->is_noise = 0;
-            snd->lfo_amp  = 0;
-            snd->lfo_freq = 0;
-            snd->compression = 10;
-            snd->vel = -2000;
-            snd->play = 1;
-        }
-
+        snd_play_pew(&app->sound, rand_f32(&app->rng));
 
         f32 min_dist = 1000;
         Monster *min_mon = 0;

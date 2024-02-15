@@ -234,3 +234,19 @@ static void snd_play_squish(Sound_System *sound) {
     snd->play = 1;
 };
 
+
+static void snd_play_pew(Sound_System *sound, f32 speed) {
+    Sound *snd = snd_get(sound);
+    if(!snd) return;
+    snd->base_volume  = .5;
+    snd->adsr_attack  = 0.01;
+    snd->adsr_decay   = 0.20;
+
+    snd->base_freq = 220*2*(1 + 0.2*speed);
+    snd->is_noise = 0;
+    snd->lfo_amp  = 0;
+    snd->lfo_freq = 0;
+    snd->compression = 10;
+    snd->vel = -2000;
+    snd->play = 1;
+}
