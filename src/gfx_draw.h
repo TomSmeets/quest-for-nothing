@@ -188,13 +188,13 @@ static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
 
     // Veritcal (L-L)
     if(str_chr("BDEFHKLMNPRW", c)) gfx_line(g, p + (v2){x0, y0-w}, p + (v2){x0,   y2+w});
-    if(str_chr("IT", c))           gfx_line(g, p + (v2){x1, y0-w}, p + (v2){x1,   y2+w});
+    if(str_chr("IT1", c))           gfx_line(g, p + (v2){x1, y0-w}, p + (v2){x1,   y2+w});
     if(str_chr("HMNW", c))         gfx_line(g, p + (v2){x2, y0-w}, p + (v2){x2,   y2+w});
 
     // Veritcal (S-S)
-    if(str_chr("CGOQ", c))         gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0,   y2-b});
+    if(str_chr("CGOQ0", c))         gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0,   y2-b});
     if(str_chr("J", c))            gfx_line(g, p + (v2){x0, y1},   p + (v2){x0,   y2-b});
-    if(str_chr("DOQ", c))          gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2,   y2-b});
+    if(str_chr("DOQ90", c))          gfx_line(g, p + (v2){x2, y0+b}, p + (v2){x2,   y2-b});
 
     if(str_chr("BS", c))           gfx_line(g, p + (v2){x0, y0+b}, p + (v2){x0, y1-b});
 
@@ -216,9 +216,9 @@ static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
     if(str_chr("BD", c))           gfx_line(g, p + (v2){x0-w, y2}, p + (v2){x2-b, y2});
 
     // Horizontal (S-S)
-    if(str_chr("OQS", c))          gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2-b, y0});
+    if(str_chr("OQS0", c))          gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2-b, y0});
     if(str_chr("S", c))            gfx_line(g, p + (v2){x0+b, y1}, p + (v2){x2-b, y1});
-    if(str_chr("JOQSU", c))        gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
+    if(str_chr("JOQSU0", c))        gfx_line(g, p + (v2){x0+b, y2}, p + (v2){x2-b, y2});
 
     // Horizontal (S-L)
     if(str_chr("CG", c))           gfx_line(g, p + (v2){x0+b, y0}, p + (v2){x2+w, y0});
@@ -229,15 +229,15 @@ static void gfx_char(Gfx *g, v2 p, f32 sx, f32 sy, char c) {
     gfx_line_cap(g, 'X', 'Y');
 
     // Right
-    if(str_chr("BDOPQRS", c))      gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
+    if(str_chr("BDOPQRS0", c))      gfx_line(g, p + (v2){x2-b, y0}, p + (v2){x2, y0+b});
     if(str_chr("BPR", c))          gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1-b});
     if(str_chr("BS", c))           gfx_line(g, p + (v2){x2-b, y1}, p + (v2){x2, y1+b});
-    if(str_chr("BDJOQSU", c))      gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
+    if(str_chr("BDJOQSU0", c))      gfx_line(g, p + (v2){x2-b, y2}, p + (v2){x2, y2-b});
 
     // Left
-    if(str_chr("CGOQS", c))        gfx_line(g, p + (v2){x0+b, y0}, p +(v2){x0, y0+b});
+    if(str_chr("CGOQS0", c))        gfx_line(g, p + (v2){x0+b, y0}, p +(v2){x0, y0+b});
     if(str_chr("S", c))            gfx_line(g, p + (v2){x0+b, y1}, p +(v2){x0, y1-b});
-    if(str_chr("CGJOQSU", c))      gfx_line(g, p + (v2){x0+b, y2}, p +(v2){x0, y2-b});
+    if(str_chr("CGJOQSU0", c))      gfx_line(g, p + (v2){x0+b, y2}, p +(v2){x0, y2-b});
 
     gfx_line_cap(g, 0, 0);
 

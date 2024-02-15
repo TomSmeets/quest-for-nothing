@@ -96,6 +96,7 @@ void *main_init(int argc, char *argv[]) {
     c_encode(&f, "GL_SHADER_FRAG", os_read_file(&m, "src/gl_shader.frag"));
     c_encode(&f, "GL_WALL_IMAGE",  os_read_file(&m, "res/space_wall.qoi"));
     c_encode(&f, "GL_ALIEN_IMAGE",  os_read_file(&m, "res/space_alien.qoi"));
+    c_encode(&f, "GL_ALIEN_DEAD_IMAGE",  os_read_file(&m, "res/space_alien_dead.qoi"));
     os_print(fmt_end(&f));
     return 0;
 }

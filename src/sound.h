@@ -202,6 +202,12 @@ static v2 snd_system_play(Sound_System *sys, f32 dt) {
     return (v2) { o, o };
 }
 
+static void snd_system_callback(void *user, f32 dt, u32 count, v2 *output) {
+    Sound_System *sys = user;
+    for(u32 i = 0; i < count; ++i)
+        output[i] = snd_system_play(sys, dt);
+}
+
 static void snd_play_jump(Sound_System *sound, u32 kind) {
     Sound *snd = snd_get(sound);
     if(!snd) return;
@@ -233,7 +239,6 @@ static void snd_play_squish(Sound_System *sound) {
     snd->vel = -5000;
     snd->play = 1;
 };
-
 
 static void snd_play_pew(Sound_System *sound, f32 speed) {
     Sound *snd = snd_get(sound);

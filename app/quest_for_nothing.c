@@ -67,9 +67,88 @@ struct App {
     Sound_System sound;
     rand_t rng;
 
+    f32 next_monster_spawn_time;
+
     u32 mon_count;
     Monster mon_list[100];
 };
+
+static Monster *app_spawn_monster(App *app) {
+    if(app->mon_count >= array_count(app->mon_list)) return 0;
+    Monster *mon = app->mon_list + app->mon_count++;
+    mon->life = 1;
+    return mon;
+}
+
+static void app_step_monster_spawner(App *app) {
+    while(app->next_monster_spawn_time < app->time) {
+        app->next_monster_spawn_time += 1;
+
+        Monster *mon = app_spawn_monster(app);
+        if(!mon) continue;
+        mon->pos    = rand_v2(&app->rng)*20;
+        mon->radius = .5;
+        mon->height = 1;
+        mon->life   = 1;
+    }
+}
+
+static void mon_update(App *app, Monster *mon, Gfx *gfx) {
+    bool is_alive = mon->life > 0;
+
+    v3 player_dir = app->player.pos - mon->pos;
+    f32 player_dist = v3_len(player_dir);
+    player_dir.z = 0;
+
+    if(is_alive)
+        mon->angle = f_atan2(player_dir.y, player_dir.x);
+
+    m4 mtx = m4_id();
+    m4_trans(&mtx, (v3){-.5, 0, 0.001});
+    if(is_alive) m4_rot_x(&mtx, R1);
+    m4_rot_z(&mtx, mon->angle + R1);
+    m4_trans(&mtx, mon->pos); // move into position
+    gfx->mtx = mtx;
+
+    gfx_image(gfx, app->img);
+    gfx_color(gfx, (v4){1, 1, 1, 1});
+    gfx_rect(gfx, (v2){0,0}, (v2){1,1});
+
+
+    if(is_alive) {
+        if(player_dist < 0.5) {
+            mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
+            mon->life = 0;
+            snd_play_squish(&app->sound);
+        }
+    
+        v3 move_dir = mon->target_pos - mon->pos;
+        f32 move_len = v3_len(move_dir);
+        v3 move_dir_norm = move_dir / move_len;
+        if(move_len < 0.5 || !mon->has_target) {
+            mon->has_target = 1;
+            mon->target_pos = rand_v2(&app->rng)*20;
+        } else {
+            mon->pos += move_dir_norm*app->dt*.25;
+        }
+    }
+
+    if(mon->pos.z > 0) {
+        mon->pos.z -= app->dt;
+    } else {
+        mon->pos.z = 0;
+    }
+}
+
+static u32 app_step_monsters(App *app, Gfx *gfx) {
+    u32 dead_count = 0;
+    for(u32 i = 0; i < app->mon_count; ++i) {
+        Monster *mon = app->mon_list + i;
+        mon_update(app, mon, gfx);
+        if(mon->life <= 0) dead_count++;
+    }
+    return dead_count;
+}
 
 static void player_update(App *app, Player *player, Sdl *win) {
     m4 look = m4_id();
@@ -137,61 +216,6 @@ static void player_update(App *app, Player *player, Sdl *win) {
     player->world_to_clip = m4_id();
     m4_mul_inv(&player->world_to_clip, &player->view_to_world);
     m4_perspective_to_clip(&player->world_to_clip, 45, win->input.window_size.x / win->input.window_size.y, 0.1, 80);
-
-}
-
-
-static void qfo_audio_callback(void *user, f32 dt, u32 count, v2 *output) {
-    App *app = user;
-    for(u32 i = 0; i < count; ++i)
-        output[i] = snd_system_play(&app->sound, dt);
-}
-
-static void mon_update(App *app, Monster *mon, Gfx *gfx) {
-    bool is_alive = mon->life > 0;
-
-    v3 player_dir = app->player.pos - mon->pos;
-    f32 player_dist = v3_len(player_dir);
-    player_dir.z = 0;
-
-    if(is_alive)
-        mon->angle = f_atan2(player_dir.y, player_dir.x);
-
-    m4 mtx = m4_id();
-    m4_trans(&mtx, (v3){-.5, 0, 0.001});
-    if(is_alive) m4_rot_x(&mtx, R1);
-    m4_rot_z(&mtx, mon->angle + R1);
-    m4_trans(&mtx, mon->pos); // move into position
-    gfx->mtx = mtx;
-
-    gfx_image(gfx, app->img);
-    gfx_color(gfx, (v4){1, 1, 1, 1});
-    gfx_rect(gfx, (v2){0,0}, (v2){1,1});
-
-
-    if(is_alive) {
-        if(player_dist < 0.5) {
-            mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
-            mon->life = 0;
-            snd_play_squish(&app->sound);
-        }
-    
-        v3 move_dir = mon->target_pos - mon->pos;
-        f32 move_len = v3_len(move_dir);
-        v3 move_dir_norm = move_dir / move_len;
-        if(move_len < 0.5 || !mon->has_target) {
-            mon->has_target = 1;
-            mon->target_pos = rand_v2(&app->rng)*20;
-        } else {
-            mon->pos += move_dir_norm*app->dt*.25;
-        }
-    }
-
-    if(mon->pos.z > 0) {
-        mon->pos.z -= app->dt;
-    } else {
-        mon->pos.z = 0;
-    }
 }
 
 // You can choose how to run this app
@@ -227,7 +251,7 @@ void main_update(void *handle) {
 
     // Create a window
     sdl_begin(win);
-    sdl_audio(win, qfo_audio_callback, app);
+    sdl_audio(win, snd_system_callback, &app->sound);
     gl_clear(app->gl, win->input.window_size);
 
     // Handle quit
@@ -239,6 +263,7 @@ void main_update(void *handle) {
     // freecam movement
     player_update(app, &app->player, win);
 
+    ui_begin(app->ui, &win->input, tmp);
     // Shooting
     if (input_is_click(&win->input, KEY_MOUSE_LEFT)) {
         os_print("FIRE!\n");
@@ -311,26 +336,19 @@ void main_update(void *handle) {
         // Image *i = img_new_uninit(tmp, 8, 8);
         // img_fill_pattern(i);
 
-        u32 alive_count = 0;
-        for(u32 i = 0; i < app->mon_count; ++i) {
-            Monster *mon = app->mon_list + i;
-            if(mon->life > 0)
-                alive_count++;
-            mon_update(app, mon, gfx);
-        }
-
-        while(app->mon_count < array_count(app->mon_list)) {
-            Monster *mon = app->mon_list + app->mon_count++;
-            mon->pos    = rand_v2(&app->rng)*20;
-            mon->radius = .5;
-            mon->height = 1;
-            mon->life   = 1;
-            alive_count++;
-        }
-
-
+        u32 dead_count = app_step_monsters(app, gfx);
+        app_step_monster_spawner(app);
         gl_draw(app->gl, gfx);
+
+        {
+            Gfx *gfx = gfx_begin(tmp);
+            gfx_color(gfx, WHITE);
+            gfx_text(gfx, 0, 20, 20, fmt(tmp, "0123456789: %2d%s", dead_count, "%"));
+            m4_screen_to_clip(&gfx->world_to_clip, win->input.window_size);
+            gl_draw(app->gl, gfx);
+        }
     }
+
 
     if(win->has_mouse_grab) {
         // Draw a mouse cursor
@@ -347,11 +365,6 @@ void main_update(void *handle) {
         m4_screen_to_clip(&gfx->world_to_clip, win->input.window_size);
         gl_draw(app->gl, gfx);
     }
-
-    // ui_begin(app->ui, &win->input, tmp);
-    // ui_button(app->ui, "Hello World!");
-    // ui_end(app->ui);
-    // gl_draw(app->gl, app->ui->gfx);
 
     sdl_end(win);
 
