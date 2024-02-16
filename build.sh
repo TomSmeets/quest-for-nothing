@@ -34,7 +34,7 @@ fi
 if [ $MODE == "s" ]; then
   cc $OPT -o out/hot               app/hot.c
   cc $OPT -o out/hello             app/hello.c
-  cc $OPT -o out/quest_for_nothing app/quest_for_nothing.c
+  cc $OPT -o out/quest_for_nothing app/quest_for_nothing/main.c
   cc $OPT -o out/time_cmd          app/time_cmd.c
 
   cc $DBG -o out/test app/test.c
@@ -44,5 +44,5 @@ if [ $MODE == "s" ]; then
   # cc $OPT $WIN -o out/quest_for_nothing.exe app/quest_for_nothing.c
 fi
 
-cc $DBG -shared -o out/quest_for_nothing.so app/quest_for_nothing.c
+cc $DBG -shared -o out/quest_for_nothing.so app/quest_for_nothing/main.c
 touch out/trigger

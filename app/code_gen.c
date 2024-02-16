@@ -58,9 +58,9 @@ static void handle_file(fmt_t *f, mem *m, char *path) {
 // Parse a directory and generate code
 static void handle_dir(fmt_t *f, mem *m, char *dir) {
     for(os_dir *d = os_read_dir(m, dir); d; d = d->next) {
-        if(!d->is_file) continue;
         char *path = fmt(m, "%s/%s", dir, d->file_name);
-        handle_file(f, m, path);
+        if(d->is_dir)  handle_dir(f, m, path);
+        if(d->is_file) handle_file(f, m, path);
     }
 }
 

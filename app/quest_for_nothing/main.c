@@ -15,135 +15,44 @@
 #include "parse_qoi.h"
 #include "rand.h"
 #include "os_generic.h"
+#include "monster.h"
+#include "data.h"
 
-struct Monster {
-    v3 pos;
-    f32 radius;
-    f32 height;
+static Level *level_new() {
+    mem mem = {};
+    Level *lvl = mem_struct(&mem, Level);
+    lvl->mem = mem;
+    return lvl;
+}
 
-    bool has_target;
-    v3 target_pos;
-    f32 life;
-    f32 angle;
-};
+static void level_destroy(Level *lvl) {
+    mem mem = lvl->mem;
+    mem_clear(&mem);
+}
 
-struct Player {
-    v3 pos;
-    f32 pitch;
-    f32 yaw;
-
-    m4 view_to_world;
-    m4 world_to_clip;
-
-    v3 old_pos;
-    bool on_ground;
-    bool can_jump_again;
-};
-
-struct App {
-    mem tmp;
-    mem perm;
-    Global global;
-
-    Sdl *window;
-
-    f32 dt;
-    f32 time;
-
-    // Frame Limiter
-    u64 dt_us;
-    u64 time_us;
-    u64 start_time;
-
-    // Animation
-    f32 t;
-
-    gl_t *gl;
-    UI *ui;
-
-    Image *img;
-    Player player;
-
-    Sound_System sound;
-    rand_t rng;
-
-    f32 next_monster_spawn_time;
-
-    u32 mon_count;
-    Monster mon_list[100];
-};
-
-static Monster *app_spawn_monster(App *app) {
-    if(app->mon_count >= array_count(app->mon_list)) return 0;
-    Monster *mon = app->mon_list + app->mon_count++;
+static Monster *app_spawn_monster(Level *lvl, rand_t *rng) {
+    Monster *mon = mem_struct(&lvl->mem, Monster);
     mon->life = 1;
+    mon->pos    = rand_v2(rng)*20;
+    mon->radius = .5;
+    mon->height = 1;
+    mon->next = lvl->monster_list;
+    lvl->monster_list = mon;
     return mon;
 }
 
 static void app_step_monster_spawner(App *app) {
-    while(app->next_monster_spawn_time < app->time) {
-        app->next_monster_spawn_time += 1;
-
-        Monster *mon = app_spawn_monster(app);
-        if(!mon) continue;
-        mon->pos    = rand_v2(&app->rng)*20;
-        mon->radius = .5;
-        mon->height = 1;
-        mon->life   = 1;
-    }
-}
-
-static void mon_update(App *app, Monster *mon, Gfx *gfx) {
-    bool is_alive = mon->life > 0;
-
-    v3 player_dir = app->player.pos - mon->pos;
-    f32 player_dist = v3_len(player_dir);
-    player_dir.z = 0;
-
-    if(is_alive)
-        mon->angle = f_atan2(player_dir.y, player_dir.x);
-
-    m4 mtx = m4_id();
-    m4_trans(&mtx, (v3){-.5, 0, 0.001});
-    if(is_alive) m4_rot_x(&mtx, R1);
-    m4_rot_z(&mtx, mon->angle + R1);
-    m4_trans(&mtx, mon->pos); // move into position
-    gfx->mtx = mtx;
-
-    gfx_image(gfx, app->img);
-    gfx_color(gfx, (v4){1, 1, 1, 1});
-    gfx_rect(gfx, (v2){0,0}, (v2){1,1});
-
-
-    if(is_alive) {
-        if(player_dist < 0.5) {
-            mon->pos -= player_dir * (0.5 - player_dist) / player_dist;
-            mon->life = 0;
-            snd_play_squish(&app->sound);
-        }
-    
-        v3 move_dir = mon->target_pos - mon->pos;
-        f32 move_len = v3_len(move_dir);
-        v3 move_dir_norm = move_dir / move_len;
-        if(move_len < 0.5 || !mon->has_target) {
-            mon->has_target = 1;
-            mon->target_pos = rand_v2(&app->rng)*20;
-        } else {
-            mon->pos += move_dir_norm*app->dt*.25;
-        }
-    }
-
-    if(mon->pos.z > 0) {
-        mon->pos.z -= app->dt;
-    } else {
-        mon->pos.z = 0;
+    Level *lvl = app->level;
+    while(lvl->next_monster_spawn_time < lvl->time) {
+        lvl->next_monster_spawn_time += 1;
+        app_spawn_monster(app->level, &app->rng);
     }
 }
 
 static u32 app_step_monsters(App *app, Gfx *gfx) {
     u32 dead_count = 0;
-    for(u32 i = 0; i < app->mon_count; ++i) {
-        Monster *mon = app->mon_list + i;
+    Level *lvl = app->level;
+    for(Monster *mon = lvl->monster_list; mon; mon = mon->next) {
         mon_update(app, mon, gfx);
         if(mon->life <= 0) dead_count++;
     }
@@ -236,6 +145,10 @@ void *main_init(int argc, char **argv) {
     app->dt = (f32) 1.0f / fps;
     app->ui   = mem_struct(&m, UI);
     app->img = parse_qoi(&m, os_read_file(&m, "res/space_alien.qoi"));
+
+    Level *lvl = level_new();
+    app->level = lvl;
+
     return app;
 }
 
@@ -271,8 +184,7 @@ void main_update(void *handle) {
 
         f32 min_dist = 1000;
         Monster *min_mon = 0;
-        for(u32 i = 0; i < app->mon_count; ++i) {
-            Monster *mon = app->mon_list + i;
+        for(Monster *mon = app->level->monster_list; mon; mon = mon->next) {
             guard(mon->life > 0);
             v3 d = m4_mul_pos(&app->player.view_to_world.inv, mon->pos);
             f32 dist = -d.z;
@@ -343,7 +255,7 @@ void main_update(void *handle) {
         {
             Gfx *gfx = gfx_begin(tmp);
             gfx_color(gfx, WHITE);
-            gfx_text(gfx, 0, 20, 20, fmt(tmp, "0123456789: %2d%s", dead_count, "%"));
+            gfx_text(gfx, (v2) {20, 20}, 40, 40, fmt(tmp, "0123456789: %2d%s", dead_count, "%"));
             m4_screen_to_clip(&gfx->world_to_clip, win->input.window_size);
             gl_draw(app->gl, gfx);
         }
@@ -371,6 +283,7 @@ void main_update(void *handle) {
     // Wait for the next frame
     app->time_us += app->dt_us;
     app->time    += app->dt;
+    app->level->time += app->dt;
     os_sleep_until(app->time);
     mem_clear(&app->tmp);
 }
