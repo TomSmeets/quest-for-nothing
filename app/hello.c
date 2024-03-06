@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// os_linux.h - Hello world testbed to show off hot reloading
+// hello.c - Hello world testbed to show off hot reloading
 #include "os_generic.h"
 #include "fmt.h"
 

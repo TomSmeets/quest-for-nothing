@@ -36,6 +36,7 @@ if [ $MODE == "s" ]; then
   cc $OPT -o out/hello             app/hello.c
   cc $OPT -o out/quest_for_nothing app/quest_for_nothing/main.c
   cc $OPT -o out/time_cmd          app/time_cmd.c
+  cc $OPT -o out/todotreesrv       app/todotreesrv.c
 
   cc $DBG -o out/test app/test.c
   ./out/test
@@ -45,4 +46,5 @@ if [ $MODE == "s" ]; then
 fi
 
 cc $DBG -shared -o out/quest_for_nothing.so app/quest_for_nothing/main.c
+cc $DBG -o out/todotreesrv app/todotreesrv.c
 touch out/trigger

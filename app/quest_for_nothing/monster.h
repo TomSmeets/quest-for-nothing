@@ -53,10 +53,10 @@ static void mon_update(App *app, Monster *mon, Gfx *gfx) {
         }
     }
 
+    // Gravity
     if(mon->pos.z > 0) {
         mon->pos.z -= app->dt;
     } else {
         mon->pos.z = 0;
     }
 }
-

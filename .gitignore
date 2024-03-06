@@ -4,3 +4,4 @@
 /SDL2.dll
 /.vs
 *.stackdump
+/*.bin

@@ -95,10 +95,17 @@ static void os_copy_file(char *src, char *dst) {
 
 static Buffer os_read_file(mem *m, char *path) {
     assert(path);
+
     struct stat sb;
-    assert(stat(path, &sb) == 0);
+    if(stat(path, &sb) != 0) {
+        // Does not exist
+        return (Buffer) { 0 };
+    }
+    if(!S_ISREG(sb.st_mode)) {
+        // Not a file
+        return (Buffer) { 0 };
+    }
     assert(sb.st_size >= 0);
-    assert(S_ISREG(sb.st_mode));
 
     int fd = open(path, O_RDONLY);
     u64 buffer_size = (u64)sb.st_size;
@@ -113,6 +120,17 @@ static Buffer os_read_file(mem *m, char *path) {
     // zero terminate
     buffer[buffer_size] = 0;
     return (Buffer) { buffer, buffer_size };
+}
+
+
+static void os_write_file(char *path, Buffer data) {
+    assert(path);
+
+    int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    i64 n_written = write(fd, data.ptr, data.size);
+    assert(n_written >= 0);
+    assert((u64) n_written == data.size);
+    close(fd);
 }
 
 static u64 os_file_mtime(char *path) {
