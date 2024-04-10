@@ -106,9 +106,10 @@ static void fmt_u64(fmt_t *f, u64 v, u64 base, u64 pad, u8 prefix, u8 sign) {
         while (digit_count < pad)
             digits[digit_count++] = '0';
 
-        digits[digit_count++] = prefix;
+        if(prefix != '0')
+            digits[digit_count++] = prefix;
 
-        if (prefix != '.') digits[digit_count++] = '0';
+        if (prefix != '.' && prefix != '0') digits[digit_count++] = '0';
     }
 
     if (sign) digits[digit_count++] = sign;
@@ -144,6 +145,7 @@ static void fmt_va(fmt_t *f, char *s, va_list args) {
     bool in_arg = 0;
     u32 sign = 0;
     u32 pad = 0;
+    char prefix = 0;
     for (;;) {
         char c = *s++;
         if (!c) break;
@@ -152,21 +154,32 @@ static void fmt_va(fmt_t *f, char *s, va_list args) {
             in_arg = 1;
             pad = 0;
             sign = 0;
+            prefix = 0;
         } else if (in_arg && c == '+') {
             sign = '+';
         } else if (in_arg && c >= '0' && c <= '9') {
+            if(pad == 0 && c == '0')
+                prefix = c;
             pad = pad * 10 + (c - '0');
         } else if (in_arg && (c == 'i' || c == 'd')) {
-            fmt_i64(f, va_arg(args, i32), 10, pad, 0, sign);
+            fmt_i64(f, va_arg(args, i32), 10, pad, prefix, sign);
             in_arg = 0;
         } else if (in_arg && c == 'u') {
-            fmt_u64(f, va_arg(args, u64), 10, pad, 0, sign);
+            fmt_u64(f, va_arg(args, u64), 10, pad, prefix, sign);
             in_arg = 0;
         } else if (in_arg && c == 'x') {
-            fmt_u64(f, va_arg(args, u64), 16, pad, 0, sign);
+            fmt_u64(f, va_arg(args, u64), 16, pad, prefix, sign);
             in_arg = 0;
         } else if (in_arg && c == 's') {
-            fmt_str(f, va_arg(args, char *));
+            char *str = va_arg(args, char *);
+            fmt_str(f, str);
+            if(pad) {
+                u32 len = str_len(str);
+                while(len < pad) {
+                    fmt_chr(f, ' ');
+                    len++;
+                }
+            }
             in_arg = 0;
         } else if (in_arg && c == 'S') {
             char *start = va_arg(args, char *);
