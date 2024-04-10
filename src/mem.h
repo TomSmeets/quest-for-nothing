@@ -61,15 +61,26 @@ static void *mem_push(mem *m, u64 size) {
 
 // free all used pages
 static void mem_clear(mem *m) {
-    for (;;) {
-        mem_page *p = m->used_page;
-        if (!p) break;
-        m->used_page = p->next;
-
-        // don't use p after this
-        os_free_page(p);
-    }
-
+    mem_page *used_page = m->used_page;
     m->start = 0;
     m->end = 0;
+    m->used_page = 0;
+
+    for (;;) {
+        mem_page *p = used_page;
+        if (!p) break;
+        used_page = p->next;
+        os_free_page(p);
+    }
+}
+
+static mem *mem_new(void) {
+    mem m = {};
+    mem *m2 = mem_struct(&m, mem);
+    *m2 = m;
+    return m2;
+}
+
+static void mem_free(mem *m) {
+    mem_clear(m);
 }

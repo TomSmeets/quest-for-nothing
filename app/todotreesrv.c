@@ -137,13 +137,6 @@ static Node *node_new(Node *parent, char *text) {
     return node;
 }
 
-static mem *mem_new(void) {
-    mem m_stack = {};
-    mem *m = mem_struct(&m_stack, mem);
-    *m = m_stack;
-    return m;
-}
-
 static Header *header_get(void) {
     Header *hdr = 0;
     mem *m = mem_new();
