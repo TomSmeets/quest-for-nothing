@@ -17,6 +17,7 @@
 
 // Absolute value of x
 static f32 f_abs(f32 x) { return (x < 0) ? -x : x; }
+static u32 i_abs(i32 x) { return (x < 0) ? -x : x; }
 
 // Round towards -Inf
 static i32 f_floor(f32 x) { return (i32)x - (x < (i32)x); }

@@ -108,8 +108,6 @@ struct Balance_Item {
     Balance_Item *next;
 };
 
-
-
 static Balance_Item *balance_get(Balance *b, char *name, u32 year) {
     for(Balance_Item *item = b->first; item; item = item->next){
         if(str_eq(item->name, name) && item->year == year) return item;
@@ -160,7 +158,11 @@ static void parse_row(Parse *p, Balance *balance) {
     u32 amount = euro*100 + cents;
 
     if(str_eq(from, "balance")) {
-        balance_get(balance, to, yy)->amount = amount;
+        Balance_Item *item = balance_get(balance, to, yy);
+        if(item->amount != 0) {
+            os_printf("WARN: Rewriting %s balance from %d to %d cent\n", to, item->amount, amount);
+        }
+        item->amount = amount;
         return;
     }
 
@@ -182,11 +184,13 @@ void *main_init(int argc, char **argv) {
         parse_row(&p, &b);
     }
 
-    os_print("== Balance ==\n");
+    u32 year = 0;
     for(Balance_Item *i = b.first; i; i = i->next) {
-        bool pos = i->amount >= 0;
-        i32 amount = pos ? i->amount : -i->amount;
-        os_printf("%4d %16s %6i.%02i\n", i->year, i->name, amount / 100, amount % 100);
+        if(i->year != year) {
+            year = i->year;
+            os_printf("== Balance %4d ==\n", year);
+        }
+        os_printf("%16s %+6i.%02i\n", i->name, i->amount / 100, i_abs(i->amount) % 100);
     }
 
     mem_free(m);
