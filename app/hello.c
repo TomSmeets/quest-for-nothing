@@ -1,7 +1,7 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // hello.c - Hello world testbed to show off hot reloading
-#include "os_generic.h"
-#include "fmt.h"
+#include "tlib/os_generic.h"
+#include "tlib/fmt.h"
 
 struct hello {
     mem mem;

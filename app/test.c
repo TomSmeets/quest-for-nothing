@@ -1,10 +1,14 @@
-#include "fmt.h"
-#include "os_generic.h"
+#include "tlib/fmt.h"
+#include "tlib/os_generic.h"
 
 
 static void test_str_eq_imp(char *comp, char *test, bool eq) {
     os_print(test);
-    os_print("\t== ");
+    if(eq) {
+        os_print("\t== ");
+    } else {
+        os_print("\t!= ");
+    }
     os_print(comp);
     os_print("\n");
 

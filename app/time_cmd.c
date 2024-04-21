@@ -1,7 +1,7 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // time_cmd.c - Profile the execution of shell commands
-#include "os_generic.h"
-#include "fmt.h"
+#include "tlib/os_generic.h"
+#include "tlib/fmt.h"
 
 static void print_time(u64 dt_min, u32 i) {
     u64 ms = dt_min / 1000;

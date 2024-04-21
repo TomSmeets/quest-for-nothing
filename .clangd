@@ -1,4 +1,4 @@
 # see: https://clangd.llvm.org/config
 CompileFlags:
-  Add: [-xc, -Wall, -Wextra, -Wno-unused-function, -I../src, -I../app, -I../../out, -I../../src, -I../out]
+  Add: [-xc, -Wall, -Wextra, -Wno-unused-function, -I../, -I../../]
   Compiler: clang

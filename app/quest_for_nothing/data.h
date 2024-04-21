@@ -1,8 +1,8 @@
 #pragma once
-#include "mat.h"
-#include "mem.h"
-#include "global.h"
-#include "sound.h"
+#include "tlib/mat.h"
+#include "tlib/mem.h"
+#include "tlib/global.h"
+#include "tlib/sound.h"
 
 struct Monster {
     v3 pos;

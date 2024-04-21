@@ -1,8 +1,8 @@
 #pragma once
 
-#include "data.h"
-#include "vec.h"
-#include "gfx_draw.h"
+#include "app/quest_for_nothing/data.h"
+#include "tlib/vec.h"
+#include "tlib/gfx_draw.h"
 
 static void monster_draw(Monster *mon, Gfx *gfx) {
     gfx_image(gfx, mon->img);

@@ -1,0 +1,1 @@
+- fmt: store state, not as arguments

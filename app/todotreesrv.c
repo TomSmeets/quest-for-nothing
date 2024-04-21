@@ -1,7 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // todotreesrv.c - Generic Tree storage database
-#include "os_generic.h"
-#include "fmt.h"
+#include "tlib/os_generic.h"
+#include "tlib/fmt.h"
 
 struct hello {
     mem mem;
@@ -169,7 +169,9 @@ static void node_print(fmt_t *f, u32 indent, Node *n) {
     for(u32 i = 0; i < indent; ++i) {
         fmt_str(f, "  ");
     }
-    fmt_u64(f, n->id, 10, 2, 0, 0);
+    fmt_base(f, 2);
+    f->prefix_char = 'b';
+    fmt_u64(f, n->id);
     fmt_str(f, " ");
     fmt_str(f, n->text);
     fmt_str(f, "\n");

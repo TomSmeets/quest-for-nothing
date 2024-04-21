@@ -1,8 +1,8 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // hot.c - Dynamically reload interactive programs
-#include "inc.h"
-#include "os_generic.h"
-#include "fmt.h"
+#include "tlib/inc.h"
+#include "tlib/os_generic.h"
+#include "tlib/fmt.h"
 
 // Function types
 typedef void *(main_init_t)(int argc, char *argv[]);
