@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app/quest_for_nothing/data.h"
+#include "quest_for_nothing/data.h"
 #include "tlib/vec.h"
 #include "tlib/gfx_draw.h"
 

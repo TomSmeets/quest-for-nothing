@@ -15,8 +15,8 @@
 #include "tlib/parse_qoi.h"
 #include "tlib/rand.h"
 #include "tlib/os_generic.h"
-#include "app/quest_for_nothing/monster.h"
-#include "app/quest_for_nothing/data.h"
+#include "quest_for_nothing/monster.h"
+#include "quest_for_nothing/data.h"
 
 static Level *level_new() {
     mem mem = {};
