@@ -1,7 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
-#include "os.h"
 #include "game.h"
+#include "os.h"
 
 typedef struct {
     Game *game;
@@ -17,7 +17,7 @@ static App *app_init(void) {
 }
 
 static void os_main(OS *os) {
-    if(!os->app) {
+    if (!os->app) {
         os->app = app_init();
     }
 
@@ -26,7 +26,7 @@ static void os_main(OS *os) {
     log_error("HI\n");
 
     u64 time = os_time();
-    while(app->time < time) {
+    while (app->time < time) {
         app->time += 100 * 1000;
     }
     os_sleep(app->time - time);

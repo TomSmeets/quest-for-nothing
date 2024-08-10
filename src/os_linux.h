@@ -5,16 +5,16 @@
 #include "str.h"
 
 #if 0
-#include <unistd.h>
 #include <sys/mman.h>
 #include <time.h>
+#include <unistd.h>
 #else
 // Improves compile time significantly
 #define PROT_READ 0x1
 #define PROT_WRITE 0x2
 #define MAP_PRIVATE 0x02
 #define MAP_ANONYMOUS 0x20
-#define MAP_FAILED ((void *) -1)
+#define MAP_FAILED ((void *)-1)
 #define CLOCK_MONOTONIC 1
 typedef long int time_t;
 typedef long int syscall_slong_t;
@@ -23,14 +23,14 @@ typedef long unsigned int size_t;
 typedef long int off_t;
 typedef int clockid_t;
 struct timespec {
-  time_t tv_sec;
-  syscall_slong_t tv_nsec;
+    time_t tv_sec;
+    syscall_slong_t tv_nsec;
 };
-extern void _exit(int status) __attribute__ ((__noreturn__));
-extern ssize_t write (int fd, const void *buf, size_t n);
-extern void *mmap (void *addr, size_t len, int prot, int flags, int fd, off_t offset) __attribute__ ((__nothrow__ ));
-extern int clock_gettime (clockid_t clock_id, struct timespec *tp) __attribute__ ((__nothrow__ )) __attribute__ ((__nonnull__ (2)));
-extern int nanosleep (const struct timespec *__requested_time, struct timespec *__remaining);
+extern void _exit(int status) __attribute__((__noreturn__));
+extern ssize_t write(int fd, const void *buf, size_t n);
+extern void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
+extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
+extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
 #endif
 
 static u64 linux_time_to_us(struct timespec *t) {
@@ -39,10 +39,10 @@ static u64 linux_time_to_us(struct timespec *t) {
 
 static struct timespec linux_us_to_time(u64 time) {
     u64 sec = time / (1000 * 1000);
-    u64 nsec = (time - sec*1000*1000)*1000;
+    u64 nsec = (time - sec * 1000 * 1000) * 1000;
 
     struct timespec ts;
-    ts.tv_sec  = sec;
+    ts.tv_sec = sec;
     ts.tv_nsec = nsec;
     return ts;
 }
@@ -55,10 +55,9 @@ static void log_error(char *message) {
     write(2, message, str_len(message));
 }
 
-
 static OS_Alloc *os_alloc() {
     // Return cached page (if present)
-    if(OS_GLOBAL->cache) {
+    if (OS_GLOBAL->cache) {
         OS_Alloc *alloc = OS_GLOBAL->cache;
         OS_GLOBAL->cache = alloc->next;
         return alloc;
@@ -68,7 +67,7 @@ static OS_Alloc *os_alloc() {
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
     void *alloc = mmap(0, OS_ALLOC_SIZE, prot, flags, -1, 0);
-    if(!alloc || alloc == MAP_FAILED) {
+    if (!alloc || alloc == MAP_FAILED) {
         log_error("Failed to allocate new memory\n");
         return 0;
     }
@@ -78,7 +77,8 @@ static OS_Alloc *os_alloc() {
 static void os_free(OS_Alloc *ptr) {
     // Find last page
     OS_Alloc *last = ptr;
-    while(last->next) last = last->next;
+    while (last->next)
+        last = last->next;
 
     // Add chain to allocation cache
     last->next = OS_GLOBAL->cache;
@@ -105,6 +105,8 @@ void os_main_dynamic(OS *os) {
 int main(int argc, const char **argv) {
     OS os = {};
     os.argc = argc;
-    os.argv = (char **) argv;
-    for(;;) { os_main_dynamic(&os); }
+    os.argv = (char **)argv;
+    for (;;) {
+        os_main_dynamic(&os);
+    }
 }

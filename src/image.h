@@ -1,8 +1,8 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // image.h - Image type
 #pragma once
-#include "vec.h"
 #include "mem.h"
+#include "vec.h"
 
 typedef struct {
     v2u size;
@@ -12,14 +12,14 @@ typedef struct {
 static Image *img_new(Memory *mem, v2u size) {
     Image *img = mem_struct(mem, Image);
     img->size = size;
-    img->pixels = mem_array_uninit(mem, u32, size.x*size.y);
+    img->pixels = mem_array_uninit(mem, u32, size.x * size.y);
     return img;
 }
 
 static void img_fill(Image *img, u32 color) {
-    for(u32 y = 0; y < img->size.y; ++y) {
-        for(u32 x = 0; x < img->size.x; ++x) {
-            img->pixels[y*img->size.x + x] = color;
+    for (u32 y = 0; y < img->size.y; ++y) {
+        for (u32 x = 0; x < img->size.x; ++x) {
+            img->pixels[y * img->size.x + x] = color;
         }
     }
 }

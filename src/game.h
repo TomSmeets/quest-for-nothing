@@ -1,10 +1,10 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // game.h - Store game data structures
 #pragma once
-#include "types.h"
-#include "vec.h"
 #include "image.h"
 #include "mem.h"
+#include "types.h"
+#include "vec.h"
 
 /*
 Game Desing V1.0
@@ -17,7 +17,6 @@ Game Desing V1.0
 - single player
 - walls can be painted
 */
-
 
 typedef struct Cell {
     v3i pos;
@@ -50,10 +49,9 @@ typedef struct {
     Player *player;
 } Game;
 
-
 static Cell *game_cell_get(Game *game, v3i pos) {
-    for(Cell *cell = game->level; cell; cell = cell->next) {
-        if(v3i_eq(cell->pos, pos)) {
+    for (Cell *cell = game->level; cell; cell = cell->next) {
+        if (v3i_eq(cell->pos, pos)) {
             return cell;
         }
     }
@@ -61,7 +59,7 @@ static Cell *game_cell_get(Game *game, v3i pos) {
 }
 
 static Image *gen_wall_image(Memory *mem, u32 size) {
-    Image *img = img_new(mem, (v2u){size,size});
+    Image *img = img_new(mem, (v2u){size, size});
     img_fill(img, color_rgb(0xff, 0xff, 0xff));
     return img;
 }
@@ -76,20 +74,20 @@ static Monster *monster_new(Memory *mem, v3 pos) {
     Monster *monster = mem_struct(mem, Monster);
     monster->pos = pos;
     monster->health = 10;
-    monster->image = img_new(mem, (v2u){32,32});
-    img_fill(monster->image, color_rgb(0xff,0,0xff));
+    monster->image = img_new(mem, (v2u){32, 32});
+    img_fill(monster->image, color_rgb(0xff, 0, 0xff));
     return monster;
 }
 
 // Generate an empty level
 static Cell *gen_level_outline(Memory *mem, u32 size) {
     Cell *first = 0;
-    Cell *last  = 0;
+    Cell *last = 0;
 
     // Generate Empty Cells
-    for(u32 y = 0; y < size; ++y) {
-        for(u32 x = 0; x < size; ++x) {
-            Cell *cell = cell_new(mem, (v3i){x,y,0});
+    for (u32 y = 0; y < size; ++y) {
+        for (u32 x = 0; x < size; ++x) {
+            Cell *cell = cell_new(mem, (v3i){x, y, 0});
             LIST_APPEND(first, last, cell);
         }
     }
@@ -97,7 +95,7 @@ static Cell *gen_level_outline(Memory *mem, u32 size) {
 }
 
 static void gen_indoor(Cell *level, Memory *mem) {
-    for(Cell *cell = level; cell; cell = cell->next) {
+    for (Cell *cell = level; cell; cell = cell->next) {
         cell->x_neg = gen_wall_image(mem, 32);
         cell->x_pos = gen_wall_image(mem, 32);
     }
@@ -105,10 +103,11 @@ static void gen_indoor(Cell *level, Memory *mem) {
 
 static Monster *gen_monsters(Cell *level, v3i player_pos, Memory *mem) {
     Monster *first = 0;
-    Monster *last  = 0;
+    Monster *last = 0;
 
-    for(Cell *cell = level; cell; cell = cell->next) {
-        if(v3i_eq(cell->pos, player_pos)) continue;
+    for (Cell *cell = level; cell; cell = cell->next) {
+        if (v3i_eq(cell->pos, player_pos))
+            continue;
 
         Monster *mon = monster_new(mem, v3i_to_v3(cell->pos));
         LIST_APPEND(first, last, mon);
@@ -131,15 +130,14 @@ static Game *game_new(void) {
     Game *game = mem_struct(mem, Game);
     game->mem = mem;
 
- 
     // Create Level
     game->level = gen_level_outline(mem, level_size);
     gen_indoor(game->level, mem);
 
     // Generate player
-    v3i spawn = { level_size / 2, level_size / 2, 0 };
+    v3i spawn = {level_size / 2, level_size / 2, 0};
     game->player = gen_player(mem, spawn);
-    
+
     // Generate Monsters
     game->monsters = gen_monsters(game->level, spawn, mem);
     return game;

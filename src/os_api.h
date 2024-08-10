@@ -3,7 +3,7 @@
 #pragma once
 #include "types.h"
 
-#define OS_ALLOC_SIZE (1024*1024)
+#define OS_ALLOC_SIZE (1024 * 1024)
 
 // A block of memory. total size = OS_ALLOC_SIZE
 typedef struct OS_Alloc {
