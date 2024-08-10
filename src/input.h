@@ -54,6 +54,7 @@ typedef enum {
     KEY_LEFT,
     KEY_RIGHT,
     KEY_SPACE,
+    KEY_ESCAPE,
 
     // Mouse
     KEY_MOUSE_LEFT,
@@ -86,6 +87,7 @@ typedef struct {
 
     bool window_resized;
     v2i window_size;
+    bool focus_lost;
 
     // Events
     bool mouse_is_grabbed;
@@ -100,6 +102,7 @@ static void input_reset(Input *input) {
     input->mouse_rel.y = 0;
     input->window_resized = 0;
     input->quit = 0;
+    input->focus_lost = 0;
 }
 
 static void input_emit(Input *input, Key key, bool down) {
@@ -133,12 +136,8 @@ static bool key_click(Input *input, Key key) {
 
 static char key_to_char(Key key) {
     key = key & ~KEY_UP_MASK;
-
     if (key >= KEY_0 && key <= KEY_9) return key - KEY_0 + '0';
-
     if (key >= KEY_A && key <= KEY_Z) return key - KEY_A + 'a';
-
     if (key == ' ') return ' ';
-
     return '?';
 }

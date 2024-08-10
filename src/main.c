@@ -4,8 +4,6 @@
 #include "os.h"
 #include "sdl.h"
 
-extern int printf(const char *restrict __format, ...);
-
 typedef struct {
     Game *game;
     u64 time;
@@ -24,10 +22,18 @@ static App *app_init(void) {
 // Sleep until next frame
 static void app_sleep(App *app) {
     u64 time = os_time();
-    while (app->time < time) {
-        app->time += 1000 * 1000;
-    }
-    os_sleep(app->time - time);
+
+    // We are ahead
+    if (app->time > time) app->time = time;
+
+    // Compute next frame time
+    app->time += 10 * 1000;
+
+    // We are behind, skip some frames
+    if (app->time < time) app->time = time;
+
+    // sleep
+    if (app->time > time) os_sleep(app->time - time);
 }
 
 static void os_main(OS *os) {
@@ -41,16 +47,30 @@ static void os_main(OS *os) {
     Input *input = sdl_poll(app->sdl);
     if (input->quit) os_exit(0);
 
-    printf("\n");
-    printf("update\n");
-
     if (input->window_resized) {
-        printf("Resize: %2u x %2u\n", input->window_size.x, input->window_size.y);
+        printf("Resize: %4i %4i\n", input->window_size.x, input->window_size.y);
+    }
+
+    if (input->mouse_moved) {
+        printf("Mouse:  %4i %4i\n", input->mouse_pos.x, input->mouse_pos.y);
+        printf("Rel:    %+4i %+4i\n", input->mouse_rel.x, input->mouse_rel.y);
+    }
+
+    if (key_click(input, KEY_MOUSE_LEFT)) {
+        sdl_set_mouse_grab(app->sdl, true);
+    }
+
+    if (input->focus_lost || key_click(input, KEY_ESCAPE)) {
+        sdl_set_mouse_grab(app->sdl, false);
+    }
+
+    if (key_click(input, KEY_G)) {
+        sdl_set_mouse_grab(app->sdl, !input->mouse_is_grabbed);
     }
 
     for (u32 i = 0; i < input->key_event_count; ++i) {
         Key key = input->key_event[i];
-        printf("Key: 0x%08x '%c'\n", key, key_to_char(key));
+        printf("Key[%u]: 0x%08x '%c'\n", i, key, key_to_char(key));
     }
 
     // Finish

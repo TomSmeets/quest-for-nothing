@@ -57,6 +57,7 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // sdl->gl = gl_load(m, api->SDL_GL_GetProcAddress);
     // assert(sdl->gl, "Failed to load OpenGL pointers");
 
+    api->SDL_GetWindowSize(sdl->win, &sdl->input.window_size.x, &sdl->input.window_size.y);
 #if 0
     // Load Audio
     u32 sample_rate = 48000;
@@ -101,10 +102,13 @@ static Input *sdl_poll(Sdl *sdl) {
 
         if (src.type == SDL_MOUSEMOTION) {
             input->mouse_moved = 1;
-            input->mouse_rel.x += src.motion.xrel;
-            input->mouse_rel.y += src.motion.yrel;
-            input->mouse_pos.x = src.motion.x;
-            input->mouse_pos.y = src.motion.y;
+            if (input->mouse_is_grabbed) {
+                input->mouse_rel.x += src.motion.xrel;
+                input->mouse_rel.y += src.motion.yrel;
+            } else {
+                input->mouse_pos.x = src.motion.x;
+                input->mouse_pos.y = src.motion.y;
+            }
         }
 
         if (src.type == SDL_MOUSEBUTTONDOWN || src.type == SDL_MOUSEBUTTONUP) {
@@ -123,6 +127,7 @@ static Input *sdl_poll(Sdl *sdl) {
             if (sym >= 'a' && sym <= 'z') key = sym - 'a' + KEY_A;
             if (sym >= '0' && sym <= '9') key = sym - '0' + KEY_0;
             if (sym == ' ') key = KEY_SPACE;
+            if (sym == '\e') key = KEY_ESCAPE;
             if (sym == 0x400000e0) key = KEY_CONTROL;
             if (sym == 0x400000e1) key = KEY_SHIFT;
             if (sym == 0x400000e2) key = KEY_ALT;
@@ -131,6 +136,7 @@ static Input *sdl_poll(Sdl *sdl) {
             if (sym == 0x400000e5) key = KEY_SHIFT;
             if (sym == 0x400000e6) key = KEY_ALT;
             if (sym == 0x400000e7) key = KEY_WIN;
+            if (key == KEY_NONE) printf("SDL_KEY 0x%08x\n", sym);
             input_emit(input, key, src.type == SDL_KEYDOWN);
         }
 
@@ -138,6 +144,10 @@ static Input *sdl_poll(Sdl *sdl) {
             input->window_resized = 1;
             input->window_size.x = src.window.data1;
             input->window_size.y = src.window.data2;
+        }
+
+        if (src.type == SDL_WINDOWEVENT && src.window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            input->focus_lost = 1;
         }
     }
     return input;

@@ -42,3 +42,6 @@ static void os_sleep(u64 time);
 
 // load a sdl2 symbol
 static void *os_load_sdl2(char *name);
+
+// Temporary
+extern int printf(const char *restrict __format, ...);
