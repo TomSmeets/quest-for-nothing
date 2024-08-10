@@ -14,8 +14,8 @@ windows="-target x86_64-unknown-windows-gnu"
 
 mkdir -p out
 clang $common $debug   $linux -o out/hot src/hot.c
-clang $common $debug   $linux -o out/void    src/main.c
-clang $common $release $linux -o out/void-v1 src/main.c
+clang $common $debug   $linux -o out/quest-for-nothing-dbg src/main.c
+clang $common $release $linux -o out/quest-for-nothing-rel src/main.c
 
 # clang $common $debug $linux -E src/main.c | wc --bytes | numfmt --to=iec
 # clang $common $release $linux -o out/quest-for-nothing src/main.c
