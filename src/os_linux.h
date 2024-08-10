@@ -65,34 +65,15 @@ static void os_fail(char *message) {
     _exit(1);
 }
 
-static OS_Alloc *os_alloc() {
-    // Return cached page (if present)
-    if (OS_GLOBAL->cache) {
-        OS_Alloc *alloc = OS_GLOBAL->cache;
-        OS_GLOBAL->cache = alloc->next;
-        return alloc;
-    }
-
-    // Allocate new page
+static void *os_alloc_raw(u32 size) {
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
-    void *alloc = mmap(0, OS_ALLOC_SIZE, prot, flags, -1, 0);
+    void *alloc = mmap(0, size, prot, flags, -1, 0);
     if (!alloc || alloc == MAP_FAILED) {
         log_error("Failed to allocate new memory\n");
         return 0;
     }
     return alloc;
-}
-
-static void os_free(OS_Alloc *ptr) {
-    // Find last page
-    OS_Alloc *last = ptr;
-    while (last->next)
-        last = last->next;
-
-    // Add chain to allocation cache
-    last->next = OS_GLOBAL->cache;
-    OS_GLOBAL->cache = ptr;
 }
 
 static u64 os_time(void) {

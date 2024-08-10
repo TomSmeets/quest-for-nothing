@@ -26,15 +26,15 @@ typedef struct {
 // The only global variable allowed
 static OS *OS_GLOBAL;
 
-// Entry / Exit
 static void os_main(OS *os);
+
+static void os_print(char *message);
+
 static void os_exit(i32 code);
 static void os_fail(char *message);
 
-// Create a sisngle new allocation
-static OS_Alloc *os_alloc();
-
-// Free the entire chain of allocations
+static void *os_alloc_raw(u32 size);
+static OS_Alloc *os_alloc(void);
 static void os_free(OS_Alloc *ptr);
 
 static u64 os_time(void);
