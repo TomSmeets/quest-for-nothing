@@ -2,6 +2,7 @@
 // main.c - Quest For Nothing main entry point
 #include "game.h"
 #include "os.h"
+#include "sdl_api.h"
 
 typedef struct {
     Game *game;
@@ -22,8 +23,6 @@ static void os_main(OS *os) {
     }
 
     App *app = os->app;
-
-    log_error("HI\n");
 
     u64 time = os_time();
     while (app->time < time) {

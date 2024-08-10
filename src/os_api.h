@@ -20,6 +20,7 @@ typedef struct {
 
     // Cached allocations (handled by os)
     OS_Alloc *cache;
+    void *sdl2_handle;
 } OS;
 
 // The only global variable allowed
@@ -37,3 +38,6 @@ static void os_free(OS_Alloc *ptr);
 
 static u64 os_time(void);
 static void os_sleep(u64 time);
+
+// load a sdl2 symbol
+static void *os_load_sdl2(char *name);

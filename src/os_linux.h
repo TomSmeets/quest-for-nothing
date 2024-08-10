@@ -5,6 +5,7 @@
 #include "str.h"
 
 #if 0
+#include <dlfcn.h>
 #include <sys/mman.h>
 #include <time.h>
 #include <unistd.h>
@@ -16,6 +17,8 @@
 #define MAP_ANONYMOUS 0x20
 #define MAP_FAILED ((void *)-1)
 #define CLOCK_MONOTONIC 1
+#define RTLD_NOW 0x00002
+#define RTLD_LOCAL 0
 typedef long int time_t;
 typedef long int syscall_slong_t;
 typedef long int ssize_t;
@@ -31,6 +34,8 @@ extern ssize_t write(int fd, const void *buf, size_t n);
 extern void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
+extern void *dlopen (const char *file, int mode);
+extern void *dlsym (void *restrict handle, const char *restrict name);
 #endif
 
 static u64 linux_time_to_us(struct timespec *t) {
@@ -94,6 +99,15 @@ static u64 os_time(void) {
 static void os_sleep(u64 us) {
     struct timespec time = linux_us_to_time(us);
     nanosleep(&time, 0);
+}
+
+static void *os_load_sdl2(char *name) {
+    OS *os = OS_GLOBAL;
+
+    if(!os->sdl2_handle)
+        os->sdl2_handle = dlopen("libSDL2.so", RTLD_LOCAL | RTLD_NOW);
+
+    return dlsym(os->sdl2_handle, name);
 }
 
 // Export main, allowing us to dynamically call it

@@ -4,11 +4,10 @@ The first version of this game. I will first implement v1.0, which will have ver
 
 ## How to run
 
-Install `clang` then run the following commands.
+Install `clang` then run the following command.
 
 ```bash
-./build.sh
-./out/hot ./src/main.c
+./build.sh && ./out/hot ./src/main.c
 ```
 
 ## Version 1.0

@@ -7,11 +7,11 @@
 #include "vec.h"
 
 /*
-Game Desing V1.0
-- Only one hitscan gun
+Game Design V1.0
+- Only one hit-scan gun
 - Monsters creep towards you and try to eat you
 - Monsters are generated pixel art sprites
-- Levesl are generated
+- Levels are generated
 - World is 2d maze with walls
     - grid aligned
 - single player

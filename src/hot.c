@@ -22,7 +22,7 @@ typedef void os_main_t(OS *os);
 
 static os_main_t *build_and_load(const char *main_path, u32 counter) {
     char out_path[1024];
-    sprintf(out_path, "/tmp/hot-resuslt-%u.so", counter);
+    sprintf(out_path, "/tmp/hot-result-%u.so", counter);
 
     char command[1024];
     sprintf(command, "clang -O0 -g -shared -o %s %s", out_path, main_path);
