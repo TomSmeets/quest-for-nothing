@@ -1,8 +1,8 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
 // sdl_api.h - SDL2 header, but only what we use to improve compilation speed
 #pragma once
-#include "types.h"
 #include "os.h"
+#include "types.h"
 
 #if 0
 #include <SDL2/SDL.h>
@@ -18,6 +18,32 @@
 
 typedef u32 SDL_Keycode;
 typedef u32 SDL_Scancode;
+
+typedef enum {
+    SDL_WINDOWEVENT_NONE,
+    SDL_WINDOWEVENT_SHOWN,
+    SDL_WINDOWEVENT_HIDDEN,
+    SDL_WINDOWEVENT_EXPOSED,
+
+    SDL_WINDOWEVENT_MOVED,
+
+    SDL_WINDOWEVENT_RESIZED,
+    SDL_WINDOWEVENT_SIZE_CHANGED,
+
+    SDL_WINDOWEVENT_MINIMIZED,
+    SDL_WINDOWEVENT_MAXIMIZED,
+    SDL_WINDOWEVENT_RESTORED,
+
+    SDL_WINDOWEVENT_ENTER,
+    SDL_WINDOWEVENT_LEAVE,
+    SDL_WINDOWEVENT_FOCUS_GAINED,
+    SDL_WINDOWEVENT_FOCUS_LOST,
+    SDL_WINDOWEVENT_CLOSE,
+    SDL_WINDOWEVENT_TAKE_FOCUS,
+    SDL_WINDOWEVENT_HIT_TEST,
+    SDL_WINDOWEVENT_ICCPROF_CHANGED,
+    SDL_WINDOWEVENT_DISPLAY_CHANGED
+} SDL_WindowEventID;
 
 typedef struct {
     SDL_Scancode scancode;
@@ -107,7 +133,7 @@ typedef struct {
     u8 padding3;
     i32 data1;
     i32 data2;
-}SDL_WindowEvent;
+} SDL_WindowEvent;
 
 typedef struct {
     u32 type;
@@ -297,56 +323,56 @@ typedef struct SDL_AudioSpec {
 
 typedef struct {
     // Core
-    int            (*SDL_Init)(u32 flags);
-    int            (*SDL_PollEvent)(SDL_Event *event);
-    void           (*SDL_Quit)(void);
+    int (*SDL_Init)(u32 flags);
+    int (*SDL_PollEvent)(SDL_Event *event);
+    void (*SDL_Quit)(void);
 
     // Window
-    SDL_Window *   (*SDL_CreateWindow)(const char *title, int x, int y, int w, int h, u32 flags);
-    int            (*SDL_GetWindowDisplayMode)(SDL_Window *window, SDL_DisplayMode *mode);
-    void           (*SDL_GetWindowSize)(SDL_Window *window, int *w, int *h);
-    bool           (*SDL_SetHint)(const char *name, const char *value);
-    int            (*SDL_SetRelativeMouseMode)(int enabled);
-    int            (*SDL_SetWindowFullscreen)(SDL_Window *window, u32 flags);
+    SDL_Window *(*SDL_CreateWindow)(const char *title, int x, int y, int w, int h, u32 flags);
+    int (*SDL_GetWindowDisplayMode)(SDL_Window *window, SDL_DisplayMode *mode);
+    void (*SDL_GetWindowSize)(SDL_Window *window, int *w, int *h);
+    bool (*SDL_SetHint)(const char *name, const char *value);
+    int (*SDL_SetRelativeMouseMode)(int enabled);
+    int (*SDL_SetWindowFullscreen)(SDL_Window *window, u32 flags);
 
     // OpenGL
     SDL_GLContext *(*SDL_GL_CreateContext)(SDL_Window *window);
-    void *         (*SDL_GL_GetProcAddress)(const char *proc);
-    int            (*SDL_GL_SetAttribute)(SDL_GLattr attr, int value);
-    int            (*SDL_GL_SetSwapInterval)(int interval);
-    void           (*SDL_GL_SwapWindow)(SDL_Window *window);
+    void *(*SDL_GL_GetProcAddress)(const char *proc);
+    int (*SDL_GL_SetAttribute)(SDL_GLattr attr, int value);
+    int (*SDL_GL_SetSwapInterval)(int interval);
+    void (*SDL_GL_SwapWindow)(SDL_Window *window);
 
     // Audio
-    void           (*SDL_LockAudio)(void);
-    int            (*SDL_OpenAudio)(SDL_AudioSpec *desired, SDL_AudioSpec *obtained);
-    void           (*SDL_PauseAudio)(int pause_on);
-    void           (*SDL_UnlockAudio)(void);
+    void (*SDL_LockAudio)(void);
+    int (*SDL_OpenAudio)(SDL_AudioSpec *desired, SDL_AudioSpec *obtained);
+    void (*SDL_PauseAudio)(int pause_on);
+    void (*SDL_UnlockAudio)(void);
 } Sdl_Api;
 
 static void sdl_api_load(Sdl_Api *api) {
     // Core
-    api->SDL_Init                 = os_load_sdl2("SDL_Init");
-    api->SDL_PollEvent            = os_load_sdl2("SDL_PollEvent");
-    api->SDL_Quit                 = os_load_sdl2("SDL_Quit");
+    api->SDL_Init = os_load_sdl2("SDL_Init");
+    api->SDL_PollEvent = os_load_sdl2("SDL_PollEvent");
+    api->SDL_Quit = os_load_sdl2("SDL_Quit");
 
     // Window
-    api->SDL_CreateWindow         = os_load_sdl2("SDL_CreateWindow");
+    api->SDL_CreateWindow = os_load_sdl2("SDL_CreateWindow");
     api->SDL_GetWindowDisplayMode = os_load_sdl2("SDL_GetWindowDisplayMode");
-    api->SDL_GetWindowSize        = os_load_sdl2("SDL_GetWindowSize");
-    api->SDL_SetHint              = os_load_sdl2("SDL_SetHint");
+    api->SDL_GetWindowSize = os_load_sdl2("SDL_GetWindowSize");
+    api->SDL_SetHint = os_load_sdl2("SDL_SetHint");
     api->SDL_SetRelativeMouseMode = os_load_sdl2("SDL_SetRelativeMouseMode");
-    api->SDL_SetWindowFullscreen  = os_load_sdl2("SDL_SetWindowFullscreen");
+    api->SDL_SetWindowFullscreen = os_load_sdl2("SDL_SetWindowFullscreen");
 
     // OpenGL
-    api->SDL_GL_CreateContext     = os_load_sdl2("SDL_GL_CreateContext");
-    api->SDL_GL_GetProcAddress    = os_load_sdl2("SDL_GL_GetProcAddress");
-    api->SDL_GL_SetAttribute      = os_load_sdl2("SDL_GL_SetAttribute");
-    api->SDL_GL_SetSwapInterval   = os_load_sdl2("SDL_GL_SetSwapInterval");
-    api->SDL_GL_SwapWindow        = os_load_sdl2("SDL_GL_SwapWindow");
+    api->SDL_GL_CreateContext = os_load_sdl2("SDL_GL_CreateContext");
+    api->SDL_GL_GetProcAddress = os_load_sdl2("SDL_GL_GetProcAddress");
+    api->SDL_GL_SetAttribute = os_load_sdl2("SDL_GL_SetAttribute");
+    api->SDL_GL_SetSwapInterval = os_load_sdl2("SDL_GL_SetSwapInterval");
+    api->SDL_GL_SwapWindow = os_load_sdl2("SDL_GL_SwapWindow");
 
     // Audio
-    api->SDL_LockAudio            = os_load_sdl2("SDL_LockAudio");
-    api->SDL_OpenAudio            = os_load_sdl2("SDL_OpenAudio");
-    api->SDL_PauseAudio           = os_load_sdl2("SDL_PauseAudio");
-    api->SDL_UnlockAudio          = os_load_sdl2("SDL_UnlockAudio");
+    api->SDL_LockAudio = os_load_sdl2("SDL_LockAudio");
+    api->SDL_OpenAudio = os_load_sdl2("SDL_OpenAudio");
+    api->SDL_PauseAudio = os_load_sdl2("SDL_PauseAudio");
+    api->SDL_UnlockAudio = os_load_sdl2("SDL_UnlockAudio");
 }

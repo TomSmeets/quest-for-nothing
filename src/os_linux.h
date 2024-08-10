@@ -34,8 +34,8 @@ extern ssize_t write(int fd, const void *buf, size_t n);
 extern void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
-extern void *dlopen (const char *file, int mode);
-extern void *dlsym (void *restrict handle, const char *restrict name);
+extern void *dlopen(const char *file, int mode);
+extern void *dlsym(void *restrict handle, const char *restrict name);
 #endif
 
 static u64 linux_time_to_us(struct timespec *t) {
@@ -58,6 +58,11 @@ static void os_exit(i32 status) {
 
 static void log_error(char *message) {
     write(2, message, str_len(message));
+}
+
+static void os_fail(char *message) {
+    write(2, message, str_len(message));
+    _exit(1);
 }
 
 static OS_Alloc *os_alloc() {
@@ -104,8 +109,9 @@ static void os_sleep(u64 us) {
 static void *os_load_sdl2(char *name) {
     OS *os = OS_GLOBAL;
 
-    if(!os->sdl2_handle)
+    if (!os->sdl2_handle) {
         os->sdl2_handle = dlopen("libSDL2.so", RTLD_LOCAL | RTLD_NOW);
+    }
 
     return dlsym(os->sdl2_handle, name);
 }

@@ -106,8 +106,7 @@ static Monster *gen_monsters(Cell *level, v3i player_pos, Memory *mem) {
     Monster *last = 0;
 
     for (Cell *cell = level; cell; cell = cell->next) {
-        if (v3i_eq(cell->pos, player_pos))
-            continue;
+        if (v3i_eq(cell->pos, player_pos)) continue;
 
         Monster *mon = monster_new(mem, v3i_to_v3(cell->pos));
         LIST_APPEND(first, last, mon);

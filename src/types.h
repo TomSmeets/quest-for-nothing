@@ -16,6 +16,8 @@ typedef float f32;
 typedef double f64;
 
 typedef _Bool bool;
+#define true 1
+#define false 0
 
 #define static_assert(cond) _Static_assert(cond, "")
 

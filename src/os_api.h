@@ -29,6 +29,7 @@ static OS *OS_GLOBAL;
 // Entry / Exit
 static void os_main(OS *os);
 static void os_exit(i32 code);
+static void os_fail(char *message);
 
 // Create a sisngle new allocation
 static OS_Alloc *os_alloc();

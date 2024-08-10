@@ -24,8 +24,12 @@ static os_main_t *build_and_load(const char *main_path, u32 counter) {
     char out_path[1024];
     sprintf(out_path, "/tmp/hot-result-%u.so", counter);
 
+#define CC_WARN "-Wall -Werror -Wno-unused-function"
+#define CC_DEBUG "-march=native -O0 -g"
+#define CC_RELEASE "-march=native -O2 -g0"
+
     char command[1024];
-    sprintf(command, "clang -O0 -g -shared -o %s %s", out_path, main_path);
+    sprintf(command, "clang " CC_WARN " " CC_DEBUG " -shared -o %s %s", out_path, main_path);
 
     printf("Running: %s\n", command);
     int ret = system(command);

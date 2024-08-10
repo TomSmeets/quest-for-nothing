@@ -12,12 +12,20 @@ typedef struct {
 } v3u;
 
 typedef struct {
-    u32 x, y;
-} v2u;
-
-typedef struct {
     i32 x, y, z;
 } v3i;
+
+typedef struct {
+    i32 x, y;
+} v2i;
+
+typedef struct {
+    f32 x, y;
+} v2;
+
+typedef struct {
+    u32 x, y;
+} v2u;
 
 static f32 v3_dot(v3 a, v3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;

@@ -2,5 +2,9 @@
 // os.h - Platform api
 #pragma once
 #include "os_api.h"
-#include "os_linux.h"
 #include "types.h"
+
+#if __linux__
+#define OS_IS_LINUX 1
+#include "os_linux.h"
+#endif

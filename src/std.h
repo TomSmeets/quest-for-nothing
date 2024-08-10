@@ -14,6 +14,10 @@
         }                                                                                          \
     } while (0)
 
+#define assert(cond, msg)                                                                          \
+    if (!(cond)) os_fail(msg "\n")
+#define array_count(a) (sizeof(a) / sizeof(a[0]))
+
 static void std_memcpy(void *restrict dst, const void *restrict src, u64 size) {
     while (size--)
         *(u8 *)dst++ = *(u8 *)src++;
