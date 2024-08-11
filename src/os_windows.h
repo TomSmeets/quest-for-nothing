@@ -6,9 +6,9 @@
 #include "str.h"
 #include <windows.h>
 
-static void os_print(char *msg) {
+static void os_write(u8 *msg, u32 len) {
     HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
-    WriteFile(con, msg, str_len(msg), 0, 0);
+    WriteFile(con, msg, len, 0, 0);
 }
 
 static void os_exit(i32 code) {

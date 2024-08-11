@@ -1,5 +1,6 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
+#include "fmt.h"
 #include "game.h"
 #include "os.h"
 #include "sdl.h"
@@ -48,12 +49,13 @@ static void os_main(OS *os) {
     if (input->quit) os_exit(0);
 
     if (input->window_resized) {
-        printf("Resize: %4i %4i\n", input->window_size.x, input->window_size.y);
+        os_printf("Resize: %4i %4i\n", input->window_size.x, input->window_size.y);
     }
 
     if (input->mouse_moved) {
-        printf("Mouse:  %4i %4i\n", input->mouse_pos.x, input->mouse_pos.y);
-        printf("Rel:    %+4i %+4i\n", input->mouse_rel.x, input->mouse_rel.y);
+        os_printf("Mouse:  '%-6i' '%6i'\n", input->mouse_pos.x, input->mouse_pos.y);
+        os_printf("Rel:    '%+6i' '%+6i'\n", input->mouse_rel.x, input->mouse_rel.y);
+        os_printf("p: '%+8.4f'\n", (float)input->mouse_pos.x / (float)input->window_size.x);
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) {
@@ -70,7 +72,7 @@ static void os_main(OS *os) {
 
     for (u32 i = 0; i < input->key_event_count; ++i) {
         Key key = input->key_event[i];
-        printf("Key[%u]: 0x%08x '%c'\n", i, key, key_to_char(key));
+        os_printf("Key[%u]: 0x%08x '%c'\n", i, key, key_to_char(key));
     }
 
     // Finish

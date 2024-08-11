@@ -36,3 +36,7 @@ static void os_free(OS_Alloc *ptr) {
     last->next = OS_GLOBAL->cache;
     OS_GLOBAL->cache = ptr;
 }
+
+static void os_print(char *msg) {
+    os_write((u8 *)msg, str_len(msg));
+}

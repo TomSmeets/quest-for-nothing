@@ -2,6 +2,7 @@
 // os.h - Platform implementation for linux
 #pragma once
 #include "os.h"
+#include "std.h"
 #include "str.h"
 
 #if 0
@@ -56,8 +57,8 @@ static void os_exit(i32 status) {
     _exit(status);
 }
 
-static void log_error(char *message) {
-    write(2, message, str_len(message));
+static void os_write(u8 *msg, u32 len) {
+    write(1, msg, len);
 }
 
 static void os_fail(char *message) {
@@ -69,10 +70,7 @@ static void *os_alloc_raw(u32 size) {
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
     void *alloc = mmap(0, size, prot, flags, -1, 0);
-    if (!alloc || alloc == MAP_FAILED) {
-        log_error("Failed to allocate new memory\n");
-        return 0;
-    }
+    assert(alloc && alloc != MAP_FAILED, "Failed to allocate memory");
     return alloc;
 }
 

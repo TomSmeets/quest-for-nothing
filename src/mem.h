@@ -15,8 +15,8 @@ typedef struct {
 } Memory;
 
 static void *mem_push_uninit(Memory *mem, u32 size) {
-    // Align to 8 bytes (assuming start is also aligned)
-    mem->used = (mem->used + 7) & ~7;
+    // Align to 8 bytes
+    size = (size + 7) & ~7;
 
     // Out of memory
     if (mem->used + size > mem->size) {
@@ -25,9 +25,6 @@ static void *mem_push_uninit(Memory *mem, u32 size) {
         mem->start = alloc;
         mem->size = OS_ALLOC_SIZE;
         mem->used = sizeof(OS_Alloc);
-
-        // Align again
-        mem->used = (mem->used + 7) & ~7;
 
         if (mem->used + size > mem->size) {
             return 0;
@@ -38,6 +35,11 @@ static void *mem_push_uninit(Memory *mem, u32 size) {
     void *ptr = (void *)mem->start + mem->used;
     mem->used += size;
     return ptr;
+}
+
+// Number of bytes remaining
+static u32 mem_remaining(Memory *mem) {
+    return mem->size - mem->used;
 }
 
 static void *mem_push_zero(Memory *mem, u32 size) {

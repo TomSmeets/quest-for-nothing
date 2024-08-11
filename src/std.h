@@ -27,3 +27,8 @@ static void std_memzero(void *restrict dst, u64 size) {
     while (size--)
         *(u8 *)dst++ = 0;
 }
+
+static void std_memset(void *restrict dst, u8 value, u64 size) {
+    while (size--)
+        *(u8 *)dst++ = value;
+}
