@@ -12,39 +12,40 @@ Install `clang` then run the following command.
 
 ## Version 1.0
 
-- Player
-  - First person movement
-  - Can die
-  - Hitscan pistol
+- [ ] Player
+  - [ ] First person movement
+  - [ ] Can die
+  - [ ] Hitscan pistol
 
-- Aliens
-  - Movement
+- [ ] Aliens
+  - [ ] Movement
     - Idle: stand still
     - Stroll: move randomly to another cell
     - Attack: move to the player
 
-  - Generated Texture
+  - [ ] Generated Texture
     - Hands
     - Feet
     - Eyes
     - Body
     - Color
 
-- Level
-  - Simple aligned walls
-  - 2D layout
-  - Collision
-  - Randomly generated
-      1. Create outline
-      2. Fill with maze
-      3. Remove some walls with only one connection
-      4. Decorate with textures
+- [ ] Level
+  - [ ] Simple aligned walls
+  - [ ] 2D layout
+  - [ ] Collision
+  - [ ] Randomly generated
+      1. [ ] Create outline
+      2. [ ] Fill with maze
+      3. [ ] Remove some walls with only one connection
+      4. [ ] Decorate with textures
 
-- Sound
-  - Simple synthesized music
-  - Simple synthesized sounds
+- [ ] Sound
+  - [ ] Simple synthesized music
+  - [ ] Simple synthesized sounds
 
-- Hot reloadable during development
+- [x] Hot reloadable during development (`src/hot.c`)
+- [x] Custom printf/sprintf (`src/fmt.h`)
 
 This should be enogh for a first publishable version.
 
