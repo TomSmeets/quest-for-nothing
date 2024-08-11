@@ -6,8 +6,6 @@
 #include "str.h"
 #include "types.h"
 
-#include <stdarg.h>
-
 typedef struct {
     u8 *start;
     u32 size;

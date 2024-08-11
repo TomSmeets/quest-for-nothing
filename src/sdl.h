@@ -1,18 +1,43 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // sdl.h - SDL2 wrapper for a single window with both audio and opengl
 #pragma once
+#include "os.h"
+#include "math.h"
 #include "fmt.h"
 #include "input.h"
 #include "mem.h"
 #include "sdl_api.h"
 #include "vec.h"
 
+#define AUDIO_SAMPLE_RATE 48000
+
 typedef struct {
     Sdl_Api api;
     SDL_Window *win;
     SDL_GLContext *ctx;
     Input input;
+    void (*audio_callback)(OS *os, f32 dt, u32 count, v2 *output);
 } Sdl;
+
+// Output audio samples
+static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output);
+
+static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
+    Sdl *sdl = user;
+    f32 dt = 1.0f / (float) AUDIO_SAMPLE_RATE;
+
+    u32 count = (u32) size / sizeof(v2);
+    v2 *samples = (v2*) data;
+
+    sdl->audio_callback(OS_GLOBAL, dt, count, samples);
+
+    // Protect my ears
+    f32 volume = 0.5f;
+    for(u32 i = 0; i < count; ++i) {
+        samples[i].x = f_clamp(samples[i].x * volume, -1, 1);
+        samples[i].y = f_clamp(samples[i].y * volume, -1, 1);
+    }
+}
 
 static Sdl *sdl_load(Memory *mem, char *title) {
     Sdl *sdl = mem_struct(mem, Sdl);
@@ -59,27 +84,22 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // assert(sdl->gl, "Failed to load OpenGL pointers");
 
     api->SDL_GetWindowSize(sdl->win, &sdl->input.window_size.x, &sdl->input.window_size.y);
-#if 0
+
     // Load Audio
-    u32 sample_rate = 48000;
-    u32 audio_buffer_size = sample_rate / 60;
     SDL_AudioSpec want = {
-        .freq = sample_rate,
+        .freq = AUDIO_SAMPLE_RATE,
         .format = AUDIO_F32,
         .channels = 2,
-        .samples = audio_buffer_size,
+        .samples = AUDIO_SAMPLE_RATE / 60,
         .userdata = sdl,
-        .callback = sdl_call_audio_callback,
+        .callback = sdl_audio_callback_wrapper, 
     };
-    sdl->audio_dt = 1.0f / sample_rate;
+    sdl->audio_callback = sdl_audio_callback;
 
-    if(api->SDL_OpenAudio(&want, 0) != 0) {
-        log_error("Could not load audio");
-    }
+    assert(api->SDL_OpenAudio(&want, 0) == 0, "Failed to load SDL2 audio");
 
     // Start Audio
     api->SDL_PauseAudio(0);
-#endif
 
     return sdl;
 }
@@ -94,6 +114,7 @@ static Input *sdl_poll(Sdl *sdl) {
 
     Input *input = &sdl->input;
     input_reset(input);
+    sdl->audio_callback = sdl_audio_callback;
 
     SDL_Event src;
     while (api->SDL_PollEvent(&src)) {

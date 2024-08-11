@@ -4,7 +4,7 @@
 # build.sh - Build the current project
 set -euo pipefail
 
-common="-Wall -Werror -Wno-unused-function -Wno-unused-variable -I. -march=native"
+common="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -I. -march=native"
 
 debug="-O0 -g"
 release="-O2 -g0"

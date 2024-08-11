@@ -3,12 +3,17 @@
 #include "fmt.h"
 #include "game.h"
 #include "os.h"
+#include "input.h"
+#include "math.h"
 #include "sdl.h"
 
 typedef struct {
     Game *game;
     u64 time;
     Sdl *sdl;
+
+    u32 wave_ix;
+    f32 wave[64];
 } App;
 
 static App *app_init(void) {
@@ -18,6 +23,52 @@ static App *app_init(void) {
     app->time = os_time();
     app->sdl = sdl_load(mem, "Quest For Nothing");
     return app;
+}
+
+static f32 *audio_var(App *app) {
+    if (app->wave_ix == array_count(app->wave)) return 0;
+    u32 ix = app->wave_ix++;
+    return app->wave + ix;
+}
+
+static f32 audio_wave(App *app, f32 dt) {
+    f32 *v = audio_var(app);
+    if(!v) return 0;
+
+    f32 ret = *v;
+    *v += dt;
+    *v -= (i32) *v;
+    return ret;
+}
+
+static f32 audio_filter(App *app, f32 dt, f32 sample) {
+    f32 *v = audio_var(app);
+    if(!v) return 0;
+    f32 a = dt*100;
+    // TODO: Continue!
+    *v = (*v)*(1-a) + sample*a;
+    return *v;
+}
+
+static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
+    App *app = os->app;
+
+    Input *input = &app->sdl->input;
+
+    f32 mx = (f32) app->sdl->input.mouse_pos.x / (f32) app->sdl->input.window_size.x;
+    f32 my = 1-(f32) app->sdl->input.mouse_pos.y / (f32) app->sdl->input.window_size.y;
+    
+    for(u32 i = 0; i < count; ++i) {
+        app->wave_ix = 0;
+
+        f32 v = 0.0;
+        v += (audio_wave(app, dt*110*(1+my)) > mx ? 1 : 0)*key_down(input, KEY_MOUSE_LEFT);
+        // v = audio_filter(app, dt, v);
+
+        f32 pan = f_sin2pi(audio_wave(app, dt*8))*.2f;
+        output[i].x = v*(1 + pan);
+        output[i].y = v*(1 - pan);
+    }
 }
 
 // Sleep until next frame
@@ -58,7 +109,7 @@ static void os_main(OS *os) {
         os_printf("p: '%+8.4f'\n", (float)input->mouse_pos.x / (float)input->window_size.x);
     }
 
-    if (key_click(input, KEY_MOUSE_LEFT)) {
+    if (0 && key_click(input, KEY_MOUSE_LEFT)) {
         sdl_set_mouse_grab(app->sdl, true);
     }
 

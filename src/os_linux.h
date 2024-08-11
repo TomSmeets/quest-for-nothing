@@ -37,6 +37,11 @@ extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
 extern void *dlopen(const char *file, int mode);
 extern void *dlsym(void *restrict handle, const char *restrict name);
+
+typedef __builtin_va_list va_list;
+#define va_start(ap, param) __builtin_va_start(ap, param)
+#define va_end(ap) __builtin_va_end(ap)
+#define va_arg(ap, type) __builtin_va_arg(ap, type)
 #endif
 
 static u64 linux_time_to_us(struct timespec *t) {
