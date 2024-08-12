@@ -142,7 +142,8 @@ static Game *game_new(void) {
     return game;
 }
 
-static void game_update(Game *game, f32 dt) { }
+static void game_update(Game *game, f32 dt) {
+}
 
 static void game_free(Game *game) {
     mem_free(game->mem);

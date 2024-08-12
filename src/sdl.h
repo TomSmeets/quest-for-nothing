@@ -1,11 +1,12 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // sdl.h - SDL2 wrapper for a single window with both audio and opengl
 #pragma once
-#include "os.h"
-#include "math.h"
 #include "fmt.h"
+#include "gl.h"
 #include "input.h"
+#include "math.h"
 #include "mem.h"
+#include "os.h"
 #include "sdl_api.h"
 #include "vec.h"
 
@@ -13,6 +14,8 @@
 
 typedef struct {
     Sdl_Api api;
+    Gl gl;
+
     SDL_Window *win;
     SDL_GLContext *ctx;
     Input input;
@@ -24,16 +27,16 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output);
 
 static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     Sdl *sdl = user;
-    f32 dt = 1.0f / (float) AUDIO_SAMPLE_RATE;
+    f32 dt = 1.0f / (float)AUDIO_SAMPLE_RATE;
 
-    u32 count = (u32) size / sizeof(v2);
-    v2 *samples = (v2*) data;
+    u32 count = (u32)size / sizeof(v2);
+    v2 *samples = (v2 *)data;
 
     sdl->audio_callback(OS_GLOBAL, dt, count, samples);
 
     // Protect my ears
     f32 volume = 0.5f;
-    for(u32 i = 0; i < count; ++i) {
+    for (u32 i = 0; i < count; ++i) {
         samples[i].x = f_clamp(samples[i].x * volume, -1, 1);
         samples[i].y = f_clamp(samples[i].y * volume, -1, 1);
     }
@@ -75,6 +78,7 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // Load OpenGL context
     sdl->ctx = api->SDL_GL_CreateContext(sdl->win);
     assert(sdl->ctx, "Failed to create OpenGL 3.3 Context");
+    gl_load(&sdl->gl, api->SDL_GL_GetProcAddress);
 
     // Disable vsync
     assert(api->SDL_GL_SetSwapInterval(0) == 0, "Could not disable VSync");
@@ -92,7 +96,7 @@ static Sdl *sdl_load(Memory *mem, char *title) {
         .channels = 2,
         .samples = AUDIO_SAMPLE_RATE / 60,
         .userdata = sdl,
-        .callback = sdl_audio_callback_wrapper, 
+        .callback = sdl_audio_callback_wrapper,
     };
     sdl->audio_callback = sdl_audio_callback;
 

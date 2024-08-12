@@ -13,6 +13,8 @@ linux=""
 windows="-target x86_64-unknown-windows-gnu"
 
 mkdir -p out
+
+set -x
 clang $common $debug  $linux   -o out/hot src/hot.c
 clang $common $debug  $linux   -o out/quest-for-nothing src/main.c
 clang $common $debug  $windows -o out/quest-for-nothing.exe src/main.c

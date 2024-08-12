@@ -47,6 +47,12 @@ Install `clang` then run the following command.
 - [x] Hot reloadable during development (`src/hot.c`)
 - [x] Custom printf/sprintf (`src/fmt.h`)
 
+- [ ] Publish
+  - [ ] Shorter name?
+  - [ ] Description
+  - [ ] Video
+  - [ ] Itch IO
+
 This should be enogh for a first publishable version.
 
 # Compiling

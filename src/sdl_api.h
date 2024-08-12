@@ -1,5 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// sdl_api.h - SDL2 header, but only what we use to improve compilation speed
+// sdl_api.h - SDL2 api header, only what we use to improve compilation speed
 #pragma once
 #include "os.h"
 #include "types.h"
