@@ -15,6 +15,8 @@ typedef signed long long i64;
 typedef float f32;
 typedef double f64;
 
+#define U32_MAX 0xffffffff
+
 typedef _Bool bool;
 #define true 1
 #define false 0

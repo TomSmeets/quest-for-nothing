@@ -53,7 +53,7 @@ static void gl_enable(Gl_Api *gl, GLenum opt, bool value) {
     }
 }
 
-static void gl_begin_pass(Gl *gl, Gl_Pass *pass) {
+static void gl_draw(Gl *gl, Gl_Pass *pass) {
     Gl_Api *api = &gl->api;
     gl_enable(api, GL_DEPTH_TEST, pass->depth);
     gl_enable(api, GL_BLEND, !pass->depth);

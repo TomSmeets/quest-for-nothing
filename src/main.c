@@ -1,5 +1,6 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
+#include "audio.h"
 #include "fmt.h"
 #include "game.h"
 #include "gl_api.h"
@@ -15,8 +16,10 @@ typedef struct {
     Sdl *sdl;
     Gl *gl;
 
-    u32 wave_ix;
-    f32 wave[64];
+    Audio audio;
+
+    f32 cutoff;
+    f32 duty;
 } App;
 
 static App *app_init(void) {
@@ -29,49 +32,31 @@ static App *app_init(void) {
     return app;
 }
 
-static f32 *audio_var(App *app) {
-    if (app->wave_ix == array_count(app->wave)) return 0;
-    u32 ix = app->wave_ix++;
-    return app->wave + ix;
-}
-
-static f32 audio_wave(App *app, f32 dt) {
-    f32 *v = audio_var(app);
-    if (!v) return 0;
-
-    f32 ret = *v;
-    *v += dt;
-    *v -= (i32)*v;
-    return ret;
-}
-
-static f32 audio_filter(App *app, f32 dt, f32 sample) {
-    f32 *v = audio_var(app);
-    if (!v) return 0;
-    f32 a = dt * 100;
-    // TODO: Continue!
-    *v = (*v) * (1 - a) + sample * a;
-    return *v;
-}
-
 static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
 
     Input *input = &app->sdl->input;
-
-    f32 mx = (f32)app->sdl->input.mouse_pos.x / (f32)app->sdl->input.window_size.x;
-    f32 my = 1 - (f32)app->sdl->input.mouse_pos.y / (f32)app->sdl->input.window_size.y;
+    Audio *audio = &app->audio;
 
     for (u32 i = 0; i < count; ++i) {
-        app->wave_ix = 0;
+        audio_begin_sample(audio, dt);
 
-        f32 v = 0.0;
-        v += (audio_wave(app, dt * 110 * (1 + my)) > mx ? 1 : 0) * key_down(input, KEY_MOUSE_LEFT);
-        // v = audio_filter(app, dt, v);
+        f32 wave = audio_pulse(audio, app->cutoff, app->duty);
 
-        f32 pan = f_sin2pi(audio_wave(app, dt * 8)) * .2f;
-        output[i].x = v * (1 + pan);
-        output[i].y = v * (1 - pan);
+        f32 noise_l = audio_noise_freq(audio, app->cutoff * 4, 1.0);
+        f32 noise_r = audio_noise_freq(audio, app->cutoff * 4, 1.0);
+
+        f32 volume_1 = audio_smooth_bool(audio, 100.0f, key_down(input, KEY_MOUSE_LEFT));
+        f32 volume_2 = audio_smooth_bool(audio, 100.0f, key_down(input, KEY_MOUSE_RIGHT));
+
+        v2 sample = {};
+        sample.x = wave * volume_1 + noise_l * volume_2;
+        sample.y = wave * volume_1 + noise_r * volume_2;
+
+        sample.x = audio_filter(audio, app->cutoff, sample.x);
+        sample.y = audio_filter(audio, app->cutoff, sample.y);
+
+        output[i] = sample;
     }
 }
 
@@ -108,9 +93,16 @@ static void os_main(OS *os) {
     }
 
     if (input->mouse_moved) {
-        os_printf("Mouse:  '%-6i' '%6i'\n", input->mouse_pos.x, input->mouse_pos.y);
-        os_printf("Rel:    '%+6i' '%+6i'\n", input->mouse_rel.x, input->mouse_rel.y);
-        os_printf("p: '%+8.4f'\n", (float)input->mouse_pos.x / (float)input->window_size.x);
+        // os_printf("Mouse:  %6i %6i\n", input->mouse_pos.x, input->mouse_pos.y);
+        // os_printf("Rel:    %6i %+6i\n", input->mouse_rel.x, input->mouse_rel.y);
+        // os_printf("p: %f\n", (float)input->mouse_pos.x / (float)input->window_size.x);
+
+        f32 mx = (f32)app->sdl->input.mouse_pos.x / (f32)app->sdl->input.window_size.x;
+        f32 my = (f32)app->sdl->input.mouse_pos.y / (f32)app->sdl->input.window_size.y;
+        app->cutoff = f_pow2((mx * 2 - 1) * 2) * 440;
+        app->duty = my;
+        os_printf("Cutoff: %f\n", app->cutoff);
+        os_printf("Duty:   %f\n", app->duty);
     }
 
     if (0 && key_click(input, KEY_MOUSE_LEFT)) {
