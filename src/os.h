@@ -2,14 +2,20 @@
 // os.h - Platform api
 #pragma once
 #include "os_api.h"
+#include "str.h"
 #include "types.h"
 
-#if __linux__
+#if __unix__
 #define OS_IS_LINUX 1
 #include "os_linux.h"
-#else
+#elif _WIN32
 #define OS_IS_WINDOWS 1
 #include "os_windows.h"
+#elif __wasm__
+#define OS_IS_WASM 1
+#include "os_wasm.h"
+#else
+#error Did not recognize platform
 #endif
 
 // Allocate memory

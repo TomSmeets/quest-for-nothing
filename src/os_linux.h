@@ -1,7 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Platform implementation for linux
 #pragma once
-#include "os.h"
+#include "os_api.h"
 #include "std.h"
 #include "str.h"
 

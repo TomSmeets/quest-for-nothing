@@ -53,6 +53,11 @@ Install `clang` then run the following command.
   - [ ] Video
   - [ ] Itch IO
 
+- [ ] Platforms
+  - [x] Linux
+  - [x] Windows
+  - [ ] Wasm
+
 This should be enogh for a first publishable version.
 
 # Compiling

@@ -4,20 +4,23 @@
 # build.sh - Build the current project
 set -euo pipefail
 
-common="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -I. -march=native"
+common="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable"
 
-debug="-O0 -g"
+debug="-O1 -g"
 release="-O2 -g0"
 
-linux=""
+linux="-march=native"
 windows="-target x86_64-unknown-windows-gnu"
+wasm="-target wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export-all -fno-builtin"
 
 mkdir -p out
 
 set -x
 clang $common $debug  $linux   -o out/hot src/hot.c
+
 clang $common $debug  $linux   -o out/quest-for-nothing src/main.c
-clang $common $debug  $windows -o out/quest-for-nothing.exe src/main.c
+clang $common $debug  $windows -o out/quest-for-nothing.exe  src/main.c
+clang $common $debug  $wasm    -o out/quest-for-nothing.wasm src/main.c
 
 if [ ! -f out/SDL2.dll ]; then
   pushd out

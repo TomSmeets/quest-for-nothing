@@ -28,18 +28,22 @@ static OS *OS_GLOBAL;
 
 static void os_main(OS *os);
 
+// Platform API
 static void os_write(u8 *data, u32 len);
-static void os_print(char *message);
 
 static void os_exit(i32 code);
 static void os_fail(char *message);
 
 static void *os_alloc_raw(u32 size);
-static OS_Alloc *os_alloc(void);
-static void os_free(OS_Alloc *ptr);
 
 static u64 os_time(void);
 static void os_sleep(u64 time);
 
 // load a sdl2 symbol
 static void *os_load_sdl2(char *name);
+
+// Generic api
+static void os_print(char *message);
+
+static OS_Alloc *os_alloc(void);
+static void os_free(OS_Alloc *ptr);
