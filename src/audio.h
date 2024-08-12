@@ -48,8 +48,14 @@ static f32 audio_sine(Audio *audio, f32 freq) {
     return f_sin2pi(audio_ramp(audio, freq));
 }
 
+typedef struct {
+    f32 low_pass;
+    f32 band_pass;
+    f32 high_pass;
+} Audio_Filter_Result;
+
 // Filter the incoming samples at a given cutoff frequency.
-static f32 audio_filter(Audio *audio, f32 cutoff_freq, f32 sample) {
+static Audio_Filter_Result audio_filter(Audio *audio, f32 cutoff_freq, f32 sample) {
     f32 *buf0 = audio_var(audio);
     f32 *buf1 = audio_var(audio);
 
@@ -57,7 +63,7 @@ static f32 audio_filter(Audio *audio, f32 cutoff_freq, f32 sample) {
     f32 f = audio->dt / (rc + audio->dt);
 
     // f and fb calculation
-    f32 q = 0.5;
+    f32 q = 0.9;
     f32 fb = q + q / (1.0 - f);
 
     // loop
@@ -74,7 +80,7 @@ static f32 audio_filter(Audio *audio, f32 cutoff_freq, f32 sample) {
     // Low Pass Filter
     f32 lp = *buf1;
 
-    return lp;
+    return (Audio_Filter_Result){lp, bp, hp};
 }
 
 static f32 audio_noise_white(Audio *audio) {

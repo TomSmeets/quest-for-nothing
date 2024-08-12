@@ -43,18 +43,18 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 
         f32 wave = audio_pulse(audio, app->cutoff, app->duty);
 
-        f32 noise_l = audio_noise_freq(audio, app->cutoff * 4, 1.0);
-        f32 noise_r = audio_noise_freq(audio, app->cutoff * 4, 1.0);
+        f32 noise_l = audio_noise_white(audio); // audio_noise_freq(audio, app->cutoff, 1.0);
+        f32 noise_r = audio_noise_white(audio); // audio_noise_freq(audio, app->cutoff, 1.0);
 
-        f32 volume_1 = audio_smooth_bool(audio, 100.0f, key_down(input, KEY_MOUSE_LEFT));
-        f32 volume_2 = audio_smooth_bool(audio, 100.0f, key_down(input, KEY_MOUSE_RIGHT));
+        f32 volume_1 = audio_smooth_bool(audio, 80.0f, key_down(input, KEY_MOUSE_LEFT));
+        f32 volume_2 = audio_smooth_bool(audio, 80.0f, key_down(input, KEY_MOUSE_RIGHT));
 
         v2 sample = {};
         sample.x = wave * volume_1 + noise_l * volume_2;
         sample.y = wave * volume_1 + noise_r * volume_2;
 
-        sample.x = audio_filter(audio, app->cutoff, sample.x);
-        sample.y = audio_filter(audio, app->cutoff, sample.y);
+        sample.x = audio_filter(audio, app->cutoff, sample.x).low_pass;
+        sample.y = audio_filter(audio, app->cutoff, sample.y).low_pass;
 
         output[i] = sample;
     }
