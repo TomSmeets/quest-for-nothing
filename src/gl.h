@@ -67,3 +67,56 @@ static void gl_clear(Gl *gl) {
     gl->api.glClearColor(.3, .3, .3, 1);
     gl->api.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 }
+
+static GLuint gl_compile_shader(Gl_Api *gl, GLenum type, char *source) {
+    GLuint shader = gl->glCreateShader(type);
+    gl->glShaderSource(shader, 1, (const char * const[]){ source }, 0);
+    gl->glCompileShader(shader);
+
+    i32 success;
+    gl->glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+    if (!success) {
+        char buffer[1024 * 4];
+        gl->glGetShaderInfoLog(shader, sizeof(buffer), 0, buffer);
+        char *shader_type = 0;
+        if (type == GL_VERTEX_SHADER) shader_type = "vertex";
+        if (type == GL_FRAGMENT_SHADER) shader_type = "fragment";
+        os_printf("error while compiling the %s shader: %s\n", shader_type, buffer);
+        return 0;
+    }
+
+    return shader;
+}
+
+
+static GLuint gl_link_program(Gl_Api *gl, GLuint vertex, GLuint fragment) {
+    // link shaders
+    GLuint program = gl->glCreateProgram();
+    gl->glAttachShader(program, vertex);
+    gl->glAttachShader(program, fragment);
+    gl->glLinkProgram(program);
+
+    // check for linking errors
+    i32 success;
+    gl->glGetProgramiv(program, GL_LINK_STATUS, &success);
+    if (!success) {
+        char buffer[1024 * 4];
+        gl->glGetProgramInfoLog(program, sizeof(buffer), 0, buffer);
+        os_printf("error while linking shader: %s\n", buffer);
+        return 0;
+    }
+
+    return program;
+}
+
+static GLuint gl_program_compile_and_link(Gl_Api *gl, char *vert, char *frag) {
+    GLuint vert_shader = gl_compile_shader(gl, GL_VERTEX_SHADER, vert);
+    GLuint frag_shader = gl_compile_shader(gl, GL_FRAGMENT_SHADER, frag);
+    if (!vert_shader || !frag_shader)
+        return 0;
+
+    GLuint shader_program = gl_link_program(gl, vert_shader, frag_shader);
+    gl->glDeleteShader(vert_shader);
+    gl->glDeleteShader(frag_shader);
+    return shader_program;
+}
