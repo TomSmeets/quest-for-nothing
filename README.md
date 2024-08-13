@@ -2,15 +2,7 @@
 
 The first version of this game. I will first implement v1.0, which will have very limited features. This will prevent me from getting stuck.
 
-## How to run
-
-Install `clang` then run the following command.
-
-```bash
-./build.sh && ./out/hot ./src/main.c
-```
-
-## Version 1.0
+# Version 1.0
 
 - [ ] Player
   - [ ] First person movement
@@ -58,26 +50,65 @@ Install `clang` then run the following command.
   - [x] Windows
   - [ ] Wasm
 
-This should be enogh for a first publishable version.
+This should be enough for a first publishable version.
 
-# Compiling
+# Building on Linux
 
-Build all executables directly
+First install the `clang` and `sdl2` packages.
+
+## Standalone Executable
 
 ```bash
-./build.sh
+clang -O2 -g -o ./out/quest-for-nothing src/main.c
+./out/quest-for-nothing
 ```
 
-Run with hot reloading
+## Automatic Hot Reloading
 
 ```bash
+# Compiles 'hot' executable
+clang -O2 -g -o ./out/hot src/hot.c
+
+# Compiles the game and runs it
+# The game is updated when any source file in "src" is changed
 ./out/hot ./src/main.c
+
 ```
 
-With gdb
+To run with the debugger use the following. If the source view in gdb is outdated run `dir` to reload it.
 
 ```bash
 gdb --args ./out/hot ./src/main.c
 ```
 
-Gdb does not reload the source automatically. Use the `dir` command for this.
+## Cross compile for Windows
+
+To cross compile to windows just add `-target x86_64-unknown-windows-gnu` and copy [SDL2.dll](https://github.com/libsdl-org/SDL/releases/) to the "out" directory.
+
+```bash
+clang -O2 -g -target x86_64-unknown-windows-gnu -o ./out/quest-for-nothing.exe src/main.c
+wine ./out/quest-for-nothing.exe
+```
+
+
+## To Web Assembly
+
+```bash
+clang -O2 -g -target wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export-all -fno-builtin -o ./out/quest-for-nothing.wasm src/main.c
+```
+
+## Everything at once
+To build everything just run `./build.sh`
+
+# Building on Windows
+
+1. Install [Clang](https://github.com/llvm/llvm-project/releases)
+2. Download and copy [SDL2.dll](https://github.com/libsdl-org/SDL/releases/) to the "out" directory.
+3. Run the following commands
+
+```bash
+clang -O2 -g -o ./out/quest-for-nothing src/main.c
+./out/quest-for-nothing.exe
+```
+
+To compile to WASM run the following commands
