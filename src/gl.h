@@ -12,7 +12,7 @@ typedef struct {
     // Vertex Array Object, Stores bound vertex and index buffers
     GLuint vao;
 
-    // Vertex Buffer Object, Stores verticies
+    // Vertex Buffer Object, Stores vertices
     GLuint vbo;
 
     // Element Buffer Object, Stores indicies

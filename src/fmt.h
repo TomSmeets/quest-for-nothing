@@ -1,4 +1,4 @@
-// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // fmt.h - a simple sprintf implementation
 #pragma once
 #include "mem.h"

@@ -1,5 +1,5 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// sdl.h - SDL2 wrapper for a single window with both audio and opengl
+// sdl.h - SDL2 wrapper for a single window with both audio and OpenGL
 #pragma once
 #include "fmt.h"
 #include "gl.h"
@@ -83,7 +83,7 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // Disable vsync
     assert(api->SDL_GL_SetSwapInterval(0) == 0, "Could not disable VSync");
 
-    // load opengl ptrs
+    // load OpenGL ptrs
     // sdl->gl = gl_load(m, api->SDL_GL_GetProcAddress);
     // assert(sdl->gl, "Failed to load OpenGL pointers");
 
