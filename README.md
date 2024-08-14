@@ -83,7 +83,8 @@ gdb --args ./out/hot ./src/main.c
 
 ## Cross compile for Windows
 
-To cross compile to windows just add `-target x86_64-unknown-windows-gnu` and copy [SDL2.dll](https://github.com/libsdl-org/SDL/releases/) to the "out" directory.
+To cross compile to windows install `mingw-w64` and copy [SDL2.dll](https://github.com/libsdl-org/SDL/releases/) to the "out" directory.
+Then add `-target x86_64-unknown-windows-gnu` to the clang command line.
 
 ```bash
 clang -O2 -g -target x86_64-unknown-windows-gnu -o ./out/quest-for-nothing.exe src/main.c
@@ -93,9 +94,18 @@ wine ./out/quest-for-nothing.exe
 
 ## To Web Assembly
 
+Install `ldd` which provides `wasm-ld`.
+
 ```bash
 clang -O2 -g -target wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export-all -fno-builtin -o ./out/quest-for-nothing.wasm src/main.c
 ```
+
+| Option | Purpose |
+| ------ | ------- |
+| `-target wasm32` | Target wasm 32bit |
+| `-Wl,--no-entry` | Don't create a main function |
+| `-Wl,--export-all` | |
+| `-fno-builtin` |  |
 
 ## Everything at once
 To build everything just run `./build.sh`
