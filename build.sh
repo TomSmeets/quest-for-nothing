@@ -4,7 +4,7 @@
 # build.sh - Build the current project
 set -euo pipefail
 
-COMMON_WARN="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable"
+COMMON_WARN="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format"
 
 COMMON_DBG="-O0 -g"
 COMMON_REL="-O3 -g0 -ffast-math"

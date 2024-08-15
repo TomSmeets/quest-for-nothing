@@ -5,6 +5,7 @@
 #include "std.h"
 #include "str.h"
 #include "types.h"
+#include "vec.h"
 
 typedef struct {
     u8 *start;
@@ -23,6 +24,7 @@ typedef struct {
     // Custom
     bool flag_si;  // '$' Convert to si  sizes (1K = 1000)
     bool flag_iec; // '/' Convert to iec sizes (1K = 1024)
+    bool flag_vec; // 'v' Vector
 
     u32 width;
     u32 precision;
@@ -91,6 +93,11 @@ static void fmt_u64(Format *opt, Buffer *buf, u64 value) {
         }
     }
 
+    if(opt->flag_alt) {
+        digits[digit_count++] = 'x';
+        digits[digit_count++] = '0';
+    }
+
     if (opt->sign_char) {
         digits[digit_count++] = opt->sign_char;
     }
@@ -141,15 +148,16 @@ static void fmt_f64(Format *opt, Buffer *buf, f64 value) {
         value *= 10.0;
     }
 
-    u64 f_part = value;
+    u64 f_part = value + 0.5f;
 
-    opt->width = i_width;
-    fmt_i64(opt, buf, i_part);
+    Format opt2 = *opt;
+    opt2.width = i_width;
+    fmt_i64(&opt2, buf, i_part);
     fmt_char(buf, '.');
-    opt->width = f_width;
-    opt->flag_zero = 1;
-    opt->sign_char = 0;
-    fmt_u64(opt, buf, f_part);
+    opt2.width = f_width;
+    opt2.flag_zero = 1;
+    opt2.sign_char = 0;
+    fmt_u64(&opt2, buf, f_part);
 }
 
 static void fmt_zero_terminate(Buffer *buf) {
@@ -169,6 +177,7 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
     u32 state = 5;
 
     Format opt = {};
+    // fmt_str(&opt, buf, format, str_len(format));
 
     for (;;) {
         u8 c = *f++;
@@ -181,7 +190,7 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
             state = 0;
             opt = (Format){};
             opt.conv_base = 10;
-            opt.precision = 2;
+            opt.precision = 6;
             continue;
         }
 
@@ -196,6 +205,7 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
             if (c == '\'') { opt.flag_group = 1; continue; }
             if (c == '$')  { opt.flag_si    = 1; continue; }
             if (c == '/')  { opt.flag_iec   = 1; continue; }
+            if (c == 'v')  { opt.flag_vec   = 1; continue; }
             // clang-format on
         }
 
@@ -233,29 +243,33 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
             }
 
             if (c == 'd' || c == 'i') {
-                i64 value = va_arg(arg, i64);
-                fmt_i64(&opt, buf, value);
-                state = 5;
+                if(opt.flag_vec && opt.width == 2) {
+                    v2i value = va_arg(arg, v2i);
+                    opt.width = 0;
+                    fmt_i64(&opt, buf, value.x);
+                    fmt_bytes(buf, (u8*) ", ", 2);
+                    fmt_i64(&opt, buf, value.y);
+                    state = 5;
+                } else {
+                    i64 value = va_arg(arg, i64);
+                    fmt_i64(&opt, buf, value);
+                    state = 5;
+                }
                 continue;
             }
 
-            if (c == 'q') {
+            if (c == 'x') {
+                opt.conv_base = 16;
                 u64 value = va_arg(arg, u64);
                 fmt_u64(&opt, buf, value);
                 state = 5;
                 continue;
             }
 
-            if (c == 'Q') {
-                i64 value = va_arg(arg, i64);
-                fmt_i64(&opt, buf, value);
-                state = 5;
-                continue;
-            }
-
-            if (c == 'x') {
+            if (c == 'p') {
                 opt.conv_base = 16;
-                u32 value = va_arg(arg, u32);
+                opt.flag_alt  = true;
+                u64 value = va_arg(arg, u64);
                 fmt_u64(&opt, buf, value);
                 state = 5;
                 continue;
@@ -278,9 +292,31 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
             }
 
             if (c == 'f') {
-                f64 value = va_arg(arg, f64);
-                fmt_f64(&opt, buf, value);
-                state = 5;
+                if(opt.flag_vec && opt.width == 3) {
+                    v3 value = va_arg(arg, v3);
+                    opt.width = 0;
+                    fmt_f64(&opt, buf, value.x);
+                    fmt_bytes(buf, (u8*) ", ", 2);
+                    fmt_f64(&opt, buf, value.y);
+                    fmt_bytes(buf, (u8*) ", ", 2);
+                    fmt_f64(&opt, buf, value.z);
+                    state = 5;
+                } else if(opt.flag_vec && opt.width == 4) {
+                    v4 value = va_arg(arg, v4);
+                    opt.width = 4+opt.precision;
+                    fmt_f64(&opt, buf, value.x);
+                    fmt_bytes(buf, (u8*) ", ", 2);
+                    fmt_f64(&opt, buf, value.y);
+                    fmt_bytes(buf, (u8*) ", ", 2);
+                    fmt_f64(&opt, buf, value.z);
+                    fmt_bytes(buf, (u8*) ", ", 2);
+                    fmt_f64(&opt, buf, value.w);
+                    state = 5;
+                } else {
+                    f64 value = va_arg(arg, f64);
+                    fmt_f64(&opt, buf, value);
+                    state = 5;
+                }
                 continue;
             }
 

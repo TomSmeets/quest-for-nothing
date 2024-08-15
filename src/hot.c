@@ -45,7 +45,7 @@ static os_main_t *build_and_load(const char *main_path, u32 counter) {
     sprintf(out_path, "/tmp/hot-result-%u.so", counter);
 
 #define CC_WARN                                                                                    \
-    "-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable"
+    "-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format"
 #define CC_DEBUG "-march=native -O0 -g"
 #define CC_RELEASE "-march=native -O2 -g0"
 
