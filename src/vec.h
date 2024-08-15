@@ -3,33 +3,30 @@
 #pragma once
 #include "types.h"
 
-typedef struct {
-    float x, y, z;
-} v3;
+#if 1
+typedef f32 v2 __attribute__((ext_vector_type(2)));
+typedef f32 v3 __attribute__((ext_vector_type(3)));
+typedef f32 v4 __attribute__((ext_vector_type(4)));
 
-typedef struct {
-    u32 x, y, z;
-} v3u;
+typedef u32 v2u __attribute__((ext_vector_type(2)));
+typedef u32 v3u __attribute__((ext_vector_type(3)));
+typedef u32 v4u __attribute__((ext_vector_type(4)));
 
-typedef struct {
-    i32 x, y, z;
-} v3i;
+typedef i32 v2i __attribute__((ext_vector_type(2)));
+typedef i32 v3i __attribute__((ext_vector_type(3)));
+typedef i32 v4i __attribute__((ext_vector_type(4)));
+#else
+typedef struct { f32 x, y; } v2;
+typedef struct { f32 x, y, z; } v3;
+typedef struct { f32 x, y, z, w; } v4;
 
-typedef struct {
-    i32 x, y;
-} v2i;
+typedef struct { u32 x, y; } v2u;
+typedef struct { u32 x, y, z; } v3u;
 
-typedef struct {
-    f32 x, y;
-} v2;
+typedef struct { i32 x, y; } v2i;
+typedef struct { i32 x, y, z; } v3i;
+#endif
 
-typedef struct {
-    u32 x, y;
-} v2u;
-
-typedef struct {
-    f32 x, y, z, w;
-} v4;
 
 static f32 v3_dot(v3 a, v3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;

@@ -85,7 +85,10 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // sdl->gl = gl_load(m, api->SDL_GL_GetProcAddress);
     // assert(sdl->gl, "Failed to load OpenGL pointers");
 
-    api->SDL_GetWindowSize(sdl->win, &sdl->input.window_size.x, &sdl->input.window_size.y);
+    int window_size_x = 0, window_size_y = 0;
+    api->SDL_GetWindowSize(sdl->win, &window_size_x, &window_size_y);
+    sdl->input.window_size.x = window_size_x;
+    sdl->input.window_size.y = window_size_y;
 
     // Load Audio
     SDL_AudioSpec want = {
