@@ -8,11 +8,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/inotify.h>
 #include <sys/select.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <string.h>
 
 // Configuration
 static const u32 debounce_time = 100;
@@ -25,9 +25,9 @@ static void embed_file(FILE *output, const char *name, const char *file_path) {
     // Just waiting for #embed to land in clang...
     FILE *f = fopen(file_path, "rb");
     fprintf(output, "static unsigned char FILE_%s[] = {", name);
-    for(;;) {
+    for (;;) {
         int c = fgetc(f);
-        if(c <= 0) break;
+        if (c <= 0) break;
         fprintf(output, "%u,", c);
     }
     fprintf(output, "0x00};\n");
@@ -40,7 +40,7 @@ static os_main_t *build_and_load(const char *main_path, u32 counter) {
     embed_file(asset_file, "SHADER_VERT", "src/gl_shader.vert");
     embed_file(asset_file, "SHADER_FRAG", "src/gl_shader.frag");
     fclose(asset_file);
-    
+
     char out_path[1024];
     sprintf(out_path, "/tmp/hot-result-%u.so", counter);
 
@@ -116,7 +116,7 @@ static bool watch_changed(int fd) {
         if (event->len) {
             printf("changed: %s\n", event->name);
 
-            if(strcmp(event->name, "asset.h") == 0) {
+            if (strcmp(event->name, "asset.h") == 0) {
                 continue;
             }
         }
