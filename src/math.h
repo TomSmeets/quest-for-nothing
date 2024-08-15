@@ -17,43 +17,27 @@
 
 // ==== Simple operations ====
 
+// clang-format off
+
 // Absolute value of x
-static f32 f_abs(f32 x) {
-    return (x < 0) ? -x : x;
-}
-static u64 i_abs(i64 x) {
-    return (x < 0) ? -x : x;
-}
+static f32 f_abs(f32 x) { return (x < 0) ? -x : x; }
+static u64 i_abs(i64 x) { return (x < 0) ? -x : x; }
 
 // Round towards -Inf
-static i32 f_floor(f32 x) {
-    return (i32)x - (x < (i32)x);
-}
+static i32 f_floor(f32 x) { return (i32)x - (x < (i32)x); }
 
 // Round towards 0
-static i32 f_trunc(f32 x) {
-    return (i32)x;
-}
+static i32 f_trunc(f32 x) { return (i32)x; }
 
-static f32 f_min(f32 a, f32 b) {
-    return a <= b ? a : b;
-}
-static i32 i_min(i32 a, i32 b) {
-    return a <= b ? a : b;
-}
-static u32 u_min(u32 a, u32 b) {
-    return a <= b ? a : b;
-}
+static f32 f_min(f32 a, f32 b) { return a <= b ? a : b; }
+static i32 i_min(i32 a, i32 b) { return a <= b ? a : b; }
+static u32 u_min(u32 a, u32 b) { return a <= b ? a : b; }
 
-static f32 f_max(f32 a, f32 b) {
-    return a >= b ? a : b;
-}
-static i32 i_max(i32 a, i32 b) {
-    return a >= b ? a : b;
-}
-static u32 u_max(u32 a, u32 b) {
-    return a >= b ? a : b;
-}
+static f32 f_max(f32 a, f32 b) { return a >= b ? a : b; }
+static i32 i_max(i32 a, i32 b) { return a >= b ? a : b; }
+static u32 u_max(u32 a, u32 b) { return a >= b ? a : b; }
+
+// clang-format on
 
 // clamp 'x' between l and h, inclusive
 static i32 i_clamp(i32 x, i32 l, i32 h) {

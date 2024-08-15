@@ -12,6 +12,8 @@
 typedef struct {
     Game *game;
     u64 time;
+    u64 delay;
+    f32 dt;
 
     Sdl *sdl;
     Gl *gl;
@@ -21,15 +23,31 @@ typedef struct {
     f32 cutoff;
     f32 duty;
 
+    v3 player_pos;
+    v3 player_rot;
+
     Memory *mem;
 } App;
+
+static void app_set_fps(App *app, u32 rate) {
+    app->delay = 1000000 / (u64)rate;
+    app->dt = 1.0f / (f32)rate;
+}
 
 static App *app_init(void) {
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
+
     app->mem = mem;
     app->game = game_new();
+
     app->time = os_time();
+    app->time /= 1000;
+    app->time /= 1000;
+    app->time *= 1000;
+    app->time *= 1000;
+    app_set_fps(app, 60);
+
     app->sdl = sdl_load(mem, "Quest For Nothing");
     app->gl = gl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
     return app;
@@ -37,7 +55,7 @@ static App *app_init(void) {
 
 static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
-    if(!app) return;
+    if (!app) return;
 
     Input *input = &app->sdl->input;
     Audio *audio = &app->audio;
@@ -69,13 +87,19 @@ static void app_sleep(App *app) {
     u64 time = os_time();
 
     // We are ahead
-    if (app->time > time) app->time = time;
+    if (app->time > time) {
+        os_printf("We are ahead: %llu\n", app->time);
+        app->time = time;
+    }
 
     // Compute next frame time
-    app->time += 10 * 1000;
+    app->time += app->delay;
 
     // We are behind, skip some frames
-    if (app->time < time) app->time = time;
+    if (app->time < time) {
+        os_printf("We are behind: %llu\n", app->time);
+        app->time = time;
+    }
 
     // sleep
     if (app->time > time) os_sleep(app->time - time);
@@ -87,7 +111,10 @@ static void os_main(OS *os) {
     }
 
     App *app = os->app;
-    if(os->reloaded) {
+
+    app_set_fps(app, 200);
+
+    if (os->reloaded) {
         app->gl = gl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
     }
 
@@ -108,8 +135,6 @@ static void os_main(OS *os) {
         f32 my = (f32)app->sdl->input.mouse_pos.y / (f32)app->sdl->input.window_size.y;
         app->cutoff = f_pow2((mx * 2 - 1) * 2) * 440;
         app->duty = my;
-        os_printf("Cutoff: %f\n", app->cutoff);
-        os_printf("Duty:   %f\n", app->duty);
     }
 
     if (0 && key_click(input, KEY_MOUSE_LEFT)) {
@@ -130,7 +155,42 @@ static void os_main(OS *os) {
     }
 
     // Render
-    gl_draw(app->gl, input->window_size);
+    m4 player_mtx = m4_id();
+    m4_rot_z(&player_mtx, app->player_rot.z); // Roll
+    m4_rot_x(&player_mtx, app->player_rot.x); // Pitch
+    m4_rot_y(&player_mtx, app->player_rot.y); // Yaw
+    m4_trans(&player_mtx, app->player_pos);
+
+    v3 move = 0;
+    if (key_down(input, KEY_W)) move.z -= 1;
+    if (key_down(input, KEY_S)) move.z += 1;
+    if (key_down(input, KEY_A)) move.x -= 1;
+    if (key_down(input, KEY_D)) move.x += 1;
+    move = m4s_mul_dir(&player_mtx.fwd, move);
+    move.y = 0;
+    if (key_down(input, KEY_SPACE)) move.y += 1;
+    if (key_down(input, KEY_SHIFT)) move.y -= 1;
+    move = v3_limit(move, 1.0);
+    app->player_pos += move * 4 * app->dt;
+
+    if (input->mouse_is_grabbed) {
+        app->player_rot.y -= (f32)input->mouse_rel.x / 1000.0f;
+        app->player_rot.x -= (f32)input->mouse_rel.y / 1000.0f;
+    }
+
+    m4 mtx = m4_id();
+
+    // Model -> World
+    m4_rot_y(&mtx, 1);
+    m4_trans(&mtx, (v3){0, 0, 0});
+
+    // World -> Screen
+    m4_mul_inv(&mtx, &player_mtx);
+
+    // Screen -> Clip
+    m4_perspective_to_clip(&mtx, 70, (f32) input->window_size.x / (f32)input->window_size.y, 0.5, 5.0);
+
+    gl_draw(app->gl, &mtx.fwd, input->window_size);
 
     // Finish
     sdl_swap_window(app->sdl);

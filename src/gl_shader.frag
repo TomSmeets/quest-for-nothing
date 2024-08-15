@@ -8,5 +8,5 @@ in vec2 frag_uv;
 out vec4 frag_color;
 
 void main() {
-    frag_color = vec4(frag_uv.x, frag_uv.y, 1.0, 1.0);
+    frag_color = vec4(frag_uv.xy, 1.0, 1.0);
 }

@@ -12,6 +12,6 @@ void main() {
     frag_uv.x = vert_pos.x;
     frag_uv.y = vert_pos.y;
 
-    vec3 pos = vec3(vert_pos*2-1, 0);
+    vec3 pos = vec3(vert_pos * 2 - 1, 0);
     gl_Position = mtx * vec4(pos, 1.0);
 }

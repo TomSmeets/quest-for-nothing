@@ -4,6 +4,7 @@
 #include "asset.h"
 #include "fmt.h"
 #include "gl_api.h"
+#include "mat.h"
 #include "vec.h"
 
 static GLuint gl_compile_shader(Gl_Api *gl, GLenum type, char *source) {
@@ -119,7 +120,7 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     return gl;
 }
 
-static void gl_draw(Gl *gl, v2i viewport_size) {
+static void gl_draw(Gl *gl, m4s *mtx, v2i viewport_size) {
     Gl_Api *api = &gl->api;
     Gl_Pass *pass = &gl->pass;
 
@@ -145,15 +146,6 @@ static void gl_draw(Gl *gl, v2i viewport_size) {
     api->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(v2), (void *)0);
     api->glEnableVertexAttribArray(0);
 
-
-    bool row_major = false;
-    float mtx[] = {
-        .5, 0, 0, 0,
-        0, .5, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1,
-    };
-    api->glUniformMatrix4fv(pass->uniform_mtx, 1, row_major, (GLfloat *) mtx);
-    
+    api->glUniformMatrix4fv(pass->uniform_mtx, 1, false, (GLfloat *)mtx);
     api->glDrawArrays(GL_TRIANGLES, 0, 6);
 }

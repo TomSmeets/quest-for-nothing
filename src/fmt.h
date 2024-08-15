@@ -226,14 +226,14 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
 
         if (state < 4) {
             if (c == 'u') {
-                u32 value = va_arg(arg, u32);
+                u64 value = va_arg(arg, u64);
                 fmt_u64(&opt, buf, value);
                 state = 5;
                 continue;
             }
 
             if (c == 'd' || c == 'i') {
-                i32 value = va_arg(arg, i32);
+                i64 value = va_arg(arg, i64);
                 fmt_i64(&opt, buf, value);
                 state = 5;
                 continue;

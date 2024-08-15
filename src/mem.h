@@ -14,7 +14,6 @@ typedef struct {
     u32 size;
 } Memory;
 
-
 // Align to 16 bytes
 static void mem_align(Memory *mem) {
     mem->used = (mem->used + 15) & ~15;
