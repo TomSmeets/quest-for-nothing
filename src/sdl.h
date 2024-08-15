@@ -14,8 +14,6 @@
 
 typedef struct {
     Sdl_Api api;
-    Gl gl;
-
     SDL_Window *win;
     SDL_GLContext *ctx;
     Input input;
@@ -78,7 +76,7 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // Load OpenGL context
     sdl->ctx = api->SDL_GL_CreateContext(sdl->win);
     assert(sdl->ctx, "Failed to create OpenGL 3.3 Context");
-    gl_load(&sdl->gl, api->SDL_GL_GetProcAddress);
+    // gl_load(&sdl->gl, api->SDL_GL_GetProcAddress);
 
     // Disable vsync
     assert(api->SDL_GL_SetSwapInterval(0) == 0, "Could not disable VSync");

@@ -20,20 +20,24 @@ typedef struct {
 
     f32 cutoff;
     f32 duty;
+
+    Memory *mem;
 } App;
 
 static App *app_init(void) {
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
+    app->mem = mem;
     app->game = game_new();
     app->time = os_time();
     app->sdl = sdl_load(mem, "Quest For Nothing");
-    app->gl = &app->sdl->gl;
+    app->gl = gl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
     return app;
 }
 
 static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
+    if(!app) return;
 
     Input *input = &app->sdl->input;
     Audio *audio = &app->audio;
@@ -83,6 +87,9 @@ static void os_main(OS *os) {
     }
 
     App *app = os->app;
+    if(os->reloaded) {
+        app->gl = gl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
+    }
 
     // Handle Input
     Input *input = sdl_poll(app->sdl);

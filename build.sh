@@ -6,7 +6,7 @@ set -euo pipefail
 
 common="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable"
 
-debug="-O1 -g"
+debug="-O0 -g"
 release="-O2 -g0"
 
 linux="-march=native"

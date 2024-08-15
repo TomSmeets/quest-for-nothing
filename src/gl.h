@@ -69,6 +69,7 @@ typedef struct {
 
     // Shader Program
     GLuint shader;
+    GLint uniform_mtx;
 
     // Texture
     GLuint texture;
@@ -101,10 +102,10 @@ static void gl_enable(Gl_Api *gl, GLenum opt, bool value) {
     }
 }
 
-static void gl_load(Gl *gl, void *load(const char *)) {
+static Gl *gl_load(Memory *mem, void *load(const char *)) {
+    Gl *gl = mem_struct(mem, Gl);
     Gl_Api *api = &gl->api;
     Gl_Pass *pass = &gl->pass;
-
     gl_api_load(api, load);
     api->glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     api->glDebugMessageCallbackARB(gl_debug_callback, 0);
@@ -113,8 +114,9 @@ static void gl_load(Gl *gl, void *load(const char *)) {
     api->glBindVertexArray(pass->vao);
 
     api->glGenBuffers(1, &pass->vertex_buffer); // vertex buffer object, for vertecies
-    pass->shader =
-        gl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
+    pass->shader = gl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
+    pass->uniform_mtx = api->glGetUniformLocation(pass->shader, "mtx");
+    return gl;
 }
 
 static void gl_draw(Gl *gl, v2i viewport_size) {
@@ -128,16 +130,30 @@ static void gl_draw(Gl *gl, v2i viewport_size) {
     api->glUseProgram(pass->shader);
     api->glBindVertexArray(pass->vao);
 
-    v3 verts[] = {
-        {0, 0, 0},
-        {1, 0, 0},
-        {1, 1, 0},
+    v2 verts[] = {
+        {0, 0},
+        {1, 1},
+        {0, 1},
+        {1, 1},
+        {0, 0},
+        {1, 0},
     };
 
     api->glBindBuffer(GL_ARRAY_BUFFER, pass->vertex_buffer);
     api->glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STREAM_DRAW);
 
-    api->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(v3), (void *)0);
+    api->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(v2), (void *)0);
     api->glEnableVertexAttribArray(0);
-    api->glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+    bool row_major = false;
+    float mtx[] = {
+        .5, 0, 0, 0,
+        0, .5, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1,
+    };
+    api->glUniformMatrix4fv(pass->uniform_mtx, 1, row_major, (GLfloat *) mtx);
+    
+    api->glDrawArrays(GL_TRIANGLES, 0, 6);
 }

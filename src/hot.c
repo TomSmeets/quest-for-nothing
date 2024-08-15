@@ -173,10 +173,12 @@ int main(int argc, const char **argv) {
         // If a source file changed, reload it
         if (watch_changed(fd)) {
             update = build_and_load(main_path, counter++);
+            os.reloaded = 1;
         }
 
         if (update) {
             update(&os);
+            os.reloaded = 0;
         }
     }
 }

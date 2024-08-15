@@ -18,6 +18,9 @@ typedef struct {
     u32 argc;
     char **argv;
 
+    // Was the application reloaded
+    bool reloaded;
+
     // Cached allocations (handled by os)
     OS_Alloc *cache;
     void *sdl2_handle;
