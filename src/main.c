@@ -86,7 +86,7 @@ static void os_main(OS *os) {
 
     // Handle Input
     Input *input = sdl_poll(app->sdl);
-    if (input->quit) os_exit(0);
+    if (input->quit || key_down(input, KEY_Q)) os_exit(0);
 
     if (input->window_resized) {
         os_printf("Resize: %4i %4i\n", input->window_size.x, input->window_size.y);
@@ -123,7 +123,7 @@ static void os_main(OS *os) {
     }
 
     // Render
-    gl_clear(app->gl);
+    gl_draw(app->gl, input->window_size);
 
     // Finish
     sdl_swap_window(app->sdl);
