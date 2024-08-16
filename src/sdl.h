@@ -59,18 +59,13 @@ static Sdl *sdl_load(Memory *mem, char *title) {
     // GL attrs must be set before creating the window
     api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    api->SDL_GL_SetAttribute(
-        SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG
-    );
+    api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     api->SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
     api->SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
 
     // Create window
-    sdl->win = api->SDL_CreateWindow(
-        title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
-    );
+    sdl->win = api->SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     assert(sdl->win, "Failed to create SDL Window");
 
     // Load OpenGL context

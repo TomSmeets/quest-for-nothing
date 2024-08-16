@@ -4,17 +4,17 @@
 #include "types.h"
 
 // Append an element to a singly linked list with first and last pointers
-#define LIST_APPEND(first, last, el)                                                               \
-    do {                                                                                           \
-        if ((first)) {                                                                             \
-            (last)->next = (el);                                                                   \
-            (last) = (el);                                                                         \
-        } else {                                                                                   \
-            (first) = (last) = (el);                                                               \
-        }                                                                                          \
+#define LIST_APPEND(first, last, el)                                                                                                                 \
+    do {                                                                                                                                             \
+        if ((first)) {                                                                                                                               \
+            (last)->next = (el);                                                                                                                     \
+            (last) = (el);                                                                                                                           \
+        } else {                                                                                                                                     \
+            (first) = (last) = (el);                                                                                                                 \
+        }                                                                                                                                            \
     } while (0)
 
-#define assert(cond, msg)                                                                          \
+#define assert(cond, msg)                                                                                                                            \
     if (!(cond)) os_fail(msg "\n")
 #define array_count(a) (sizeof(a) / sizeof(a[0]))
 

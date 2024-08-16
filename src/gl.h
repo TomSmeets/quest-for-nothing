@@ -82,10 +82,7 @@ typedef struct {
     Gl_Pass pass;
 } Gl;
 
-static void gl_debug_callback(
-    GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message,
-    const void *user
-) {
+static void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *user) {
     char *prefix = "????";
     if (severity == GL_DEBUG_SEVERITY_HIGH) prefix = "HIGH";
     if (severity == GL_DEBUG_SEVERITY_MEDIUM) prefix = "MEDIUM";

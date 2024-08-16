@@ -22,10 +22,7 @@ static void os_fail(char *msg) {
     // check windows error
     DWORD last_error = GetLastError();
     char *last_error_msg = 0;
-    FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0,
-        (LPTSTR)&last_error_msg, 0, 0
-    );
+    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0, (LPTSTR)&last_error_msg, 0, 0);
     WriteFile(con, last_error_msg, str_len(last_error_msg), 0, 0);
 
     // Exit
