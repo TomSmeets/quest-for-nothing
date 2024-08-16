@@ -178,23 +178,7 @@ static void os_main(OS *os) {
         app->player_rot.x -= (f32)input->mouse_rel.y / 1000.0f;
     }
 
-
-    m4 mtx = m4_id();
-
-    // Model -> World
-    m4_rot_y(&mtx, 1);
-    m4_trans(&mtx, (v3){0, 0, 0});
-
-    // World -> Screen
-    m4_mul_inv(&mtx, &player_mtx);
-
-    // Screen -> Clip
-    m4_perspective_to_clip(&mtx, 70, (f32) input->window_size.x / (f32)input->window_size.y, 0.5, 5.0);
-
-    gl_draw(app->gl, &mtx.fwd, input->window_size);
-
-    __builtin_dump_struct(app, os_printf);
-    __builtin_dump_struct(&mtx.fwd, os_printf);
+    gl_draw(app->gl, &player_mtx.inv, app->player_pos, input->window_size);
 
     // Finish
     sdl_swap_window(app->sdl);

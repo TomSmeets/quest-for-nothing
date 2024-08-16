@@ -62,15 +62,14 @@ typedef struct {
     // Vertex Array Object, Stores bound vertex and index buffers
     GLuint vao;
 
-    // Vertex Buffer Object, Stores vertices
     GLuint vertex_buffer;
-
-    // Element Buffer Object, Stores indicies
-    GLuint element_buffer;
+    GLuint instance_buffer;
 
     // Shader Program
     GLuint shader;
-    GLint uniform_mtx;
+    GLint uniform_view;
+    GLint uniform_proj;
+    GLint uniform_camera_pos;
 
     // Texture
     GLuint texture;
@@ -114,15 +113,21 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     api->glGenVertexArrays(1, &pass->vao);
     api->glBindVertexArray(pass->vao);
 
-    api->glGenBuffers(1, &pass->vertex_buffer); // vertex buffer object, for vertecies
+    api->glGenBuffers(1, &pass->vertex_buffer);
+    api->glGenBuffers(1, &pass->instance_buffer);
+
     pass->shader = gl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
-    pass->uniform_mtx = api->glGetUniformLocation(pass->shader, "mtx");
+    pass->uniform_view = api->glGetUniformLocation(pass->shader, "view");
+    pass->uniform_proj = api->glGetUniformLocation(pass->shader, "proj");
+    pass->uniform_camera_pos = api->glGetUniformLocation(pass->shader, "camera_pos");
     return gl;
 }
 
-static void gl_draw(Gl *gl, m4s *mtx, v2i viewport_size) {
+static void gl_draw(Gl *gl, m4s *mtx, v3 player, v2i viewport_size) {
     Gl_Api *api = &gl->api;
     Gl_Pass *pass = &gl->pass;
+
+    api->glEnable(GL_DEPTH_TEST);
 
     api->glViewport(0, 0, viewport_size.x, viewport_size.y);
     api->glClearColor(.3, .3, .3, 1);
@@ -140,12 +145,47 @@ static void gl_draw(Gl *gl, m4s *mtx, v2i viewport_size) {
         {1, 0},
     };
 
+
+    v3 quads[] = {
+        {0, 0, 0},
+        {1, 1, 0},
+        {2, 0, 0},
+        {3, 1, 0},
+
+        {0, 0, 1},
+        {1, 1, 1},
+        {2, 0, 1},
+        {3, 1, 1},
+    };
+
+
+    // Setup Verts
     api->glBindBuffer(GL_ARRAY_BUFFER, pass->vertex_buffer);
     api->glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STREAM_DRAW);
 
-    api->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(v2), (void *)0);
     api->glEnableVertexAttribArray(0);
+    api->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(v2), (void *)0);
 
-    api->glUniformMatrix4fv(pass->uniform_mtx, 1, false, (GLfloat *)mtx);
-    api->glDrawArrays(GL_TRIANGLES, 0, 6);
+    // Setup Instances
+    api->glBindBuffer(GL_ARRAY_BUFFER, pass->instance_buffer);
+    api->glBufferData(GL_ARRAY_BUFFER, sizeof(quads), quads, GL_STREAM_DRAW);
+
+    api->glEnableVertexAttribArray(1);
+    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(v3), (void *)0);
+    api->glVertexAttribDivisor(1, 1);
+
+    // Current bound buffer does not matter, only VAO matters
+    api->glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // World -> Screen
+    api->glUniformMatrix4fv(pass->uniform_view, 1, false, (GLfloat *)mtx);
+
+    // Screen -> Clip
+    m4 proj = m4_id();
+    m4_perspective_to_clip(&proj, 70, (f32)viewport_size.x / (f32)viewport_size.y, 0.5, 5.0);
+    api->glUniformMatrix4fv(pass->uniform_proj, 1, false, (GLfloat *)&proj.fwd);
+
+    api->glUniform3f(pass->uniform_camera_pos, player.x, player.y, player.z);
+
+    api->glDrawArraysInstanced(GL_TRIANGLES, 0, array_count(verts), array_count(quads));
 }
