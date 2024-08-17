@@ -2,6 +2,7 @@
 // gl.h - OpenGL 3.3 helper methods
 #pragma once
 #include "asset.h"
+#include "std.h"
 #include "fmt.h"
 #include "gl_api.h"
 #include "mat.h"
@@ -78,6 +79,13 @@ typedef struct {
 } Gl_Pass;
 
 typedef struct {
+    f32 pos[3];
+    u8 texture[3];
+} Gl_Quad;
+
+static_assert(sizeof(Gl_Quad) == 16);
+
+typedef struct {
     Gl_Api api;
     Gl_Pass pass;
 } Gl;
@@ -142,19 +150,15 @@ static void gl_draw(Gl *gl, m4s *mtx, v3 player, v2i viewport_size) {
         {1, 0},
     };
 
-
-    v3 quads[] = {
-        {0, 0, 0},
-        {1, 1, 0},
-        {2, 0, 0},
-        {3, 1, 0},
-
-        {0, 0, 1},
-        {1, 1, 1},
-        {2, 0, 1},
-        {3, 1, 1},
+    Gl_Quad quads[] = {
+        {{0, 0, 0}, { 0, 0, 0 } },
+        {{-1, 0, 0}, { 1, 0, 3 } },
+        {{1, 0,  0}, { 2, 0,  4 } },
+        {{0, 0, -1}, { 3, 0, 2 } },
+        {{0, 0, 1}, { 0, 1, 1 } },
+        {{0, -1, 0}, { 0, 2, 5 } },
+        {{0, 1, 0}, { 0, 3, 6 } },
     };
-
 
     // Setup Verts
     api->glBindBuffer(GL_ARRAY_BUFFER, pass->vertex_buffer);
@@ -167,9 +171,16 @@ static void gl_draw(Gl *gl, m4s *mtx, v3 player, v2i viewport_size) {
     api->glBindBuffer(GL_ARRAY_BUFFER, pass->instance_buffer);
     api->glBufferData(GL_ARRAY_BUFFER, sizeof(quads), quads, GL_STREAM_DRAW);
 
+
+    Gl_Quad *q0 = 0;
+
     api->glEnableVertexAttribArray(1);
-    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(v3), (void *)0);
     api->glVertexAttribDivisor(1, 1);
+    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Gl_Quad), (void *)&q0->pos[0]);
+
+    api->glEnableVertexAttribArray(2);
+    api->glVertexAttribDivisor(2, 1);
+    api->glVertexAttribPointer(2, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Gl_Quad), (void *)&q0->texture[0]);
 
     // Current bound buffer does not matter, only VAO matters
     api->glBindBuffer(GL_ARRAY_BUFFER, 0);
