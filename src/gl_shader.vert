@@ -8,7 +8,6 @@ layout(location = 2) in vec3 texture;
 
 out vec2 frag_uv;
 
-uniform mat4 view;
 uniform mat4 proj;
 uniform vec3 camera_pos;
 
@@ -26,24 +25,24 @@ void main() {
     vec3 rgt = vec3(fwd.z, fwd.y, -fwd.x);
     vec3 up = vec3(0, 1, 0);
 
-    if(texture.z == 1) {
-        rgt = vec3(1, 0, 0);
-    } else if(texture.z == 2) {
-        rgt = vec3(-1, 0, 0);
-    } else if(texture.z == 3) {
-        rgt = vec3(0, 0, 1);
-    } else if(texture.z == 4) {
-        rgt = vec3(0, 0, -1);
-    } else if(texture.z == 5) {
-        rgt = vec3(1, 0, 0);
-        up = vec3(0, 0, 1);
-    } else if(texture.z == 6) {
-        rgt = vec3(-1, 0, 0);
-        up = vec3(0, 0, -1);
-    }
+    // if(texture.z == 1) {
+    //     rgt = vec3(1, 0, 0);
+    // } else if(texture.z == 2) {
+    //     rgt = vec3(-1, 0, 0);
+    // } else if(texture.z == 3) {
+    //     rgt = vec3(0, 0, 1);
+    // } else if(texture.z == 4) {
+    //     rgt = vec3(0, 0, -1);
+    // } else if(texture.z == 5) {
+    //     rgt = vec3(1, 0, 0);
+    //     up = vec3(0, 0, 1);
+    // } else if(texture.z == 6) {
+    //     rgt = vec3(-1, 0, 0);
+    //     up = vec3(0, 0, -1);
+    // }
 
-    
     vec3 pos = quad_pos + rgt * vert_pos.x + up * vert_pos.y;
-    frag_uv = (vert_uv + texture.xy) / 4;
-    gl_Position = proj * view * vec4(pos, 1);
+    frag_uv = vert_uv;
+    frag_uv = (vert_uv + texture.xy) / 32.0;
+    gl_Position = proj * vec4(pos, 1);
 }

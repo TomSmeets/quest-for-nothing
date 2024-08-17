@@ -22,6 +22,7 @@ typedef _Bool bool;
 #define false 0
 
 #define static_assert(cond) _Static_assert(cond, "")
+#define offset_of(type, field) __builtin_offsetof(type, field)
 
 static_assert(sizeof(u8) == 1);
 static_assert(sizeof(u16) == 2);

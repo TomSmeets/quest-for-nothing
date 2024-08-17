@@ -85,6 +85,7 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 // Sleep until next frame
 static void app_sleep(App *app) {
     u64 time = os_time();
+    // os_printf("dt %llu\n", time - app->time);
 
     // We are ahead
     if (app->time > time) {
@@ -111,11 +112,13 @@ static void os_main(OS *os) {
     }
 
     App *app = os->app;
+    Memory *tmp = mem_new();
 
     app_set_fps(app, 200);
 
     if (os->reloaded) {
         app->gl = gl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
+        app->game = game_new();
     }
 
     // Handle Input
@@ -178,9 +181,29 @@ static void os_main(OS *os) {
         app->player_rot.x -= (f32)input->mouse_rel.y / 1000.0f;
     }
 
-    gl_draw(app->gl, &player_mtx.inv, app->player_pos, input->window_size);
+    m4 proj = m4_id();
+    m4_mul_inv(&proj, &player_mtx);
+    m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.5, 32.0);
+
+    gl_begin(app->gl);
+
+    // Random rand = {};
+    // for(u32 i = 0; i < 32; ++i) {
+    //     for(u32 j = 0; j < 32; ++j) {
+    //         Image *img = img_new(tmp, (v2u){32, 32});
+    //         img_fill(img, (v4){rand_f32(&rand), rand_f32(&rand) , rand_f32(&rand), 1});
+    //         gl_quad(app->gl, 0, img, (v3){j, i, 0}*1.1);
+    //     }
+    // }
+
+    for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
+        gl_quad(app->gl, 0, mon->image, mon->pos);
+    }
+
+    gl_draw(app->gl, &proj.fwd, app->player_pos, input->window_size);
 
     // Finish
     sdl_swap_window(app->sdl);
+    mem_free(tmp);
     app_sleep(app);
 }

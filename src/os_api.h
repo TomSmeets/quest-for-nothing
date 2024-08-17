@@ -24,6 +24,7 @@ typedef struct {
     // Cached allocations (handled by os)
     OS_Alloc *cache;
     void *sdl2_handle;
+    u64 uid;
 } OS;
 
 // The only global variable allowed

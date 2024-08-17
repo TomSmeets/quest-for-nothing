@@ -1,38 +1,38 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // image.h - Image type
 #pragma once
+#include "id.h"
 #include "mem.h"
 #include "vec.h"
 
 typedef struct {
+    u64 id;
     v2u size;
-    u32 *pixels;
+    v4 *pixels;
 } Image;
 
-static Image *img_new(Memory *mem, v2u size) {
+static Image *image_new(Memory *mem, v2u size) {
     Image *img = mem_struct(mem, Image);
+    img->id = id_next();
     img->size = size;
-    img->pixels = mem_array_uninit(mem, u32, size.x * size.y);
+    img->pixels = mem_array_uninit(mem, v4, size.x * size.y);
     return img;
 }
 
-static void img_fill(Image *img, u32 color) {
+static void image_fill(Image *img, v4 color) {
     for (u32 y = 0; y < img->size.y; ++y) {
         for (u32 x = 0; x < img->size.x; ++x) {
             img->pixels[y * img->size.x + x] = color;
         }
     }
+    img->id = id_next();
 }
 
-static u32 color_rgba(u8 r, u8 g, u8 b, u8 a) {
-    u32 color = 0;
-    color = (color << 8) | r;
-    color = (color << 8) | g;
-    color = (color << 8) | b;
-    color = (color << 8) | a;
-    return color;
-}
-
-static u32 color_rgb(u8 r, u8 g, u8 b) {
-    return color_rgba(r, g, b, 0xff);
+static Image *image_grid(Image *img, v4 c1, v4 c2) {
+    for (u32 y = 0; y < img->size.y; y++) {
+        for (u32 x = 0; x < img->size.x; x++) {
+            img->pixels[y * img->size.y + x] = (x % 2 == y % 2) ? c1 : c2;
+        }
+    }
+    return img;
 }
