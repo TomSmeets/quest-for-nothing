@@ -5,8 +5,9 @@
 #include "std.h"
 #include "str.h"
 
-#if 0
+#if 1
 #include <dlfcn.h>
+#include <fcntl.h>
 #include <sys/mman.h>
 #include <time.h>
 #include <unistd.h>
@@ -62,8 +63,9 @@ static void os_exit(i32 status) {
     _exit(status);
 }
 
-static void os_write(u8 *msg, u32 len) {
-    write(1, msg, len);
+static void os_write(u32 fd, u8 *msg, u32 len) {
+    ssize_t result = write(fd, msg, len);
+    assert(result == len, "Failed to write");
 }
 
 static void os_fail(char *message) {
@@ -72,6 +74,7 @@ static void os_fail(char *message) {
 }
 
 static void *os_alloc_raw(u32 size) {
+    os_print("OS_ALLOC\n");
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
     void *alloc = mmap(0, size, prot, flags, -1, 0);
@@ -98,6 +101,14 @@ static void *os_load_sdl2(char *name) {
     }
 
     return dlsym(os->sdl2_handle, name);
+}
+
+static u64 os_rand(void) {
+    u64 seed = 0;
+    int fd = open("/dev/urandom", O_RDONLY);
+    read(fd, &seed, sizeof(seed));
+    close(fd);
+    return seed;
 }
 
 // Export main, allowing us to dynamically call it

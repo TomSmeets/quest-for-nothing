@@ -347,7 +347,9 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
     }
 }
 
-__attribute__((format(printf, 1, 2))) static void os_printf(char *format, ...) {
+#define os_printf(...) os_fprintf(OS_STDOUT, __VA_ARGS__)
+
+__attribute__((format(printf, 2, 3))) static void os_fprintf(u32 fd, const char *format, ...) {
     OS_Alloc *tmp = os_alloc();
 
     // Use the entire allocation for this format
@@ -359,18 +361,18 @@ __attribute__((format(printf, 1, 2))) static void os_printf(char *format, ...) {
     // Format
     va_list arg;
     va_start(arg, format);
-    fmt_buf_va(&buf, format, arg);
+    fmt_buf_va(&buf, (char *)format, arg);
     va_end(arg);
 
     // Print
-    os_write(buf.start, buf.used);
+    os_write(fd, buf.start, buf.used);
 
     // Restore allocation
     tmp->next = 0;
     os_free(tmp);
 }
 
-__attribute__((format(printf, 2, 3))) static char *fmt(Memory *mem, char *format, ...) {
+__attribute__((format(printf, 2, 3))) static char *fmt(Memory *mem, const char *format, ...) {
     OS_Alloc *tmp = os_alloc();
 
     // Use the entire allocation for this format
@@ -382,7 +384,7 @@ __attribute__((format(printf, 2, 3))) static char *fmt(Memory *mem, char *format
     // Format
     va_list arg;
     va_start(arg, format);
-    fmt_buf_va(&buf, format, arg);
+    fmt_buf_va(&buf, (char *)format, arg);
     va_end(arg);
 
     // Zero terminate

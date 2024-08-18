@@ -34,7 +34,7 @@ void js_main(OS *os) {
     os_main(os);
 }
 
-static void os_write(u8 *data, u32 len) {
+static void os_write(u32 fd, u8 *data, u32 len) {
     js_write(data, len);
 }
 

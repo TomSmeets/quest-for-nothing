@@ -6,7 +6,7 @@
 #include "str.h"
 #include <windows.h>
 
-static void os_write(u8 *msg, u32 len) {
+static void os_write(u32 fd, u8 *msg, u32 len) {
     HANDLE con = GetStdHandle(STD_OUTPUT_HANDLE);
     WriteFile(con, msg, len, 0, 0);
 }

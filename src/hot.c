@@ -2,80 +2,113 @@
 // hot.c - Dynamically compile and reload interactive programs
 //
 // Usage: ./hot src/main.c [ARGS]...
+#include "fmt.h"
+#include "mem.h"
+#include "os.h"
 #include "os_api.h"
+#include "rand.h"
+#include "std.h"
+#include "types.h"
+
+#if 1
 #include <dlfcn.h>
 #include <limits.h>
-#include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/inotify.h>
-#include <sys/select.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#endif
 
 // Configuration
 static const u32 debounce_time = 100;
 static const char *watch_path[] = {".", "src"};
 
+static const char *compile_command = "clang"
+                                     // Enable most warning flags
+                                     " -Wall -Werror"
+                                     " -Wno-unused-function"
+                                     " -Wno-unused-variable"
+                                     " -Wno-unused-but-set-variable"
+                                     " -Wno-format"
+                                     // We are running on this cpu
+                                     " -march=native"
+                                     // Don't optimize, quick compile times
+                                     " -O0 -g"
+                                     // Create a '.so' file for dynamic loading
+                                     " -shared"
+                                     " -o %s %s";
 // Implementation
 typedef void os_main_t(OS *os);
 
-static void embed_file(FILE *output, const char *name, const char *file_path) {
+static void embed_file(u32 output, const char *name, const char *file_path) {
     // Just waiting for #embed to land in clang...
-    FILE *f = fopen(file_path, "rb");
-    fprintf(output, "static unsigned char FILE_%s[] = {", name);
+    int f = open(file_path, O_RDONLY);
+    os_fprintf(output, "static unsigned char FILE_%s[] = {", name);
     for (;;) {
-        int c = fgetc(f);
-        if (c <= 0) break;
-        fprintf(output, "%u,", c);
+        u8 data[1024];
+        ssize_t len = read(f, data, sizeof(data));
+        assert(len >= 0, "Failed to read data");
+        if (len == 0) break;
+        for (u32 i = 0; i < len; ++i) {
+            os_fprintf(output, "%u,", data[i]);
+        }
     }
-    fprintf(output, "0x00};\n");
-    fclose(f);
+    os_fprintf(output, "0};\n");
+    close(f);
 }
 
-static os_main_t *build_and_load(const char *main_path, u32 counter) {
-    FILE *asset_file = fopen("src/asset.h", "w");
-    fprintf(asset_file, "#pragma once\n");
+static void embed_files(const char *output_file) {
+    int asset_file = open(output_file, O_WRONLY | O_CREAT | O_TRUNC);
+    assert(asset_file >= 0, "Failed to open asset output file");
+    os_fprintf(asset_file, "#pragma once\n");
+    os_fprintf(asset_file, "// clang-format off\n");
     embed_file(asset_file, "SHADER_VERT", "src/gl_shader.vert");
     embed_file(asset_file, "SHADER_FRAG", "src/gl_shader.frag");
-    fclose(asset_file);
+    close(asset_file);
+}
 
-    char out_path[1024];
-    sprintf(out_path, "/tmp/hot-result-%u.so", counter);
+static os_main_t *build_and_load(const char *main_path, u64 counter) {
+    embed_files("src/asset.h");
 
-#define CC_WARN "-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format"
-#define CC_DEBUG "-march=native -O0 -g"
-#define CC_RELEASE "-march=native -O2 -g0"
+    Memory *tmp = mem_new();
 
-    char command[1024];
-    sprintf(command, "clang " CC_WARN " " CC_DEBUG " -shared -o %s %s", out_path, main_path);
+    char *out_path = fmt(tmp, "/tmp/hot-%08llx.so", counter);
+    char *command = fmt(tmp, compile_command, out_path, main_path);
 
-    printf("Running: %s\n", command);
+    os_printf("Running: %s\n", command);
     int ret = system(command);
-    if (ret < 0) {
-        perror("system");
-        _exit(1);
-    }
+    assert(ret >= 0, "Error while compiling");
+
+    mem_free(tmp);
 
     if (ret != 0) {
-        printf("Compile error!\n");
+        os_print("Compile error!\n");
         return 0;
     }
 
     void *handle = dlopen(out_path, RTLD_LOCAL | RTLD_NOW);
     if (!handle) {
-        fprintf(stderr, "dlopen: %s\n", dlerror());
+        os_printf("dlopen: %s\n", dlerror());
         return 0;
     }
 
     os_main_t *fcn = dlsym(handle, "os_main_dynamic");
     if (!fcn) {
-        fprintf(stderr, "dlsym: %s\n", dlerror());
+        os_printf("dlsym: %s\n", dlerror());
         return 0;
     }
 
     return fcn;
+}
+
+// === Watch ===
+static int watch_init(void) {
+    int fd = inotify_init();
+    assert(fd >= 0, "Could not init inotify");
+    for (u32 i = 0; i < array_count(watch_path); ++i) {
+        int wd = inotify_add_watch(fd, watch_path[i], IN_MODIFY | IN_CREATE | IN_DELETE);
+        assert(wd >= 0, "inotify_add_watch");
+    }
+
+    return fd;
 }
 
 static bool watch_changed(int fd) {
@@ -90,10 +123,7 @@ static bool watch_changed(int fd) {
         FD_ZERO(&fds);
         FD_SET(fd, &fds);
         int ret = select(fd + 1, &fds, 0, 0, &timeout);
-        if (ret < 0) {
-            perror("select");
-            _exit(1);
-        }
+        assert(ret >= 0, "select");
 
         if (ret == 0) {
             return change_count > 0;
@@ -107,15 +137,15 @@ static bool watch_changed(int fd) {
 
         ssize_t length = read(fd, buffer, sizeof(buffer));
         if (length < 0) {
-            perror("read");
+            os_print("Failed to read data from watch\n");
             break;
         }
 
         struct inotify_event *event = (struct inotify_event *)buffer;
         if (event->len) {
-            printf("changed: %s\n", event->name);
+            os_printf("changed: %s\n", event->name);
 
-            if (strcmp(event->name, "asset.h") == 0) {
+            if (str_eq(event->name, "asset.h")) {
                 continue;
             }
         }
@@ -128,56 +158,68 @@ static bool watch_changed(int fd) {
     return false;
 }
 
-static int watch_init(void) {
-    int fd = inotify_init();
-    if (fd < 0) {
-        perror("inotify_init");
-        _exit(1);
-    }
-    for (u32 i = 0; i < sizeof(watch_path) / sizeof(watch_path[0]); ++i) {
-        int wd = inotify_add_watch(fd, watch_path[i], IN_MODIFY | IN_CREATE | IN_DELETE);
-        if (wd < 0) {
-            perror("inotify_add_watch");
-            _exit(1);
-        }
+typedef struct {
+    // For generating unique '.so' names
+    Random rng;
+
+    // main.c
+    char *main_path;
+
+    // OS struct for the child
+    OS child_os;
+
+    // File watch
+    int watch;
+
+    // Update function
+    bool first_time;
+    os_main_t *update;
+} Hot;
+
+static Hot *hot_load(OS *os) {
+    // Already loaded
+    if (os->app) return os->app;
+
+    Memory *mem = mem_new();
+    Hot *hot = mem_struct(mem, Hot);
+
+    // Parse arguments
+    if (os->argc < 2) {
+        os_printf("%s <MAIN_FILE> [ARGS]...\n", os->argv[0]);
+        os_exit(1);
     }
 
-    return fd;
+    hot->main_path = os->argv[1];
+
+    // Prepare OS handle for the child
+    hot->child_os.argc = os->argc - 1;
+    hot->child_os.argv = os->argv + 1;
+
+    // Init inotify
+    hot->watch = watch_init();
+    hot->first_time = 1;
+
+    // Init rng, nested 'hot' would not work otherwise
+    hot->rng.seed = os_rand();
+
+    // Save to os
+    os->app = hot;
+    return hot;
 }
 
-// Watch current directory
-// recompile on change
-// run application
-int main(int argc, const char **argv) {
-    if (argc < 2) {
-        puts("hot <MAIN_FILE> [ARGS]...");
-        return 1;
+void os_main(OS *os) {
+    Hot *hot = hot_load(os);
+
+    if (hot->first_time || watch_changed(hot->watch)) {
+        hot->update = build_and_load(hot->main_path, rand_next(&hot->rng));
+        hot->child_os.reloaded = 1;
+        hot->first_time = 0;
     }
 
-    const char *main_path = argv[1];
-
-    // Shift arguments by one
-    OS os = {};
-    os.argc = argc - 1;
-    os.argv = (char **)argv + 1;
-
-    // We use inotify to detect changes to source files
-    int fd = watch_init();
-    u32 counter = 0;
-
-    // Build and load the first version
-    os_main_t *update = build_and_load(main_path, counter++);
-
-    for (;;) {
-        // If a source file changed, reload it
-        if (watch_changed(fd)) {
-            update = build_and_load(main_path, counter++);
-            os.reloaded = 1;
-        }
-
-        if (update) {
-            update(&os);
-            os.reloaded = 0;
-        }
+    if (hot->update) {
+        hot->update(&hot->child_os);
+        hot->child_os.reloaded = 0;
+    } else {
+        os_sleep(100 * 1000);
     }
 }

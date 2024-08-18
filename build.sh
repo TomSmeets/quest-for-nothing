@@ -25,7 +25,7 @@ WASM_REL="$COMMON_WARN $COMMON_WASM $COMMON_REL"
 mkdir -p out
 
 set -x
-clang $LINUX_REL -o out/hot src/hot.c
+clang $LINUX_DBG -o out/hot src/hot.c
 
 clang $LINUX_DBG -o out/quest-for-nothing      src/main.c
 clang $WIN32_DBG -o out/quest-for-nothing.exe  src/main.c

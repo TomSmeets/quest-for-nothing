@@ -118,6 +118,7 @@ static void os_main(OS *os) {
 
     if (os->reloaded) {
         app->gl = gl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
+        game_free(app->game);
         app->game = game_new();
     }
 

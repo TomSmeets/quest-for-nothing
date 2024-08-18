@@ -10,3 +10,12 @@ static u32 str_len(char *s) {
         n++;
     return n;
 }
+
+static bool str_eq(char *s1, char *s2) {
+    for (;;) {
+        if (*s1 != *s2) return false;
+        if (*s1 == 0) return true;
+        s1++;
+        s2++;
+    }
+}

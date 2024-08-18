@@ -199,6 +199,11 @@ static void gl_begin(Gl *gl) {
 }
 
 static void gl_quad(Gl *gl, u8 kind, Image *image, v3 pos) {
+    if (gl->quad_count >= array_count(gl->quad_list)) {
+        os_printf("Too many quads\n");
+        return;
+    }
+
     u32 ix = gl->quad_count++;
 
     u32 tx = ix % 32;

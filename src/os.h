@@ -44,5 +44,5 @@ static void os_free(OS_Alloc *ptr) {
 }
 
 static void os_print(char *msg) {
-    os_write((u8 *)msg, str_len(msg));
+    os_write(OS_STDOUT, (u8 *)msg, str_len(msg));
 }

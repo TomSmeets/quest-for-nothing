@@ -17,12 +17,12 @@ typedef double f64;
 
 #define U32_MAX 0xffffffff
 
+// TODO: use bool from c23
 typedef _Bool bool;
 #define true 1
 #define false 0
 
 #define static_assert(cond) _Static_assert(cond, "")
-#define offset_of(type, field) __builtin_offsetof(type, field)
 
 static_assert(sizeof(u8) == 1);
 static_assert(sizeof(u16) == 2);
@@ -36,10 +36,12 @@ static_assert(sizeof(i64) == 8);
 
 static_assert(sizeof(f32) == 4);
 static_assert(sizeof(f64) == 8);
-
-// What is the point of a 8 bit bool?
-// Either we care about size or not
-//
-// Care => u32 bit field
-// Not  => u32 for speed
 static_assert(sizeof(bool) == 1);
+
+#define offset_of(type, field) __builtin_offsetof(type, field)
+#define array_count(a) (sizeof(a) / sizeof(a[0]))
+
+typedef __builtin_va_list va_list;
+#define va_start(ap, param) __builtin_va_start(ap, param)
+#define va_end(ap) __builtin_va_end(ap)
+#define va_arg(ap, type) __builtin_va_arg(ap, type)

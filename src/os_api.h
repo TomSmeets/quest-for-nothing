@@ -33,7 +33,9 @@ static OS *OS_GLOBAL;
 static void os_main(OS *os);
 
 // Platform API
-static void os_write(u8 *data, u32 len);
+#define OS_STDIN 0
+#define OS_STDOUT 1
+static void os_write(u32 fd, u8 *data, u32 len);
 
 static void os_exit(i32 code);
 static void os_fail(char *message);
@@ -51,3 +53,5 @@ static void os_print(char *message);
 
 static OS_Alloc *os_alloc(void);
 static void os_free(OS_Alloc *ptr);
+
+static u64 os_rand(void);
