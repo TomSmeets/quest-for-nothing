@@ -190,6 +190,8 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     api->glEnable(GL_FRAMEBUFFER_SRGB);
     api->glEnable(GL_DEPTH_TEST);
     api->glEnable(GL_MULTISAMPLE);
+    api->glEnable(GL_CULL_FACE);
+    api->glCullFace(GL_BACK);
     api->glClearColor(.3, .3, .3, 1);
     return gl;
 }

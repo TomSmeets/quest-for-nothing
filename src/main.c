@@ -70,6 +70,7 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 
         f32 volume_1 = audio_smooth_bool(audio, 80.0f, key_down(input, KEY_MOUSE_LEFT));
         f32 volume_2 = audio_smooth_bool(audio, 80.0f, key_down(input, KEY_MOUSE_RIGHT));
+        volume_1 = 0;
 
         v2 sample = {};
         sample.x = wave * volume_1 + noise_l * volume_2;
@@ -173,6 +174,8 @@ static void os_main(OS *os) {
     if (key_down(input, KEY_D)) move.x += 1;
     move = m4s_mul_dir(&player_mtx.fwd, move);
     move.y = 0;
+    move = v3_normalize(move);
+
     if (key_down(input, KEY_SPACE)) move.y += 1;
     if (key_down(input, KEY_SHIFT)) move.y -= 1;
     move = v3_limit(move, 1.0);
@@ -199,7 +202,17 @@ static void os_main(OS *os) {
     // }
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        gl_quad(app->gl, 0, mon->image, mon->pos);
+        // gl_quad(app->gl, 0, mon->image, mon->pos);
+    }
+
+    for (Cell *cell = app->game->level; cell; cell = cell->next) {
+        v3 p = v3i_to_v3(cell->pos);
+        if (cell->x_neg) gl_quad(app->gl, 1, cell->x_neg, p + 0.5 * (v3){-1, 0, 0});
+        if (cell->z_neg) gl_quad(app->gl, 2, cell->z_neg, p + 0.5 * (v3){0, 0, -1});
+        if (cell->x_pos) gl_quad(app->gl, 3, cell->x_pos, p + 0.5 * (v3){1, 0, 0});
+        if (cell->z_pos) gl_quad(app->gl, 4, cell->z_pos, p + 0.5 * (v3){0, 0, 1});
+        if (cell->y_pos) gl_quad(app->gl, 5, cell->y_pos, p + 0.5 * (v3){0, 1, 0});
+        if (cell->y_neg) gl_quad(app->gl, 6, cell->y_neg, p + 0.5 * (v3){0, -1, 0});
     }
 
     gl_draw(app->gl, &proj.fwd, app->player_pos, input->window_size);

@@ -25,8 +25,37 @@ void main() {
     vec3 rgt = vec3(fwd.z, fwd.y, -fwd.x);
     vec3 up = vec3(0, 1, 0);
 
-    // if(texture.z == 1) {
-    //     rgt = vec3(1, 0, 0);
+    if (texture.z == 1) {
+        fwd = vec3(1, 0, 0);
+        rgt = vec3(0, 0, -1);
+    }
+
+    if (texture.z == 2) {
+        fwd = vec3(0, 0, -1);
+        rgt = vec3(1, 0, 0);
+    }
+
+    if (texture.z == 3) {
+        fwd = vec3(-1, 0, 0);
+        rgt = vec3(0, 0, 1);
+    }
+
+    if (texture.z == 4) {
+        fwd = vec3(0, 0, 1);
+        rgt = vec3(-1, 0, 0);
+    }
+
+    if (texture.z == 5) {
+        fwd = vec3(0, 1, 0);
+        up = vec3(0, 0, 1);
+        rgt = vec3(1, 0, 0);
+    }
+
+    if (texture.z == 6) {
+        fwd = vec3(0, -1, 0);
+        up = vec3(0, 0, 1);
+        rgt = vec3(-1, 0, 0);
+    }
     // } else if(texture.z == 2) {
     //     rgt = vec3(-1, 0, 0);
     // } else if(texture.z == 3) {

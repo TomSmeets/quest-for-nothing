@@ -60,18 +60,6 @@ static Cell *game_cell_get(Game *game, v3i pos) {
     return 0;
 }
 
-static Image *gen_wall_image(Memory *mem, u32 size) {
-    Image *img = image_new(mem, (v2u){size, size});
-    // img_fill(img, color_rgb(0xff, 0xff, 0xff));
-    return img;
-}
-
-static Cell *cell_new(Memory *mem, v3i pos) {
-    Cell *cell = mem_struct(mem, Cell);
-    cell->pos = pos;
-    return cell;
-}
-
 static v4 rand_color(Random *rng) {
     v4 ret;
     ret.x = rand_f32(rng);
@@ -79,6 +67,18 @@ static v4 rand_color(Random *rng) {
     ret.z = rand_f32(rng);
     ret.w = 1;
     return ret;
+}
+
+static Image *gen_wall_image(Memory *mem, Random *rng) {
+    Image *img = image_new(mem, (v2u){32, 32});
+    image_grid(img, rand_color(rng), rand_color(rng));
+    return img;
+}
+
+static Cell *cell_new(Memory *mem, v3i pos) {
+    Cell *cell = mem_struct(mem, Cell);
+    cell->pos = pos;
+    return cell;
 }
 
 static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
@@ -105,10 +105,14 @@ static Cell *gen_level_outline(Memory *mem, u32 size) {
     return first;
 }
 
-static void gen_indoor(Cell *level, Memory *mem) {
+static void gen_indoor(Cell *level, Memory *mem, Random *rng) {
     for (Cell *cell = level; cell; cell = cell->next) {
-        cell->x_neg = gen_wall_image(mem, 32);
-        cell->x_pos = gen_wall_image(mem, 32);
+        if (1) cell->x_neg = gen_wall_image(mem, rng);
+        if (1) cell->x_pos = gen_wall_image(mem, rng);
+        if (1) cell->z_pos = gen_wall_image(mem, rng);
+        if (1) cell->z_neg = gen_wall_image(mem, rng);
+        if (1) cell->y_pos = gen_wall_image(mem, rng);
+        if (1) cell->y_neg = gen_wall_image(mem, rng);
     }
 }
 
@@ -142,7 +146,7 @@ static Game *game_new(void) {
 
     // Create Level
     game->level = gen_level_outline(mem, level_size);
-    gen_indoor(game->level, mem);
+    gen_indoor(game->level, mem, &game->rng);
 
     // Generate player
     v3i spawn = {level_size / 2, 0, level_size / 2};
