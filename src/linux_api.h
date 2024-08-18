@@ -4,6 +4,9 @@
 #if 0
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <limits.h>
+#include <stdlib.h>
+#include <sys/inotify.h>
 #include <sys/mman.h>
 #include <time.h>
 #include <unistd.h>
