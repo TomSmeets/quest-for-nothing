@@ -1,63 +1,10 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Platform implementation for linux
 #pragma once
+#include "linux_api.h"
 #include "os_api.h"
 #include "std.h"
 #include "str.h"
-
-#if 1
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <time.h>
-#include <unistd.h>
-#else
-// Improves compile time significantly
-#define PROT_READ 0x1
-#define PROT_WRITE 0x2
-#define MAP_PRIVATE 0x02
-#define MAP_ANONYMOUS 0x20
-#define MAP_FAILED ((void *)-1)
-#define CLOCK_MONOTONIC 1
-#define RTLD_NOW 0x00002
-#define RTLD_LOCAL 0
-typedef long int time_t;
-typedef long int syscall_slong_t;
-typedef long int ssize_t;
-typedef long unsigned int size_t;
-typedef long int off_t;
-typedef int clockid_t;
-struct timespec {
-    time_t tv_sec;
-    syscall_slong_t tv_nsec;
-};
-extern void _exit(int status) __attribute__((__noreturn__));
-extern ssize_t write(int fd, const void *buf, size_t n);
-extern void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
-extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
-extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
-extern void *dlopen(const char *file, int mode);
-extern void *dlsym(void *restrict handle, const char *restrict name);
-
-typedef __builtin_va_list va_list;
-#define va_start(ap, param) __builtin_va_start(ap, param)
-#define va_end(ap) __builtin_va_end(ap)
-#define va_arg(ap, type) __builtin_va_arg(ap, type)
-#endif
-
-static u64 linux_time_to_us(struct timespec *t) {
-    return t->tv_sec * 1000 * 1000 + t->tv_nsec / 1000;
-}
-
-static struct timespec linux_us_to_time(u64 time) {
-    u64 sec = time / (1000 * 1000);
-    u64 nsec = (time - sec * 1000 * 1000) * 1000;
-
-    struct timespec ts;
-    ts.tv_sec = sec;
-    ts.tv_nsec = nsec;
-    return ts;
-}
 
 static void os_exit(i32 status) {
     _exit(status);

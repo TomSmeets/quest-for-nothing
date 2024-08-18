@@ -7,19 +7,15 @@
 #include "os.h"
 #include "os_api.h"
 #include "rand.h"
-#include "std.h"
 #include "types.h"
 
-#if 1
-#include <dlfcn.h>
-#include <limits.h>
-#include <stdlib.h>
-#include <sys/inotify.h>
-#endif
-
 // Configuration
-static const u32 debounce_time = 100;
+static const u32 watch_debounce = 100;
 static const char *watch_path[] = {".", "src"};
+static const char *watch_embed[][2] = {
+    {"FILE_SHADER_VERT", "src/gl_shader.vert"},
+    {"FILE_SHADER_FRAG", "src/gl_shader.frag"},
+};
 
 static const char *compile_command = "clang"
                                      // Enable most warning flags
@@ -41,7 +37,7 @@ typedef void os_main_t(OS *os);
 static void embed_file(u32 output, const char *name, const char *file_path) {
     // Just waiting for #embed to land in clang...
     int f = open(file_path, O_RDONLY);
-    os_fprintf(output, "static unsigned char FILE_%s[] = {", name);
+    os_fprintf(output, "static unsigned char %s[] = {", name);
     for (;;) {
         u8 data[1024];
         ssize_t len = read(f, data, sizeof(data));
@@ -60,8 +56,9 @@ static void embed_files(const char *output_file) {
     assert(asset_file >= 0, "Failed to open asset output file");
     os_fprintf(asset_file, "#pragma once\n");
     os_fprintf(asset_file, "// clang-format off\n");
-    embed_file(asset_file, "SHADER_VERT", "src/gl_shader.vert");
-    embed_file(asset_file, "SHADER_FRAG", "src/gl_shader.frag");
+    for (u32 i = 0; i < array_count(watch_embed); ++i) {
+        embed_file(asset_file, watch_embed[i][0], watch_embed[i][1]);
+    }
     close(asset_file);
 }
 
@@ -119,8 +116,7 @@ static bool watch_changed(int fd) {
     timeout.tv_usec = 0;
 
     for (;;) {
-        fd_set fds;
-        FD_ZERO(&fds);
+        fd_set fds = {};
         FD_SET(fd, &fds);
         int ret = select(fd + 1, &fds, 0, 0, &timeout);
         assert(ret >= 0, "select");
@@ -151,7 +147,7 @@ static bool watch_changed(int fd) {
         }
 
         // Debounce
-        timeout.tv_usec = debounce_time * 1000;
+        timeout.tv_usec = watch_debounce * 1000;
         change_count++;
     }
 
