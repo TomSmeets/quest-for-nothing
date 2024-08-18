@@ -27,9 +27,16 @@ mkdir -p out
 set -x
 clang $LINUX_DBG -o out/hot src/hot.c
 
+
 clang $LINUX_DBG -o out/quest-for-nothing      src/main.c
 clang $WIN32_DBG -o out/quest-for-nothing.exe  src/main.c
 clang $WASM_DBG  -o out/quest-for-nothing.wasm src/main.c
+
+mkdir -p out/rel
+clang $LINUX_REL -o out/rel/quest-for-nothing      src/main.c
+clang $WIN32_REL -o out/rel/quest-for-nothing.exe  src/main.c
+clang $WASM_REL  -o out/rel/quest-for-nothing.wasm src/main.c
+strip -s out/rel/quest-for-nothing out/rel/quest-for-nothing.exe
 
 if [ ! -f out/SDL2.dll ]; then
   pushd out
