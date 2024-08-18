@@ -28,6 +28,7 @@ static const char *compile_command = "clang"
                                      " -march=native"
                                      // Don't optimize, quick compile times
                                      " -O0 -g"
+                                     " -std=c23"
                                      // Create a '.so' file for dynamic loading
                                      " -shared"
                                      " -o %s %s";

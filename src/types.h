@@ -17,10 +17,12 @@ typedef double f64;
 
 #define U32_MAX 0xffffffff
 
-// TODO: use bool from c23
+#if true
+#else
 typedef _Bool bool;
 #define true 1
 #define false 0
+#endif
 
 #define static_assert(cond) _Static_assert(cond, "")
 
