@@ -85,25 +85,26 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 // Sleep until next frame
 static void app_sleep(App *app) {
     u64 time = os_time();
-    // os_printf("dt %llu\n", time - app->time);
 
-    // We are ahead
-    if (app->time > time) {
-        os_printf("We are ahead: %llu\n", app->time);
+    // We are a frame ahead
+    if (app->time > time + app->delay) {
+        os_printf("We are ahead\n");
+        app->time = time;
+    }
+
+    // We are a frame behind
+    if (app->time + app->delay < time) {
+        os_printf("We are behind\n");
         app->time = time;
     }
 
     // Compute next frame time
     app->time += app->delay;
 
-    // We are behind, skip some frames
-    if (app->time < time) {
-        os_printf("We are behind: %llu\n", app->time);
-        app->time = time;
-    }
-
     // sleep
-    if (app->time > time) os_sleep(app->time - time);
+    if (app->time > time) {
+        os_sleep(app->time - time);
+    }
 }
 
 static void os_main(OS *os) {
