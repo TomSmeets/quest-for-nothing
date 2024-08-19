@@ -3,10 +3,10 @@
 #pragma once
 #include "image.h"
 #include "mem.h"
+#include "player.h"
 #include "rand.h"
 #include "types.h"
 #include "vec.h"
-#include "player.h"
 
 /*
 Game Design V1.0
@@ -129,6 +129,7 @@ static Monster *gen_monsters(Cell *level, Random *rand, v3i player_pos, Memory *
 static Player *gen_player(Memory *mem, v3i pos) {
     Player *player = mem_struct(mem, Player);
     player->pos = v3i_to_v3(pos);
+    player->old_pos = player->pos;
     return player;
 }
 

@@ -3,9 +3,9 @@
 #pragma once
 #include "asset.h"
 #include "fmt.h"
-#include "ogl_api.h"
 #include "image.h"
 #include "mat.h"
+#include "ogl_api.h"
 #include "std.h"
 #include "vec.h"
 
@@ -13,7 +13,7 @@
 #define OGL_TILE_WIDTH 32
 
 #define OGL_TEXTURE_WIDTH_IN_TILES (OGL_TEXTURE_WIDTH / OGL_TILE_WIDTH)
-#define OGL_TEXTURE_SIZE_IN_TILES (OGL_TEXTURE_WIDTH_IN_TILES*OGL_TEXTURE_WIDTH_IN_TILES)
+#define OGL_TEXTURE_SIZE_IN_TILES (OGL_TEXTURE_WIDTH_IN_TILES * OGL_TEXTURE_WIDTH_IN_TILES)
 
 typedef struct {
     f32 pos[3];
@@ -232,7 +232,9 @@ static void ogl_quad(OGL *gl, u8 kind, Image *image, v3 pos) {
     // Copy image
     if (gl->img_list[ix] != image->id) {
         gl->img_list[ix] = image->id;
-        gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, tx * OGL_TILE_WIDTH, ty * OGL_TILE_WIDTH, image->size.x, image->size.y, GL_RGBA, GL_FLOAT, image->pixels);
+        gl->api.glTexSubImage2D(
+            GL_TEXTURE_2D, 0, tx * OGL_TILE_WIDTH, ty * OGL_TILE_WIDTH, image->size.x, image->size.y, GL_RGBA, GL_FLOAT, image->pixels
+        );
     }
 }
 

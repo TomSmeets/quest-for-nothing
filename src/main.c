@@ -3,12 +3,12 @@
 #include "audio.h"
 #include "fmt.h"
 #include "game.h"
-#include "ogl.h"
-#include "sdl.h"
 #include "input.h"
 #include "math.h"
+#include "ogl.h"
 #include "os.h"
 #include "player.h"
+#include "sdl.h"
 
 typedef struct {
     Game *game;
@@ -23,10 +23,6 @@ typedef struct {
 
     f32 cutoff;
     f32 duty;
-
-    v3 player_pos;
-    v3 player_rot;
-
     Memory *mem;
 } App;
 
@@ -47,7 +43,7 @@ static App *app_init(void) {
     app->time /= 1000;
     app->time *= 1000;
     app->time *= 1000;
-    app_set_fps(app, 60);
+    app_set_fps(app, 200);
 
     app->sdl = sdl_load(mem, "Quest For Nothing");
     app->gl = ogl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
@@ -87,7 +83,7 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 // Sleep until next frame
 static void app_sleep(App *app) {
     u64 time = os_time();
-    os_printf("t = %u us r = %u fps\n", time - app->time, 1000000 / (time - app->time));
+    // os_printf("t = %u us r = %u fps\n", time - app->time, 1000000 / (time - app->time));
 
     // We are a frame ahead
     if (app->time > time + app->delay) {
@@ -162,31 +158,30 @@ static void os_main(OS *os) {
         os_printf("Key[%u]: 0x%08x '%c'\n", i, key, key_to_char(key));
     }
 
-    // Render
-    m4 player_mtx = m4_id();
-    m4_rot_z(&player_mtx, app->player_rot.z); // Roll
-    m4_rot_x(&player_mtx, app->player_rot.x); // Pitch
-    m4_rot_y(&player_mtx, app->player_rot.y); // Yaw
-    m4_trans(&player_mtx, app->player_pos);
+    Player *pl = app->game->player;
 
-    v3 move = 0;
-    if (key_down(input, KEY_W)) move.z -= 1;
-    if (key_down(input, KEY_S)) move.z += 1;
-    if (key_down(input, KEY_A)) move.x -= 1;
-    if (key_down(input, KEY_D)) move.x += 1;
-    move = m4s_mul_dir(&player_mtx.fwd, move);
-    move.y = 0;
-    move = v3_normalize(move);
-
-    if (key_down(input, KEY_SPACE)) move.y += 1;
-    if (key_down(input, KEY_SHIFT)) move.y -= 1;
-    move = v3_limit(move, 1.0);
-    app->player_pos += move * 4 * app->dt;
+    Player_Input in = {};
+    if (key_down(input, KEY_W)) in.move.z -= 1;
+    if (key_down(input, KEY_S)) in.move.z += 1;
+    if (key_down(input, KEY_A)) in.move.x -= 1;
+    if (key_down(input, KEY_D)) in.move.x += 1;
+    if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
+    if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
+    if (key_down(input, KEY_SPACE)) in.jump = 1;
 
     if (input->mouse_is_grabbed) {
-        app->player_rot.y -= (f32)input->mouse_rel.x / 1000.0f;
-        app->player_rot.x -= (f32)input->mouse_rel.y / 1000.0f;
+        in.look.y -= (f32)input->mouse_rel.x / 1000.0f;
+        in.look.x -= (f32)input->mouse_rel.y / 1000.0f;
     }
+
+    player_update(pl, app->dt, &in);
+
+    // Render
+    m4 player_mtx = m4_id();
+    m4_rot_z(&player_mtx, pl->rot.z * PI); // Roll
+    m4_rot_x(&player_mtx, pl->rot.x * PI); // Pitch
+    m4_rot_y(&player_mtx, pl->rot.y * PI); // Yaw
+    m4_trans(&player_mtx, pl->pos);
 
     m4 proj = m4_id();
     m4_mul_inv(&proj, &player_mtx);
@@ -208,7 +203,8 @@ static void os_main(OS *os) {
         if (cell->y_neg) ogl_quad(app->gl, 6, cell->y_neg, p + 0.5 * (v3){0, -1, 0});
     }
 
-    ogl_draw(app->gl, &proj.fwd, app->player_pos, input->window_size);
+    ogl_draw(app->gl, &proj.fwd, pl->pos, input->window_size);
+    // debug_struct(pl);
 
     // Finish
     sdl_swap_window(app->sdl);

@@ -140,7 +140,7 @@ static f32 f_pow2(f32 x) {
 }
 
 static f32 f_inv_sqrt(f32 v) {
-    if(v == 0) return 0;
+    if (v == 0) return 0;
 
     union {
         f32 f;

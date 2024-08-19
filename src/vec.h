@@ -58,6 +58,14 @@ static v3 v3_limit(v3 v, f32 lim) {
     return v * lim * f_inv_sqrt(len2);
 }
 
+// Limit the length of a vector to some maximum
+static v2 v2_limit(v2 v, f32 lim) {
+    f32 len2 = v2_length_sq(v);
+    if (len2 <= lim * lim)
+        return v;
+    return v * lim * f_inv_sqrt(len2);
+}
+
 // Casting
 static v3 v3i_to_v3(v3i v) { return (v3){v.x, v.y, v.z}; }
 
