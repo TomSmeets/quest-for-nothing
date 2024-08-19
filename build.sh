@@ -7,7 +7,7 @@ set -euo pipefail
 COMMON_WARN="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format"
 
 COMMON_DBG="-O0 -g"
-COMMON_REL="-O3 -g0 -ffast-math"
+COMMON_REL="-O3 -Xlinker --strip-all"
 
 COMMON_LINUX="-march=native"
 COMMON_WIN32="-target x86_64-unknown-windows-gnu"
@@ -36,7 +36,6 @@ mkdir -p out/rel
 clang $LINUX_REL -o out/rel/quest-for-nothing      src/main.c
 clang $WIN32_REL -o out/rel/quest-for-nothing.exe  src/main.c
 clang $WASM_REL  -o out/rel/quest-for-nothing.wasm src/main.c
-strip -s out/rel/quest-for-nothing out/rel/quest-for-nothing.exe
 
 if [ ! -f out/SDL2.dll ]; then
   pushd out
