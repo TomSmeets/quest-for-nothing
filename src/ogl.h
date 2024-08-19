@@ -1,5 +1,5 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// gl.h - OpenGL 3.3 helper methods
+// ogl.h - OpenGL 3.3 helper methods
 #pragma once
 #include "asset.h"
 #include "fmt.h"

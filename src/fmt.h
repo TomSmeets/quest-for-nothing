@@ -129,7 +129,7 @@ static void fmt_i64(Format *opt, Buffer *buf, i64 value) {
 }
 
 static void fmt_f64(Format *opt, Buffer *buf, f64 value) {
-    // Truncate towrads 0
+    // Truncate towards 0
     i64 i_part = (i64)value;
 
     // value = f_part
@@ -224,7 +224,7 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
             continue;
         }
 
-        // presision (start)
+        // precision (start)
         if (state < 2 && c == '.') {
             state = 2;
             opt.precision = 0;

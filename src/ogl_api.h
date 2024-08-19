@@ -1,4 +1,4 @@
-// gl_api.h - OpenGL 3.3 api headers
+// ogl_api.h - OpenGL 3.3 api headers
 #pragma once
 #ifndef GL_VERSION_1_0
 #define GL_VERSION_1_0 1

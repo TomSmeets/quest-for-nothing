@@ -1,3 +1,5 @@
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// player.h - The player character
 #pragma once
 
 #include "mat.h"
@@ -9,7 +11,7 @@ typedef struct {
     // Player rotation around each axis. [0-1]
     v3 rot;
 
-    // Helath, probably more satsifying if it is 'discrete' instad of a float
+    // Health, probably more satisfying if it is 'discrete' instead of a float
     u32 health;
 } Player;
 

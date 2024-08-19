@@ -1,5 +1,5 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// os.h - Platform api
+// os.h - Generic platform API
 #pragma once
 #include "os_api.h"
 #include "str.h"

@@ -1,5 +1,5 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// mat.h - Math for 4d matrices on homogeneous coordinates
+// mat.h - Math for 4d matrices on homogeneous coordinates (including the matrix inverse)
 #pragma once
 #include "mat_single.h"
 #include "vec.h"

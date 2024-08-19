@@ -1,10 +1,10 @@
 // Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
-// mat.h - Math for 4d matrices on homogeneous coordinates
+// mat_single.h - Math for 4d matrices on homogeneous coordinates
 #pragma once
 #include "vec.h"
 
 // Single 4x4 matrix
-// column major, just like opengl
+// column major, just like OpenGL
 // This allows us to extract the columns directly
 // | X.x   Y.x   Z.x   W.x |
 // |                       |
