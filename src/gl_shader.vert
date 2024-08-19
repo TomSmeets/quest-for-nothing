@@ -71,7 +71,7 @@ void main() {
     // }
 
     vec3 pos = quad_pos + rgt * vert_pos.x + up * vert_pos.y;
-    frag_uv = vert_uv;
-    frag_uv = (vert_uv + texture.xy) / 32.0;
+    // frag_uv = vert_uv;
+    frag_uv = (vert_uv + texture.xy) * 32 / 2048;
     gl_Position = proj * vec4(pos, 1);
 }

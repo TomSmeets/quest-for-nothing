@@ -3,11 +3,12 @@
 #include "audio.h"
 #include "fmt.h"
 #include "game.h"
-#include "gl_api.h"
+#include "ogl.h"
+#include "sdl.h"
 #include "input.h"
 #include "math.h"
 #include "os.h"
-#include "sdl.h"
+#include "player.h"
 
 typedef struct {
     Game *game;
@@ -16,7 +17,7 @@ typedef struct {
     f32 dt;
 
     Sdl *sdl;
-    Gl *gl;
+    OGL *gl;
 
     Audio audio;
 
@@ -49,7 +50,7 @@ static App *app_init(void) {
     app_set_fps(app, 60);
 
     app->sdl = sdl_load(mem, "Quest For Nothing");
-    app->gl = gl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
+    app->gl = ogl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
     return app;
 }
 
@@ -86,6 +87,7 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 // Sleep until next frame
 static void app_sleep(App *app) {
     u64 time = os_time();
+    os_printf("t = %u us r = %u fps\n", time - app->time, 1000000 / (time - app->time));
 
     // We are a frame ahead
     if (app->time > time + app->delay) {
@@ -119,7 +121,7 @@ static void os_main(OS *os) {
     app_set_fps(app, 200);
 
     if (os->reloaded) {
-        app->gl = gl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
+        app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
         game_free(app->game);
         app->game = game_new();
     }
@@ -190,32 +192,23 @@ static void os_main(OS *os) {
     m4_mul_inv(&proj, &player_mtx);
     m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.5, 32.0);
 
-    gl_begin(app->gl);
-
-    // Random rand = {};
-    // for(u32 i = 0; i < 32; ++i) {
-    //     for(u32 j = 0; j < 32; ++j) {
-    //         Image *img = img_new(tmp, (v2u){32, 32});
-    //         img_fill(img, (v4){rand_f32(&rand), rand_f32(&rand) , rand_f32(&rand), 1});
-    //         gl_quad(app->gl, 0, img, (v3){j, i, 0}*1.1);
-    //     }
-    // }
+    ogl_begin(app->gl);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        // gl_quad(app->gl, 0, mon->image, mon->pos);
+        ogl_quad(app->gl, 0, mon->image, mon->pos);
     }
 
     for (Cell *cell = app->game->level; cell; cell = cell->next) {
         v3 p = v3i_to_v3(cell->pos);
-        if (cell->x_neg) gl_quad(app->gl, 1, cell->x_neg, p + 0.5 * (v3){-1, 0, 0});
-        if (cell->z_neg) gl_quad(app->gl, 2, cell->z_neg, p + 0.5 * (v3){0, 0, -1});
-        if (cell->x_pos) gl_quad(app->gl, 3, cell->x_pos, p + 0.5 * (v3){1, 0, 0});
-        if (cell->z_pos) gl_quad(app->gl, 4, cell->z_pos, p + 0.5 * (v3){0, 0, 1});
-        if (cell->y_pos) gl_quad(app->gl, 5, cell->y_pos, p + 0.5 * (v3){0, 1, 0});
-        if (cell->y_neg) gl_quad(app->gl, 6, cell->y_neg, p + 0.5 * (v3){0, -1, 0});
+        if (cell->x_neg) ogl_quad(app->gl, 1, cell->x_neg, p + 0.5 * (v3){-1, 0, 0});
+        if (cell->z_neg) ogl_quad(app->gl, 2, cell->z_neg, p + 0.5 * (v3){0, 0, -1});
+        if (cell->x_pos) ogl_quad(app->gl, 3, cell->x_pos, p + 0.5 * (v3){1, 0, 0});
+        if (cell->z_pos) ogl_quad(app->gl, 4, cell->z_pos, p + 0.5 * (v3){0, 0, 1});
+        if (cell->y_pos) ogl_quad(app->gl, 5, cell->y_pos, p + 0.5 * (v3){0, 1, 0});
+        if (cell->y_neg) ogl_quad(app->gl, 6, cell->y_neg, p + 0.5 * (v3){0, -1, 0});
     }
 
-    gl_draw(app->gl, &proj.fwd, app->player_pos, input->window_size);
+    ogl_draw(app->gl, &proj.fwd, app->player_pos, input->window_size);
 
     // Finish
     sdl_swap_window(app->sdl);

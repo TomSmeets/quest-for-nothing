@@ -7,7 +7,7 @@
 #include "types.h"
 #include "vec.h"
 
-#define debug_struct(x) __builtin_dump_struct((x), os_printf);
+#define debug_struct(x) __builtin_dump_struct((x), os_fprintf, OS_STDOUT);
 
 typedef struct {
     u8 *start;

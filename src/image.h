@@ -20,10 +20,8 @@ static Image *image_new(Memory *mem, v2u size) {
 }
 
 static void image_fill(Image *img, v4 color) {
-    for (u32 y = 0; y < img->size.y; ++y) {
-        for (u32 x = 0; x < img->size.x; ++x) {
-            img->pixels[y * img->size.x + x] = color;
-        }
+    for(u32 i = 0; i < img->size.x*img->size.y; ++i) {
+        img->pixels[i] = color;
     }
     img->id = id_next();
 }

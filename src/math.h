@@ -26,6 +26,8 @@ static u64 i_abs(i64 x) { return (x < 0) ? -x : x; }
 // Round towards -Inf
 static i32 f_floor(f32 x) { return (i32)x - (x < (i32)x); }
 
+static f32 f_fract(f32 x) { return x - f_floor(x); }
+
 // Round towards 0
 static i32 f_trunc(f32 x) { return (i32)x; }
 
@@ -138,6 +140,8 @@ static f32 f_pow2(f32 x) {
 }
 
 static f32 f_inv_sqrt(f32 v) {
+    if(v == 0) return 0;
+
     union {
         f32 f;
         u32 i;

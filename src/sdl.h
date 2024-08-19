@@ -2,7 +2,6 @@
 // sdl.h - SDL2 wrapper for a single window with both audio and OpenGL
 #pragma once
 #include "fmt.h"
-#include "gl.h"
 #include "input.h"
 #include "math.h"
 #include "mem.h"

@@ -3,21 +3,27 @@
 #pragma once
 #include "asset.h"
 #include "fmt.h"
-#include "gl_api.h"
+#include "ogl_api.h"
 #include "image.h"
 #include "mat.h"
 #include "std.h"
 #include "vec.h"
 
+#define OGL_TEXTURE_WIDTH 2048
+#define OGL_TILE_WIDTH 32
+
+#define OGL_TEXTURE_WIDTH_IN_TILES (OGL_TEXTURE_WIDTH / OGL_TILE_WIDTH)
+#define OGL_TEXTURE_SIZE_IN_TILES (OGL_TEXTURE_WIDTH_IN_TILES*OGL_TEXTURE_WIDTH_IN_TILES)
+
 typedef struct {
     f32 pos[3];
     u8 texture[3];
-} Gl_Quad;
+} OGL_Quad;
 
-static_assert(sizeof(Gl_Quad) == 16);
+static_assert(sizeof(OGL_Quad) == 16);
 
 typedef struct {
-    Gl_Api api;
+    OGL_Api api;
 
     // Vertex Array Object, Stores bound vertex and index buffers
     GLuint vao;
@@ -33,15 +39,21 @@ typedef struct {
     // Texture
     GLuint texture;
 
+    // Some single texture limits:
+    //   1024 x   1024   / (32 x 32)  =  32 x  32   =   1024
+    //   2048 x   2048   / (32 x 32)  =  64 x  64   =   4096
+    // 262144 x 262144   / (32 x 32)  = 512 x 512   = 262144
+    //
+    // Multiple textures are ofcourse also always possible
     u32 quad_count;
-    Gl_Quad quad_list[1024];
-    u64 img_list[1024];
-} Gl;
+    OGL_Quad quad_list[OGL_TEXTURE_SIZE_IN_TILES];
+    u64 img_list[OGL_TEXTURE_SIZE_IN_TILES];
+} OGL;
 
-static u32 gl_prev_message_index;
-static const char *gl_prev_message[4];
+static u32 ogl_prev_message_index;
+static const char *ogl_prev_message[4];
 
-static GLuint gl_compile_shader(Gl_Api *gl, GLenum type, char *source) {
+static GLuint ogl_compile_shader(OGL_Api *gl, GLenum type, char *source) {
     GLuint shader = gl->glCreateShader(type);
     gl->glShaderSource(shader, 1, (const char *const[]){source}, 0);
     gl->glCompileShader(shader);
@@ -61,7 +73,7 @@ static GLuint gl_compile_shader(Gl_Api *gl, GLenum type, char *source) {
     return shader;
 }
 
-static GLuint gl_link_program(Gl_Api *gl, GLuint vertex, GLuint fragment) {
+static GLuint ogl_link_program(OGL_Api *gl, GLuint vertex, GLuint fragment) {
     // link shaders
     GLuint program = gl->glCreateProgram();
     gl->glAttachShader(program, vertex);
@@ -81,21 +93,21 @@ static GLuint gl_link_program(Gl_Api *gl, GLuint vertex, GLuint fragment) {
     return program;
 }
 
-static GLuint gl_program_compile_and_link(Gl_Api *gl, char *vert, char *frag) {
-    GLuint vert_shader = gl_compile_shader(gl, GL_VERTEX_SHADER, vert);
-    GLuint frag_shader = gl_compile_shader(gl, GL_FRAGMENT_SHADER, frag);
+static GLuint ogl_program_compile_and_link(OGL_Api *gl, char *vert, char *frag) {
+    GLuint vert_shader = ogl_compile_shader(gl, GL_VERTEX_SHADER, vert);
+    GLuint frag_shader = ogl_compile_shader(gl, GL_FRAGMENT_SHADER, frag);
     if (!vert_shader || !frag_shader) return 0;
 
-    GLuint shader_program = gl_link_program(gl, vert_shader, frag_shader);
+    GLuint shader_program = ogl_link_program(gl, vert_shader, frag_shader);
     gl->glDeleteShader(vert_shader);
     gl->glDeleteShader(frag_shader);
     return shader_program;
 }
 
-static void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *user) {
+static void ogl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *user) {
     // Stop spam
-    for (u32 i = 0; i < array_count(gl_prev_message); ++i) {
-        if (message == gl_prev_message[i]) return;
+    for (u32 i = 0; i < array_count(ogl_prev_message); ++i) {
+        if (message == ogl_prev_message[i]) return;
     }
 
     char *prefix = "????";
@@ -104,21 +116,21 @@ static void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum seve
     if (severity == GL_DEBUG_SEVERITY_LOW) prefix = "LOW";
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) prefix = "NOTIFICATION";
     os_printf("[%s] %s\n", prefix, message);
-    gl_prev_message[gl_prev_message_index] = message;
-    gl_prev_message_index++;
-    if (gl_prev_message_index >= 4) gl_prev_message_index = 0;
+    ogl_prev_message[ogl_prev_message_index] = message;
+    ogl_prev_message_index++;
+    if (ogl_prev_message_index >= 4) ogl_prev_message_index = 0;
 }
 
-static Gl *gl_load(Memory *mem, void *load(const char *)) {
-    Gl *gl = mem_struct(mem, Gl);
-    Gl_Api *api = &gl->api;
+static OGL *ogl_load(Memory *mem, void *load(const char *)) {
+    OGL *gl = mem_struct(mem, OGL);
+    OGL_Api *api = &gl->api;
 
     // Load OpenGL function pointers
-    gl_api_load(api, load);
+    ogl_api_load(api, load);
 
     // Debug Output
     api->glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    api->glDebugMessageCallbackARB(gl_debug_callback, 0);
+    api->glDebugMessageCallbackARB(ogl_debug_callback, 0);
 
     // Create VAO
     api->glGenVertexArrays(1, &gl->vao);
@@ -128,7 +140,7 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     api->glGenBuffers(1, &gl->instance_buffer);
 
     // Compile Shader
-    gl->shader = gl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
+    gl->shader = ogl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
     gl->uniform_proj = api->glGetUniformLocation(gl->shader, "proj");
     gl->uniform_camera_pos = api->glGetUniformLocation(gl->shader, "camera_pos");
     api->glUseProgram(gl->shader);
@@ -154,20 +166,16 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     // Setup Instances
     api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
 
-    Gl_Quad *q0 = 0;
+    OGL_Quad *q0 = 0;
     api->glEnableVertexAttribArray(1);
     api->glVertexAttribDivisor(1, 1);
-    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Gl_Quad), (void *)&q0->pos[0]);
+    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->pos[0]);
 
     api->glEnableVertexAttribArray(2);
     api->glVertexAttribDivisor(2, 1);
-    api->glVertexAttribPointer(2, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Gl_Quad), (void *)&q0->texture[0]);
+    api->glVertexAttribPointer(2, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->texture[0]);
 
     // Texture atlas
-    u32 tile_count = 32;
-    u32 tile_size = 32;
-
-    u32 texture_size = tile_count * tile_size;
     api->glActiveTexture(GL_TEXTURE0);
     api->glGenTextures(1, &gl->texture);
     api->glBindTexture(GL_TEXTURE_2D, gl->texture);
@@ -184,7 +192,7 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     api->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     // NOTE: We store the images in linear color space!!!
-    api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texture_size, texture_size, 0, GL_RGBA, GL_FLOAT, 0);
+    api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, OGL_TEXTURE_WIDTH, OGL_TEXTURE_WIDTH, 0, GL_RGBA, GL_FLOAT, 0);
 
     // Set OpenGL Settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
@@ -196,45 +204,47 @@ static Gl *gl_load(Memory *mem, void *load(const char *)) {
     return gl;
 }
 
-static void gl_begin(Gl *gl) {
+static void ogl_begin(OGL *gl) {
     gl->quad_count = 0;
 }
 
-static void gl_quad(Gl *gl, u8 kind, Image *image, v3 pos) {
+static void ogl_quad(OGL *gl, u8 kind, Image *image, v3 pos) {
     if (gl->quad_count >= array_count(gl->quad_list)) {
         os_printf("Too many quads\n");
         return;
     }
 
     u32 ix = gl->quad_count++;
+    u32 tx = ix % OGL_TEXTURE_WIDTH_IN_TILES;
+    u32 ty = ix / OGL_TEXTURE_WIDTH_IN_TILES;
 
-    u32 tx = ix % 32;
-    u32 ty = ix / 32;
+    assert(tx < 256, "Out of range");
+    assert(ty < 256, "Out of range");
 
-    gl->quad_list[ix] = (Gl_Quad){
+    gl->quad_list[ix] = (OGL_Quad){
         .pos = {pos.x, pos.y, pos.z},
         // tx and ty are not really needed, can just use ix.
         .texture = {tx, ty, kind},
     };
 
-    assert(image->size.x == 32 && image->size.y == 32, "Invalid image size");
+    assert(image->size.x == OGL_TILE_WIDTH && image->size.y == OGL_TILE_WIDTH, "Invalid image size");
 
     // Copy image
     if (gl->img_list[ix] != image->id) {
         gl->img_list[ix] = image->id;
-        gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, tx * 32, ty * 32, image->size.x, image->size.y, GL_RGBA, GL_FLOAT, image->pixels);
+        gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, tx * OGL_TILE_WIDTH, ty * OGL_TILE_WIDTH, image->size.x, image->size.y, GL_RGBA, GL_FLOAT, image->pixels);
     }
 }
 
-static void gl_draw(Gl *gl, m4s *mtx, v3 player, v2i viewport_size) {
-    Gl_Api *api = &gl->api;
+static void ogl_draw(OGL *gl, m4s *mtx, v3 player, v2i viewport_size) {
+    OGL_Api *api = &gl->api;
 
     api->glViewport(0, 0, viewport_size.x, viewport_size.y);
     api->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     // Setup Instances
     api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
-    api->glBufferData(GL_ARRAY_BUFFER, sizeof(Gl_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
+    api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
 
     // Screen -> Clip
     api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)mtx);

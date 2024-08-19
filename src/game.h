@@ -6,6 +6,7 @@
 #include "rand.h"
 #include "types.h"
 #include "vec.h"
+#include "player.h"
 
 /*
 Game Design V1.0
@@ -30,11 +31,6 @@ typedef struct Cell {
     Image *z_neg;
     struct Cell *next;
 } Cell;
-
-typedef struct {
-    v3 pos;
-    u32 health;
-} Player;
 
 typedef struct Monster {
     v3 pos;
@@ -138,7 +134,7 @@ static Player *gen_player(Memory *mem, v3i pos) {
 
 // Create a new game
 static Game *game_new(void) {
-    u32 level_size = 8;
+    u32 level_size = 16;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
