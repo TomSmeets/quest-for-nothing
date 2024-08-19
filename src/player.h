@@ -66,8 +66,9 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     v3 move = m4s_mul_dir(&player_mtx.fwd, in->move);
     move.xy = v2_limit(move.xy, 1);
     move.y = 0;
-    pl->pos += move * 5 / 3.6 * dt;
+    pl->pos += move * 1.4 * dt;
     if (in->jump && pl->on_ground) {
+        pl->old_pos.y = pl->pos.y;
         pl->pos.y += 5 * dt;
     }
 
@@ -83,6 +84,8 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     }
 
     // Reduce velocity
-    pl->old_pos.xz -= (pl->old_pos.xz - pl->pos.xz) * 0.5; //*8*dt;
-    // pl->pos -= (pl->pos - pl->old_pos)*0.5;
+    v3 vel = pl->pos - pl->old_pos;
+    vel.xz = v2_limit(vel.xz, 5.0f / 3.6f * dt);
+    vel.xz *= 1.0f - 0.2;
+    pl->old_pos = pl->pos - vel;
 }
