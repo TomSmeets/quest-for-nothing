@@ -16,6 +16,7 @@ typedef struct {
     v3 vel;
 
     bool on_ground;
+    bool flying;
 
     // Health, probably more satisfying if it is 'discrete' instead of a float
     u32 health;
@@ -36,15 +37,20 @@ typedef struct {
     v3 move;
     v3 look;
     bool jump;
+    bool fly;
 } Player_Input;
 
 static void player_update(Player *pl, f32 dt, Player_Input *in) {
+    if (in->fly) pl->flying = !pl->flying;
+
     // Velocity
     // v3 old_pos = pl->old_pos;
     // pl->old_pos = pl->pos;
     v3 old = pl->old_pos;
     pl->old_pos = pl->pos;
-    pl->pos += (pl->pos - old) - (v3){0, 9.81 * dt * dt, 0};
+    pl->pos += pl->pos - old;
+
+    if (!pl->flying) pl->pos.y -= 9.81 * dt * dt;
 
     // Look
     pl->rot.xy += in->look.xy;
@@ -63,9 +69,12 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     m4_trans(&player_mtx, pl->pos);
 
     // Move
-    v3 move = m4s_mul_dir(&player_mtx.fwd, in->move);
-    move.xy = v2_limit(move.xy, 1);
-    move.y = 0;
+    m4 player_yaw_mtx = m4_id();
+    m4_rot_y(&player_yaw_mtx, pl->rot.y * PI); // Yaw
+    v3 move = m4s_mul_dir(&player_yaw_mtx.fwd, in->move);
+    move.xz = v2_limit(move.xz, 1);
+    move.y = in->move.y * pl->flying;
+
     pl->pos += move * 1.4 * dt;
     if (in->jump && pl->on_ground) {
         pl->old_pos.y = pl->pos.y;
@@ -85,7 +94,12 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
 
     // Reduce velocity
     v3 vel = pl->pos - pl->old_pos;
-    vel.xz = v2_limit(vel.xz, 5.0f / 3.6f * dt);
-    vel.xz *= 1.0f - 0.2;
+    if (pl->flying) {
+        vel = v3_limit(vel, 5.0f / 3.6f * dt);
+        vel *= 1.0f - 0.2;
+    } else {
+        vel.xz = v2_limit(vel.xz, 5.0f / 3.6f * dt);
+        vel.xz *= 1.0f - 0.2;
+    }
     pl->old_pos = pl->pos - vel;
 }
