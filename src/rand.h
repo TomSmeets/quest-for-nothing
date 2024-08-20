@@ -2,6 +2,7 @@
 // rand.h - Fast and random number generator
 #pragma once
 #include "types.h"
+#include "vec.h"
 
 typedef struct {
     u64 seed;
@@ -39,4 +40,13 @@ static f32 rand_f32(Random *rand) {
 // Random f32 in range [-1, 1]
 static f32 rand_f32_signed(Random *rand) {
     return rand_f32(rand) * 2.0f - 1.0f;
+}
+
+static v4 rand_color(Random *rng) {
+    v4 ret;
+    ret.x = rand_f32(rng);
+    ret.y = rand_f32(rng);
+    ret.z = rand_f32(rng);
+    ret.w = 1;
+    return ret;
 }

@@ -21,5 +21,8 @@ void main() {
     vec2 tx = frag_uv * texture_size - 0.5 * box_size;
     vec2 tx_offset = smoothstep(1 - box_size, vec2(1), fract(tx));
     vec2 uv = (floor(tx) + 0.5 + tx_offset) / texture_size;
+
     out_color = textureGrad(img, uv, dFdx(frag_uv), dFdy(frag_uv));
+    // out_color = texture(img, frag_uv);
+    if (out_color.a < 0.5) discard;
 }

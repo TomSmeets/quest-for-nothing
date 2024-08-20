@@ -22,23 +22,32 @@ typedef struct {
     u32 health;
 } Player;
 
-static void player_look(Player *pl, f32 yaw, f32 pitch) {
-    pl->rot.x += pitch;
-    pl->rot.y += yaw;
-
-    pl->rot.x = f_clamp(pl->rot.x, -0.5, 0.5);
-    while (pl->rot.y < -1)
-        pl->rot.y += 2;
-    while (pl->rot.y > 1)
-        pl->rot.y -= 2;
-}
-
 typedef struct {
     v3 move;
     v3 look;
     bool jump;
     bool fly;
 } Player_Input;
+
+static Player_Input player_parse_input(Input *input) {
+    Player_Input in = {};
+    if (key_down(input, KEY_W)) in.move.z -= 1;
+    if (key_down(input, KEY_S)) in.move.z += 1;
+    if (key_down(input, KEY_A)) in.move.x -= 1;
+    if (key_down(input, KEY_D)) in.move.x += 1;
+    if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
+    if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
+    if (key_down(input, KEY_SPACE)) in.jump = 1;
+    if (key_down(input, KEY_SPACE)) in.move.y += 1;
+    if (key_down(input, KEY_SHIFT)) in.move.y -= 1;
+    if (key_click(input, KEY_F)) in.fly = 1;
+
+    if (input->mouse_is_grabbed) {
+        in.look.y -= (f32)input->mouse_rel.x / 1000.0f;
+        in.look.x -= (f32)input->mouse_rel.y / 1000.0f;
+    }
+    return in;
+}
 
 static void player_update(Player *pl, f32 dt, Player_Input *in) {
     if (in->fly) pl->flying = !pl->flying;

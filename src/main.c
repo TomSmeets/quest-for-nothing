@@ -114,10 +114,11 @@ static void os_main(OS *os) {
     App *app = os->app;
     Memory *tmp = mem_new();
 
-    app_set_fps(app, 200);
-
     if (os->reloaded) {
+        // Reload
         app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
+
+        // Regen game
         game_free(app->game);
         app->game = game_new();
     }
@@ -126,21 +127,7 @@ static void os_main(OS *os) {
     Input *input = sdl_poll(app->sdl);
     if (input->quit || key_down(input, KEY_Q)) os_exit(0);
 
-    if (input->window_resized) {
-        os_printf("Resize: %4i %4i\n", input->window_size.x, input->window_size.y);
-    }
-
-    if (input->mouse_moved) {
-        // os_printf("Mouse:  %6i %6i\n", input->mouse_pos.x, input->mouse_pos.y);
-        // os_printf("Rel:    %6i %+6i\n", input->mouse_rel.x, input->mouse_rel.y);
-        // os_printf("p: %f\n", (float)input->mouse_pos.x / (float)input->window_size.x);
-
-        f32 mx = (f32)app->sdl->input.mouse_pos.x / (f32)app->sdl->input.window_size.x;
-        f32 my = (f32)app->sdl->input.mouse_pos.y / (f32)app->sdl->input.window_size.y;
-        app->cutoff = f_pow2((mx * 2 - 1) * 2) * 440;
-        app->duty = my;
-    }
-
+    // Handle Mouse Grabbing
     if (0 && key_click(input, KEY_MOUSE_LEFT)) {
         sdl_set_mouse_grab(app->sdl, true);
     }
@@ -153,30 +140,8 @@ static void os_main(OS *os) {
         sdl_set_mouse_grab(app->sdl, !input->mouse_is_grabbed);
     }
 
-    for (u32 i = 0; i < input->key_event_count; ++i) {
-        Key key = input->key_event[i];
-        os_printf("Key[%u]: 0x%08x '%c'\n", i, key, key_to_char(key));
-    }
-
     Player *pl = app->game->player;
-
-    Player_Input in = {};
-    if (key_down(input, KEY_W)) in.move.z -= 1;
-    if (key_down(input, KEY_S)) in.move.z += 1;
-    if (key_down(input, KEY_A)) in.move.x -= 1;
-    if (key_down(input, KEY_D)) in.move.x += 1;
-    if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
-    if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
-    if (key_down(input, KEY_SPACE)) in.jump = 1;
-    if (key_down(input, KEY_SPACE)) in.move.y += 1;
-    if (key_down(input, KEY_SHIFT)) in.move.y -= 1;
-    if (key_click(input, KEY_F)) in.fly = 1;
-
-    if (input->mouse_is_grabbed) {
-        in.look.y -= (f32)input->mouse_rel.x / 1000.0f;
-        in.look.x -= (f32)input->mouse_rel.y / 1000.0f;
-    }
-
+    Player_Input in = player_parse_input(input);
     player_update(pl, app->dt, &in);
 
     // Render

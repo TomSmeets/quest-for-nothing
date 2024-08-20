@@ -3,6 +3,7 @@
 #pragma once
 #include "image.h"
 #include "mem.h"
+#include "monster.h"
 #include "player.h"
 #include "rand.h"
 #include "types.h"
@@ -32,13 +33,6 @@ typedef struct Cell {
     struct Cell *next;
 } Cell;
 
-typedef struct Monster {
-    v3 pos;
-    u32 health;
-    Image *image;
-    struct Monster *next;
-} Monster;
-
 typedef struct {
     Memory *mem;
     Random rng;
@@ -56,15 +50,6 @@ static Cell *game_cell_get(Game *game, v3i pos) {
     return 0;
 }
 
-static v4 rand_color(Random *rng) {
-    v4 ret;
-    ret.x = rand_f32(rng);
-    ret.y = rand_f32(rng);
-    ret.z = rand_f32(rng);
-    ret.w = 1;
-    return ret;
-}
-
 static Image *gen_wall_image(Memory *mem, Random *rng) {
     Image *img = image_new(mem, (v2u){32, 32});
     image_grid(img, rand_color(rng), rand_color(rng));
@@ -75,15 +60,6 @@ static Cell *cell_new(Memory *mem, v3i pos) {
     Cell *cell = mem_struct(mem, Cell);
     cell->pos = pos;
     return cell;
-}
-
-static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
-    Monster *monster = mem_struct(mem, Monster);
-    monster->pos = pos;
-    monster->health = 10;
-    monster->image = image_new(mem, (v2u){32, 32});
-    image_grid(monster->image, rand_color(rng), rand_color(rng));
-    return monster;
 }
 
 // Generate an empty level
@@ -103,11 +79,11 @@ static Cell *gen_level_outline(Memory *mem, u32 size) {
 
 static void gen_indoor(Cell *level, Memory *mem, Random *rng) {
     for (Cell *cell = level; cell; cell = cell->next) {
-        if (1) cell->x_neg = gen_wall_image(mem, rng);
-        if (1) cell->x_pos = gen_wall_image(mem, rng);
-        if (1) cell->z_pos = gen_wall_image(mem, rng);
-        if (1) cell->z_neg = gen_wall_image(mem, rng);
-        if (1) cell->y_pos = gen_wall_image(mem, rng);
+        // if (1) cell->x_neg = gen_wall_image(mem, rng);
+        // if (1) cell->x_pos = gen_wall_image(mem, rng);
+        // if (1) cell->z_pos = gen_wall_image(mem, rng);
+        // if (1) cell->z_neg = gen_wall_image(mem, rng);
+        // if (1) cell->y_pos = gen_wall_image(mem, rng);
         if (1) cell->y_neg = gen_wall_image(mem, rng);
     }
 }
@@ -135,7 +111,7 @@ static Player *gen_player(Memory *mem, v3i pos) {
 
 // Create a new game
 static Game *game_new(void) {
-    u32 level_size = 16;
+    u32 level_size = 32;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
