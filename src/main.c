@@ -24,6 +24,8 @@ typedef struct {
     f32 cutoff;
     f32 duty;
     Memory *mem;
+
+    f32 shoot_time;
 } App;
 
 static void app_set_fps(App *app, u32 rate) {
@@ -60,22 +62,20 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     for (u32 i = 0; i < count; ++i) {
         audio_begin_sample(audio, dt);
 
-        f32 wave = audio_pulse(audio, app->cutoff, app->duty);
+        f32 shoot_freq = 0;
+        f32 shoot_volume = 0;
 
-        f32 noise_l = audio_noise_white(audio); // audio_noise_freq(audio, app->cutoff, 1.0);
-        f32 noise_r = audio_noise_white(audio); // audio_noise_freq(audio, app->cutoff, 1.0);
-
-        f32 volume_1 = audio_smooth_bool(audio, 80.0f, key_down(input, KEY_MOUSE_LEFT));
-        f32 volume_2 = audio_smooth_bool(audio, 80.0f, key_down(input, KEY_MOUSE_RIGHT));
-        volume_1 = 0;
+        if (app->shoot_time < 1) {
+            shoot_volume = 1 - app->shoot_time;
+            shoot_volume *= shoot_volume;
+            shoot_freq = (1 - app->shoot_time) * 200 + 400;
+            app->shoot_time += dt * 2;
+        }
+        f32 wave = audio_sine(audio, shoot_freq * (1.0 - 0.1 * audio_sine(audio, 20)));
 
         v2 sample = {};
-        sample.x = wave * volume_1 + noise_l * volume_2;
-        sample.y = wave * volume_1 + noise_r * volume_2;
-
-        sample.x = audio_filter(audio, app->cutoff, sample.x).low_pass;
-        sample.y = audio_filter(audio, app->cutoff, sample.y).low_pass;
-
+        sample.x = (wave + audio_sine(audio, 40) * 0.1) * shoot_volume;
+        sample.y = (wave + audio_sine(audio, 45) * 0.1) * shoot_volume;
         output[i] = sample;
     }
 }
@@ -170,6 +170,8 @@ static void os_main(OS *os) {
         if (cell->y_pos) ogl_quad(app->gl, 5, cell->y_pos, p + 0.5 * (v3){0, 1, 0});
         if (cell->y_neg) ogl_quad(app->gl, 6, cell->y_neg, p + 0.5 * (v3){0, -1, 0});
     }
+
+    if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
     ogl_draw(app->gl, &proj.fwd, pl->pos, input->window_size);
     // debug_struct(pl);

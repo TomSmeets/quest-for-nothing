@@ -199,6 +199,14 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     api->glEnable(GL_DEPTH_TEST);
     api->glEnable(GL_MULTISAMPLE);
     api->glEnable(GL_CULL_FACE);
+
+    if (0) {
+        api->glEnable(GL_BLEND);
+        api->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    } else {
+        api->glDisable(GL_BLEND);
+    }
+
     api->glCullFace(GL_BACK);
     api->glClearColor(.3, .3, .3, 1);
     return gl;

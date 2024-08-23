@@ -7,6 +7,7 @@ layout(location = 1) in vec3 quad_pos;
 layout(location = 2) in vec3 texture;
 
 out vec2 frag_uv;
+out vec3 frag_normal;
 
 uniform mat4 proj;
 uniform vec3 camera_pos;
@@ -56,6 +57,7 @@ void main() {
         up = vec3(0, 0, 1);
         rgt = vec3(-1, 0, 0);
     }
+
     // } else if(texture.z == 2) {
     //     rgt = vec3(-1, 0, 0);
     // } else if(texture.z == 3) {
@@ -71,7 +73,10 @@ void main() {
     // }
 
     vec3 pos = quad_pos + rgt * vert_pos.x + up * vert_pos.y;
-    // frag_uv = vert_uv;
-    frag_uv = ((vert_uv - 0.5) * 0.95 + 0.5 + texture.xy) * 32 / 2048;
+    frag_normal = (proj * vec4(fwd, 0)).xyz + vec3(vert_uv.x * 2 - 1, 0, 0);
+
+    vec2 vuv = vert_uv;
+    vuv.y = 1.0f - vuv.y;
+    frag_uv = (vuv + texture.xy) * 32 / 2048;
     gl_Position = proj * vec4(pos, 1);
 }

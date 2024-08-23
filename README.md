@@ -5,7 +5,7 @@ The first version of this game. I will first implement v1.0, which will have ver
 # Version 1.0
 
 - [ ] Player
-  - [ ] First person movement
+  - [x] First person movement
   - [ ] Can die
   - [ ] Hitscan pistol
 

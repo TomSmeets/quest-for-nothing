@@ -23,18 +23,28 @@ static u32 rand_lcg(Random *rand) {
 }
 
 // Generate a new random 32 bit number
-static u32 rand_next(Random *rand) {
+static u32 rand_u32(Random *rand) {
     return rand_lcg(rand);
 }
 
 // Fork the random state
 static Random rand_fork(Random *rand) {
-    return (Random){rand_next(rand) + 1};
+    return (Random){rand_u32(rand) + 1};
 }
 
 // Random f32 in range [0, 1]
 static f32 rand_f32(Random *rand) {
-    return (f32)rand_next(rand) / (f32)U32_MAX;
+    return (f32)rand_u32(rand) / (f32)U32_MAX;
+}
+
+// Random f32 in range [0, 1]
+static f32 rand_f32_range(Random *rand, f32 min, f32 max) {
+    return rand_f32(rand) * (max - min) + min;
+}
+
+// Random f32 in range [0, 1]
+static f32 rand_u32_range(Random *rand, f32 min, f32 max) {
+    return rand_f32_range(rand, min, max);
 }
 
 // Random f32 in range [-1, 1]
