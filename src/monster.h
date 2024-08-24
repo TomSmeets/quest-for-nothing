@@ -8,11 +8,17 @@
 typedef struct Monster {
     v3 pos;
     u32 health;
+    u32 eye_x;
+    u32 eye_y;
+    u32 mouth_y;
+    u32 look_dir;
+
+    v4 color_base;
     Image *image;
     struct Monster *next;
 } Monster;
 
-static Image *monster_gen_image(Memory *mem, Random *rng) {
+static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     // Initial line widths
     float width_inner = 0;
@@ -27,7 +33,7 @@ static Image *monster_gen_image(Memory *mem, Random *rng) {
     float size_y = rand_f32_range(rng, 8, 32 - 4);
 
     // Image size
-    v2u size = {32, 32};
+    v2u size = {16, 32};
 
     // Clear image with base color
     // This improves alpha blending
@@ -38,13 +44,7 @@ static Image *monster_gen_image(Memory *mem, Random *rng) {
     u32 offset = size.y - size_y - 1;
 
     u32 eye_y = offset + rand_u32_range(rng, 2, size_y * 0.7);
-    u32 mouth_y = offset + rand_u32_range(rng, 2, size_y * 0.7);
-
-    if (eye_y > mouth_y) {
-        u32 tmp = eye_y;
-        eye_y = mouth_y;
-        mouth_y = tmp;
-    }
+    u32 mouth_y = offset + rand_u32_range(rng, eye_y, size_y);
 
     u32 eye_x = 0;
 
@@ -75,21 +75,28 @@ static Image *monster_gen_image(Memory *mem, Random *rng) {
         }
     }
 
-    image_write(image, (v2i){size.x / 2 - 3, mouth_y + 0}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 - 2, mouth_y + 1}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 - 1, mouth_y + 1}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 + 0, mouth_y + 1}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 + 1, mouth_y + 0}, (v4){1, 1, 1, 1});
+    u32 look_dir = rand_u32(rng) % 4;
 
-    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y + 1}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y + 1}, (v4){0, 0, 0, 1});
+    if (0) {
+        image_write(image, (v2i){size.x / 2 - 3, mouth_y + 0}, (v4){1, 1, 1, 1});
+        image_write(image, (v2i){size.x / 2 - 2, mouth_y + 1}, (v4){1, 1, 1, 1});
+        image_write(image, (v2i){size.x / 2 - 1, mouth_y + 1}, (v4){1, 1, 1, 1});
+        image_write(image, (v2i){size.x / 2 + 0, mouth_y + 1}, (v4){1, 1, 1, 1});
+        image_write(image, (v2i){size.x / 2 + 1, mouth_y + 0}, (v4){1, 1, 1, 1});
+    }
 
-    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y}, (v4){1, 1, 1, 1});
-    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y + 1}, (v4){0, 0, 0, 1});
-    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y + 1}, (v4){1, 1, 1, 1});
+    v4 black = {0, 0, 0, 1};
+    v4 white = {1, 1, 1, 1};
+
+    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, look_dir == 1 ? black : white);
+    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, look_dir == 0 ? black : white);
+    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y + 1}, look_dir == 2 ? black : white);
+    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y + 1}, look_dir == 3 ? black : white);
+
+    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y}, look_dir == 0 ? black : white);
+    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y}, look_dir == 1 ? black : white);
+    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y + 1}, look_dir == 3 ? black : white);
+    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y + 1}, look_dir == 2 ? black : white);
 
     if (rand_u32(rng) % 2 == 0) {
         image_write(image, (v2i){size.x / 2 + 2, offset - 0}, color_base);
@@ -110,13 +117,21 @@ static Image *monster_gen_image(Memory *mem, Random *rng) {
         image_write(image, (v2i){size.x / 2 - 1 - 5, offset - 4}, color_base);
         image_write(image, (v2i){size.x / 2 - 1 - 6, offset - 4}, color_base);
     }
-    return image;
+
+    mon->color_base = color_base;
+    mon->image = image;
+    mon->eye_x = eye_x;
+    mon->eye_y = eye_y;
+    mon->mouth_y = mouth_y;
 }
 
 static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
-    Monster *monster = mem_struct(mem, Monster);
-    monster->pos = pos;
-    monster->health = 10;
-    monster->image = monster_gen_image(mem, rng);
-    return monster;
+    Monster *mon = mem_struct(mem, Monster);
+    mon->pos = pos;
+    mon->health = 10;
+    monster_gen_image(mon, mem, rng);
+    return mon;
+}
+
+static void monster_update(Monster *mon) {
 }

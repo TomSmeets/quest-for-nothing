@@ -7,20 +7,21 @@
 #include "mat.h"
 #include "ogl_api.h"
 #include "std.h"
+#include "texture_packer.h"
 #include "vec.h"
 
 #define OGL_TEXTURE_WIDTH 2048
-#define OGL_TILE_WIDTH 32
-
-#define OGL_TEXTURE_WIDTH_IN_TILES (OGL_TEXTURE_WIDTH / OGL_TILE_WIDTH)
-#define OGL_TEXTURE_SIZE_IN_TILES (OGL_TEXTURE_WIDTH_IN_TILES * OGL_TEXTURE_WIDTH_IN_TILES)
 
 typedef struct {
-    f32 pos[3];
-    u8 texture[3];
+    f32 x[3];
+    f32 y[3];
+    f32 z[3];
+    f32 w[3];
+    f32 uv_pos[2];
+    f32 uv_size[2];
 } OGL_Quad;
 
-static_assert(sizeof(OGL_Quad) == 16);
+static_assert(sizeof(OGL_Quad) == 64);
 
 typedef struct {
     OGL_Api api;
@@ -34,22 +35,16 @@ typedef struct {
     // Shader Program
     GLuint shader;
     GLint uniform_proj;
-    GLint uniform_camera_pos;
 
     // Texture
     GLuint texture;
+    Packer *pack;
 
-    // Some single texture limits:
-    //   1024 x   1024   / (32 x 32)  =  32 x  32   =   1024
-    //   2048 x   2048   / (32 x 32)  =  64 x  64   =   4096
-    // 262144 x 262144   / (32 x 32)  = 512 x 512   = 262144
-    //
-    // Multiple textures are ofcourse also always possible
     u32 quad_count;
-    OGL_Quad quad_list[OGL_TEXTURE_SIZE_IN_TILES];
-    u64 img_list[OGL_TEXTURE_SIZE_IN_TILES];
+    OGL_Quad quad_list[4096];
 } OGL;
 
+// Prevent spam
 static u32 ogl_prev_message_index;
 static const char *ogl_prev_message[4];
 
@@ -142,7 +137,6 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     // Compile Shader
     gl->shader = ogl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
     gl->uniform_proj = api->glGetUniformLocation(gl->shader, "proj");
-    gl->uniform_camera_pos = api->glGetUniformLocation(gl->shader, "camera_pos");
     api->glUseProgram(gl->shader);
 
     // Setup Vertex Buffer
@@ -167,13 +161,17 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
 
     OGL_Quad *q0 = 0;
-    api->glEnableVertexAttribArray(1);
-    api->glVertexAttribDivisor(1, 1);
-    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->pos[0]);
+    for (u32 i = 1; i <= 6; ++i) {
+        api->glEnableVertexAttribArray(i);
+        api->glVertexAttribDivisor(i, 1);
+    }
 
-    api->glEnableVertexAttribArray(2);
-    api->glVertexAttribDivisor(2, 1);
-    api->glVertexAttribPointer(2, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->texture[0]);
+    api->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->x[0]);
+    api->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->y[0]);
+    api->glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->z[0]);
+    api->glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->w[0]);
+    api->glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->uv_pos[0]);
+    api->glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(OGL_Quad), (void *)&q0->uv_size[0]);
 
     // Texture atlas
     api->glActiveTexture(GL_TEXTURE0);
@@ -191,14 +189,21 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     api->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     api->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    // NOTE: We store the images in linear color space!!!
+    // NOTE: Linear color space
     api->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, OGL_TEXTURE_WIDTH, OGL_TEXTURE_WIDTH, 0, GL_RGBA, GL_FLOAT, 0);
+    gl->pack = packer_new(OGL_TEXTURE_WIDTH);
 
     // Set OpenGL Settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
     api->glEnable(GL_DEPTH_TEST);
     api->glEnable(GL_MULTISAMPLE);
-    api->glEnable(GL_CULL_FACE);
+
+    if (1) {
+        api->glEnable(GL_CULL_FACE);
+        api->glCullFace(GL_BACK);
+    } else {
+        api->glDisable(GL_CULL_FACE);
+    }
 
     if (0) {
         api->glEnable(GL_BLEND);
@@ -216,37 +221,51 @@ static void ogl_begin(OGL *gl) {
     gl->quad_count = 0;
 }
 
-static void ogl_quad(OGL *gl, u8 kind, Image *image, v3 pos) {
+static void ogl_quad(OGL *gl, m4s *mtx, Image *img) {
     if (gl->quad_count >= array_count(gl->quad_list)) {
         os_printf("Too many quads\n");
         return;
     }
 
-    u32 ix = gl->quad_count++;
-    u32 tx = ix % OGL_TEXTURE_WIDTH_IN_TILES;
-    u32 ty = ix / OGL_TEXTURE_WIDTH_IN_TILES;
+    Packer_Area *area = packer_get_cache(gl->pack, img);
 
-    assert(tx < 256, "Out of range");
-    assert(ty < 256, "Out of range");
-
-    gl->quad_list[ix] = (OGL_Quad){
-        .pos = {pos.x, pos.y, pos.z},
-        // tx and ty are not really needed, can just use ix.
-        .texture = {tx, ty, kind},
-    };
-
-    assert(image->size.x == OGL_TILE_WIDTH && image->size.y == OGL_TILE_WIDTH, "Invalid image size");
-
-    // Copy image
-    if (gl->img_list[ix] != image->id) {
-        gl->img_list[ix] = image->id;
-        gl->api.glTexSubImage2D(
-            GL_TEXTURE_2D, 0, tx * OGL_TILE_WIDTH, ty * OGL_TILE_WIDTH, image->size.x, image->size.y, GL_RGBA, GL_FLOAT, image->pixels
-        );
+    if (!area) {
+        area = packer_get_new(gl->pack, img);
+        if (!area) return;
+        gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img->size.x, img->size.y, GL_RGBA, GL_FLOAT, img->pixels);
     }
+
+    gl->quad_list[gl->quad_count++] = (OGL_Quad){
+        .x = {mtx->x.x, mtx->x.y, mtx->x.z},
+        .y = {mtx->y.x, mtx->y.y, mtx->y.z},
+        .z = {mtx->z.x, mtx->z.y, mtx->z.z},
+        .w = {mtx->w.x, mtx->w.y, mtx->w.z},
+#if 1
+        .uv_pos = {(f32)area->pos.x / OGL_TEXTURE_WIDTH, (f32)area->pos.y / OGL_TEXTURE_WIDTH},
+        .uv_size = {(f32)img->size.x / OGL_TEXTURE_WIDTH, (f32)img->size.y / OGL_TEXTURE_WIDTH},
+#else
+        .uv_size = {1, 1},
+#endif
+    };
 }
 
-static void ogl_draw(OGL *gl, m4s *mtx, v3 player, v2i viewport_size) {
+static void ogl_sprite(OGL *gl, v3 player, v3 pos, Image *img) {
+    v3 dir = pos - player;
+    dir.y = 0;
+
+    v3 z = v3_normalize(dir);
+    v3 x = {z.z, 0, -z.x};
+    v3 y = {0, 1, 0};
+
+    m4s mtx = m4s_id();
+    mtx.x.xyz = x * img->size.x / 32.0;
+    mtx.y.xyz = y * img->size.y / 32.0;
+    mtx.z.xyz = z;
+    mtx.w.xyz = pos;
+    ogl_quad(gl, &mtx, img);
+}
+
+static void ogl_draw(OGL *gl, m4s *mtx, v2i viewport_size) {
     OGL_Api *api = &gl->api;
 
     api->glViewport(0, 0, viewport_size.x, viewport_size.y);
@@ -258,7 +277,5 @@ static void ogl_draw(OGL *gl, m4s *mtx, v3 player, v2i viewport_size) {
 
     // Screen -> Clip
     api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)mtx);
-    api->glUniform3f(gl->uniform_camera_pos, player.x, player.y, player.z);
-
     api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
 }

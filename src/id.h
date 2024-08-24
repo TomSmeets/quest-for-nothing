@@ -5,6 +5,6 @@
 
 // Return a application global unique id.
 // Id is always > 0
-static u64 id_next(void) {
+static u32 id_next(void) {
     return ++OS_GLOBAL->uid;
 }

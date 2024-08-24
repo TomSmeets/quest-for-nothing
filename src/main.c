@@ -153,27 +153,33 @@ static void os_main(OS *os) {
 
     m4 proj = m4_id();
     m4_mul_inv(&proj, &player_mtx);
-    m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.5, 32.0);
+    m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
 
     ogl_begin(app->gl);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        ogl_quad(app->gl, 0, mon->image, mon->pos);
+        ogl_sprite(app->gl, pl->pos, mon->pos, mon->image);
     }
 
     for (Cell *cell = app->game->level; cell; cell = cell->next) {
         v3 p = v3i_to_v3(cell->pos);
-        if (cell->x_neg) ogl_quad(app->gl, 1, cell->x_neg, p + 0.5 * (v3){-1, 0, 0});
-        if (cell->z_neg) ogl_quad(app->gl, 2, cell->z_neg, p + 0.5 * (v3){0, 0, -1});
-        if (cell->x_pos) ogl_quad(app->gl, 3, cell->x_pos, p + 0.5 * (v3){1, 0, 0});
-        if (cell->z_pos) ogl_quad(app->gl, 4, cell->z_pos, p + 0.5 * (v3){0, 0, 1});
-        if (cell->y_pos) ogl_quad(app->gl, 5, cell->y_pos, p + 0.5 * (v3){0, 1, 0});
-        if (cell->y_neg) ogl_quad(app->gl, 6, cell->y_neg, p + 0.5 * (v3){0, -1, 0});
+        m4s mtx = {
+            {1, 0, 0, 0},
+            {0, 0, 1, 0},
+            {0, 1, 0, 0},
+            {p.x, p.y - 0.5, p.z, 1},
+        };
+        // if (cell->x_neg) ogl_quad(app->gl, &mtx, cell->x_neg);
+        // if (cell->z_neg) ogl_quad(app->gl, &mtx, cell->z_neg);
+        // if (cell->x_pos) ogl_quad(app->gl, &mtx, cell->x_pos);
+        // if (cell->z_pos) ogl_quad(app->gl, &mtx, cell->z_pos);
+        // if (cell->y_pos) ogl_quad(app->gl, &mtx, cell->y_pos);
+        if (cell->y_neg) ogl_quad(app->gl, &mtx, cell->y_neg);
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
-    ogl_draw(app->gl, &proj.fwd, pl->pos, input->window_size);
+    ogl_draw(app->gl, &proj.fwd, input->window_size);
     // debug_struct(pl);
 
     // Finish

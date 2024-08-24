@@ -6,7 +6,7 @@
 #include "vec.h"
 
 typedef struct {
-    u64 id;
+    u32 id;
     v2u size;
     v4 *pixels;
 } Image;

@@ -3,8 +3,13 @@
 #version 330 core
 
 layout(location = 0) in vec2 vert_uv;
-layout(location = 1) in vec3 quad_pos;
-layout(location = 2) in vec3 texture;
+
+layout(location = 1) in vec3 quad_x;
+layout(location = 2) in vec3 quad_y;
+layout(location = 3) in vec3 quad_z;
+layout(location = 4) in vec3 quad_w;
+layout(location = 5) in vec2 quad_uv_pos;
+layout(location = 6) in vec2 quad_uv_size;
 
 out vec2 frag_uv;
 out vec3 frag_normal;
@@ -15,68 +20,9 @@ uniform vec3 camera_pos;
 void main() {
     vec2 vert_pos = vert_uv - 0.5;
 
-    vec3 direction = camera_pos - quad_pos;
-    float distance = length(direction);
-    direction.y = 0;
+    frag_uv = quad_uv_pos + vec2(vert_uv.x, vert_uv.y) * quad_uv_size;
+    frag_normal = quad_z;
 
-    // 0 -> sprite
-    // 1 -> particle
-
-    vec3 fwd = normalize(direction);
-    vec3 rgt = vec3(fwd.z, fwd.y, -fwd.x);
-    vec3 up = vec3(0, 1, 0);
-
-    if (texture.z == 1) {
-        fwd = vec3(1, 0, 0);
-        rgt = vec3(0, 0, -1);
-    }
-
-    if (texture.z == 2) {
-        fwd = vec3(0, 0, -1);
-        rgt = vec3(1, 0, 0);
-    }
-
-    if (texture.z == 3) {
-        fwd = vec3(-1, 0, 0);
-        rgt = vec3(0, 0, 1);
-    }
-
-    if (texture.z == 4) {
-        fwd = vec3(0, 0, 1);
-        rgt = vec3(-1, 0, 0);
-    }
-
-    if (texture.z == 5) {
-        fwd = vec3(0, 1, 0);
-        up = vec3(0, 0, 1);
-        rgt = vec3(1, 0, 0);
-    }
-
-    if (texture.z == 6) {
-        fwd = vec3(0, -1, 0);
-        up = vec3(0, 0, 1);
-        rgt = vec3(-1, 0, 0);
-    }
-
-    // } else if(texture.z == 2) {
-    //     rgt = vec3(-1, 0, 0);
-    // } else if(texture.z == 3) {
-    //     rgt = vec3(0, 0, 1);
-    // } else if(texture.z == 4) {
-    //     rgt = vec3(0, 0, -1);
-    // } else if(texture.z == 5) {
-    //     rgt = vec3(1, 0, 0);
-    //     up = vec3(0, 0, 1);
-    // } else if(texture.z == 6) {
-    //     rgt = vec3(-1, 0, 0);
-    //     up = vec3(0, 0, -1);
-    // }
-
-    vec3 pos = quad_pos + rgt * vert_pos.x + up * vert_pos.y;
-    frag_normal = (proj * vec4(fwd, 0)).xyz + vec3(vert_uv.x * 2 - 1, 0, 0);
-
-    vec2 vuv = vert_uv;
-    vuv.y = 1.0f - vuv.y;
-    frag_uv = (vuv + texture.xy) * 32 / 2048;
+    vec3 pos = quad_w + vert_pos.x * quad_x - vert_pos.y * quad_y;
     gl_Position = proj * vec4(pos, 1);
 }

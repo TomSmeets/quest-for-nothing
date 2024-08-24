@@ -132,26 +132,34 @@ static void m4_rot_x(m4 *m, f32 a) {
 // x: Left   --> Right
 // y: Bottom --> Top
 // z: Far    --> Near
-static void m4_perspective_to_clip(m4 *mtx, f32 fov, f32 aspect, f32 vnear, f32 vfar) {
+static void m4_perspective_to_clip(m4 *mtx, f32 fov, f32 aspect, f32 near_v, f32 far_v) {
     f32 tan_fov = f_tan(fov * DEG_TO_RAD / 2.0f);
 
     m4 m = {};
 
+    f32 a = aspect * tan_fov;
+    f32 b = tan_fov;
+    f32 d = (near_v + far_v) / (far_v - near_v);
+    f32 e = (2 * far_v * near_v) / (far_v - near_v);
+
     // Perspective Projection Matrix
     // Maps 3D -> 2D
-    m.fwd.x.x = 1.0f / (aspect * tan_fov);
-    m.fwd.y.y = 1.0f / tan_fov;
-    m.fwd.z.z = -(vfar + vnear) / (vfar - vnear);
-    m.fwd.z.w = -2.0f * vfar * vnear / (vfar - vnear);
-    m.fwd.w.z = -1.0f;
+    m.fwd.x.x = 1.0f / a;
+    m.fwd.y.y = 1.0f / b;
+    m.fwd.z.z = -d;
+    m.fwd.w.z = -e;
+    m.fwd.z.w = -1.0f;
 
     // Inverse Perspective Projection Matrix
     // Maps 3D <- 2D
-    m.inv.x.x = aspect * tan_fov;
-    m.inv.y.y = tan_fov;
-    m.inv.z.w = -1.0f;
-    m.inv.w.z = (vfar - vnear) / (2.0f * vfar * vnear);
-    m.inv.w.w = (vfar + vnear) / (2.0f * vfar * vnear);
+    m.inv.x.x = a;
+    m.inv.y.y = b;
+    m.inv.w.z = -1.0f;
+    m.inv.z.w = -1.0 / e;
+    m.inv.w.w = d / e;
+
+    // Check
+    // m4s check = m4s_mul(&m.fwd, &m.inv);
 
     // Apply
     m4_mul(mtx, &m);
