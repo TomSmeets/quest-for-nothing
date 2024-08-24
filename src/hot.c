@@ -208,7 +208,7 @@ void os_main(OS *os) {
     Hot *hot = hot_load(os);
 
     if (hot->first_time || watch_changed(hot->watch)) {
-        hot->update = build_and_load(hot->main_path, rand_next(&hot->rng));
+        hot->update = build_and_load(hot->main_path, rand_u32(&hot->rng));
         hot->child_os.reloaded = 1;
         hot->first_time = 0;
     }
