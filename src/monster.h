@@ -21,11 +21,11 @@ typedef struct Monster {
 static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     // Initial line widths
-    float width_inner = 0;
-    float width_outer = 4;
+    float cfg_start_width = rand_f32_range(rng, 1.0f, 8.0f);
+    float cfg_antenna_x   = rand_f32_range(rng, 1.0f, cfg_start_width);
 
     // Parameters
-    float cfg_spike = 1.0;
+    float cfg_spike = 0.5 + rand_f32(rng)*1.5;
     float cfg_overlap = 4.0;
 
     v4 color_base = rand_color(rng);
@@ -33,7 +33,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     float size_y = rand_f32_range(rng, 8, 32 - 4);
 
     // Image size
-    v2u size = {16, 32};
+    v2u size = {32, 32};
 
     // Clear image with base color
     // This improves alpha blending
@@ -48,31 +48,23 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     u32 eye_x = 0;
 
-    for (u32 y = offset; y < size.y; ++y) {
+    f32 width = cfg_start_width;
+
+    // Iterate 
+    for (u32 y = offset; y < size.y-1; ++y) {
+        if(width < 1) width = 1;
+
         for (u32 x = 0; x < size.x; ++x) {
             f32 cx = (f32)x - (f32)size.x / 2.0f + 0.5f;
             if (cx < 0) cx = -cx;
 
-            if (cx < width_outer && cx > width_inner) {
+            if (cx < width) {
                 image_write(image, (v2i){x, y}, color_base + rand_color(rng) * 0.05);
             }
         }
 
-        if (y == eye_y) eye_x = (width_inner + width_outer) / 2;
-
-        width_outer += rand_f32_signed(rng) * cfg_spike;
-        width_inner += rand_f32_signed(rng) * cfg_spike;
-
-        if (width_outer - width_inner < cfg_overlap) {
-            width_outer += cfg_overlap / 2;
-            width_inner -= cfg_overlap / 2;
-        }
-
-        if (width_outer <= width_inner) {
-            f32 new_width_inner = width_outer;
-            width_outer = width_inner + 1;
-            width_inner = new_width_inner;
-        }
+        if (y == eye_y) eye_x = width / 2;
+        width += rand_f32_signed(rng) * cfg_spike;
     }
 
     u32 look_dir = rand_u32(rng) % 4;

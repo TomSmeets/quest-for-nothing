@@ -81,7 +81,7 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     m4 player_yaw_mtx = m4_id();
     m4_rot_y(&player_yaw_mtx, pl->rot.y * PI); // Yaw
     v3 move = m4s_mul_dir(&player_yaw_mtx.fwd, in->move);
-    move.xz = v2_limit(move.xz, 1);
+    move.xz = v2_limit(move.xz, 0, 1);
     move.y = in->move.y * pl->flying;
 
     pl->pos += move * 1.4 * dt;
@@ -104,10 +104,10 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     // Reduce velocity
     v3 vel = pl->pos - pl->old_pos;
     if (pl->flying) {
-        vel = v3_limit(vel, 5.0f / 3.6f * dt);
+        vel = v3_limit(vel, 0.01f*dt, 5.0f / 3.6f * dt);
         vel *= 1.0f - 0.2;
     } else {
-        vel.xz = v2_limit(vel.xz, 5.0f / 3.6f * dt);
+        vel.xz = v2_limit(vel.xz, 0.01f*dt, 5.0f / 3.6f * dt);
         vel.xz *= 1.0f - 0.2;
     }
     pl->old_pos = pl->pos - vel;
