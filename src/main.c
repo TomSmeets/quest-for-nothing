@@ -65,12 +65,13 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
         f32 shoot_freq = 0;
         f32 shoot_volume = 0;
 
-        if (app->shoot_time < 1) {
+        if (0 && app->shoot_time < 1) {
             shoot_volume = 1 - app->shoot_time;
             shoot_volume *= shoot_volume;
             shoot_freq = (1 - app->shoot_time) * 200 + 400;
             app->shoot_time += dt * 2;
         }
+
         f32 wave = audio_sine(audio, shoot_freq * (1.0 - 0.1 * audio_sine(audio, 20)));
 
         v2 sample = {};

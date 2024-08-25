@@ -32,17 +32,17 @@ static Random rand_fork(Random *rand) {
     return (Random){rand_u32(rand) + 1};
 }
 
-// Random f32 in range [0, 1]
+// Random f32 in range [0, 1)
 static f32 rand_f32(Random *rand) {
-    return (f32)rand_u32(rand) / (f32)U32_MAX;
+    return (f32)rand_u32(rand) / (f32)(U32_MAX+1);
 }
 
-// Random f32 in range [0, 1]
+// Random f32 in range [min, max]
 static f32 rand_f32_range(Random *rand, f32 min, f32 max) {
     return rand_f32(rand) * (max - min) + min;
 }
 
-// Random f32 in range [0, 1]
+// Random u32 in range [min, max)
 static u32 rand_u32_range(Random *rand, u32 min, u32 max) {
     return rand_f32_range(rand, min, max - 1);
 }

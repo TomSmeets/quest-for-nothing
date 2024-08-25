@@ -19,15 +19,16 @@ typedef struct Monster {
 } Monster;
 
 static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
-
     // Initial line widths
-    float cfg_start_width = rand_f32_range(rng, 1.0f, 8.0f);
-    float cfg_antenna_x   = rand_f32_range(rng, 1.0f, cfg_start_width);
+    u32 body_width  = rand_u32_range(rng, 8, 32);
+    u32 body_height = rand_u32_range(rng, 8, 32);
+
+    float start_width = rand_f32_range(rng, 1.0f, 8.0f);
+    float antenna_x   = rand_f32_range(rng, 1.0f, start_width);
+    u32 eye_y         = rand_u32_range(rng, body_height / 2, body_height);
 
     // Parameters
-    float cfg_spike = 0.5 + rand_f32(rng)*1.5;
-    float cfg_overlap = 4.0;
-
+    float spike = 0.5 + rand_f32(rng)*1.5;
     v4 color_base = rand_color(rng);
 
     float size_y = rand_f32_range(rng, 8, 32 - 4);
@@ -48,7 +49,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     u32 eye_x = 0;
 
-    f32 width = cfg_start_width;
+    f32 width = start_width;
 
     // Iterate 
     for (u32 y = offset; y < size.y-1; ++y) {
@@ -64,7 +65,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
         }
 
         if (y == eye_y) eye_x = width / 2;
-        width += rand_f32_signed(rng) * cfg_spike;
+        width += rand_f32_signed(rng) * spike;
     }
 
     u32 look_dir = rand_u32(rng) % 4;
