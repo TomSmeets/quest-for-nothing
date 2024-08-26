@@ -20,16 +20,16 @@ typedef struct Monster {
 
 static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     // Initial line widths
-    u32 body_width  = rand_u32_range(rng, 8, 32);
+    u32 body_width = rand_u32_range(rng, 8, 32);
     u32 body_height = rand_u32_range(rng, 8, 32);
 
     float texture = 0.05;
     float start_width = rand_f32_range(rng, 1.0f, 8.0f);
-    float antenna_x   = rand_f32_range(rng, 1.0f, start_width);
-    u32 eye_y         = rand_u32_range(rng, body_height * 0.3f, body_height);
+    float antenna_x = rand_f32_range(rng, 1.0f, start_width);
+    u32 eye_y = rand_u32_range(rng, body_height * 0.3f, body_height);
 
     // Parameters
-    float spike = 0.5 + rand_f32(rng)*1.5;
+    float spike = 0.5 + rand_f32(rng) * 1.5;
     v4 color_base = rand_color(rng);
 
     float size_y = rand_f32_range(rng, 8, 32 - 4);
@@ -45,11 +45,11 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     u32 offset = size.y - size_y - 1;
 
-    // Iterate 
+    // Iterate
     f32 width = start_width;
     u32 eye_x = 0;
     for (u32 y = 4; y < size.y; ++y) {
-        if(width < 1) width = 1;
+        if (width < 1) width = 1;
         for (u32 x = 0; x < size.x; ++x) {
             f32 cx = (f32)x - (f32)size.x / 2.0f + 0.5f;
             if (cx < 0) cx = -cx;
@@ -76,7 +76,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     v4 black = {0, 0, 0, 1};
     v4 white = {1, 1, 1, 1};
 
-    u32 cx = size.x/2-1;
+    u32 cx = size.x / 2 - 1;
 
     image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, look_dir == 1 ? black : white);
     image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, look_dir == 0 ? black : white);

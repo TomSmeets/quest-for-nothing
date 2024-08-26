@@ -104,10 +104,10 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     // Reduce velocity
     v3 vel = pl->pos - pl->old_pos;
     if (pl->flying) {
-        vel = v3_limit(vel, 0.01f*dt, 5.0f / 3.6f * dt);
+        vel = v3_limit(vel, 0.01f * dt, 5.0f / 3.6f * dt);
         vel *= 1.0f - 0.2;
     } else {
-        vel.xz = v2_limit(vel.xz, 0.01f*dt, 5.0f / 3.6f * dt);
+        vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
         vel.xz *= 1.0f - 0.2;
     }
     pl->old_pos = pl->pos - vel;

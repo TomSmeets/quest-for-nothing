@@ -44,7 +44,7 @@ static f32 rand_f32_range(Random *rand, f32 min, f32 max) {
 
 // Random u32 in range [min, max]
 static u32 rand_u32_range(Random *rand, u32 min, u32 max) {
-    return rand_f32_range(rand, min, max+1);
+    return rand_f32_range(rand, min, max + 1);
 }
 
 // Random f32 in range [-1, 1]
