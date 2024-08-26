@@ -23,9 +23,10 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     u32 body_width  = rand_u32_range(rng, 8, 32);
     u32 body_height = rand_u32_range(rng, 8, 32);
 
+    float texture = 0.05;
     float start_width = rand_f32_range(rng, 1.0f, 8.0f);
     float antenna_x   = rand_f32_range(rng, 1.0f, start_width);
-    u32 eye_y         = rand_u32_range(rng, body_height / 2, body_height);
+    u32 eye_y         = rand_u32_range(rng, body_height * 0.3f, body_height);
 
     // Parameters
     float spike = 0.5 + rand_f32(rng)*1.5;
@@ -34,7 +35,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     float size_y = rand_f32_range(rng, 8, 32 - 4);
 
     // Image size
-    v2u size = {32, 32};
+    v2u size = {body_width, body_height};
 
     // Clear image with base color
     // This improves alpha blending
@@ -44,23 +45,17 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     u32 offset = size.y - size_y - 1;
 
-    u32 eye_y = offset + rand_u32_range(rng, 2, size_y * 0.7);
-    u32 mouth_y = offset + rand_u32_range(rng, eye_y, size_y);
-
-    u32 eye_x = 0;
-
-    f32 width = start_width;
-
     // Iterate 
-    for (u32 y = offset; y < size.y-1; ++y) {
+    f32 width = start_width;
+    u32 eye_x = 0;
+    for (u32 y = 4; y < size.y; ++y) {
         if(width < 1) width = 1;
-
         for (u32 x = 0; x < size.x; ++x) {
             f32 cx = (f32)x - (f32)size.x / 2.0f + 0.5f;
             if (cx < 0) cx = -cx;
 
             if (cx < width) {
-                image_write(image, (v2i){x, y}, color_base + rand_color(rng) * 0.05);
+                image_write(image, (v2i){x, y}, color_base + rand_color(rng) * texture);
             }
         }
 
@@ -70,16 +65,18 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
 
     u32 look_dir = rand_u32(rng) % 4;
 
-    if (0) {
-        image_write(image, (v2i){size.x / 2 - 3, mouth_y + 0}, (v4){1, 1, 1, 1});
-        image_write(image, (v2i){size.x / 2 - 2, mouth_y + 1}, (v4){1, 1, 1, 1});
-        image_write(image, (v2i){size.x / 2 - 1, mouth_y + 1}, (v4){1, 1, 1, 1});
-        image_write(image, (v2i){size.x / 2 + 0, mouth_y + 1}, (v4){1, 1, 1, 1});
-        image_write(image, (v2i){size.x / 2 + 1, mouth_y + 0}, (v4){1, 1, 1, 1});
-    }
+    // if (0) {
+    //     image_write(image, (v2i){size.x / 2 - 3, mouth_y + 0}, (v4){1, 1, 1, 1});
+    //     image_write(image, (v2i){size.x / 2 - 2, mouth_y + 1}, (v4){1, 1, 1, 1});
+    //     image_write(image, (v2i){size.x / 2 - 1, mouth_y + 1}, (v4){1, 1, 1, 1});
+    //     image_write(image, (v2i){size.x / 2 + 0, mouth_y + 1}, (v4){1, 1, 1, 1});
+    //     image_write(image, (v2i){size.x / 2 + 1, mouth_y + 0}, (v4){1, 1, 1, 1});
+    // }
 
     v4 black = {0, 0, 0, 1};
     v4 white = {1, 1, 1, 1};
+
+    u32 cx = size.x/2-1;
 
     image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, look_dir == 1 ? black : white);
     image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, look_dir == 0 ? black : white);
@@ -92,10 +89,10 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y + 1}, look_dir == 2 ? black : white);
 
     if (rand_u32(rng) % 2 == 0) {
-        image_write(image, (v2i){size.x / 2 + 2, offset - 0}, color_base);
-        image_write(image, (v2i){size.x / 2 + 3, offset - 1}, color_base);
-        image_write(image, (v2i){size.x / 2 + 4, offset - 2}, color_base);
-        image_write(image, (v2i){size.x / 2 + 5, offset - 3}, color_base);
+        image_write(image, (v2i){size.x / 2 + antenna_x + 2, offset - 0}, color_base);
+        image_write(image, (v2i){size.x / 2 + antenna_x + 3, offset - 1}, color_base);
+        image_write(image, (v2i){size.x / 2 + antenna_x + 4, offset - 2}, color_base);
+        image_write(image, (v2i){size.x / 2 + antenna_x + 5, offset - 3}, color_base);
 
         image_write(image, (v2i){size.x / 2 + 6, offset - 3}, color_base);
         image_write(image, (v2i){size.x / 2 + 5, offset - 4}, color_base);
@@ -115,7 +112,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     mon->image = image;
     mon->eye_x = eye_x;
     mon->eye_y = eye_y;
-    mon->mouth_y = mouth_y;
+    // mon->mouth_y = mouth_y;
 }
 
 static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
