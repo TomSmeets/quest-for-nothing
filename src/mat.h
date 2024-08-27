@@ -132,31 +132,30 @@ static void m4_rot_x(m4 *m, f32 a) {
 // x: Left   --> Right
 // y: Bottom --> Top
 // z: Far    --> Near
-static void m4_perspective_to_clip(m4 *mtx, f32 fov, f32 aspect, f32 near_v, f32 far_v) {
-    f32 tan_fov = f_tan(fov * DEG_TO_RAD / 2.0f);
+// See: https://www.youtube.com/watch?v=U0_ONQQ5ZNM
+//
+// OpenGL: (x,y,z,w) -> (x/w, y/w, z/w)
+//
+// So we want (x, y, z^2, z)
+// But that is not possible.
+// However we can solve the equation for near and far.
+
+static void m4_perspective_to_clip(m4 *mtx, f32 vertical_fov, f32 aspect_w_over_h, f32 near_v, f32 far_v) {
+    f32 tan_vertical_fov = f_tan(vertical_fov * DEG_TO_RAD * 0.5f);
 
     m4 m = {};
 
-    f32 a = aspect * tan_fov;
-    f32 b = tan_fov;
-    f32 d = (near_v + far_v) / (far_v - near_v);
-    f32 e = (2 * far_v * near_v) / (far_v - near_v);
+    f32 a = aspect_w_over_h * tan_vertical_fov;
+    f32 b = tan_vertical_fov;
+    f32 d = far_v / (far_v - near_v);
 
     // Perspective Projection Matrix
     // Maps 3D -> 2D
-    m.fwd.x.x = 1.0f / a;
-    m.fwd.y.y = 1.0f / b;
-    m.fwd.z.z = -d;
-    m.fwd.w.z = -e;
-    m.fwd.z.w = -1.0f;
-
-    // Inverse Perspective Projection Matrix
-    // Maps 3D <- 2D
-    m.inv.x.x = a;
-    m.inv.y.y = b;
-    m.inv.w.z = -1.0f;
-    m.inv.z.w = -1.0 / e;
-    m.inv.w.w = d / e;
+    m.fwd.x.x = -1.0f / a;
+    m.fwd.y.y = -1.0f / b;
+    m.fwd.z.z = d;
+    m.fwd.z.w = 1.0f;
+    m.fwd.w.z = -near_v * d;
 
     // Check
     // m4s check = m4s_mul(&m.fwd, &m.inv);

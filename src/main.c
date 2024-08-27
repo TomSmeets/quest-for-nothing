@@ -182,7 +182,7 @@ static void os_main(OS *os) {
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
     ogl_draw(app->gl, &proj.fwd, input->window_size);
-    // debug_struct(pl);
+    os_printf("%v3f\n", pl->pos);
 
     // Finish
     sdl_swap_window(app->sdl);

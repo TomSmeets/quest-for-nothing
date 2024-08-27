@@ -20,9 +20,15 @@ uniform vec3 camera_pos;
 void main() {
     vec2 vert_pos = vert_uv - 0.5;
 
-    frag_uv = quad_uv_pos + vec2(vert_uv.x, vert_uv.y) * quad_uv_size;
+    frag_uv = quad_uv_pos - vec2(vert_uv.x, vert_uv.y) * quad_uv_size + quad_uv_size;
     frag_normal = quad_z;
 
-    vec3 pos = quad_w + vert_pos.x * quad_x - vert_pos.y * quad_y;
+    vec3 pos = quad_w + vert_pos.x * quad_x + vert_pos.y * quad_y;
+
+    // 0,0 is top left
     gl_Position = proj * vec4(pos, 1);
+
+    // Map Vulkan to OpenGL coordnaites
+    gl_Position.y *= -1;
+    gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0f;
 }

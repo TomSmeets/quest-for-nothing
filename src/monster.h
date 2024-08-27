@@ -20,100 +20,64 @@ typedef struct Monster {
 } Monster;
 
 static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
-    // Initial line widths
-    u32 body_width = rand_u32_range(rng, 8, 32);
-    u32 body_height = rand_u32_range(rng, 8, 32);
-
     float texture = 0.05;
-    float start_width = rand_f32_range(rng, 1.0f, 8.0f);
-    float antenna_x = rand_f32_range(rng, 1.0f, start_width);
-    u32 eye_y = rand_u32_range(rng, body_height * 0.3f, body_height);
+
+    // Initial line widths
+    u32 body_height = rand_u32_range(rng, 12, 32);
+    u32 start_radius = rand_u32_range(rng, 1, 8);
+    u32 eye_y = rand_u32_range(rng, 0, body_height / 2.0f);
+    u32 eye_x = 0;       // Computed later
+    u32 body_radius = 0; // Computed later
 
     // Parameters
-    float spike = 0.5 + rand_f32(rng) * 1.5;
+    float spike = rand_f32_range(rng, 0.5, 3.0);
     v4 color_base = rand_color(rng);
 
-    float size_y = rand_f32_range(rng, 8, 32 - 4);
+    f32 *radius_list = mem_array_uninit(mem, f32, body_height);
+
+    f32 radius = start_radius;
+    for (u32 i = 0; i < body_height; ++i) {
+        radius_list[i] = radius;
+        if (radius > body_radius) body_radius = radius;
+        if (i == eye_y) eye_x = radius / 2.0f;
+
+        radius += rand_f32_signed(rng) * spike;
+        if (radius < 1) radius = 1;
+    }
 
     // Image size
-    v2u size = {body_width, body_height};
+    v2u size = {body_radius * 2 + 2, body_height};
 
     // Clear image with base color
     // This improves alpha blending
     // Probably go to premultiplied alpha
     Image *image = image_new(mem, size);
     image_fill(image, color_base * (v4){1, 1, 1, 0});
-    for (u32 x = 1; x < size.x; ++x) {
-        image_write(image, (v2i){x, 0}, RED);
-    }
-    for (u32 y = 1; y < size.y; ++y) {
-        image_write(image, (v2i){0, y}, GREEN);
-    }
+    // image_write_debug_axis(image);
 
-    u32 offset = size.y - size_y - 1;
-
-    // Iterate
-    f32 width = start_width;
-    u32 eye_x = 0;
-    for (u32 y = 4; y < size.y; ++y) {
-        if (width < 1) width = 1;
+    for (u32 y = 0; y < body_height; ++y) {
+        f32 r = radius_list[y];
         for (u32 x = 0; x < size.x; ++x) {
-            f32 cx = (f32)x - (f32)size.x / 2.0f + 0.5f;
-            if (cx < 0) cx = -cx;
-
-            if (cx < width) {
+            f32 d = (f32)x - (f32)(size.x - 1) / 2.0f;
+            if (d > -r && d < r) {
                 image_write(image, (v2i){x, y}, color_base + rand_color(rng) * texture);
             }
         }
-
-        if (y == eye_y) eye_x = width / 2;
-        width += rand_f32_signed(rng) * spike;
     }
 
     u32 look_dir = rand_u32(rng) % 4;
-
-    // if (0) {
-    //     image_write(image, (v2i){size.x / 2 - 3, mouth_y + 0}, (v4){1, 1, 1, 1});
-    //     image_write(image, (v2i){size.x / 2 - 2, mouth_y + 1}, (v4){1, 1, 1, 1});
-    //     image_write(image, (v2i){size.x / 2 - 1, mouth_y + 1}, (v4){1, 1, 1, 1});
-    //     image_write(image, (v2i){size.x / 2 + 0, mouth_y + 1}, (v4){1, 1, 1, 1});
-    //     image_write(image, (v2i){size.x / 2 + 1, mouth_y + 0}, (v4){1, 1, 1, 1});
-    // }
-
     v4 black = {0, 0, 0, 1};
     v4 white = {1, 1, 1, 1};
 
-    u32 cx = size.x / 2 - 1;
+    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y}, look_dir == 1 ? black : white);
+    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y}, look_dir == 0 ? black : white);
+    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y + 1}, look_dir == 2 ? black : white);
+    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y + 1}, look_dir == 3 ? black : white);
 
-    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, look_dir == 1 ? black : white);
-    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, look_dir == 0 ? black : white);
-    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y + 1}, look_dir == 2 ? black : white);
-    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y + 1}, look_dir == 3 ? black : white);
-
-    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y}, look_dir == 0 ? black : white);
-    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y}, look_dir == 1 ? black : white);
-    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y + 1}, look_dir == 3 ? black : white);
-    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y + 1}, look_dir == 2 ? black : white);
-
-    if (rand_u32(rng) % 2 == 0) {
-        image_write(image, (v2i){size.x / 2 + antenna_x + 2, offset - 0}, color_base);
-        image_write(image, (v2i){size.x / 2 + antenna_x + 3, offset - 1}, color_base);
-        image_write(image, (v2i){size.x / 2 + antenna_x + 4, offset - 2}, color_base);
-        image_write(image, (v2i){size.x / 2 + antenna_x + 5, offset - 3}, color_base);
-
-        image_write(image, (v2i){size.x / 2 + 6, offset - 3}, color_base);
-        image_write(image, (v2i){size.x / 2 + 5, offset - 4}, color_base);
-        image_write(image, (v2i){size.x / 2 + 6, offset - 4}, color_base);
-
-        image_write(image, (v2i){size.x / 2 - 1 - 2, offset - 0}, color_base);
-        image_write(image, (v2i){size.x / 2 - 1 - 3, offset - 1}, color_base);
-        image_write(image, (v2i){size.x / 2 - 1 - 4, offset - 2}, color_base);
-        image_write(image, (v2i){size.x / 2 - 1 - 5, offset - 3}, color_base);
-
-        image_write(image, (v2i){size.x / 2 - 1 - 6, offset - 3}, color_base);
-        image_write(image, (v2i){size.x / 2 - 1 - 5, offset - 4}, color_base);
-        image_write(image, (v2i){size.x / 2 - 1 - 6, offset - 4}, color_base);
-    }
+    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, look_dir == 0 ? black : white);
+    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, look_dir == 1 ? black : white);
+    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y + 1}, look_dir == 3 ? black : white);
+    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y + 1}, look_dir == 2 ? black : white);
 
     mon->color_base = color_base;
     mon->image = image;
@@ -126,6 +90,7 @@ static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     Monster *mon = mem_struct(mem, Monster);
     mon->pos = pos;
     mon->health = 10;
+
     monster_gen_image(mon, mem, rng);
     return mon;
 }
