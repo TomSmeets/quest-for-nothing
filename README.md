@@ -2,6 +2,8 @@
 
 The first version of this game. I will first implement v1.0, which will have very limited features. This will prevent me from getting stuck.
 
+![](screenshot.png)
+
 # Version 1.0
 
 - [ ] Player
