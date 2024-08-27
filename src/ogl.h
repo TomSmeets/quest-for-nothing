@@ -257,11 +257,13 @@ static void ogl_sprite(OGL *gl, v3 player, v3 pos, Image *img) {
     v3 x = {z.z, 0, -z.x};
     v3 y = {0, 1, 0};
 
+    v2 size = v2u_to_v2(img->size) / 32.0;
+
     m4s mtx = m4s_id();
-    mtx.x.xyz = x * img->size.x / 32.0;
-    mtx.y.xyz = y * img->size.y / 32.0;
+    mtx.x.xyz = x * size.x;
+    mtx.y.xyz = y * size.y;
     mtx.z.xyz = z;
-    mtx.w.xyz = pos;
+    mtx.w.xyz = pos + (v3){0, size.y * .5f, 0};
     ogl_quad(gl, &mtx, img);
 }
 

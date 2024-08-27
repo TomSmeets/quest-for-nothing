@@ -151,6 +151,7 @@ static void os_main(OS *os) {
     m4_rot_x(&player_mtx, pl->rot.x * PI); // Pitch
     m4_rot_y(&player_mtx, pl->rot.y * PI); // Yaw
     m4_trans(&player_mtx, pl->pos);
+    m4_trans(&player_mtx, (v3){0, .5, 0});
 
     m4 proj = m4_id();
     m4_mul_inv(&proj, &player_mtx);
@@ -168,7 +169,7 @@ static void os_main(OS *os) {
             {1, 0, 0, 0},
             {0, 0, 1, 0},
             {0, 1, 0, 0},
-            {p.x, p.y - 0.5, p.z, 1},
+            {p.x, p.y, p.z, 1},
         };
         // if (cell->x_neg) ogl_quad(app->gl, &mtx, cell->x_neg);
         // if (cell->z_neg) ogl_quad(app->gl, &mtx, cell->z_neg);

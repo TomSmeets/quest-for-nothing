@@ -1,6 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // monster.h - Monster logic and AI
 #pragma once
+#include "color.h"
 #include "image.h"
 #include "rand.h"
 #include "vec.h"
@@ -42,6 +43,12 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     // Probably go to premultiplied alpha
     Image *image = image_new(mem, size);
     image_fill(image, color_base * (v4){1, 1, 1, 0});
+    for (u32 x = 1; x < size.x; ++x) {
+        image_write(image, (v2i){x, 0}, RED);
+    }
+    for (u32 y = 1; y < size.y; ++y) {
+        image_write(image, (v2i){0, y}, GREEN);
+    }
 
     u32 offset = size.y - size_y - 1;
 
