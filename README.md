@@ -13,16 +13,16 @@ The first version of this game. I will first implement v1.0, which will have ver
 
 - [ ] Aliens
   - [ ] Movement
-    - Idle: stand still
-    - Stroll: move randomly to another cell
-    - Attack: move to the player
+    - [x] Idle: stand still
+    - [x] Stroll: move randomly to another cell
+    - [ ] Attack: move to the player
 
-  - [ ] Generated Texture
-    - Hands
-    - Feet
-    - Eyes
-    - Body
-    - Color
+  - [x] Generated Texture
+    - [x] Eyes
+    - [x] Body
+    - [x] Color
+    - [ ] Hands
+    - [ ] Feet
 
 - [ ] Level
   - [ ] Simple aligned walls
