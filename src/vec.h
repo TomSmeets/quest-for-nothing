@@ -35,6 +35,7 @@ static bool v3i_eq(v3i a, v3i b) { return a.x == b.x && a.y == b.y && a.z == b.z
 
 // Math
 static v2 v2_rot90(v2 v) { return (v2){-v.y, v.x}; };
+static v2 v2_from_rot(f32 a) { return (v2) { f_cos(a), f_sin(a) }; }
 
 static f32 v2_dot(v2 a, v2 b)    { return a.x * b.x + a.y * b.y; }
 static f32 v3_dot(v3 a, v3 b)    { return a.x * b.x + a.y * b.y + a.z * b.z; }

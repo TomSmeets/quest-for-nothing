@@ -160,6 +160,7 @@ static void os_main(OS *os) {
     ogl_begin(app->gl);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
+        monster_update(mon, app->dt, &app->game->rng);
         ogl_sprite(app->gl, pl->pos, mon->pos, mon->image);
     }
 
@@ -182,7 +183,7 @@ static void os_main(OS *os) {
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
     ogl_draw(app->gl, &proj.fwd, input->window_size);
-    os_printf("%v3f\n", pl->pos);
+    // os_printf("%v3f\n", pl->pos);
 
     // Finish
     sdl_swap_window(app->sdl);

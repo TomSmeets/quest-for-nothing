@@ -10,16 +10,13 @@ typedef struct {
     v3 pos;
     v3 old_pos;
 
-    // Player rotation around each axis. [0-1]
-    v3 rot;
-
-    v3 vel;
-
-    bool on_ground;
-    bool flying;
-
     // Health, probably more satisfying if it is 'discrete' instead of a float
     u32 health;
+
+    // Player rotation around each axis. [0-1]
+    v3 rot;
+    bool flying;
+    bool on_ground;
 } Player;
 
 typedef struct {
@@ -95,10 +92,6 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     if (pl->pos.y <= 0) {
         pl->pos.y = 0;
         pl->on_ground = true;
-    }
-
-    // Friction
-    if (pl->on_ground) {
     }
 
     // Reduce velocity

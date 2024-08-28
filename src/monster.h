@@ -8,16 +8,32 @@
 
 typedef struct Monster {
     v3 pos;
+    v3 old_pos;
+    v2 move_dir;
+    f32 move_time;
     u32 health;
     u32 eye_x;
     u32 eye_y;
-    u32 mouth_y;
-    u32 look_dir;
-
-    v4 color_base;
     Image *image;
     struct Monster *next;
 } Monster;
+
+static void monster_set_eyes(Monster *mon, Random *rng) {
+    u32 look_dir = rand_u32(rng) % 4;
+    v4 black = {0, 0, 0, 1};
+    v4 white = {1, 1, 1, 1};
+
+    image_write(mon->image, (v2i){mon->image->size.x / 2 + 0 + mon->eye_x, mon->eye_y}, look_dir == 1 ? black : white);
+    image_write(mon->image, (v2i){mon->image->size.x / 2 + 1 + mon->eye_x, mon->eye_y}, look_dir == 0 ? black : white);
+    image_write(mon->image, (v2i){mon->image->size.x / 2 + 0 + mon->eye_x, mon->eye_y + 1}, look_dir == 2 ? black : white);
+    image_write(mon->image, (v2i){mon->image->size.x / 2 + 1 + mon->eye_x, mon->eye_y + 1}, look_dir == 3 ? black : white);
+
+    image_write(mon->image, (v2i){mon->image->size.x / 2 - 1 - mon->eye_x, mon->eye_y}, look_dir == 0 ? black : white);
+    image_write(mon->image, (v2i){mon->image->size.x / 2 - 2 - mon->eye_x, mon->eye_y}, look_dir == 1 ? black : white);
+    image_write(mon->image, (v2i){mon->image->size.x / 2 - 1 - mon->eye_x, mon->eye_y + 1}, look_dir == 3 ? black : white);
+    image_write(mon->image, (v2i){mon->image->size.x / 2 - 2 - mon->eye_x, mon->eye_y + 1}, look_dir == 2 ? black : white);
+    mon->image->id = id_next();
+}
 
 static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     float texture = 0.05;
@@ -64,36 +80,43 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
             }
         }
     }
-
-    u32 look_dir = rand_u32(rng) % 4;
-    v4 black = {0, 0, 0, 1};
-    v4 white = {1, 1, 1, 1};
-
-    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y}, look_dir == 1 ? black : white);
-    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y}, look_dir == 0 ? black : white);
-    image_write(image, (v2i){size.x / 2 + 0 + eye_x, eye_y + 1}, look_dir == 2 ? black : white);
-    image_write(image, (v2i){size.x / 2 + 1 + eye_x, eye_y + 1}, look_dir == 3 ? black : white);
-
-    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y}, look_dir == 0 ? black : white);
-    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y}, look_dir == 1 ? black : white);
-    image_write(image, (v2i){size.x / 2 - 1 - eye_x, eye_y + 1}, look_dir == 3 ? black : white);
-    image_write(image, (v2i){size.x / 2 - 2 - eye_x, eye_y + 1}, look_dir == 2 ? black : white);
-
-    mon->color_base = color_base;
     mon->image = image;
     mon->eye_x = eye_x;
     mon->eye_y = eye_y;
-    // mon->mouth_y = mouth_y;
+    monster_set_eyes(mon, rng);
 }
 
 static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     Monster *mon = mem_struct(mem, Monster);
     mon->pos = pos;
+    mon->old_pos = pos;
     mon->health = 10;
-
     monster_gen_image(mon, mem, rng);
     return mon;
 }
 
-static void monster_update(Monster *mon) {
+static void monster_update(Monster *mon, f32 dt, Random *rng) {
+    mon->pos.xz += mon->move_dir * dt * 0.1;
+
+    mon->move_time -= dt;
+    if (mon->move_time <= 0) {
+        mon->move_time = rand_f32_range(rng, 1, 4);
+
+        if (rand_f32(rng) > 0.5) {
+            mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI);
+        } else {
+            mon->move_dir = 0;
+        }
+
+        monster_set_eyes(mon, rng);
+    }
+
+    v3 old = mon->old_pos;
+    mon->old_pos = mon->pos;
+    mon->pos += mon->pos - old;
+
+    v3 vel = mon->pos - mon->old_pos;
+    vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
+    vel.xz *= 1.0f - 0.2;
+    mon->old_pos = mon->pos - vel;
 }

@@ -231,7 +231,13 @@ static void ogl_quad(OGL *gl, m4s *mtx, Image *img) {
 
     if (!area) {
         area = packer_get_new(gl->pack, img);
-        if (!area) return;
+
+        if (!area) {
+            packer_free(gl->pack);
+            gl->pack = packer_new(OGL_TEXTURE_WIDTH);
+            return ogl_quad(gl, mtx, img);
+        };
+
         gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img->size.x, img->size.y, GL_RGBA, GL_FLOAT, img->pixels);
     }
 
