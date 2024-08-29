@@ -3,14 +3,17 @@
 #pragma once
 #include "color.h"
 #include "image.h"
+#include "player.h"
 #include "rand.h"
 #include "vec.h"
 
 typedef struct Monster {
     v3 pos;
     v3 old_pos;
+
     v2 move_dir;
     f32 move_time;
+
     u32 health;
     u32 eye_x;
     u32 eye_y;
@@ -95,28 +98,39 @@ static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     return mon;
 }
 
-static void monster_update(Monster *mon, f32 dt, Random *rng) {
-    mon->pos.xz += mon->move_dir * dt * 0.1;
+static void monster_collide(Monster *m1, Monster *m2) {
+    v3 diff = m1->pos - m2->pos;
+    f32 len = v3_length(diff);
+    f32 radius = 0.40f;
+    if (len > radius) return;
+    if (len <= 0) return;
+
+    v3 push = diff / len * (radius - len);
+    m1->pos += push * 0.25;
+    m2->pos -= push * 0.25;
+}
+
+static void monster_update(Monster *mon, f32 dt, Player *p, Random *rng) {
+    mon->old_pos = mon->pos;
+    mon->pos.xz += mon->move_dir * dt;
 
     mon->move_time -= dt;
     if (mon->move_time <= 0) {
         mon->move_time = rand_f32_range(rng, 1, 4);
 
-        if (rand_f32(rng) > 0.5) {
-            mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI);
-        } else {
-            mon->move_dir = 0;
-        }
-
+        u32 mode = rand_u32_range(rng, 0, 8);
+        if (mode == 0) mon->move_dir = 0;
+        if (mode == 1) mon->move_dir = v2_normalize(p->pos.xz - mon->pos.xz);
+        if (mode >= 2) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.5;
         monster_set_eyes(mon, rng);
     }
 
-    v3 old = mon->old_pos;
-    mon->old_pos = mon->pos;
-    mon->pos += mon->pos - old;
+    // v3 old = mon->old_pos;
+    // mon->old_pos = mon->pos;
+    // mon->pos += mon->pos - old;
 
-    v3 vel = mon->pos - mon->old_pos;
-    vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
-    vel.xz *= 1.0f - 0.2;
-    mon->old_pos = mon->pos - vel;
+    // v3 vel = mon->pos - mon->old_pos;
+    // vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
+    // vel.xz *= 1.0f - 0.01;
+    // mon->old_pos = mon->pos - vel;
 }

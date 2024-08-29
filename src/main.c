@@ -120,8 +120,8 @@ static void os_main(OS *os) {
         app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
 
         // Regen game
-        game_free(app->game);
-        app->game = game_new();
+        // game_free(app->game);
+        // app->game = game_new();
     }
 
     // Handle Input
@@ -160,8 +160,14 @@ static void os_main(OS *os) {
     ogl_begin(app->gl);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        monster_update(mon, app->dt, &app->game->rng);
+        monster_update(mon, app->dt, app->game->player, &app->game->rng);
         ogl_sprite(app->gl, pl->pos, mon->pos, mon->image);
+    }
+
+    for (Monster *m1 = app->game->monsters; m1; m1 = m1->next) {
+        for (Monster *m2 = m1->next; m2; m2 = m2->next) {
+            monster_collide(m1, m2);
+        }
     }
 
     for (Cell *cell = app->game->level; cell; cell = cell->next) {

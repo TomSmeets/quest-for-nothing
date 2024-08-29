@@ -79,11 +79,11 @@ static Cell *gen_level_outline(Memory *mem, u32 size) {
 
 static void gen_indoor(Cell *level, Memory *mem, Random *rng) {
     for (Cell *cell = level; cell; cell = cell->next) {
-        // if (1) cell->x_neg = gen_wall_image(mem, rng);
-        // if (1) cell->x_pos = gen_wall_image(mem, rng);
-        // if (1) cell->z_pos = gen_wall_image(mem, rng);
-        // if (1) cell->z_neg = gen_wall_image(mem, rng);
-        // if (1) cell->y_pos = gen_wall_image(mem, rng);
+        if (1) cell->x_neg = gen_wall_image(mem, rng);
+        if (1) cell->x_pos = gen_wall_image(mem, rng);
+        if (1) cell->z_pos = gen_wall_image(mem, rng);
+        if (1) cell->z_neg = gen_wall_image(mem, rng);
+        if (1) cell->y_pos = gen_wall_image(mem, rng);
         if (1) cell->y_neg = gen_wall_image(mem, rng);
     }
 }

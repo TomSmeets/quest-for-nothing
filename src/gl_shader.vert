@@ -13,6 +13,7 @@ layout(location = 6) in vec2 quad_uv_size;
 
 out vec2 frag_uv;
 out vec3 frag_normal;
+out float frag_z;
 
 uniform mat4 proj;
 uniform vec3 camera_pos;
@@ -27,6 +28,7 @@ void main() {
 
     // 0,0 is top left
     gl_Position = proj * vec4(pos, 1);
+    frag_z = gl_Position.z;
 
     // Map Vulkan to OpenGL coordnaites
     gl_Position.y *= -1;

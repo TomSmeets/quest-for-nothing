@@ -213,7 +213,7 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     }
 
     api->glCullFace(GL_BACK);
-    api->glClearColor(.3, .3, .3, 1);
+    api->glClearColor(0.02f, 0.02f, 0.02f, 1);
     return gl;
 }
 

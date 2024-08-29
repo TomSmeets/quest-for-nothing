@@ -23,19 +23,21 @@ WASM_DBG="$COMMON_WARN $COMMON_WASM $COMMON_DBG"
 WASM_REL="$COMMON_WARN $COMMON_WASM $COMMON_REL"
 
 mkdir -p out
+mkdir -p out/rel
 
 set -x
-clang $LINUX_DBG -o out/hot src/hot.c
+clang $LINUX_DBG -o out/hot src/hot.c &
 
+clang $LINUX_DBG -o out/quest-for-nothing-dbg.elf  src/main.c &
+clang $WIN32_DBG -o out/quest-for-nothing-dbg.exe  src/main.c &
+clang $WASM_DBG  -o out/quest-for-nothing-dbg.wasm src/main.c &
 
-clang $LINUX_DBG -o out/quest-for-nothing      src/main.c
-clang $WIN32_DBG -o out/quest-for-nothing.exe  src/main.c
-clang $WASM_DBG  -o out/quest-for-nothing.wasm src/main.c
+clang $LINUX_REL -o out/quest-for-nothing-opt.elf  src/main.c &
+clang $WIN32_REL -o out/quest-for-nothing-opt.exe  src/main.c &
+clang $WASM_REL  -o out/quest-for-nothing-opt.wasm src/main.c &
+set +x
 
-mkdir -p out/rel
-clang $LINUX_REL -o out/rel/quest-for-nothing      src/main.c
-clang $WIN32_REL -o out/rel/quest-for-nothing.exe  src/main.c
-clang $WASM_REL  -o out/rel/quest-for-nothing.wasm src/main.c
+wait
 
 if [ ! -f out/SDL2.dll ]; then
   pushd out

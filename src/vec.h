@@ -44,6 +44,7 @@ static i32 v3i_dot(v3i a, v3i b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 static f32 v2_length_sq(v2 a)    { return v2_dot(a, a); }
 static f32 v2_length(v2 a)    { return f_sqrt(v2_length_sq(a)); }
 static f32 v3_length_sq(v3 a)    { return v3_dot(a, a); }
+static f32 v3_length(v3 a)    { return f_sqrt(v3_length_sq(a)); }
 static i32 v3i_length_sq(v3i a)  { return v3i_dot(a, a); }
 
 static f32 v3_distance_sq(v3 a, v3 b)    { return v3_length_sq(a - b); }
