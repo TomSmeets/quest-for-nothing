@@ -157,7 +157,7 @@ static void os_main(OS *os) {
     m4_mul_inv(&proj, &player_mtx);
     m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
 
-    ogl_begin(app->gl);
+    ogl_begin(app->gl, &proj.fwd, input->window_size);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
         monster_update(mon, app->dt, app->game->player, &app->game->rng);
@@ -188,7 +188,7 @@ static void os_main(OS *os) {
 
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
-    ogl_draw(app->gl, &proj.fwd, input->window_size);
+    ogl_draw(app->gl);
     // os_printf("%v3f\n", pl->pos);
 
     // Finish

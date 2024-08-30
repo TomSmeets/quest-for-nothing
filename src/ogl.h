@@ -40,6 +40,8 @@ typedef struct {
     GLuint texture;
     Packer *pack;
 
+    m4s projection_mtx;
+
     u32 quad_count;
     OGL_Quad quad_list[4096];
 } OGL;
@@ -217,14 +219,31 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     return gl;
 }
 
-static void ogl_begin(OGL *gl) {
+static void ogl_begin(OGL *gl, m4s *mtx, v2i viewport_size) {
+    gl->quad_count = 0;
+    gl->api.glViewport(0, 0, viewport_size.x, viewport_size.y);
+    gl->api.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    gl->projection_mtx = *mtx;
+}
+
+static void ogl_draw(OGL *gl) {
+    OGL_Api *api = &gl->api;
+
+    // Setup Instances
+    api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
+    api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
+
+    // Screen -> Clip
+    api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&gl->projection_mtx);
+    api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
+
     gl->quad_count = 0;
 }
 
 static void ogl_quad(OGL *gl, m4s *mtx, Image *img) {
     if (gl->quad_count >= array_count(gl->quad_list)) {
-        os_printf("Too many quads\n");
-        return;
+        ogl_draw(gl);
+        return ogl_quad(gl, mtx, img);
     }
 
     Packer_Area *area = packer_get_cache(gl->pack, img);
@@ -233,8 +252,14 @@ static void ogl_quad(OGL *gl, m4s *mtx, Image *img) {
         area = packer_get_new(gl->pack, img);
 
         if (!area) {
+            // Draw what is left
+            ogl_draw(gl);
+
+            // Recreate texture atlas
             packer_free(gl->pack);
             gl->pack = packer_new(OGL_TEXTURE_WIDTH);
+
+            // Continue
             return ogl_quad(gl, mtx, img);
         };
 
@@ -271,19 +296,4 @@ static void ogl_sprite(OGL *gl, v3 player, v3 pos, Image *img) {
     mtx.z.xyz = z;
     mtx.w.xyz = pos + (v3){0, size.y * .5f, 0};
     ogl_quad(gl, &mtx, img);
-}
-
-static void ogl_draw(OGL *gl, m4s *mtx, v2i viewport_size) {
-    OGL_Api *api = &gl->api;
-
-    api->glViewport(0, 0, viewport_size.x, viewport_size.y);
-    api->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-
-    // Setup Instances
-    api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
-    api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
-
-    // Screen -> Clip
-    api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)mtx);
-    api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
 }
