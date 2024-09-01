@@ -125,12 +125,6 @@ static void os_main(OS *os) {
         ogl_sprite(app->gl, pl->pos, mon->pos, mon->image);
     }
 
-    for (Monster *m1 = app->game->monsters; m1; m1 = m1->next) {
-        for (Monster *m2 = m1->next; m2; m2 = m2->next) {
-            // monster_collide(m1, m2);
-        }
-    }
-
     for (Cell *cell = app->game->level; cell; cell = cell->next) {
         v3 p = v3i_to_v3(cell->pos);
         m4s mtx = {
