@@ -9,12 +9,11 @@
 #include "os.h"
 #include "player.h"
 #include "sdl.h"
+#include "time.h"
 
 typedef struct {
     Game *game;
-    u64 time;
-    u64 delay;
-    f32 dt;
+    Time_Info time;
 
     Sdl *sdl;
     OGL *gl;
@@ -28,25 +27,12 @@ typedef struct {
     f32 shoot_time;
 } App;
 
-static void app_set_fps(App *app, u32 rate) {
-    app->delay = 1000000 / (u64)rate;
-    app->dt = 1.0f / (f32)rate;
-}
-
 static App *app_init(void) {
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
 
     app->mem = mem;
     app->game = game_new();
-
-    app->time = os_time();
-    app->time /= 1000;
-    app->time /= 1000;
-    app->time *= 1000;
-    app->time *= 1000;
-    app_set_fps(app, 200);
-
     app->sdl = sdl_load(mem, "Quest For Nothing");
     app->gl = ogl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
     return app;
@@ -81,40 +67,15 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     }
 }
 
-// Sleep until next frame
-static void app_sleep(App *app) {
-    u64 time = os_time();
-    // os_printf("t = %u us r = %u fps\n", time - app->time, 1000000 / (time - app->time));
-
-    // We are a frame ahead
-    if (app->time > time + app->delay) {
-        os_printf("We are ahead\n");
-        app->time = time;
-    }
-
-    // We are a frame behind
-    if (app->time + app->delay < time) {
-        os_printf("We are behind\n");
-        app->time = time;
-    }
-
-    // Compute next frame time
-    app->time += app->delay;
-
-    // sleep
-    if (app->time > time) {
-        os_sleep(app->time - time);
-    }
-}
-
 static void os_main(OS *os) {
     if (!os->app) {
         os->app = app_init();
     }
 
     App *app = os->app;
-    Memory *tmp = mem_new();
+    f32 dt = time_begin(&app->time, 1e6 / 200);
 
+    Memory *tmp = mem_new();
     if (os->reloaded) {
         // Reload
         app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
@@ -143,7 +104,7 @@ static void os_main(OS *os) {
 
     Player *pl = app->game->player;
     Player_Input in = player_parse_input(input);
-    player_update(pl, app->dt, &in);
+    player_update(pl, dt, &in);
 
     // Render
     m4 player_mtx = m4_id();
@@ -160,13 +121,13 @@ static void os_main(OS *os) {
     ogl_begin(app->gl, &proj.fwd, input->window_size);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        monster_update(mon, app->dt, app->game->player, &app->game->rng);
+        monster_update(mon, dt, app->game->player, &app->game->rng);
         ogl_sprite(app->gl, pl->pos, mon->pos, mon->image);
     }
 
     for (Monster *m1 = app->game->monsters; m1; m1 = m1->next) {
         for (Monster *m2 = m1->next; m2; m2 = m2->next) {
-            monster_collide(m1, m2);
+            // monster_collide(m1, m2);
         }
     }
 
@@ -194,5 +155,7 @@ static void os_main(OS *os) {
     // Finish
     sdl_swap_window(app->sdl);
     mem_free(tmp);
-    app_sleep(app);
+
+    os->sleep_time = time_end(&app->time);
+    os_sleep(os->sleep_time);
 }

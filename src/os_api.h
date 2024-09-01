@@ -20,6 +20,7 @@ typedef struct {
 
     // Was the application reloaded
     bool reloaded;
+    u64 sleep_time;
 
     // Cached allocations (handled by os)
     OS_Alloc *cache;
