@@ -81,6 +81,7 @@ static v2 v2_limit(v2 v, f32 low, f32 lim) {
 
 // Casting
 static v3 v3i_to_v3(v3i v) { return (v3){v.x, v.y, v.z}; }
+static v3i v3_to_v3i(v3 v) { return (v3i){v.x, v.y, v.z}; }
 static v2 v2i_to_v2(v2i v) { return (v2){v.x, v.y}; }
 static v2 v2u_to_v2(v2u v) { return (v2){v.x, v.y}; }
 
