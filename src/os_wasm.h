@@ -3,6 +3,7 @@
 #pragma once
 #include "os_api.h"
 #include "std.h"
+#include "str.h"
 #include "types.h"
 
 #define WASM_IMPORT(name) __attribute__((import_module("env"), import_name(#name)))
@@ -24,14 +25,13 @@ void *memset(void *restrict dst, u8 value, u64 size) {
 #endif
 
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
-WASM_IMPORT(js_exit) void js_exit(i32 code);
-WASM_IMPORT(js_fail) void js_fail(char *message);
-WASM_IMPORT(js_alloc_raw) void *js_alloc_raw(u32 size);
+WASM_IMPORT(js_exit) void js_exit(void);
 WASM_IMPORT(js_time) u64 js_time(void);
-WASM_IMPORT(js_sleep) void js_sleep(u64 time);
 
-void js_main(OS *os) {
-    os_main(os);
+static OS JS_OS;
+
+void js_main(void) {
+    os_main(&JS_OS);
 }
 
 static void os_write(u32 fd, u8 *data, u32 len) {
@@ -39,24 +39,32 @@ static void os_write(u32 fd, u8 *data, u32 len) {
 }
 
 static void os_exit(i32 code) {
-    js_exit(code);
+    js_exit();
 }
 
 static void os_fail(char *message) {
-    js_fail(message);
+    js_write((u8*)message, str_len(message));
+    js_exit();
 }
 
+#define WASM_PAGE_SIZE 65536
+
 static void *os_alloc_raw(u32 size) {
-    return js_alloc_raw(size);
+    u64 addr = __builtin_wasm_memory_size(0) * WASM_PAGE_SIZE;
+    __builtin_wasm_memory_grow(0, size / WASM_PAGE_SIZE);
+    os_print("Memory Alloc!\n");
+    return (void*) addr;
 }
 
 static u64 os_time(void) {
+    os_print("Time!\n");
     return js_time();
 }
 
-static void os_sleep(u64 time) {
-    js_sleep(time);
-}
+static void os_sleep(u64 time) { }
+
 static void *os_load_sdl2(char *name) {
+    os_print("SDL!\n");
+    os_print(name);
     return 0;
 }

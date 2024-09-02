@@ -28,13 +28,15 @@ mkdir -p out/rel
 set -x
 clang $LINUX_DBG -o out/hot src/hot.c &
 
-clang $LINUX_DBG -o out/quest-for-nothing.elf  src/main.c &
-clang $WIN32_DBG -o out/quest-for-nothing.exe  src/main.c &
-clang $WASM_DBG  -o out/quest-for-nothing.wasm src/main.c &
+clang $LINUX_DBG -o out/quest-for-nothing.elf  src/main.c
+clang $WIN32_DBG -o out/quest-for-nothing.exe  src/main.c
+clang $WASM_DBG  -o out/quest-for-nothing.wasm src/main.c
 
-clang $LINUX_REL -o out/quest-for-nothing-opt.elf  src/main.c &
-clang $WIN32_REL -o out/quest-for-nothing-opt.exe  src/main.c &
-clang $WASM_REL  -o out/quest-for-nothing-opt.wasm src/main.c &
+clang $LINUX_REL -o out/quest-for-nothing-opt.elf  src/main.c
+clang $WIN32_REL -o out/quest-for-nothing-opt.exe  src/main.c
+clang $WASM_REL  -o out/quest-for-nothing-opt.wasm src/main.c
+
+cp src/os_wasm.html out/index.html
 set +x
 
 wait
