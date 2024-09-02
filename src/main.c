@@ -42,60 +42,56 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
     if (!app) return;
 
-    Input *input = &app->sdl->input;
     Audio *audio = &app->audio;
-
     for (u32 i = 0; i < count; ++i) {
         audio_begin_sample(audio, dt);
+        output[i] = 0;
+    }
+}
 
-        f32 shoot_freq = 0;
-        f32 shoot_volume = 0;
+static void handle_basic_input(Input *input, Sdl *sdl) {
+    // Quit
+    if (input->quit || key_down(input, KEY_Q)) {
+        os_exit(0);
+    }
 
-        if (0 && app->shoot_time < 1) {
-            shoot_volume = 1 - app->shoot_time;
-            shoot_volume *= shoot_volume;
-            shoot_freq = (1 - app->shoot_time) * 200 + 400;
-            app->shoot_time += dt * 2;
-        }
+    if (key_click(input, KEY_MOUSE_LEFT)) {
+        sdl_set_mouse_grab(sdl, true);
+    }
 
-        f32 wave = audio_sine(audio, shoot_freq * (1.0 - 0.1 * audio_sine(audio, 20)));
+    // Release Grab on focus lost or Esc
+    if (input->focus_lost || key_click(input, KEY_ESCAPE)) {
+        sdl_set_mouse_grab(sdl, false);
+    }
 
-        v2 sample = {};
-        sample.x = (wave + audio_sine(audio, 40) * 0.1) * shoot_volume;
-        sample.y = (wave + audio_sine(audio, 45) * 0.1) * shoot_volume;
-        output[i] = sample;
+    // Grab with G
+    if (key_click(input, KEY_G)) {
+        sdl_set_mouse_grab(sdl, !input->mouse_is_grabbed);
     }
 }
 
 static void os_main(OS *os) {
-    if (!os->app) {
-        os->app = app_init();
-    }
+    // Initialize App
+    if (!os->app) os->app = app_init();
 
     App *app = os->app;
-    f32 dt = time_begin(&app->time, 1e6 / 200);
 
-    Memory *tmp = mem_new();
+    // Reload some things for debugging
     if (os->reloaded) {
         app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
     }
 
+    // Allocate memory for this frame (and free at the end of the frame)
+    // These memory blocks are reused every frame, so this is very cheap
+    Memory *tmp = mem_new();
+
+    // Frame Timing
+    // 'dt' is the time this frame will take in secods
+    f32 dt = time_begin(&app->time, 200);
+
     // Handle Input
     Input *input = sdl_poll(app->sdl);
-    if (input->quit || key_down(input, KEY_Q)) os_exit(0);
-
-    // Handle Mouse Grabbing
-    if (0 && key_click(input, KEY_MOUSE_LEFT)) {
-        sdl_set_mouse_grab(app->sdl, true);
-    }
-
-    if (input->focus_lost || key_click(input, KEY_ESCAPE)) {
-        sdl_set_mouse_grab(app->sdl, false);
-    }
-
-    if (key_click(input, KEY_G)) {
-        sdl_set_mouse_grab(app->sdl, !input->mouse_is_grabbed);
-    }
+    handle_basic_input(input, app->sdl);
 
     Player *pl = app->game->player;
     Player_Input in = player_parse_input(input);

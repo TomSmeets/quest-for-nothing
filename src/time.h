@@ -11,9 +11,9 @@ typedef struct {
     u64 compute_time;
 } Time_Info;
 
-static f32 time_begin(Time_Info *time, u64 target_increment) {
+static f32 time_begin(Time_Info *time, u64 target_rate) {
+    u64 target_increment = 1e6 / target_rate;
     u64 increment = target_increment;
-
     while (time->compute_time > increment)
         increment += target_increment;
 

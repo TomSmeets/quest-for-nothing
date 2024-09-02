@@ -32,9 +32,7 @@ static void *mem_push_uninit(Memory *mem, u32 size) {
         mem->used = sizeof(OS_Alloc);
         mem_align(mem);
 
-        if (mem->used + size > mem->size) {
-            return 0;
-        }
+        assert(mem->used + size <= mem->size, "This allocation does not fit!");
     }
 
     // Allocate memory
