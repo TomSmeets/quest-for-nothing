@@ -215,8 +215,9 @@ void os_main(OS *os) {
 
     if (hot->update) {
         hot->update(&hot->child_os);
+        os->sleep_time = hot->child_os.sleep_time;
         hot->child_os.reloaded = 0;
     } else {
-        os_sleep(100 * 1000);
+        os->sleep_time = 100*1000;
     }
 }

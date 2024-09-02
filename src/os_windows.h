@@ -73,5 +73,6 @@ int main(int argc, const char **argv) {
     os.argv = (char **)argv;
     for (;;) {
         os_main_dynamic(&os);
+        os_sleep(os.sleep_time);
     }
 }

@@ -77,12 +77,7 @@ static void os_main(OS *os) {
 
     Memory *tmp = mem_new();
     if (os->reloaded) {
-        // Reload
         app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
-
-        // Regen game
-        // game_free(app->game);
-        // app->game = game_new();
     }
 
     // Handle Input
@@ -144,12 +139,10 @@ static void os_main(OS *os) {
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
     ogl_draw(app->gl);
-    // os_printf("%v3f\n", pl->pos);
 
     // Finish
     sdl_swap_window(app->sdl);
     mem_free(tmp);
 
     os->sleep_time = time_end(&app->time);
-    os_sleep(os->sleep_time);
 }

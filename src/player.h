@@ -67,13 +67,6 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     while (pl->rot.y > 1)
         pl->rot.y -= 2;
 
-    // Render
-    m4 player_mtx = m4_id();
-    m4_rot_z(&player_mtx, pl->rot.z * PI); // Roll
-    m4_rot_x(&player_mtx, pl->rot.x * PI); // Pitch
-    m4_rot_y(&player_mtx, pl->rot.y * PI); // Yaw
-    m4_trans(&player_mtx, pl->pos);
-
     // Move
     m4 player_yaw_mtx = m4_id();
     m4_rot_y(&player_yaw_mtx, pl->rot.y * PI); // Yaw
