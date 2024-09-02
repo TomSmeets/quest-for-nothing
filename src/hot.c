@@ -218,6 +218,6 @@ void os_main(OS *os) {
         os->sleep_time = hot->child_os.sleep_time;
         hot->child_os.reloaded = 0;
     } else {
-        os->sleep_time = 100*1000;
+        os->sleep_time = 100 * 1000;
     }
 }
