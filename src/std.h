@@ -14,6 +14,8 @@
         }                                                                                                                                            \
     } while (0)
 
+// Defined in os
+static void os_fail(char *message);
 #define assert(cond, msg)                                                                                                                            \
     if (!(cond)) os_fail(msg "\n")
 

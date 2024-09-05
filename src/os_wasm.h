@@ -30,8 +30,9 @@ WASM_IMPORT(js_time) u64 js_time(void);
 
 static OS JS_OS;
 
-void js_main(void) {
+u64 js_main(void) {
     os_main(&JS_OS);
+    return JS_OS.sleep_time;
 }
 
 static void os_write(u32 fd, u8 *data, u32 len) {

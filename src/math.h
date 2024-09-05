@@ -1,7 +1,6 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // math.h - float, integer and vector math expressions
 #pragma once
-#include "os.h"
 #include "std.h"
 #include "types.h"
 
