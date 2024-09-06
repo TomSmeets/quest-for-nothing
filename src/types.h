@@ -69,17 +69,17 @@ static_assert(sizeof(f32) == 4);
 static_assert(sizeof(f64) == 8);
 static_assert(sizeof(bool) == 1);
 
-static_assert(sizeof(v2) == 2*4);
-static_assert(sizeof(v3) == 4*4);
-static_assert(sizeof(v4) == 4*4);
+static_assert(sizeof(v2) == 2 * 4);
+static_assert(sizeof(v3) == 4 * 4);
+static_assert(sizeof(v4) == 4 * 4);
 
-static_assert(sizeof(v2i) == 2*4);
-static_assert(sizeof(v3i) == 4*4);
-static_assert(sizeof(v4i) == 4*4);
+static_assert(sizeof(v2i) == 2 * 4);
+static_assert(sizeof(v3i) == 4 * 4);
+static_assert(sizeof(v4i) == 4 * 4);
 
-static_assert(sizeof(v2u) == 2*4);
-static_assert(sizeof(v3u) == 4*4);
-static_assert(sizeof(v4u) == 4*4);
+static_assert(sizeof(v2u) == 2 * 4);
+static_assert(sizeof(v3u) == 4 * 4);
+static_assert(sizeof(v4u) == 4 * 4);
 
 #define offset_of(type, field) __builtin_offsetof(type, field)
 #define array_count(a) (sizeof(a) / sizeof(a[0]))

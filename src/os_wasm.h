@@ -44,7 +44,7 @@ static void os_exit(i32 code) {
 }
 
 static void os_fail(char *message) {
-    js_write((u8*)message, str_len(message));
+    js_write((u8 *)message, str_len(message));
     js_exit();
 }
 
@@ -54,7 +54,7 @@ static void *os_alloc_raw(u32 size) {
     u64 addr = __builtin_wasm_memory_size(0) * WASM_PAGE_SIZE;
     __builtin_wasm_memory_grow(0, size / WASM_PAGE_SIZE);
     os_print("Memory Alloc!\n");
-    return (void*) addr;
+    return (void *)addr;
 }
 
 static u64 os_time(void) {
@@ -62,7 +62,8 @@ static u64 os_time(void) {
     return js_time();
 }
 
-static void os_sleep(u64 time) { }
+static void os_sleep(u64 time) {
+}
 
 static void *os_load_sdl2(char *name) {
     os_print("SDL!\n");

@@ -44,7 +44,7 @@ static Sdl *sdl_load(Memory *mem, void *handle, char *title) {
 
     // Load sdl function pointers
     Sdl_Api *api = &sdl->api;
-    sdl_api_load(api);
+    sdl_api_load(api, handle);
 
 #if OS_IS_LINUX
     // Use wayland if possible
@@ -109,7 +109,7 @@ static Input *sdl_poll(Sdl *sdl) {
 
     Input *input = &sdl->input;
     input_reset(input);
-    sdl->audio_callback = sdl_audio_callback;
+    sdl->audio_callback = os_audio_callback;
 
     SDL_Event src;
     while (api->SDL_PollEvent(&src)) {

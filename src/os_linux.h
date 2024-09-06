@@ -2,7 +2,7 @@
 // os_linux.h - Platform implementation for linux
 #pragma once
 #include "linux_api.h"
-#include "os_base_api.h"
+#include "os_api.h"
 #include "os_desktop_api.h"
 #include "std.h"
 #include "str.h"
@@ -38,7 +38,6 @@ static u64 os_rand(void) {
     return seed;
 }
 
-
 static void os_write(u32 fd, u8 *data, u32 len) {
     ssize_t result = write(fd, data, len);
     assert(result >= 0, "Failed to write");
@@ -66,8 +65,8 @@ static void *os_alloc_raw(u32 size) {
 // ==== Desktop ====
 static u32 os_open(char *path, OS_Open_Type type) {
     int flags = 0;
-    if(type == Open_Write) flags |= O_WRONLY | O_CREAT | O_TRUNC;
-    if(type == Open_Read)  flags |= O_RDONLY;
+    if (type == Open_Write) flags |= O_WRONLY | O_CREAT | O_TRUNC;
+    if (type == Open_Read) flags |= O_RDONLY;
 
     int fd = open(path, flags);
     assert(fd >= 0, "Failed to open file");
@@ -92,12 +91,10 @@ static void os_sleep(u64 us) {
 
 static void *os_dlopen(char *path) {
     void *handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
-    if(!handle) os_fail(dlerror());
+    if (!handle) os_fail(dlerror());
     return handle;
 }
 
 static void *os_dlsym(void *handle, char *name) {
     return dlsym(handle, name);
 }
-
-

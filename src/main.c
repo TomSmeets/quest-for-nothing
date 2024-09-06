@@ -3,20 +3,17 @@
 #include "audio.h"
 #include "fmt.h"
 #include "game.h"
+#include "gfx.h"
 #include "input.h"
 #include "math.h"
-#include "ogl.h"
-#include "os.h"
 #include "player.h"
-#include "sdl.h"
 #include "time.h"
 
 typedef struct {
     Game *game;
     Time_Info time;
 
-    Sdl *sdl;
-    OGL *gl;
+    Gfx *gfx;
 
     Audio audio;
 
@@ -33,12 +30,11 @@ static App *app_init(void) {
 
     app->mem = mem;
     app->game = game_new();
-    app->sdl = sdl_load(mem, "Quest For Nothing");
-    app->gl = ogl_load(mem, app->sdl->api.SDL_GL_GetProcAddress);
+    app->gfx = os_gfx_init(mem, "Quest For Nothing");
     return app;
 }
 
-static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
+static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
     if (!app) return;
 
@@ -49,24 +45,24 @@ static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     }
 }
 
-static void handle_basic_input(Input *input, Sdl *sdl) {
+static void handle_basic_input(Input *input, Gfx *gfx) {
     // Quit
     if (input->quit || key_down(input, KEY_Q)) {
         os_exit(0);
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) {
-        sdl_set_mouse_grab(sdl, true);
+        os_gfx_set_mouse_grab(gfx, true);
     }
 
     // Release Grab on focus lost or Esc
     if (input->focus_lost || key_click(input, KEY_ESCAPE)) {
-        sdl_set_mouse_grab(sdl, false);
+        os_gfx_set_mouse_grab(gfx, false);
     }
 
     // Grab with G
     if (key_click(input, KEY_G)) {
-        sdl_set_mouse_grab(sdl, !input->mouse_is_grabbed);
+        os_gfx_set_mouse_grab(gfx, !input->mouse_is_grabbed);
     }
 }
 
@@ -75,11 +71,6 @@ static void os_main(OS *os) {
     if (!os->app) os->app = app_init();
 
     App *app = os->app;
-
-    // Reload some things for debugging
-    if (os->reloaded) {
-        app->gl = ogl_load(app->mem, app->sdl->api.SDL_GL_GetProcAddress);
-    }
 
     // Allocate memory for this frame (and free at the end of the frame)
     // These memory blocks are reused every frame, so this is very cheap
@@ -90,8 +81,8 @@ static void os_main(OS *os) {
     f32 dt = time_begin(&app->time, 200);
 
     // Handle Input
-    Input *input = sdl_poll(app->sdl);
-    handle_basic_input(input, app->sdl);
+    Input *input = os_gfx_poll(app->gfx);
+    handle_basic_input(input, app->gfx);
 
     Player *pl = app->game->player;
     Player_Input in = player_parse_input(input);
@@ -109,11 +100,11 @@ static void os_main(OS *os) {
     m4_mul_inv(&proj, &player_mtx);
     m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
 
-    ogl_begin(app->gl, &proj.fwd, input->window_size);
+    os_gfx_begin(app->gfx, &proj.fwd);
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
         monster_update(mon, dt, app->game->player, &app->game->rng);
-        ogl_sprite(app->gl, pl->pos, mon->pos, mon->image);
+        os_gfx_sprite(app->gfx, pl->pos, mon->pos, mon->image);
     }
 
     for (Cell *cell = app->game->level; cell; cell = cell->next) {
@@ -129,16 +120,13 @@ static void os_main(OS *os) {
         // if (cell->x_pos) ogl_quad(app->gl, &mtx, cell->x_pos);
         // if (cell->z_pos) ogl_quad(app->gl, &mtx, cell->z_pos);
         // if (cell->y_pos) ogl_quad(app->gl, &mtx, cell->y_pos);
-        if (cell->y_neg) ogl_quad(app->gl, &mtx, cell->y_neg);
+        if (cell->y_neg) os_gfx_quad(app->gfx, &mtx, cell->y_neg);
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
-    ogl_draw(app->gl);
-
     // Finish
-    sdl_swap_window(app->sdl);
+    os_gfx_end(app->gfx);
     mem_free(tmp);
-
     os->sleep_time = time_end(&app->time);
 }
