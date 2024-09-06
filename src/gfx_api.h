@@ -1,3 +1,5 @@
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// gfx_api.h - Graphics, Audio, and Input handling abstraction api definition
 #pragma once
 #include "image.h"
 #include "input.h"

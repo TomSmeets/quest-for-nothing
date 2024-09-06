@@ -1,5 +1,5 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// game.h - Store game data structures
+// game.h - Game data structures and implementation
 #pragma once
 #include "image.h"
 #include "mem.h"

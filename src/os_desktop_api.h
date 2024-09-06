@@ -1,3 +1,5 @@
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// os_desktop_api.h - Platofrm API for desktop operationg systems
 #pragma once
 #include "types.h"
 

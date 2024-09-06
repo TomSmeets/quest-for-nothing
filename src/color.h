@@ -1,3 +1,5 @@
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// color.h - Color types and math
 #pragma once
 
 #define WHITE ((v4){1, 1, 1, 1})

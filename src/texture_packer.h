@@ -1,3 +1,5 @@
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// texture_packer.h - Simple texture packer
 #pragma once
 
 #include "image.h"
