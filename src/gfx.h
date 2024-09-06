@@ -4,6 +4,8 @@
 
 #if OS_IS_LINUX || OS_IS_WINDOWS
 #include "gfx_desktop.h"
+#elif OS_IS_WASM
+#include "gfx_wasm.h"
 #endif
 
 static void os_gfx_sprite(Gfx *gfx, v3 player, v3 pos, Image *img) {

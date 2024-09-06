@@ -6,27 +6,11 @@
 #include "str.h"
 #include "types.h"
 
-#define WASM_IMPORT(name) __attribute__((import_module("env"), import_name(#name)))
+#define WASM_IMPORT(name) __attribute((import_module("env"), import_name(#name)))
 
-#if 1
-// we need to implement these if we don't use stdlib
-// C wil very "helpfully" detect memcpy and memset for loops.
-// And translate them to a call to memcpy and memset.
-// TODO: Test if this is still the case
-void *memcpy(void *restrict dst, const void *restrict src, u64 size) {
-    std_memcpy(dst, src, size);
-    return dst;
-}
-
-void *memset(void *restrict dst, u8 value, u64 size) {
-    std_memset(dst, value, size);
-    return dst;
-}
-#endif
-
+WASM_IMPORT(js_time) u64 js_time(void);
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 WASM_IMPORT(js_exit) void js_exit(void);
-WASM_IMPORT(js_time) u64 js_time(void);
 
 static OS JS_OS;
 
@@ -35,7 +19,19 @@ u64 js_main(void) {
     return JS_OS.sleep_time;
 }
 
-static void os_write(u32 fd, u8 *data, u32 len) {
+static u64 os_time(void) {
+    return js_time();
+}
+
+static u64 os_rand(void) {
+    return js_time();
+}
+
+static File os_stdout(void) {
+    return (File){};
+}
+
+static void os_write(File file, u8 *data, u32 len) {
     js_write(data, len);
 }
 
@@ -57,16 +53,18 @@ static void *os_alloc_raw(u32 size) {
     return (void *)addr;
 }
 
-static u64 os_time(void) {
-    os_print("Time!\n");
-    return js_time();
+#if 1
+// we need to implement these if we don't use stdlib
+// C wil very "helpfully" detect memcpy and memset for loops.
+// And translate them to a call to memcpy and memset.
+// TODO: Test if this is still the case
+void *memcpy(void *restrict dst, const void *restrict src, u64 size) {
+    std_memcpy(dst, src, size);
+    return dst;
 }
 
-static void os_sleep(u64 time) {
+void *memset(void *restrict dst, u8 value, u64 size) {
+    std_memset(dst, value, size);
+    return dst;
 }
-
-static void *os_load_sdl2(char *name) {
-    os_print("SDL!\n");
-    os_print(name);
-    return 0;
-}
+#endif

@@ -39,12 +39,12 @@ static u64 os_rand(void) {
 }
 
 static File os_stdout(void) {
-    return (File) { .fd = 1 };
+    return (File){.fd = 1};
 }
 
 static void os_write(File file, u8 *data, u32 len) {
     u32 written = 0;
-    while(written < len) {
+    while (written < len) {
         ssize_t result = write(file.fd, data + written, len - written);
         assert(result > 0, "Failed to write");
         written += result;
@@ -77,7 +77,7 @@ static File os_open(char *path, OS_Open_Type type) {
 
     int fd = open(path, flags);
     assert(fd >= 0, "Failed to open file");
-    return (File) { .fd = fd };
+    return (File){.fd = fd};
 }
 
 static void os_close(File file) {
@@ -99,7 +99,7 @@ static void os_sleep(u64 us) {
 static File os_dlopen(char *path) {
     void *handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
     if (!handle) os_fail(dlerror());
-    return (File) { .handle = handle };
+    return (File){.handle = handle};
 }
 
 static void *os_dlsym(File handle, char *name) {

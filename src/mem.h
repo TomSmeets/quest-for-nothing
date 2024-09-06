@@ -1,7 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // mem.h - Simple memory allocator
 #pragma once
-#include "os.h"
+#include "os_api.h"
 #include "std.h"
 #include "types.h"
 
