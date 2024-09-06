@@ -57,7 +57,7 @@ static void embed_files(char *output_file) {
     os_fprintf(asset_file, "#pragma once\n");
     os_fprintf(asset_file, "// clang-format off\n");
     for (u32 i = 0; i < array_count(watch_embed); ++i) {
-        embed_file(asset_file, (char*)watch_embed[i][0], (char*)watch_embed[i][1]);
+        embed_file(asset_file, (char *)watch_embed[i][0], (char *)watch_embed[i][1]);
     }
     os_close(asset_file);
 }

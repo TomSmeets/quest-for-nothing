@@ -1,5 +1,5 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-//gfx_desktop.h - Gfx implementation for windows and linux
+// gfx_desktop.h - Gfx implementation for windows and linux
 #pragma once
 #include "gfx_api.h"
 #include "mem.h"
