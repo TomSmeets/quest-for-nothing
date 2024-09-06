@@ -4,6 +4,8 @@ The first version of this game. I will first implement v1.0, which will have ver
 
 ![](screenshot.png)
 
+- os_api.h, types.h, input_type.h
+
 # Version 1.0
 
 - [ ] Player

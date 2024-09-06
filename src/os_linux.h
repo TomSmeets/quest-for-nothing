@@ -10,13 +10,20 @@ static void os_exit(i32 status) {
     _exit(status);
 }
 
-static void os_write(u32 fd, u8 *msg, u32 len) {
-    ssize_t result = write(fd, msg, len);
-    assert(result == len, "Failed to write");
+static void os_write(u32 fd, u8 *data, u32 len) {
+    ssize_t result = write(fd, data, len);
+    assert(result >= 0, "Failed to write");
+    assert(result == len, "Failed to write all");
+}
+
+static u32 os_read(u32 fd, u8 *data, u32 len) {
+    ssize_t result = read(fd, data, len);
+    assert(result >= 0, "Failed to read");
+    return result;
 }
 
 static void os_fail(char *message) {
-    write(2, message, str_len(message));
+    write(1, message, str_len(message));
     _exit(1);
 }
 
@@ -72,4 +79,19 @@ int main(int argc, const char **argv) {
         os_main_dynamic(&os);
         os_sleep(os.sleep_time);
     }
+}
+
+static u32 os_open(char *path, OS_Open_Type type) {
+    int flags = 0;
+    if(type == Open_Write) flags |= O_WRONLY | O_CREAT | O_TRUNC;
+    if(type == Open_Read)  flags |= O_RDONLY;
+
+    int fd = open(path, flags);
+    assert(fd >= 0, "Failed to open file");
+    return fd;
+}
+
+static void os_close(u32 fd) {
+    int ret = close(fd);
+    assert(ret == 0, "Failed to close file");
 }

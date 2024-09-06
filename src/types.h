@@ -27,6 +27,23 @@ typedef i32 v2i __attribute__((ext_vector_type(2)));
 typedef i32 v3i __attribute__((ext_vector_type(3)));
 typedef i32 v4i __attribute__((ext_vector_type(4)));
 
+// Single 4x4 matrix
+// column major, just like OpenGL
+// This allows us to extract the columns directly
+// | X.x   Y.x   Z.x   W.x |
+// |                       |
+// | X.y   Y.y   Z.y   W.y |
+// |                       |
+// | X.z   Y.z   Z.z   W.z |
+// |                       |
+// | X.w   Y.w   Z.w   W.w |
+typedef struct {
+    v4 x;
+    v4 y;
+    v4 z;
+    v4 w;
+} m4s;
+
 #define U32_MAX 0xffffffff
 
 #if true
