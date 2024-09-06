@@ -2,7 +2,8 @@
 // os_linux.h - Platform implementation for linux
 #pragma once
 #include "linux_api.h"
-#include "os_api.h"
+#include "os_base_api.h"
+#include "os_desktop_api.h"
 #include "std.h"
 #include "str.h"
 
@@ -62,50 +63,7 @@ static void *os_alloc_raw(u32 size) {
     return alloc;
 }
 
-
-
-
-static u32 os_read(u32 fd, u8 *data, u32 len) {
-    ssize_t result = read(fd, data, len);
-    assert(result >= 0, "Failed to read");
-    return result;
-}
-
-
-// Desktop
-static void os_sleep(u64 us) {
-    struct timespec time = linux_us_to_time(us);
-    nanosleep(&time, 0);
-}
-
-// Todo, top level shouold be os here. remove this call
-static void *os_load_sdl2(char *name) {
-    OS *os = OS_GLOBAL;
-
-    if (!os->sdl2_handle) {
-        os->sdl2_handle = dlopen("libSDL2.so", RTLD_LOCAL | RTLD_NOW);
-    }
-
-    return dlsym(os->sdl2_handle, name);
-}
-
-static void *os_dlopen(char *path) {
-    void *handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
-    if(!handle) os_fail(dlerror());
-    return handle;
-}
-
-static void *os_dlsym(void *handle, char *name) {
-    return dlsym(handle, name);
-}
-
-static void os_gfx_init(Memory *mem, char *title) {
-    void *handle = os_dlopen("libSDL2.so");
-    Sdl* sdl = sdl_load(mem, handle, title);
-}
-
-
-
+// ==== Desktop ====
 static u32 os_open(char *path, OS_Open_Type type) {
     int flags = 0;
     if(type == Open_Write) flags |= O_WRONLY | O_CREAT | O_TRUNC;
@@ -120,3 +78,26 @@ static void os_close(u32 fd) {
     int ret = close(fd);
     assert(ret == 0, "Failed to close file");
 }
+
+static u32 os_read(u32 fd, u8 *data, u32 len) {
+    ssize_t result = read(fd, data, len);
+    assert(result >= 0, "Failed to read");
+    return result;
+}
+
+static void os_sleep(u64 us) {
+    struct timespec time = linux_us_to_time(us);
+    nanosleep(&time, 0);
+}
+
+static void *os_dlopen(char *path) {
+    void *handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
+    if(!handle) os_fail(dlerror());
+    return handle;
+}
+
+static void *os_dlsym(void *handle, char *name) {
+    return dlsym(handle, name);
+}
+
+

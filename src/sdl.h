@@ -20,7 +20,7 @@ typedef struct {
 } Sdl;
 
 // Output audio samples
-static void sdl_audio_callback(OS *os, f32 dt, u32 count, v2 *output);
+static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output);
 
 static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     Sdl *sdl = user;
@@ -75,10 +75,6 @@ static Sdl *sdl_load(Memory *mem, void *handle, char *title) {
     // Disable vsync
     assert(api->SDL_GL_SetSwapInterval(0) == 0, "Could not disable VSync");
 
-    // load OpenGL ptrs
-    // sdl->gl = gl_load(m, api->SDL_GL_GetProcAddress);
-    // assert(sdl->gl, "Failed to load OpenGL pointers");
-
     int window_size_x = 0, window_size_y = 0;
     api->SDL_GetWindowSize(sdl->win, &window_size_x, &window_size_y);
     sdl->input.window_size.x = window_size_x;
@@ -93,7 +89,7 @@ static Sdl *sdl_load(Memory *mem, void *handle, char *title) {
         .userdata = sdl,
         .callback = sdl_audio_callback_wrapper,
     };
-    sdl->audio_callback = sdl_audio_callback;
+    sdl->audio_callback = os_audio_callback;
 
     assert(api->SDL_OpenAudio(&want, 0) == 0, "Failed to load SDL2 audio");
 
