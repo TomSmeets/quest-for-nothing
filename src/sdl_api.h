@@ -348,7 +348,7 @@ typedef struct {
     void (*SDL_UnlockAudio)(void);
 } Sdl_Api;
 
-static void sdl_api_load(Sdl_Api *api, void *handle) {
+static void sdl_api_load(Sdl_Api *api, File handle) {
     // Core
     api->SDL_Init = os_dlsym(handle, "SDL_Init");
     api->SDL_PollEvent = os_dlsym(handle, "SDL_PollEvent");

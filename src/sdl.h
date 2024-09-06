@@ -39,7 +39,7 @@ static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     }
 }
 
-static Sdl *sdl_load(Memory *mem, void *handle, char *title) {
+static Sdl *sdl_load(Memory *mem, File handle, char *title) {
     Sdl *sdl = mem_struct(mem, Sdl);
 
     // Load sdl function pointers

@@ -38,10 +38,17 @@ static u64 os_rand(void) {
     return seed;
 }
 
-static void os_write(u32 fd, u8 *data, u32 len) {
-    ssize_t result = write(fd, data, len);
-    assert(result >= 0, "Failed to write");
-    assert(result == len, "Failed to write all");
+static File os_stdout(void) {
+    return (File) { .fd = 1 };
+}
+
+static void os_write(File file, u8 *data, u32 len) {
+    u32 written = 0;
+    while(written < len) {
+        ssize_t result = write(file.fd, data + written, len - written);
+        assert(result > 0, "Failed to write");
+        written += result;
+    }
 }
 
 static void os_exit(i32 status) {
@@ -63,23 +70,23 @@ static void *os_alloc_raw(u32 size) {
 }
 
 // ==== Desktop ====
-static u32 os_open(char *path, OS_Open_Type type) {
+static File os_open(char *path, OS_Open_Type type) {
     int flags = 0;
     if (type == Open_Write) flags |= O_WRONLY | O_CREAT | O_TRUNC;
     if (type == Open_Read) flags |= O_RDONLY;
 
     int fd = open(path, flags);
     assert(fd >= 0, "Failed to open file");
-    return fd;
+    return (File) { .fd = fd };
 }
 
-static void os_close(u32 fd) {
-    int ret = close(fd);
+static void os_close(File file) {
+    int ret = close(file.fd);
     assert(ret == 0, "Failed to close file");
 }
 
-static u32 os_read(u32 fd, u8 *data, u32 len) {
-    ssize_t result = read(fd, data, len);
+static u32 os_read(File file, u8 *data, u32 len) {
+    ssize_t result = read(file.fd, data, len);
     assert(result >= 0, "Failed to read");
     return result;
 }
@@ -89,12 +96,12 @@ static void os_sleep(u64 us) {
     nanosleep(&time, 0);
 }
 
-static void *os_dlopen(char *path) {
+static File os_dlopen(char *path) {
     void *handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
     if (!handle) os_fail(dlerror());
-    return handle;
+    return (File) { .handle = handle };
 }
 
-static void *os_dlsym(void *handle, char *name) {
-    return dlsym(handle, name);
+static void *os_dlsym(File handle, char *name) {
+    return dlsym(handle.handle, name);
 }

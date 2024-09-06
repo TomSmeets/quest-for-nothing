@@ -7,7 +7,7 @@
 #include "types.h"
 #include "vec.h"
 
-#define debug_struct(x) __builtin_dump_struct((x), os_fprintf, OS_STDOUT);
+#define debug_struct(x) __builtin_dump_struct((x), os_fprintf, os_stdout());
 
 typedef struct {
     u8 *start;
@@ -347,9 +347,9 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
     }
 }
 
-#define os_printf(...) os_fprintf(OS_STDOUT, __VA_ARGS__)
+#define os_printf(...) os_fprintf(os_stdout(), __VA_ARGS__)
 
-__attribute__((format(printf, 2, 3))) static void os_fprintf(u32 fd, const char *format, ...) {
+__attribute__((format(printf, 2, 3))) static void os_fprintf(File file, const char *format, ...) {
     OS_Alloc *tmp = os_alloc();
 
     // Use the entire allocation for this format
@@ -365,7 +365,7 @@ __attribute__((format(printf, 2, 3))) static void os_fprintf(u32 fd, const char 
     va_end(arg);
 
     // Print
-    os_write(fd, buf.start, buf.used);
+    os_write(file, buf.start, buf.used);
 
     // Restore allocation
     tmp->next = 0;

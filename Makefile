@@ -4,7 +4,7 @@ CC_DBG=-O0 -g
 CC_REL=-O3 -Xlinker --strip-all
 
 CC_LINUX=-march=native
-CC_WIN32=-target x86_64-unknown-windows-gnu
+CC_WINDOWS=-target x86_64-unknown-windows-gnu
 CC_WASM=-target wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export-all -fno-builtin -msimd128
 
 build:

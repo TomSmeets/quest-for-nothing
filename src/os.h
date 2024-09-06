@@ -5,13 +5,28 @@
 
 #if __unix__
 #define OS_IS_LINUX 1
-#include "os_linux.h"
-#elif _WIN32
+#else
+#define OS_IS_LINUX 0
+#endif
+
+#if _WIN32
 #define OS_IS_WINDOWS 1
-#include "os_windows_base.h"
-#elif __wasm__
+#else
+#define OS_IS_WINDOWS 0
+#endif
+
+#if __wasm__
 #define OS_IS_WASM 1
-#include "os_wasm_base.h"
+#else
+#define OS_IS_WASM 0
+#endif
+
+#if OS_IS_LINUX
+#include "os_linux.h"
+#elif OS_IS_WINDOWS
+#include "os_windows.h"
+#elif OS_IS_WASM
+#include "os_wasm.h"
 #else
 #error Unsupported platform
 #endif
@@ -41,6 +56,10 @@ static void os_free(OS_Alloc *ptr) {
     OS_GLOBAL->cache = ptr;
 }
 
+static void os_fprint(File file, char *msg) {
+    os_write(file, (u8 *)msg, str_len(msg));
+}
+
 static void os_print(char *msg) {
-    os_write(OS_STDOUT, (u8 *)msg, str_len(msg));
+    os_fprint(os_stdout(), msg);
 }

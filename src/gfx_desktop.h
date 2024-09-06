@@ -3,6 +3,7 @@
 #include "mem.h"
 #include "ogl.h"
 #include "os.h"
+#include "os_desktop_api.h"
 #include "sdl.h"
 
 struct Gfx {
@@ -13,9 +14,9 @@ struct Gfx {
 
 static Gfx *os_gfx_init(Memory *mem, char *title) {
     Gfx *gfx = mem_struct(mem, Gfx);
-    void *handle = os_dlopen(OS_IS_LINUX ? "libSDL2.so" : "SDL2.dll");
+    File lib = os_dlopen(OS_IS_LINUX ? "libSDL2.so" : "SDL2.dll");
     gfx->mem = mem;
-    gfx->sdl = sdl_load(mem, handle, title);
+    gfx->sdl = sdl_load(mem, lib, title);
     gfx->ogl = ogl_load(mem, gfx->sdl->api.SDL_GL_GetProcAddress);
     return gfx;
 }
