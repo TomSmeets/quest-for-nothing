@@ -23,18 +23,17 @@ WASM_DBG="$COMMON_WARN $COMMON_WASM $COMMON_DBG"
 WASM_REL="$COMMON_WARN $COMMON_WASM $COMMON_REL"
 
 mkdir -p out
-mkdir -p out/rel
 
 set -x
 clang $LINUX_DBG -o out/hot src/hot.c &
 
-clang $LINUX_DBG -o out/quest-for-nothing.elf  src/main.c
-clang $WIN32_DBG -o out/quest-for-nothing.exe  src/main.c
-clang $WASM_DBG  -o out/quest-for-nothing.wasm src/main.c
+clang $LINUX_DBG -o out/main.elf  src/main.c
+clang $WIN32_DBG -o out/main.exe  src/main.c
+clang $WASM_DBG  -o out/main.wasm src/main.c
 
-clang $LINUX_REL -o out/quest-for-nothing-opt.elf  src/main.c
-clang $WIN32_REL -o out/quest-for-nothing-opt.exe  src/main.c
-clang $WASM_REL  -o out/quest-for-nothing-opt.wasm src/main.c
+clang $LINUX_REL -o out/main-opt.elf  src/main.c
+clang $WIN32_REL -o out/main-opt.exe  src/main.c
+clang $WASM_REL  -o out/main-opt.wasm src/main.c
 
 cp src/os_wasm.html out/index.html
 set +x
@@ -48,7 +47,3 @@ if [ ! -f out/SDL2.dll ]; then
   rm SDL2.zip
   popd
 fi
-
-# clang $common $debug $linux -E src/main.c | wc --bytes | numfmt --to=iec
-# clang $common $release $linux -o out/quest-for-nothing src/main.c
-# strip -s out/quest-for-nothing
