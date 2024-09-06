@@ -67,6 +67,8 @@ static void handle_basic_input(Input *input, Gfx *gfx) {
 }
 
 static void os_main(OS *os) {
+    os_printf("Time: %u\n", os_time());
+
     // Initialize App
     if (!os->app) os->app = app_init();
 
@@ -78,7 +80,7 @@ static void os_main(OS *os) {
 
     // Frame Timing
     // 'dt' is the time this frame will take in secods
-    f32 dt = time_begin(&app->time, 200);
+    f32 dt = time_begin(&app->time, 1);
 
     // Handle Input
     Input *input = os_gfx_poll(app->gfx);

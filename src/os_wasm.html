@@ -19,26 +19,59 @@
 var ctx = {};
 
 function js_time() {
-    return new Date().getTime()*1000;
+    return BigInt(new Date().getTime()*1000)
 }
 
 function js_write(data, len) {
-    var bytes = new Uint8Array(ctx.memory.buffer, data, len);
-    var string = new TextDecoder('utf8').decode(bytes);
-    console.log(string);
+    var bytes = new Uint8Array(ctx.memory.buffer, data, len)
+    var string = new TextDecoder('utf8').decode(bytes)
+    console.log(string)
 }
-function js_exit() { console.log("Exit"); }
 
-WebAssembly.instantiateStreaming(fetch('quest-for-nothing-opt.wasm'), {
+function js_exit() { console.log("Exit") }
+
+
+function js_gfx_grab(grab) {
+    console.log("Grab: " + grab)
+    if(grab) {
+        canvas.requestPointerLock()
+        // canvas.requestPointerLock({unadjustedMovement: true}) }
+    } else {
+        document.exitPointerLock()
+    }
+}
+
+function js_loop() {
+    let timeout = Number(ctx.exports.js_main()) / 1000
+    console.log("Timeout: " + timeout)
+    window.setTimeout(js_loop, timeout)
+}
+
+function js_gfx_init() {
+    ctx.canvas = document.getElementById('canvas')
+    document.addEventListener("keydown",   (ev) => { console.log(ev); ctx.exports.js_gfx_keydown(ev.keyCode) }, true)
+    document.addEventListener("keyup",     (ev) => { console.log(ev); ctx.exports.js_gfx_keyup(ev.keyCode) }, true)
+    document.addEventListener("mousemove", (ev) => { ctx.exports.js_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
+    document.addEventListener("mousedown", (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
+    document.addEventListener("mouseup",   (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
+    window.addEventListener("resize",      (ev) => {
+        ctx.ex.js_gfx_resize(canvas.width, canvas.height);
+        console.log(ev);
+    }, false);
+}
+
+WebAssembly.instantiateStreaming(fetch('main.wasm'), {
     env: {
     js_time,
     js_exit,
     js_write,
+    js_gfx_grab,
     },
 }).then(({instance}) => {
-    ctx.memory = instance.exports.memory;
-    ctx.js_main = instance.exports.js_main;
-    ctx.js_main();
+    ctx.memory  = instance.exports.memory;
+    ctx.exports = instance.exports;
+    js_gfx_init()
+    js_loop()
 });
 </script>
 </head>

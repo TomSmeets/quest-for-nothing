@@ -6,7 +6,7 @@ set -euo pipefail
 
 COMMON_WARN="-Wall -Werror -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format"
 
-COMMON_DBG="-O0 -g"
+COMMON_DBG="-O1 -g"
 COMMON_REL="-O3 -Xlinker --strip-all"
 
 COMMON_LINUX="-march=native"
