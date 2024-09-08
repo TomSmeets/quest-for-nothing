@@ -3,6 +3,23 @@
 #pragma once
 #include "vec.h"
 
+// Single 4x4 matrix
+// column major, just like OpenGL
+// This allows us to extract the columns directly
+// | X.x   Y.x   Z.x   W.x |
+// |                       |
+// | X.y   Y.y   Z.y   W.y |
+// |                       |
+// | X.z   Y.z   Z.z   W.z |
+// |                       |
+// | X.w   Y.w   Z.w   W.w |
+typedef struct {
+    v4 x;
+    v4 y;
+    v4 z;
+    v4 w;
+} m4s;
+
 // Multiply a 4 component vector with this matrix
 // y = M * x
 static v4 m4s_mul_v4(m4s *m, v4 v) {

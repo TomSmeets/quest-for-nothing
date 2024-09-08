@@ -4,8 +4,31 @@
 #include "math.h"
 #include "types.h"
 
-// clang-format off
+typedef f32 v2 __attribute__((ext_vector_type(2)));
+typedef f32 v3 __attribute__((ext_vector_type(3)));
+typedef f32 v4 __attribute__((ext_vector_type(4)));
 
+typedef u32 v2u __attribute__((ext_vector_type(2)));
+typedef u32 v3u __attribute__((ext_vector_type(3)));
+typedef u32 v4u __attribute__((ext_vector_type(4)));
+
+typedef i32 v2i __attribute__((ext_vector_type(2)));
+typedef i32 v3i __attribute__((ext_vector_type(3)));
+typedef i32 v4i __attribute__((ext_vector_type(4)));
+
+static_assert(sizeof(v2) == 2 * 4);
+static_assert(sizeof(v3) == 4 * 4);
+static_assert(sizeof(v4) == 4 * 4);
+
+static_assert(sizeof(v2i) == 2 * 4);
+static_assert(sizeof(v3i) == 4 * 4);
+static_assert(sizeof(v4i) == 4 * 4);
+
+static_assert(sizeof(v2u) == 2 * 4);
+static_assert(sizeof(v3u) == 4 * 4);
+static_assert(sizeof(v4u) == 4 * 4);
+
+// clang-format off
 // Basics
 static bool v3i_eq(v3i a, v3i b) { return a.x == b.x && a.y == b.y && a.z == b.z; }
 
