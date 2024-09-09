@@ -80,7 +80,7 @@ static void os_main(OS *os) {
 
     // Frame Timing
     // 'dt' is the time this frame will take in secods
-    f32 dt = time_begin(&app->time, 1);
+    f32 dt = time_begin(&app->time, 60);
 
     // Handle Input
     Input *input = os_gfx_poll(app->gfx);
