@@ -52,5 +52,5 @@ static void *os_alloc_raw(u32 size);
 
 // Derived
 static void os_print(char *msg);
-static OS_Alloc *os_alloc(void);
-static void os_free(OS_Alloc *ptr);
+static void *os_alloc(void);
+static void os_free(void *ptr);

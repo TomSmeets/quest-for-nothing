@@ -9,24 +9,45 @@
 
 #define debug_struct(x) __builtin_dump_struct((x), os_fprintf, os_stdout());
 
-#if 0
+#if 1
 typedef struct {
+    File *out;
     u8 *data;
-    u32 used;
     u32 capacity;
-    File fd;
+    u32 used;
 } Fmt;
 
 static void fmt_flush(Fmt *fmt) {
-    os_write(fmt->fd, fmt->data, fmt->used);
+    os_write(fmt->out, fmt->data, fmt->used);
     fmt->used = 0;
 }
 
-static void fmt_chr(Fmt *fmt, u8 *data, u32 size) {
-    if(fmt->used == fmt->capacity && fmt->fd) fmt_flush(fmt);
-    if(fmt->used == fmt->capacity) return;
 
-    if (buf->used < buf->size) buf->start[buf->used++] = c;
+static Fmt *fmt_new(Memory *mem, File *out) {
+    assert(OS_ALLOC_SIZE >= sizeof(Fmt), "Not enogh memory for formatter");
+
+    Fmt *fmt = mem_struct(mem, Fmt);
+    fmt->out = out;
+    fmt->data = mem_push_uninit(mem, 1024);
+    fmt->capacity = OS_ALLOC_SIZE - sizeof(Fmt);
+    return fmt;
+}
+
+static void fmt_free(Fmt *fmt) {
+    fmt_flush(fmt);
+    os_free(fmt);
+}
+
+static void fmt_chr(Fmt *fmt, u8 chr) {
+    if (fmt->used == fmt->capacity) fmt_flush(fmt);
+
+    assert(fmt->used >= fmt->capacity, "Out of memory for this formatter");
+
+    fmt->data[fmt->used++] = chr;
+
+    // Flush on newline
+    if(chr == '\n')
+        fmt_flush(fmt);
 }
 
 static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
@@ -375,11 +396,9 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
 #define os_printf(...) os_fprintf(os_stdout(), __VA_ARGS__)
 
 __attribute__((format(printf, 2, 3))) static void os_fprintf(File *file, const char *format, ...) {
-    OS_Alloc *tmp = os_alloc();
-
     // Use the entire allocation for this format
     Buffer buf;
-    buf.start = (u8 *)tmp;
+    buf.start = os_alloc();
     buf.size = OS_ALLOC_SIZE;
     buf.used = 0;
 
@@ -393,8 +412,7 @@ __attribute__((format(printf, 2, 3))) static void os_fprintf(File *file, const c
     os_write(file, buf.start, buf.used);
 
     // Restore allocation
-    tmp->next = 0;
-    os_free(tmp);
+    os_free(buf.start);
 }
 
 __attribute__((format(printf, 2, 3))) static char *fmt(Memory *mem, const char *format, ...) {

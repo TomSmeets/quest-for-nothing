@@ -31,8 +31,8 @@
 #error Unsupported platform
 #endif
 
-// Allocate memory
-static OS_Alloc *os_alloc(void) {
+// Allocate exactly OS_ALLOC_SIZE bytes of memory
+static void *os_alloc(void) {
     // Return cached page (if present)
     if (OS_GLOBAL->cache) {
         OS_Alloc *alloc = OS_GLOBAL->cache;
@@ -45,15 +45,11 @@ static OS_Alloc *os_alloc(void) {
 }
 
 // Free entire chain of pages
-static void os_free(OS_Alloc *ptr) {
-    // Find last page
-    OS_Alloc *last = ptr;
-    while (last->next)
-        last = last->next;
-
+static void os_free(void *mem) {
     // Add chain to allocation cache
-    last->next = OS_GLOBAL->cache;
-    OS_GLOBAL->cache = ptr;
+    OS_Alloc *alloc = mem;
+    alloc->next = OS_GLOBAL->cache;
+    OS_GLOBAL->cache = alloc;
 }
 
 static void os_fprint(File *file, char *msg) {
