@@ -38,7 +38,6 @@ static u64 os_rand(void) {
     return seed;
 }
 
-
 static int file_to_fd(File *f) {
     return (int)((u64)f - 1);
 }

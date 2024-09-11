@@ -97,9 +97,9 @@ static void os_sleep(u64 time) {
 }
 
 static File *os_dlopen(char *path) {
-    return (File *) LoadLibrary(path);
+    return (File *)LoadLibrary(path);
 }
 
 static void *os_dlsym(File *file, char *name) {
-    return GetProcAddress((void *) file, name);
+    return GetProcAddress((void *)file, name);
 }

@@ -27,7 +27,7 @@ static u64 os_rand(void) {
 }
 
 static File *os_stdout(void) {
-    return (File *) 1;
+    return (File *)1;
 }
 
 static void os_write(File *file, u8 *data, u32 len) {

@@ -47,12 +47,12 @@ void js_gfx_key_down(u32 key, bool down) {
 }
 
 void js_gfx_keyup(u32 key) {
-    os_printf("KEY: %u Up\n",key);
+    os_printf("KEY: %u Up\n", key);
     input_emit(&GFX_GLOBAL.input, key_from_char(key), false);
 }
 
 void js_gfx_mouse_move(f32 x, f32 y, f32 dx, f32 dy) {
-    os_printf("Mouse: x=%f y=%f dx=%f dy=%f\n",x, y, dx, dy);
+    os_printf("Mouse: x=%f y=%f dx=%f dy=%f\n", x, y, dx, dy);
     GFX_GLOBAL.input.mouse_moved = true;
     GFX_GLOBAL.input.mouse_pos = (v2i){x, y};
     GFX_GLOBAL.input.mouse_rel = (v2i){dx, dy};
@@ -62,6 +62,6 @@ void js_gfx_mouse_down(u32 button, bool down) {
     // Yeah, i don't like the printf at all, lets get rid of it
     // I like the fmt idea with optional output buffer
     os_printf("Mouse: button=%x down=%x\n", (u64)button, (u64)down);
-    if(button == 0) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_LEFT, down);
-    if(button == 2) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_RIGHT, down);
+    if (button == 0) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_LEFT, down);
+    if (button == 2) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_RIGHT, down);
 }
