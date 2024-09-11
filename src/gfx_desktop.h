@@ -16,7 +16,7 @@ struct Gfx {
 
 static Gfx *os_gfx_init(Memory *mem, char *title) {
     Gfx *gfx = mem_struct(mem, Gfx);
-    File lib = os_dlopen(OS_IS_LINUX ? "libSDL2.so" : "SDL2.dll");
+    File *lib = os_dlopen(OS_IS_LINUX ? "libSDL2.so" : "SDL2.dll");
     gfx->mem = mem;
     gfx->sdl = sdl_load(mem, lib, title);
     gfx->ogl = ogl_load(mem, gfx->sdl->api.SDL_GL_GetProcAddress);

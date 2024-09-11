@@ -10,7 +10,6 @@
 
 WASM_IMPORT(js_time) u64 js_time(void);
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
-WASM_IMPORT(js_exit) void js_exit(void);
 
 static OS JS_OS;
 
@@ -27,21 +26,21 @@ static u64 os_rand(void) {
     return js_time();
 }
 
-static File os_stdout(void) {
-    return (File){};
+static File *os_stdout(void) {
+    return (File *) 1;
 }
 
-static void os_write(File file, u8 *data, u32 len) {
+static void os_write(File *file, u8 *data, u32 len) {
     js_write(data, len);
 }
 
 static void os_exit(i32 code) {
-    js_exit();
+    __builtin_trap();
 }
 
 static void os_fail(char *message) {
     js_write((u8 *)message, str_len(message));
-    js_exit();
+    os_exit(0);
 }
 
 #define WASM_PAGE_SIZE 65536

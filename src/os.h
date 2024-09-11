@@ -56,7 +56,7 @@ static void os_free(OS_Alloc *ptr) {
     OS_GLOBAL->cache = ptr;
 }
 
-static void os_fprint(File file, char *msg) {
+static void os_fprint(File *file, char *msg) {
     os_write(file, (u8 *)msg, str_len(msg));
 }
 

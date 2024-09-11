@@ -1,36 +1,44 @@
 <!DOCTYPE html>
 <head>
 <style>
-    html,body {
+    html,body,canvas {
         width: 100%;
         height: 100%;
         margin: 0;
     }
     canvas {
         background-color: #cccccc;
-        display: block;
-        position: absolute;
-        width: 100%;
-        height: 100%;
     }
 </style>
 <script>
 
-var ctx = {};
+// Global state
+var ctx = {
+    // Wasm memory
+    memory: null,
 
+    // External symbols defined in c
+    exports: null
+};
+
+// Time in micro seconds
 function js_time() {
     return BigInt(new Date().getTime()*1000)
 }
 
+// Write utf8 text to the console
 function js_write(data, len) {
+    // data is a pointer in wasm memory
     var bytes = new Uint8Array(ctx.memory.buffer, data, len)
+
+    // Convert utf8 bytes array to a js string
     var string = new TextDecoder('utf8').decode(bytes)
+
+    // Log to the console.
     console.log(string)
 }
 
-function js_exit() { console.log("Exit") }
-
-
+// Grab the mouse
 function js_gfx_grab(grab) {
     console.log("Grab: " + grab)
     if(grab) {
@@ -42,18 +50,23 @@ function js_gfx_grab(grab) {
 }
 
 function js_loop() {
-    let timeout = Number(ctx.exports.js_main()) / 1000
-    console.log("Timeout: " + timeout)
-    window.setTimeout(js_loop, timeout)
+    try {
+        let result = ctx.exports.js_main()
+        let timeout = Number(result) / 1000
+        // console.log("Timeout: " + timeout)
+        window.setTimeout(js_loop, timeout)
+    } catch(error) {
+        // Exit called
+    }
 }
 
 function js_gfx_init() {
     ctx.canvas = document.getElementById('canvas')
-    document.addEventListener("keydown",   (ev) => { console.log(ev); ctx.exports.js_gfx_keydown(ev.keyCode) }, true)
-    document.addEventListener("keyup",     (ev) => { console.log(ev); ctx.exports.js_gfx_keyup(ev.keyCode) }, true)
+    document.addEventListener("keydown",   (ev) => { console.log(ev); ctx.exports.js_gfx_key_down(ev.keyCode, true) }, true)
+    document.addEventListener("keyup",     (ev) => { console.log(ev); ctx.exports.js_gfx_key_down(ev.keyCode, false) }, true)
     document.addEventListener("mousemove", (ev) => { ctx.exports.js_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
-    document.addEventListener("mousedown", (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
-    document.addEventListener("mouseup",   (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
+    document.addEventListener("mousedown", (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
+    document.addEventListener("mouseup",   (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
         ctx.ex.js_gfx_resize(canvas.width, canvas.height);
         console.log(ev);
@@ -63,7 +76,6 @@ function js_gfx_init() {
 WebAssembly.instantiateStreaming(fetch('main.wasm'), {
     env: {
     js_time,
-    js_exit,
     js_write,
     js_gfx_grab,
     },

@@ -17,7 +17,7 @@ static f32 time_begin(Time_Info *time, u64 target_rate) {
     while (time->compute_time > increment)
         increment += target_increment;
 
-    os_printf("target=%u us compute=%u us increment=%u us\n", target_increment, time->compute_time, increment);
+    // os_printf("target=%u us compute=%u us increment=%u us\n", target_increment, time->compute_time, increment);
 
     u64 frame_time = time->frame_end;
 

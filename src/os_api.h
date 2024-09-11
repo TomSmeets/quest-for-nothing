@@ -31,10 +31,7 @@ typedef struct {
     u32 uid;
 } OS;
 
-typedef union {
-    int fd;
-    void *handle;
-} File;
+typedef struct File File;
 
 // The only global variable
 static OS *OS_GLOBAL;
@@ -47,8 +44,8 @@ static u64 os_time(void);
 static u64 os_rand(void);
 
 // Actions
-static File os_stdout(void);
-static void os_write(File file, u8 *data, u32 len);
+static File *os_stdout(void);
+static void os_write(File *file, u8 *data, u32 len);
 static void os_exit(i32 code);
 static void os_fail(char *message);
 static void *os_alloc_raw(u32 size);

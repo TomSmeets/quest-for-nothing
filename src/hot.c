@@ -35,9 +35,9 @@ static const char *compile_command = "clang"
 // Implementation
 typedef void os_main_t(OS *os);
 
-static void embed_file(File output, char *name, char *file_path) {
+static void embed_file(File *output, char *name, char *file_path) {
     // Just waiting for #embed to land in clang...
-    File fd = os_open(file_path, Open_Read);
+    File *fd = os_open(file_path, Open_Read);
     os_fprintf(output, "static unsigned char %s[] = {", name);
     for (;;) {
         u8 data[1024];
@@ -53,7 +53,7 @@ static void embed_file(File output, char *name, char *file_path) {
 }
 
 static void embed_files(char *output_file) {
-    File asset_file = os_open(output_file, Open_Write);
+    File *asset_file = os_open(output_file, Open_Write);
     os_fprintf(asset_file, "#pragma once\n");
     os_fprintf(asset_file, "// clang-format off\n");
     for (u32 i = 0; i < array_count(watch_embed); ++i) {

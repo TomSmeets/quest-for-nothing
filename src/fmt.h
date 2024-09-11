@@ -9,6 +9,31 @@
 
 #define debug_struct(x) __builtin_dump_struct((x), os_fprintf, os_stdout());
 
+#if 0
+typedef struct {
+    u8 *data;
+    u32 used;
+    u32 capacity;
+    File fd;
+} Fmt;
+
+static void fmt_flush(Fmt *fmt) {
+    os_write(fmt->fd, fmt->data, fmt->used);
+    fmt->used = 0;
+}
+
+static void fmt_chr(Fmt *fmt, u8 *data, u32 size) {
+    if(fmt->used == fmt->capacity && fmt->fd) fmt_flush(fmt);
+    if(fmt->used == fmt->capacity) return;
+
+    if (buf->used < buf->size) buf->start[buf->used++] = c;
+}
+
+static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
+
+}
+#endif
+
 typedef struct {
     u8 *start;
     u32 size;
@@ -349,7 +374,7 @@ static void fmt_buf_va(Buffer *buf, char *format, va_list arg) {
 
 #define os_printf(...) os_fprintf(os_stdout(), __VA_ARGS__)
 
-__attribute__((format(printf, 2, 3))) static void os_fprintf(File file, const char *format, ...) {
+__attribute__((format(printf, 2, 3))) static void os_fprintf(File *file, const char *format, ...) {
     OS_Alloc *tmp = os_alloc();
 
     // Use the entire allocation for this format

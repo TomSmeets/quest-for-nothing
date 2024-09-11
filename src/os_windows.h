@@ -39,12 +39,12 @@ static u64 os_rand(void) {
     return os_time();
 }
 
-static File os_stdout(void) {
-    return (File){.handle = GetStdHandle(STD_OUTPUT_HANDLE)};
+static File *os_stdout(void) {
+    return GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
-static void os_write(File file, u8 *data, u32 len) {
-    WriteFile(file.handle, data, len, 0, 0);
+static void os_write(File *file, u8 *data, u32 len) {
+    WriteFile(file, data, len, 0, 0);
 }
 
 static void os_exit(i32 code) {
@@ -70,24 +70,25 @@ static void *os_alloc_raw(u32 size) {
     return alloc;
 }
 
-static File os_open(char *path, OS_Open_Type type) {
-    File ret = {};
+static File *os_open(char *path, OS_Open_Type type) {
+    HANDLE handle = 0;
     if (type == Open_Write) {
-        ret.handle = CreateFile(path, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(path, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
     } else if (type == Open_Read) {
-        ret.handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     }
-    assert(ret.handle != INVALID_HANDLE_VALUE, "Could not open file");
-    return ret;
+    assert(handle != INVALID_HANDLE_VALUE, "Could not open file");
+    assert(handle, "Could not open file");
+    return handle;
 }
 
-static void os_close(File file) {
-    CloseHandle(file.handle);
+static void os_close(File *file) {
+    CloseHandle(file);
 }
 
-static u32 os_read(File file, u8 *data, u32 len) {
+static u32 os_read(File *file, u8 *data, u32 len) {
     DWORD bytes_read = 0;
-    BOOL success = ReadFile(file.handle, data, len, &bytes_read, 0);
+    BOOL success = ReadFile(file, data, len, &bytes_read, 0);
     return bytes_read;
 }
 
@@ -95,10 +96,10 @@ static void os_sleep(u64 time) {
     Sleep(time / 1000);
 }
 
-static File os_dlopen(char *path) {
-    return (File){.handle = LoadLibrary(path)};
+static File *os_dlopen(char *path) {
+    return (File *) LoadLibrary(path);
 }
 
-static void *os_dlsym(File file, char *name) {
-    return GetProcAddress(file.handle, name);
+static void *os_dlsym(File *file, char *name) {
+    return GetProcAddress((void *) file, name);
 }

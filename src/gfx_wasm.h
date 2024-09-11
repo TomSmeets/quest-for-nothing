@@ -8,6 +8,7 @@ WASM_IMPORT(js_gfx_grab) void js_gfx_grab(bool grab);
 
 struct Gfx {
     Input input;
+    Input input_copy;
 };
 
 static Gfx GFX_GLOBAL;
@@ -17,11 +18,20 @@ static Gfx *os_gfx_init(Memory *mem, char *title) {
 }
 
 static Input *os_gfx_poll(Gfx *gfx) {
-    return &gfx->input;
+    Input *input = &gfx->input;
+
+    // Atomic copy of input, js will get events while we are updating
+    gfx->input_copy = *input;
+
+    // Reset input
+    input_reset(input);
+
+    return &gfx->input_copy;
 }
 
 static void os_gfx_set_mouse_grab(Gfx *gfx, bool grab) {
     js_gfx_grab(grab);
+    gfx->input.mouse_is_grabbed = grab;
 }
 
 static void os_gfx_begin(Gfx *gfx, m4s *proj) {
@@ -31,9 +41,9 @@ static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img) {
 static void os_gfx_end(Gfx *gfx) {
 }
 
-void js_gfx_keydown(u32 key) {
-    os_printf("KEY: %u Down\n",key);
-    input_emit(&GFX_GLOBAL.input, key_from_char(key), true);
+void js_gfx_key_down(u32 key, bool down) {
+    os_printf("KEY: key=%u down=%u\n", key, down);
+    input_emit(&GFX_GLOBAL.input, key_from_char(key), down);
 }
 
 void js_gfx_keyup(u32 key) {
@@ -46,4 +56,12 @@ void js_gfx_mouse_move(f32 x, f32 y, f32 dx, f32 dy) {
     GFX_GLOBAL.input.mouse_moved = true;
     GFX_GLOBAL.input.mouse_pos = (v2i){x, y};
     GFX_GLOBAL.input.mouse_rel = (v2i){dx, dy};
+}
+
+void js_gfx_mouse_down(u32 button, bool down) {
+    // Yeah, i don't like the printf at all, lets get rid of it
+    // I like the fmt idea with optional output buffer
+    os_printf("Mouse: button=%x down=%x\n", (u64)button, (u64)down);
+    if(button == 0) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_LEFT, down);
+    if(button == 2) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_RIGHT, down);
 }
