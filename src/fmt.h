@@ -11,6 +11,7 @@
 
 #if 1
 typedef struct {
+    Memory *mem;
     File *out;
     u8 *data;
     u32 capacity;
@@ -18,28 +19,49 @@ typedef struct {
 } Fmt;
 
 static void fmt_flush(Fmt *fmt) {
+    if(!fmt->out) return;
     os_write(fmt->out, fmt->data, fmt->used);
     fmt->used = 0;
 }
 
+// Formatter wil only grow if there is no 
+static void fmt_resize(Fmt *fmt, u32 new_cap) {
+    if(new_cap <= fmt->capacity)
+        return;
 
-static Fmt *fmt_new(Memory *mem, File *out) {
-    assert(OS_ALLOC_SIZE >= sizeof(Fmt), "Not enogh memory for formatter");
+    u8 *new_data = mem_push_uninit(fmt->mem, new_cap);
+    std_memcpy(new_data, fmt->data, fmt->used);
+    fmt->capacity = new_cap;
+    fmt->data = new_data;
+}
 
+static void fmt_grow(Fmt *fmt) {
+    if(fmt->capacity < 64) {
+        fmt_resize(fmt, 64);
+    } else {
+        fmt_resize(fmt, fmt->capacity * 2);
+    }
+}
+
+static Fmt *fmt_file(Memory *mem, File *out) {
     Fmt *fmt = mem_struct(mem, Fmt);
+    fmt->mem = mem;
     fmt->out = out;
-    fmt->data = mem_push_uninit(mem, 1024);
-    fmt->capacity = OS_ALLOC_SIZE - sizeof(Fmt);
+    fmt_resize(fmt, 1024);
     return fmt;
 }
 
-static void fmt_free(Fmt *fmt) {
-    fmt_flush(fmt);
-    os_free(fmt);
+static Fmt *fmt_new(Memory *mem) {
+    Fmt *fmt = mem_struct(mem, Fmt);
+    fmt->mem = mem;
+    fmt_resize(fmt, 1024);
+    return fmt;
 }
 
 static void fmt_chr(Fmt *fmt, u8 chr) {
-    if (fmt->used == fmt->capacity) fmt_flush(fmt);
+    if(fmt->used >= fmt->capacity) {
+        fmt_grow(fmt);
+    }
 
     assert(fmt->used >= fmt->capacity, "Out of memory for this formatter");
 
@@ -50,10 +72,83 @@ static void fmt_chr(Fmt *fmt, u8 chr) {
         fmt_flush(fmt);
 }
 
-static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
-
+static char *fmt_end(Fmt *fmt) {
+    if(!fmt->out)
+        fmt_chr(fmt, 0);
+    fmt_flush(fmt);
+    return (char *) fmt->data;
 }
-#endif
+
+static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
+    for(u32 i = 0; i < size; ++i)
+        fmt_chr(fmt, data[i]);
+}
+
+static void fmt_str(Fmt *fmt, char *str) {
+    while (*str)
+        fmt_chr(fmt, *str++);
+}
+
+static u32 fmt_cursor(Fmt *fmt) {
+    return fmt->used;
+}
+
+static void fmt_reverse(Fmt *fmt, u32 cursor) {
+    std_reverse(fmt->data + cursor, fmt->used - cursor);
+}
+
+static void fmt_pad(Fmt *fmt, u32 cursor, u8 chr, u32 pad_total, bool pad_left) {
+    u32 len = fmt->used - cursor;
+
+    // Text is longer than requested padding
+    if(pad_total <= len) return;
+
+    u32 pad = pad_total - len;
+
+    // Create space
+    for(u32 i = 0; i < pad; ++i)
+        fmt_chr(fmt, chr);
+
+    assert(fmt->used - cursor == pad_total, "Incorreclty calculated padding");
+
+    if(pad_left) {
+        // Move data left
+        for(u32 i = 0; i < len; ++i) {
+            // cursor    used
+            //    | ABCD |
+            //    | ...ABCD |
+            // 
+            fmt->data[cursor + pad + i] = fmt->data[cursor  + i];
+            fmt->data[cursor  + i] = chr;
+        }
+    }
+}
+
+static void fmt_u64(Fmt *fmt, u64 value, u32 base) {
+    u32 fmt_start = fmt_cursor(fmt);
+
+    // Push digits in reverse order
+    for (;;) {
+        u64 d = value % base;
+        value = value / base;
+        fmt_chr(fmt, d < 10 ? (d + '0') : (d - 10 + 'a'));
+        if (value == 0) break;
+    }
+
+    // Reverse digits
+    fmt_reverse(fmt, fmt_start);
+}
+
+static void fmt_i64(Fmt *fmt, i64 value, u32 base) {
+    if(value < 0) {
+        fmt_chr(fmt, '-');
+        fmt_u64(fmt, -value);
+    } else {
+        fmt_u64(fmt, value);
+    }
+}
+
+#else
 
 typedef struct {
     u8 *start;
@@ -443,3 +538,4 @@ __attribute__((format(printf, 2, 3))) static char *fmt(Memory *mem, const char *
 
     return dst;
 }
+#endif
