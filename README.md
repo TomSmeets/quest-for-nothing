@@ -56,6 +56,11 @@ The first version of this game. I will first implement v1.0, which will have ver
 
 This should be enough for a first publishable version.
 
+# Version 2.0
+
+- [ ] Android
+- [ ] Publish Play Store
+
 # Building on Linux
 
 First install the `clang` and `sdl2` packages.
