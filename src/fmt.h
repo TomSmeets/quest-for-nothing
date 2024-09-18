@@ -9,6 +9,8 @@
 
 #define debug_struct(x) __builtin_dump_struct((x), os_fprintf, os_stdout());
 
+#define OS_FMT (OS_GLOBAL->fmt)
+
 #if 1
 typedef struct {
     Memory *mem;
@@ -138,9 +140,8 @@ static void fmt_pad(Fmt *fmt, u32 cursor, u8 chr, u32 pad_total, bool pad_left) 
 }
 
 // Format an unsigned integer
-static void fmt_u64(Fmt *fmt, u64 value) {
+static void fmt_u_base(Fmt *fmt, u32 base, u64 value) {
     u32 fmt_start = fmt_cursor(fmt);
-    u32 base = 10;
 
     // Push digits in reverse order
     for (;;) {
@@ -154,27 +155,37 @@ static void fmt_u64(Fmt *fmt, u64 value) {
     fmt_reverse(fmt, fmt_start);
 }
 
+static void fmt_u(Fmt *fmt, u32 value) {
+    fmt_u_base(fmt, 10, value);
+}
+
 // Format a signed integer
-static void fmt_i64(Fmt *fmt, i64 value) {
+static void fmt_i(Fmt *fmt, i32 value) {
     if (value < 0) {
         fmt_chr(fmt, '-');
-        fmt_u64(fmt, -value);
+        fmt_u(fmt, -value);
     } else {
-        fmt_u64(fmt, value);
+        fmt_u(fmt, value);
     }
 }
 
-static void fmt_u32(Fmt *fmt, u32 value) {
-    fmt_u64(fmt, value);
+static void fmt_x(Fmt *fmt, u32 value) {
+    fmt_str(fmt, "0x");
+    u32 pad_start = fmt_cursor(fmt);
+    fmt_u_base(fmt, 16, value);
+    fmt_pad(fmt, pad_start, '0', 8, true);
 }
 
-static void fmt_i32(Fmt *fmt, i32 value) {
-    fmt_i64(fmt, value);
+static void fmt_p(Fmt *fmt, void *ptr) {
+    fmt_str(fmt, "0x");
+    u32 pad_start = fmt_cursor(fmt);
+    fmt_u_base(fmt, 16, (u64)ptr);
+    fmt_pad(fmt, pad_start, '0', 16, true);
 }
 
-static void fmt_f32(Fmt *fmt, f32 value) {
+static void fmt_f(Fmt *fmt, f32 value) {
     // Truncate towards 0
-    i64 i_part = (i64)value;
+    i32 i_part = (i32)value;
 
     // value = f_part
     value -= i_part;
@@ -184,36 +195,16 @@ static void fmt_f32(Fmt *fmt, f32 value) {
 
     u32 f_width = 4;
     for (u32 i = 0; i < f_width; ++i) {
-        value *= 10.0;
+        value *= 10.0f;
     }
-    u64 f_part = value + 0.5f;
+    u32 f_part = value + 0.5f;
 
-    fmt_i64(fmt, i_part);
+    fmt_i(fmt, i_part);
     fmt_chr(fmt, '.');
 
     u32 cur = fmt_cursor(fmt);
-    fmt_u64(fmt, f_part);
+    fmt_u(fmt, f_part);
     fmt_pad(fmt, cur, '0', f_width, true);
-}
-
-static void fmt_v3i(Fmt *fmt, v3i value) {
-    fmt_str(fmt, "v3i(");
-    fmt_i32(fmt, value.x);
-    fmt_str(fmt, ", ");
-    fmt_i32(fmt, value.y);
-    fmt_str(fmt, ", ");
-    fmt_i32(fmt, value.z);
-    fmt_str(fmt, ")");
-}
-
-static void fmt_v3(Fmt *fmt, v3 value) {
-    fmt_str(fmt, "v3(");
-    fmt_f32(fmt, value.x);
-    fmt_str(fmt, ", ");
-    fmt_f32(fmt, value.y);
-    fmt_str(fmt, ", ");
-    fmt_f32(fmt, value.z);
-    fmt_str(fmt, ")");
 }
 
 static void pf_s(Fmt *fmt, char *a0, char *a1, char *a2) {
@@ -224,20 +215,92 @@ static void pf_s(Fmt *fmt, char *a0, char *a1, char *a2) {
 
 static void pf_u(Fmt *fmt, char *a0, u32 a1, char *a2) {
     fmt_str(fmt, a0);
-    fmt_u32(fmt, a1);
+    fmt_u(fmt, a1);
     fmt_str(fmt, a2);
 }
 
 static void pf_i(Fmt *fmt, char *a0, i32 a1, char *a2) {
     fmt_str(fmt, a0);
-    fmt_u32(fmt, a1);
+    fmt_i(fmt, a1);
+    fmt_str(fmt, a2);
+}
+
+static void pf_x(Fmt *fmt, char *a0, u32 a1, char *a2) {
+    fmt_str(fmt, a0);
+    fmt_x(fmt, a1);
     fmt_str(fmt, a2);
 }
 
 static void pf_f(Fmt *fmt, char *a0, f32 a1, char *a2) {
     fmt_str(fmt, a0);
-    fmt_f32(fmt, a1);
+    fmt_f(fmt, a1);
     fmt_str(fmt, a2);
+}
+
+static void pf_ss(Fmt *fmt, char *a0, char *a1, char *a2, char *a3, char *a4) {
+    fmt_str(fmt, a0);
+    fmt_str(fmt, a1);
+    fmt_str(fmt, a2);
+    fmt_str(fmt, a3);
+    fmt_str(fmt, a4);
+}
+
+static void pf_uu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4) {
+    fmt_str(fmt, a0);
+    fmt_u(fmt, a1);
+    fmt_str(fmt, a2);
+    fmt_u(fmt, a3);
+    fmt_str(fmt, a4);
+}
+
+static void pf_uuu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4, u32 a5, char *a6) {
+    fmt_str(fmt, a0);
+    fmt_u(fmt, a1);
+    fmt_str(fmt, a2);
+    fmt_u(fmt, a3);
+    fmt_str(fmt, a4);
+    fmt_u(fmt, a5);
+    fmt_str(fmt, a6);
+}
+
+static void pf_iii(Fmt *fmt, char *a0, i32 a1, char *a2, i32 a3, char *a4, i32 a5, char *a6) {
+    fmt_str(fmt, a0);
+    fmt_i(fmt, a1);
+    fmt_str(fmt, a2);
+    fmt_i(fmt, a3);
+    fmt_str(fmt, a4);
+    fmt_i(fmt, a5);
+    fmt_str(fmt, a6);
+}
+
+static void pf_fff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6) {
+    fmt_str(fmt, a0);
+    fmt_f(fmt, a1);
+    fmt_str(fmt, a2);
+    fmt_f(fmt, a3);
+    fmt_str(fmt, a4);
+    fmt_f(fmt, a5);
+    fmt_str(fmt, a6);
+}
+
+static void pf_ffff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6, f32 a7, char *a8) {
+    fmt_str(fmt, a0);
+    fmt_f(fmt, a1);
+    fmt_str(fmt, a2);
+    fmt_f(fmt, a3);
+    fmt_str(fmt, a4);
+    fmt_f(fmt, a5);
+    fmt_str(fmt, a6);
+    fmt_f(fmt, a7);
+    fmt_str(fmt, a8);
+}
+
+static void fmt_v3i(Fmt *fmt, v3i value) {
+    pf_iii(fmt, "v3i(", value.x, ", ", value.y, ", ", value.z, ")");
+}
+
+static void fmt_v3(Fmt *fmt, v3 value) {
+    pf_fff(fmt, "v3(", value.x, ", ", value.y, ", ", value.z, ")");
 }
 
 static void pf_v3(Fmt *fmt, char *a0, v3 a1, char *a2) {

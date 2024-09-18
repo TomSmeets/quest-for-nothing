@@ -26,6 +26,7 @@ typedef struct {
     // Cached allocations (handled by os)
     OS_Alloc *cache;
     void *sdl2_handle;
+    void *fmt;
 
     // Unique id generation
     u32 uid;

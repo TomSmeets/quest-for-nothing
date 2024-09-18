@@ -153,7 +153,7 @@ static Input *sdl_poll(Sdl *sdl) {
             if (sym == 0x400000e5) key = KEY_SHIFT;
             if (sym == 0x400000e6) key = KEY_ALT;
             if (sym == 0x400000e7) key = KEY_WIN;
-            if (key == KEY_NONE) os_printf("SDL_KEY 0x%08x\n", sym);
+            if (key == KEY_NONE) pf_x(OS_FMT, "SDL_KEY ", sym, "\n");
             input_emit(input, key, src.type == SDL_KEYDOWN);
         }
 
