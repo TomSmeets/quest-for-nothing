@@ -60,7 +60,7 @@ static Memory *mem_new(void) {
 }
 
 static void mem_free_alloc(OS_Alloc *alloc) {
-    if(alloc->next) mem_free_alloc(alloc->next);
+    if (alloc->next) mem_free_alloc(alloc->next);
     os_free(alloc);
 }
 

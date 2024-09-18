@@ -16,18 +16,21 @@ typedef struct {
     u8 *data;
     u32 capacity;
     u32 used;
+
+    // Settings
+    u32 base;
 } Fmt;
 
+// Write buffered data to the output stream (if avaliable)
 static void fmt_flush(Fmt *fmt) {
-    if(!fmt->out) return;
+    if (!fmt->out) return;
     os_write(fmt->out, fmt->data, fmt->used);
     fmt->used = 0;
 }
 
-// Formatter wil only grow if there is no 
+// Increase size of the buffer to at least 'new_cap' bytes
 static void fmt_resize(Fmt *fmt, u32 new_cap) {
-    if(new_cap <= fmt->capacity)
-        return;
+    if (new_cap <= fmt->capacity) return;
 
     u8 *new_data = mem_push_uninit(fmt->mem, new_cap);
     std_memcpy(new_data, fmt->data, fmt->used);
@@ -35,31 +38,35 @@ static void fmt_resize(Fmt *fmt, u32 new_cap) {
     fmt->data = new_data;
 }
 
+// Increase the size of the buffer by a significant amount
 static void fmt_grow(Fmt *fmt) {
-    if(fmt->capacity < 64) {
+    if (fmt->capacity < 64) {
         fmt_resize(fmt, 64);
     } else {
         fmt_resize(fmt, fmt->capacity * 2);
     }
 }
 
+// Create a new formatter for a given output stream
 static Fmt *fmt_file(Memory *mem, File *out) {
     Fmt *fmt = mem_struct(mem, Fmt);
     fmt->mem = mem;
     fmt->out = out;
+    fmt->base = 10;
     fmt_resize(fmt, 1024);
     return fmt;
 }
 
+// Create a new in-memory only formatter
 static Fmt *fmt_new(Memory *mem) {
-    Fmt *fmt = mem_struct(mem, Fmt);
-    fmt->mem = mem;
-    fmt_resize(fmt, 1024);
-    return fmt;
+    return fmt_file(mem, 0);
 }
 
+// Append a single character
+//   If full    -> grow buffer
+//   On newline -> flush output
 static void fmt_chr(Fmt *fmt, u8 chr) {
-    if(fmt->used >= fmt->capacity) {
+    if (fmt->used >= fmt->capacity) {
         fmt_grow(fmt);
     }
 
@@ -68,64 +75,72 @@ static void fmt_chr(Fmt *fmt, u8 chr) {
     fmt->data[fmt->used++] = chr;
 
     // Flush on newline
-    if(chr == '\n')
-        fmt_flush(fmt);
+    if (chr == '\n') fmt_flush(fmt);
 }
 
+// Stop this formatter, appending a null byte and flushing the result
 static char *fmt_end(Fmt *fmt) {
-    if(!fmt->out)
-        fmt_chr(fmt, 0);
+    if (!fmt->out) fmt_chr(fmt, 0);
     fmt_flush(fmt);
-    return (char *) fmt->data;
+    return (char *)fmt->data;
 }
 
+// Append multiple bytes
 static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
-    for(u32 i = 0; i < size; ++i)
+    for (u32 i = 0; i < size; ++i)
         fmt_chr(fmt, data[i]);
 }
 
+// Append a null terminated string
 static void fmt_str(Fmt *fmt, char *str) {
     while (*str)
         fmt_chr(fmt, *str++);
 }
 
+// Return current location
+// Used for padding and range operations
 static u32 fmt_cursor(Fmt *fmt) {
     return fmt->used;
 }
 
+// Reverse chars between cursor and end of the buffer
 static void fmt_reverse(Fmt *fmt, u32 cursor) {
     std_reverse(fmt->data + cursor, fmt->used - cursor);
 }
 
+// Add padding to the content starting at 'cursor'
+// use 'chr' as the padding character
 static void fmt_pad(Fmt *fmt, u32 cursor, u8 chr, u32 pad_total, bool pad_left) {
     u32 len = fmt->used - cursor;
 
     // Text is longer than requested padding
-    if(pad_total <= len) return;
+    if (pad_total <= len) return;
 
     u32 pad = pad_total - len;
 
     // Create space
-    for(u32 i = 0; i < pad; ++i)
+    for (u32 i = 0; i < pad; ++i)
         fmt_chr(fmt, chr);
 
     assert(fmt->used - cursor == pad_total, "Incorreclty calculated padding");
 
-    if(pad_left) {
+    if (pad_left) {
         // Move data left
-        for(u32 i = 0; i < len; ++i) {
+        for (u32 i = 0; i < len; ++i) {
             // cursor    used
             //    | ABCD |
             //    | ...ABCD |
-            // 
-            fmt->data[cursor + pad + i] = fmt->data[cursor  + i];
-            fmt->data[cursor  + i] = chr;
+            //
+            fmt->data[cursor + pad + i] = fmt->data[cursor + i];
+            fmt->data[cursor + i] = chr;
         }
     }
 }
 
-static void fmt_u64(Fmt *fmt, u64 value, u32 base) {
+// Format an unsigned integer
+static void fmt_u64(Fmt *fmt, u64 value) {
     u32 fmt_start = fmt_cursor(fmt);
+    u32 base = 10;
 
     // Push digits in reverse order
     for (;;) {
@@ -139,13 +154,96 @@ static void fmt_u64(Fmt *fmt, u64 value, u32 base) {
     fmt_reverse(fmt, fmt_start);
 }
 
-static void fmt_i64(Fmt *fmt, i64 value, u32 base) {
-    if(value < 0) {
+// Format a signed integer
+static void fmt_i64(Fmt *fmt, i64 value) {
+    if (value < 0) {
         fmt_chr(fmt, '-');
         fmt_u64(fmt, -value);
     } else {
         fmt_u64(fmt, value);
     }
+}
+
+static void fmt_u32(Fmt *fmt, u32 value) {
+    fmt_u64(fmt, value);
+}
+
+static void fmt_i32(Fmt *fmt, i32 value) {
+    fmt_i64(fmt, value);
+}
+
+static void fmt_f32(Fmt *fmt, f32 value) {
+    // Truncate towards 0
+    i64 i_part = (i64)value;
+
+    // value = f_part
+    value -= i_part;
+
+    // Remove sign
+    if (value < 0) value = -value;
+
+    u32 f_width = 4;
+    for (u32 i = 0; i < f_width; ++i) {
+        value *= 10.0;
+    }
+    u64 f_part = value + 0.5f;
+
+    fmt_i64(fmt, i_part);
+    fmt_chr(fmt, '.');
+
+    u32 cur = fmt_cursor(fmt);
+    fmt_u64(fmt, f_part);
+    fmt_pad(fmt, cur, '0', f_width, true);
+}
+
+static void fmt_v3i(Fmt *fmt, v3i value) {
+    fmt_str(fmt, "v3i(");
+    fmt_i32(fmt, value.x);
+    fmt_str(fmt, ", ");
+    fmt_i32(fmt, value.y);
+    fmt_str(fmt, ", ");
+    fmt_i32(fmt, value.z);
+    fmt_str(fmt, ")");
+}
+
+static void fmt_v3(Fmt *fmt, v3 value) {
+    fmt_str(fmt, "v3(");
+    fmt_f32(fmt, value.x);
+    fmt_str(fmt, ", ");
+    fmt_f32(fmt, value.y);
+    fmt_str(fmt, ", ");
+    fmt_f32(fmt, value.z);
+    fmt_str(fmt, ")");
+}
+
+static void pf_s(Fmt *fmt, char *a0, char *a1, char *a2) {
+    fmt_str(fmt, a0);
+    fmt_str(fmt, a1);
+    fmt_str(fmt, a2);
+}
+
+static void pf_u(Fmt *fmt, char *a0, u32 a1, char *a2) {
+    fmt_str(fmt, a0);
+    fmt_u32(fmt, a1);
+    fmt_str(fmt, a2);
+}
+
+static void pf_i(Fmt *fmt, char *a0, i32 a1, char *a2) {
+    fmt_str(fmt, a0);
+    fmt_u32(fmt, a1);
+    fmt_str(fmt, a2);
+}
+
+static void pf_f(Fmt *fmt, char *a0, f32 a1, char *a2) {
+    fmt_str(fmt, a0);
+    fmt_f32(fmt, a1);
+    fmt_str(fmt, a2);
+}
+
+static void pf_v3(Fmt *fmt, char *a0, v3 a1, char *a2) {
+    fmt_str(fmt, a0);
+    fmt_v3(fmt, a1);
+    fmt_str(fmt, a2);
 }
 
 #else

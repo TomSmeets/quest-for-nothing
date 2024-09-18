@@ -42,16 +42,12 @@ static void os_gfx_end(Gfx *gfx) {
 }
 
 void js_gfx_key_down(u32 key, bool down) {
-    os_printf("KEY: key=%u down=%u\n", key, down);
+    fm_uu(OUT, "KEY: key=", key, " down=", down, "\n");
     input_emit(&GFX_GLOBAL.input, key_from_char(key), down);
 }
 
-void js_gfx_keyup(u32 key) {
-    os_printf("KEY: %u Up\n", key);
-    input_emit(&GFX_GLOBAL.input, key_from_char(key), false);
-}
-
 void js_gfx_mouse_move(f32 x, f32 y, f32 dx, f32 dy) {
+    fm_ffff(OUT, "Mouse: x=", x, " y=", y, " dx=", dx, " dy=", dy, "\n");
     os_printf("Mouse: x=%f y=%f dx=%f dy=%f\n", x, y, dx, dy);
     GFX_GLOBAL.input.mouse_moved = true;
     GFX_GLOBAL.input.mouse_pos = (v2i){x, y};
