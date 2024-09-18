@@ -72,7 +72,7 @@ static void fmt_chr(Fmt *fmt, u8 chr) {
         fmt_grow(fmt);
     }
 
-    assert(fmt->used >= fmt->capacity, "Out of memory for this formatter");
+    assert(fmt->used < fmt->capacity, "Out of memory for this formatter");
 
     fmt->data[fmt->used++] = chr;
 
@@ -205,6 +205,10 @@ static void fmt_f(Fmt *fmt, f32 value) {
     u32 cur = fmt_cursor(fmt);
     fmt_u(fmt, f_part);
     fmt_pad(fmt, cur, '0', f_width, true);
+}
+
+static void pf_(Fmt *fmt, char *a0) {
+    fmt_str(fmt, a0);
 }
 
 static void pf_s(Fmt *fmt, char *a0, char *a1, char *a2) {

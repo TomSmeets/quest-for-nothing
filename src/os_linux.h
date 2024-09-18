@@ -1,6 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // os_linux.h - Platform implementation for linux
 #pragma once
+#include "fmt.h"
 #include "linux_api.h"
 #include "os_api.h"
 #include "os_desktop_api.h"
@@ -13,13 +14,23 @@ void os_main_dynamic(OS *os) {
     os_main(os);
 }
 
-int main(int argc, const char **argv) {
-    OS os = {};
-    os.argc = argc;
-    os.argv = (char **)argv;
+static int file_to_fd(File *f) {
+    return (int)((u64)f - 1);
+}
+
+static File *fd_to_file(int fd) {
+    return (File *)((u64)fd + 1);
+}
+
+static File *os_stdout(void) {
+    return fd_to_file(1);
+}
+
+int main(int argc, char **argv) {
+    OS *os = os_init(argc, argv);
     for (;;) {
-        os_main_dynamic(&os);
-        os_sleep(os.sleep_time);
+        os_main(os);
+        os_sleep(os->sleep_time);
     }
 }
 
@@ -38,18 +49,6 @@ static u64 os_rand(void) {
     return seed;
 }
 
-static int file_to_fd(File *f) {
-    return (int)((u64)f - 1);
-}
-
-static File *fd_to_file(int fd) {
-    return (File *)((u64)fd + 1);
-}
-
-static File *os_stdout(void) {
-    return fd_to_file(1);
-}
-
 static void os_write(File *file, u8 *data, u32 len) {
     u32 written = 0;
     while (written < len) {
@@ -65,6 +64,7 @@ static void os_exit(i32 status) {
 
 static void os_fail(char *message) {
     write(1, message, str_len(message));
+    __builtin_trap();
     _exit(1);
 }
 

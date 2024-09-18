@@ -25,7 +25,6 @@ typedef struct {
 
     // Cached allocations (handled by os)
     OS_Alloc *cache;
-    void *sdl2_handle;
     void *fmt;
 
     // Unique id generation
@@ -52,6 +51,10 @@ static void os_fail(char *message);
 static void *os_alloc_raw(u32 size);
 
 // Derived
-static void os_print(char *msg);
 static void *os_alloc(void);
 static void os_free(void *ptr);
+
+// Create
+static OS *os_init(int argc, char **argv);
+
+static void os_print(char *message);

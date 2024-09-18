@@ -34,7 +34,7 @@
 // Allocate exactly OS_ALLOC_SIZE bytes of memory
 static void *os_alloc(void) {
     // Return cached page (if present)
-    if (OS_GLOBAL->cache) {
+    if (OS_GLOBAL && OS_GLOBAL->cache) {
         OS_Alloc *alloc = OS_GLOBAL->cache;
         OS_GLOBAL->cache = alloc->next;
         return alloc;
@@ -52,10 +52,18 @@ static void os_free(void *mem) {
     OS_GLOBAL->cache = alloc;
 }
 
-static void os_fprint(File *file, char *msg) {
-    os_write(file, (u8 *)msg, str_len(msg));
+static void os_print(char *message) {
+    os_write(os_stdout(), (u8 *)message, str_len(message));
 }
 
-static void os_print(char *msg) {
-    os_fprint(os_stdout(), msg);
+static OS *os_init(int argc, char **argv) {
+    Memory *mem = mem_new();
+
+    OS *os = mem_struct(mem, OS);
+    os->argc = argc;
+    os->argv = argv;
+    OS_GLOBAL = os;
+
+    os->fmt = fmt_file(mem, os_stdout());
+    return os;
 }
