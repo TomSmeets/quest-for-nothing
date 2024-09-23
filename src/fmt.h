@@ -1,26 +1,16 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// fmt.h - A simple sprintf implementation
+// fmt.h - A simple text formatter
 #pragma once
-#include "mem.h"
+
+// This formatter has very little dependiecies
 #include "std.h"
 #include "str.h"
-#include "types.h"
-#include "vec.h"
-
-#define debug_struct(x) __builtin_dump_struct((x), os_fprintf, os_stdout());
-
-#define OS_FMT (OS_GLOBAL->fmt)
 
 #if 1
 typedef struct {
-    Memory *mem;
     File *out;
-    u8 *data;
-    u32 capacity;
     u32 used;
-
-    // Settings
-    u32 base;
+    u8 data[1024];
 } Fmt;
 
 // Write buffered data to the output stream (if avaliable)
@@ -30,49 +20,15 @@ static void fmt_flush(Fmt *fmt) {
     fmt->used = 0;
 }
 
-// Increase size of the buffer to at least 'new_cap' bytes
-static void fmt_resize(Fmt *fmt, u32 new_cap) {
-    if (new_cap <= fmt->capacity) return;
-
-    u8 *new_data = mem_push_uninit(fmt->mem, new_cap);
-    std_memcpy(new_data, fmt->data, fmt->used);
-    fmt->capacity = new_cap;
-    fmt->data = new_data;
-}
-
-// Increase the size of the buffer by a significant amount
-static void fmt_grow(Fmt *fmt) {
-    if (fmt->capacity < 64) {
-        fmt_resize(fmt, 64);
-    } else {
-        fmt_resize(fmt, fmt->capacity * 2);
-    }
-}
-
-// Create a new formatter for a given output stream
-static Fmt *fmt_file(Memory *mem, File *out) {
-    Fmt *fmt = mem_struct(mem, Fmt);
-    fmt->mem = mem;
-    fmt->out = out;
-    fmt->base = 10;
-    fmt_resize(fmt, 1024);
-    return fmt;
-}
-
-// Create a new in-memory only formatter
-static Fmt *fmt_new(Memory *mem) {
-    return fmt_file(mem, 0);
-}
-
 // Append a single character
 //   If full    -> grow buffer
 //   On newline -> flush output
 static void fmt_chr(Fmt *fmt, u8 chr) {
-    if (fmt->used >= fmt->capacity) {
-        fmt_grow(fmt);
+    if(fmt->used == sizeof(fmt->data)) {
+        fmt_flush(fmt);
     }
 
-    assert(fmt->used < fmt->capacity, "Out of memory for this formatter");
+    assert(fmt->used < sizeof(fmt->data), "Out of memory for this formatter");
 
     fmt->data[fmt->used++] = chr;
 

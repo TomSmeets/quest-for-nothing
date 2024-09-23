@@ -56,5 +56,4 @@ static void os_free(void *ptr);
 
 // Create
 static OS *os_init(int argc, char **argv);
-
 static void os_print(char *message);

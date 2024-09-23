@@ -1,9 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // mem.h - Simple memory allocator
 #pragma once
-#include "os_api.h"
 #include "std.h"
-#include "types.h"
 
 #define mem_struct(mem, type) ((type *)mem_push_zero((mem), sizeof(type)))
 #define mem_array_uninit(mem, type, count) ((type *)mem_push_uninit((mem), sizeof(type) * (count)))

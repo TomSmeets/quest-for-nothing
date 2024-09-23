@@ -1,0 +1,7 @@
+digraph {
+    std -> os_api -> types;
+    fmt -> std;
+    str -> types
+    mem -> std
+    os_desktop_api -> os_api
+}
