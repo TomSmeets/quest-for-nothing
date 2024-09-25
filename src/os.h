@@ -4,21 +4,15 @@
 #include "os_api.h"
 
 #if __unix__
-#define OS_IS_LINUX 1
-#else
-#define OS_IS_LINUX 0
+#define OS_IS_LINUX __unix__
 #endif
 
 #if _WIN32
-#define OS_IS_WINDOWS 1
-#else
-#define OS_IS_WINDOWS 0
+#define OS_IS_WINDOWS _WIN32
 #endif
 
 #if __wasm__
-#define OS_IS_WASM 1
-#else
-#define OS_IS_WASM 0
+#define OS_IS_WASM __wasm__
 #endif
 
 #if OS_IS_LINUX

@@ -23,7 +23,7 @@ static void fmt_flush(Fmt *fmt) {
 // Append a single character
 //   If full    -> grow buffer
 //   On newline -> flush output
-static void fmt_chr(Fmt *fmt, u8 chr) {
+static void fmt_c(Fmt *fmt, u8 chr) {
     if(fmt->used == sizeof(fmt->data)) {
         fmt_flush(fmt);
     }
@@ -38,7 +38,7 @@ static void fmt_chr(Fmt *fmt, u8 chr) {
 
 // Stop this formatter, appending a null byte and flushing the result
 static char *fmt_end(Fmt *fmt) {
-    if (!fmt->out) fmt_chr(fmt, 0);
+    if (!fmt->out) fmt_c(fmt, 0);
     fmt_flush(fmt);
     return (char *)fmt->data;
 }
@@ -46,13 +46,13 @@ static char *fmt_end(Fmt *fmt) {
 // Append multiple bytes
 static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
     for (u32 i = 0; i < size; ++i)
-        fmt_chr(fmt, data[i]);
+        fmt_c(fmt, data[i]);
 }
 
 // Append a null terminated string
-static void fmt_str(Fmt *fmt, char *str) {
+static void fmt_s(Fmt *fmt, char *str) {
     while (*str)
-        fmt_chr(fmt, *str++);
+        fmt_c(fmt, *str++);
 }
 
 // Return current location
@@ -78,7 +78,7 @@ static void fmt_pad(Fmt *fmt, u32 cursor, u8 chr, u32 pad_total, bool pad_left) 
 
     // Create space
     for (u32 i = 0; i < pad; ++i)
-        fmt_chr(fmt, chr);
+        fmt_c(fmt, chr);
 
     assert(fmt->used - cursor == pad_total, "Incorreclty calculated padding");
 
@@ -103,7 +103,7 @@ static void fmt_u_base(Fmt *fmt, u32 base, u64 value) {
     for (;;) {
         u64 d = value % base;
         value = value / base;
-        fmt_chr(fmt, d < 10 ? (d + '0') : (d - 10 + 'a'));
+        fmt_c(fmt, d < 10 ? (d + '0') : (d - 10 + 'a'));
         if (value == 0) break;
     }
 
@@ -118,7 +118,7 @@ static void fmt_u(Fmt *fmt, u32 value) {
 // Format a signed integer
 static void fmt_i(Fmt *fmt, i32 value) {
     if (value < 0) {
-        fmt_chr(fmt, '-');
+        fmt_c(fmt, '-');
         fmt_u(fmt, -value);
     } else {
         fmt_u(fmt, value);
@@ -126,14 +126,14 @@ static void fmt_i(Fmt *fmt, i32 value) {
 }
 
 static void fmt_x(Fmt *fmt, u32 value) {
-    fmt_str(fmt, "0x");
+    fmt_s(fmt, "0x");
     u32 pad_start = fmt_cursor(fmt);
     fmt_u_base(fmt, 16, value);
     fmt_pad(fmt, pad_start, '0', 8, true);
 }
 
 static void fmt_p(Fmt *fmt, void *ptr) {
-    fmt_str(fmt, "0x");
+    fmt_s(fmt, "0x");
     u32 pad_start = fmt_cursor(fmt);
     fmt_u_base(fmt, 16, (u64)ptr);
     fmt_pad(fmt, pad_start, '0', 16, true);
@@ -156,117 +156,99 @@ static void fmt_f(Fmt *fmt, f32 value) {
     u32 f_part = value + 0.5f;
 
     fmt_i(fmt, i_part);
-    fmt_chr(fmt, '.');
+    fmt_c(fmt, '.');
 
     u32 cur = fmt_cursor(fmt);
     fmt_u(fmt, f_part);
     fmt_pad(fmt, cur, '0', f_width, true);
 }
 
-static void pf_(Fmt *fmt, char *a0) {
-    fmt_str(fmt, a0);
+static void fmt_ss(Fmt *fmt, char *a0, char *a1, char *a2) {
+    fmt_s(fmt, a0);
+    fmt_s(fmt, a1);
+    fmt_s(fmt, a2);
 }
 
-static void pf_s(Fmt *fmt, char *a0, char *a1, char *a2) {
-    fmt_str(fmt, a0);
-    fmt_str(fmt, a1);
-    fmt_str(fmt, a2);
-}
-
-static void pf_u(Fmt *fmt, char *a0, u32 a1, char *a2) {
-    fmt_str(fmt, a0);
+static void fmt_su(Fmt *fmt, char *a0, u32 a1, char *a2) {
+    fmt_s(fmt, a0);
     fmt_u(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
 }
 
-static void pf_i(Fmt *fmt, char *a0, i32 a1, char *a2) {
-    fmt_str(fmt, a0);
+static void fmt_si(Fmt *fmt, char *a0, i32 a1, char *a2) {
+    fmt_s(fmt, a0);
     fmt_i(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
 }
 
-static void pf_x(Fmt *fmt, char *a0, u32 a1, char *a2) {
-    fmt_str(fmt, a0);
+static void fmt_sx(Fmt *fmt, char *a0, u32 a1, char *a2) {
+    fmt_s(fmt, a0);
     fmt_x(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
 }
 
-static void pf_f(Fmt *fmt, char *a0, f32 a1, char *a2) {
-    fmt_str(fmt, a0);
+static void fmt_sf(Fmt *fmt, char *a0, f32 a1, char *a2) {
+    fmt_s(fmt, a0);
     fmt_f(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
 }
 
-static void pf_ss(Fmt *fmt, char *a0, char *a1, char *a2, char *a3, char *a4) {
-    fmt_str(fmt, a0);
-    fmt_str(fmt, a1);
-    fmt_str(fmt, a2);
-    fmt_str(fmt, a3);
-    fmt_str(fmt, a4);
+static void fmt_sss(Fmt *fmt, char *a0, char *a1, char *a2, char *a3, char *a4) {
+    fmt_s(fmt, a0);
+    fmt_s(fmt, a1);
+    fmt_s(fmt, a2);
+    fmt_s(fmt, a3);
+    fmt_s(fmt, a4);
 }
 
-static void pf_uu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4) {
-    fmt_str(fmt, a0);
+static void fmt_suu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4) {
+    fmt_s(fmt, a0);
     fmt_u(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
     fmt_u(fmt, a3);
-    fmt_str(fmt, a4);
+    fmt_s(fmt, a4);
 }
 
-static void pf_uuu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4, u32 a5, char *a6) {
-    fmt_str(fmt, a0);
+static void fmt_suuu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4, u32 a5, char *a6) {
+    fmt_s(fmt, a0);
     fmt_u(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
     fmt_u(fmt, a3);
-    fmt_str(fmt, a4);
+    fmt_s(fmt, a4);
     fmt_u(fmt, a5);
-    fmt_str(fmt, a6);
+    fmt_s(fmt, a6);
 }
 
-static void pf_iii(Fmt *fmt, char *a0, i32 a1, char *a2, i32 a3, char *a4, i32 a5, char *a6) {
-    fmt_str(fmt, a0);
+static void fmt_siii(Fmt *fmt, char *a0, i32 a1, char *a2, i32 a3, char *a4, i32 a5, char *a6) {
+    fmt_s(fmt, a0);
     fmt_i(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
     fmt_i(fmt, a3);
-    fmt_str(fmt, a4);
+    fmt_s(fmt, a4);
     fmt_i(fmt, a5);
-    fmt_str(fmt, a6);
+    fmt_s(fmt, a6);
 }
 
-static void pf_fff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6) {
-    fmt_str(fmt, a0);
+static void fmt_sfff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6) {
+    fmt_s(fmt, a0);
     fmt_f(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
     fmt_f(fmt, a3);
-    fmt_str(fmt, a4);
+    fmt_s(fmt, a4);
     fmt_f(fmt, a5);
-    fmt_str(fmt, a6);
+    fmt_s(fmt, a6);
 }
 
-static void pf_ffff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6, f32 a7, char *a8) {
-    fmt_str(fmt, a0);
+static void fmt_sffff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6, f32 a7, char *a8) {
+    fmt_s(fmt, a0);
     fmt_f(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a2);
     fmt_f(fmt, a3);
-    fmt_str(fmt, a4);
+    fmt_s(fmt, a4);
     fmt_f(fmt, a5);
-    fmt_str(fmt, a6);
+    fmt_s(fmt, a6);
     fmt_f(fmt, a7);
-    fmt_str(fmt, a8);
-}
-
-static void fmt_v3i(Fmt *fmt, v3i value) {
-    pf_iii(fmt, "v3i(", value.x, ", ", value.y, ", ", value.z, ")");
-}
-
-static void fmt_v3(Fmt *fmt, v3 value) {
-    pf_fff(fmt, "v3(", value.x, ", ", value.y, ", ", value.z, ")");
-}
-
-static void pf_v3(Fmt *fmt, char *a0, v3 a1, char *a2) {
-    fmt_str(fmt, a0);
-    fmt_v3(fmt, a1);
-    fmt_str(fmt, a2);
+    fmt_s(fmt, a8);
 }
 
 #else
