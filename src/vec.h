@@ -1,8 +1,8 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // vec.h - Vector types and linear algebra
 #pragma once
-#include "math.h"
 #include "fmt.h"
+#include "math.h"
 #include "types.h"
 
 typedef f32 v2 __attribute__((ext_vector_type(2)));
