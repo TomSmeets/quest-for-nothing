@@ -4,4 +4,10 @@ digraph {
     str -> types
     mem -> std
     os_desktop_api -> os_api
+
+    os_generic -> os_linux   -> os_desktop_api;
+    os_generic -> os_windows -> os_desktop_api;
+    os_generic -> os_wasm    -> os_api;
+
+    os_wasm -> gfx_api;
 }

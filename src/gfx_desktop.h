@@ -4,7 +4,6 @@
 #include "gfx_api.h"
 #include "mem.h"
 #include "ogl.h"
-#include "os.h"
 #include "os_desktop_api.h"
 #include "sdl.h"
 

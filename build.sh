@@ -68,15 +68,21 @@ build_dbg() {
   cp src/os_wasm.html out/index.html
 }
 
+# Format Source Code
 build_format() {
   clang-format --verbose -i src/*
 }
 
+# Build all targets
 build_all() {
   build_hot
   build_dbg
   build_rel
 }
 
-set -x
-"build_$1"
+# Show help message
+build_help() {
+  declare -F | cut -d '_' -f 2
+}
+
+"build_${1:-help}"

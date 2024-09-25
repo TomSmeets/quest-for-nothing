@@ -4,7 +4,6 @@
 #include "os_api.h"
 #include "std.h"
 #include "str.h"
-#include "types.h"
 
 #define WASM_IMPORT(name) __attribute((import_module("env"), import_name(#name)))
 
