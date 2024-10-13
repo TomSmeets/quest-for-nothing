@@ -1,7 +1,7 @@
 BasedOnStyle: LLVM
 IndentWidth: 4
 
-ColumnLimit: 150
+ColumnLimit: 77
 AllowShortIfStatementsOnASingleLine: true
 AlignConsecutiveAssignments: false
 AllowShortFunctionsOnASingleLine: false

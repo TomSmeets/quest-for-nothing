@@ -7,6 +7,7 @@
 #include "vec.h"
 
 typedef struct {
+    // Unique id, update on every change
     u32 id;
     v2u size;
     v4 *pixels;
