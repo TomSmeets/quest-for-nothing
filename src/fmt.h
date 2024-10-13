@@ -24,7 +24,7 @@ static void fmt_flush(Fmt *fmt) {
 //   If full    -> grow buffer
 //   On newline -> flush output
 static void fmt_chr(Fmt *fmt, u8 chr) {
-    if(fmt->used == sizeof(fmt->data)) {
+    if (fmt->used == sizeof(fmt->data)) {
         fmt_flush(fmt);
     }
 
