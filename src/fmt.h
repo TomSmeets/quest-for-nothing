@@ -103,12 +103,14 @@ static u32 fmt_cursor(Fmt *fmt) {
 
 // Reverse chars between cursor and end of the buffer
 static void fmt_reverse(Fmt *fmt, u32 cursor) {
+    assert(cursor <= fmt->used, "Invalid cursor");
     std_reverse(fmt->data + cursor, fmt->used - cursor);
 }
 
 // Add padding to the content starting at 'cursor'
 // use 'chr' as the padding character
 static void fmt_pad(Fmt *fmt, u32 cursor, u8 chr, u32 pad_total, bool pad_left) {
+    assert(cursor <= fmt->used, "Invalid cursor");
     u32 len = fmt->used - cursor;
 
     // Text is longer than requested padding

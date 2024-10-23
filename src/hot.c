@@ -46,6 +46,8 @@ static void embed_file(Fmt *output, char *name, char *file_path) {
         if (len == 0) break;
         for (u32 i = 0; i < len; ++i) {
             fmt_su(output, "", data[i], ",");
+            // TODO: fix bug, fmt_reverse does not work anymore
+            fmt_flush(output);
         }
     }
     fmt_s(output, "0};\n");
@@ -177,7 +179,7 @@ typedef struct {
     char *main_path;
 
     // OS struct for the child
-    OS child_os;
+    OS *child_os;
 
     // File watch
     int watch;
@@ -203,8 +205,7 @@ static Hot *hot_load(OS *os) {
     hot->main_path = os->argv[1];
 
     // Prepare OS handle for the child
-    hot->child_os.argc = os->argc - 1;
-    hot->child_os.argv = os->argv + 1;
+    hot->child_os = os_init(os->argc - 1, os->argv + 1);
 
     // Init inotify
     hot->watch = watch_init();
@@ -223,14 +224,14 @@ void os_main(OS *os) {
 
     if (hot->first_time || watch_changed(hot->watch)) {
         hot->update = build_and_load(hot->main_path, rand_u32(&hot->rng));
-        hot->child_os.reloaded = 1;
+        hot->child_os->reloaded = 1;
         hot->first_time = 0;
     }
 
     if (hot->update) {
-        hot->update(&hot->child_os);
-        os->sleep_time = hot->child_os.sleep_time;
-        hot->child_os.reloaded = 0;
+        hot->update(hot->child_os);
+        os->sleep_time = hot->child_os->sleep_time;
+        hot->child_os->reloaded = 0;
     } else {
         os->sleep_time = 100 * 1000;
     }
