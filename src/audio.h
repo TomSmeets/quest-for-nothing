@@ -9,6 +9,8 @@
 typedef struct {
     f32 dt;
     u32 wave_ix;
+
+    // List of 'phase' values for sine waves.
     f32 wave[64];
     Random rand;
 } Audio;
