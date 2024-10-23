@@ -57,13 +57,13 @@ static void handle_basic_input(Input *input, Gfx *gfx) {
 
     // Release Grab on focus lost or Esc
     if ((input->focus_lost || key_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
-        pf_(OS_FMT, "RELEASE\n");
+        fmt_s(OS->fmt, "RELEASE\n");
         os_gfx_set_mouse_grab(gfx, false);
     }
 
     // Grab with G
     if (key_click(input, KEY_G)) {
-        pf_(OS_FMT, "Grab!\n");
+        fmt_s(OS->fmt, "Grab!\n");
         os_gfx_set_mouse_grab(gfx, !input->mouse_is_grabbed);
     }
 }
