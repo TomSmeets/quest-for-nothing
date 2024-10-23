@@ -17,6 +17,10 @@ typedef struct {
     // Time to sleep until next call
     u64 sleep_time;
 
+    // == Statistics ==
+    u32 stat_alloc_count;
+    u32 stat_alloc_size;
+
     // == Globals for other modules ==
 
     // Cached memory allocations, see mem.h
@@ -52,6 +56,21 @@ static void *os_alloc_raw(u32 size);
 static void *os_alloc(void);
 static void os_free(void *ptr);
 
-// Create
+// Defined in os.h
 static OS *os_init(int argc, char **argv);
 static void os_print(char *message);
+
+// === Desktop API ===
+typedef enum {
+    Open_Write,
+    Open_Read,
+} OS_Open_Type;
+
+static File *os_open(char *path, OS_Open_Type type);
+static void os_close(File *file);
+
+static u32 os_read(File *file, u8 *data, u32 len);
+static void os_sleep(u64 time);
+
+static File *os_dlopen(char *path);
+static void *os_dlsym(File *handle, char *name);

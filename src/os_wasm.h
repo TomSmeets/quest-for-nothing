@@ -2,6 +2,7 @@
 // os_wasm.h - Platform implementation for wasm
 #pragma once
 #include "os_api.h"
+#include "os_impl_no_desktop.h"
 #include "std.h"
 #include "str.h"
 

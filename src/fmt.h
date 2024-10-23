@@ -4,6 +4,7 @@
 
 // This formatter has very little dependiecies
 #include "mem.h"
+#include "os_api.h"
 #include "std.h"
 #include "str.h"
 
@@ -11,19 +12,34 @@
 // Should be initialized by os_init
 #define OS_FMT ((Fmt *)OS_GLOBAL->fmt)
 
+// Simple flexible buffered string formatter and printer
 typedef struct {
+    // Optional output file (use fmt_open/fmt_close)
     File *out;
+
+    // Number of bytes used in this buffer
     u32 used;
     u8 data[1024];
 } Fmt;
 
+// Create a new formatter that optionally writes to a file
 static Fmt *fmt_new(Memory *mem, File *out) {
     Fmt *fmt = mem_struct(mem, Fmt);
     fmt->out = out;
     return fmt;
 }
 
-// Write buffered data to the output stream (if avaliable)
+// Create a new formatter that opens and writes to a file
+static Fmt *fmt_open(Memory *mem, char *path) {
+    return fmt_new(mem, os_open(path, Open_Write));
+}
+
+// Create a new formatter that only writes to memory
+static Fmt *fmt_memory(Memory *mem) {
+    return fmt_new(mem, 0);
+}
+
+// Write all buffered data to the output stream (if avaliable)
 static void fmt_flush(Fmt *fmt) {
     if (!fmt->out) return;
     os_write(fmt->out, fmt->data, fmt->used);
@@ -46,8 +62,22 @@ static void fmt_c(Fmt *fmt, u8 chr) {
     if (chr == '\n') fmt_flush(fmt);
 }
 
-// Stop this formatter, appending a null byte and flushing the result
-static char *fmt_end(Fmt *fmt) {
+// Close the formatter and the output stream (if it exists)
+// Returns the formatted output if there was no output stream
+static char *fmt_close(Fmt *fmt) {
+    if (fmt->out) {
+        fmt_flush(fmt);
+        os_close(fmt->out);
+        return 0;
+    } else {
+        fmt_c(fmt, 0);
+        return (char *)fmt->data;
+    }
+}
+
+// Free this formatter and return the buffered data as a null terminated string
+static char *fmt_free(Fmt *fmt) {
+    assert(!fmt->out, "Expected a memory formatter that does not write to a file");
     if (!fmt->out) fmt_c(fmt, 0);
     fmt_flush(fmt);
     return (char *)fmt->data;

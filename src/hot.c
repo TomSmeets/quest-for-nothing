@@ -30,36 +30,38 @@ static const char *compile_command = "clang"
                                      " -O0 -g"
                                      " -std=c23"
                                      // Create a '.so' file for dynamic loading
-                                     " -shared"
-                                     " -o %s %s";
+                                     " -shared";
+
 // Implementation
 typedef void os_main_t(OS *os);
 
-static void embed_file(File *output, char *name, char *file_path) {
+static void embed_file(Fmt *output, char *name, char *file_path) {
     // Just waiting for #embed to land in clang...
     File *fd = os_open(file_path, Open_Read);
-    os_fprintf(output, "static unsigned char %s[] = {", name);
+    fmt_ss(output, "static unsigned char ", name, "[] = {");
     for (;;) {
         u8 data[1024];
         ssize_t len = os_read(fd, data, sizeof(data));
         assert(len >= 0, "Failed to read data");
         if (len == 0) break;
         for (u32 i = 0; i < len; ++i) {
-            os_fprintf(output, "%u,", data[i]);
+            fmt_su(output, "", data[i], ",");
         }
     }
-    os_fprintf(output, "0};\n");
+    fmt_s(output, "0};\n");
     os_close(fd);
 }
 
 static void embed_files(char *output_file) {
-    File *asset_file = os_open(output_file, Open_Write);
-    os_fprintf(asset_file, "#pragma once\n");
-    os_fprintf(asset_file, "// clang-format off\n");
+    Memory *mem = mem_new();
+    Fmt *asset_file = fmt_open(mem, output_file);
+    fmt_s(asset_file, "#pragma once\n");
+    fmt_s(asset_file, "// clang-format off\n");
     for (u32 i = 0; i < array_count(watch_embed); ++i) {
         embed_file(asset_file, (char *)watch_embed[i][0], (char *)watch_embed[i][1]);
     }
-    os_close(asset_file);
+    fmt_close(asset_file);
+    mem_free(mem);
 }
 
 static os_main_t *build_and_load(char *main_path, u64 counter) {
@@ -67,29 +69,42 @@ static os_main_t *build_and_load(char *main_path, u64 counter) {
 
     Memory *tmp = mem_new();
 
-    char *out_path = fmt(tmp, "/tmp/hot-%08llx.so", counter);
-    char *command = fmt(tmp, compile_command, out_path, main_path);
+    char *out_path;
+    {
+        Fmt *fmt = fmt_memory(tmp);
+        fmt_sx(fmt, "/tmp/hot-", counter, ".so");
+        out_path = fmt_close(fmt);
+    }
 
-    os_printf("Running: %s\n", command);
+    char *command;
+    {
+        Fmt *fmt = fmt_memory(tmp);
+        fmt_s(fmt, (char *)compile_command);
+        fmt_ss(fmt, " -o ", out_path, "");
+        fmt_ss(fmt, " ", main_path, "");
+        command = fmt_close(fmt);
+    }
+
+    fmt_ss(OS_FMT, "Running: ", command, "\n");
     int ret = system(command);
     assert(ret >= 0, "Error while compiling");
 
     mem_free(tmp);
 
     if (ret != 0) {
-        os_print("Compile error!\n");
+        fmt_s(OS_FMT, "Compile error!\n");
         return 0;
     }
 
     void *handle = dlopen(out_path, RTLD_LOCAL | RTLD_NOW);
     if (!handle) {
-        os_printf("dlopen: %s\n", dlerror());
+        fmt_ss(OS_FMT, "dlopen: ", dlerror(), "\n");
         return 0;
     }
 
     os_main_t *fcn = dlsym(handle, "os_main_dynamic");
     if (!fcn) {
-        os_printf("dlsym: %s\n", dlerror());
+        fmt_ss(OS_FMT, "dlsym: ", dlerror(), "\n");
         return 0;
     }
 
@@ -139,7 +154,7 @@ static bool watch_changed(int fd) {
 
         struct inotify_event *event = (struct inotify_event *)buffer;
         if (event->len) {
-            os_printf("changed: %s\n", event->name);
+            fmt_ss(OS_FMT, "changed: ", event->name, "\n");
 
             if (str_eq(event->name, "asset.h")) {
                 continue;
@@ -181,7 +196,7 @@ static Hot *hot_load(OS *os) {
 
     // Parse arguments
     if (os->argc < 2) {
-        os_printf("%s <MAIN_FILE> [ARGS]...\n", os->argv[0]);
+        fmt_ss(OS_FMT, "", os->argv[0], " <MAIN_FILE> [ARGS]...\n");
         os_exit(1);
     }
 

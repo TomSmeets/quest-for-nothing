@@ -4,7 +4,6 @@
 #include "fmt.h"
 #include "linux_api.h"
 #include "os_api.h"
-#include "os_desktop_api.h"
 #include "std.h"
 #include "str.h"
 
@@ -69,7 +68,10 @@ static void os_fail(char *message) {
 }
 
 static void *os_alloc_raw(u32 size) {
-    os_print("OS_ALLOC\n");
+    if (OS_GLOBAL) {
+        OS_GLOBAL->stat_alloc_size += size;
+        fmt_su(OS_FMT, "os_alloc_raw: total=", OS_GLOBAL->stat_alloc_size / 1024 / 1024, " MB\n");
+    }
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
     void *alloc = mmap(0, size, prot, flags, -1, 0);

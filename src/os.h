@@ -33,6 +33,7 @@
 #error Unsupported platform
 #endif
 
+// Write a string to stdout
 static void os_print(char *message) {
     os_write(os_stdout(), (u8 *)message, str_len(message));
 }
