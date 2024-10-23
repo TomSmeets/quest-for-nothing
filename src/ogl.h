@@ -63,7 +63,7 @@ static GLuint ogl_compile_shader(OGL_Api *gl, GLenum type, char *source) {
         char *shader_type = 0;
         if (type == GL_VERTEX_SHADER) shader_type = "vertex";
         if (type == GL_FRAGMENT_SHADER) shader_type = "fragment";
-        pf_ss(OS_FMT, "error while compiling the ", shader_type, " shader: ", buffer, "\n");
+        fmt_sss(OS_FMT, "error while compiling the ", shader_type, " shader: ", buffer, "\n");
         return 0;
     }
 
@@ -83,7 +83,7 @@ static GLuint ogl_link_program(OGL_Api *gl, GLuint vertex, GLuint fragment) {
     if (!success) {
         char buffer[1024 * 4];
         gl->glGetProgramInfoLog(program, sizeof(buffer), 0, buffer);
-        pf_s(OS_FMT, "error while linking shader: ", buffer, "\n");
+        fmt_ss(OS_FMT, "error while linking shader: ", buffer, "\n");
         return 0;
     }
 
@@ -112,7 +112,7 @@ static void ogl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum sev
     if (severity == GL_DEBUG_SEVERITY_MEDIUM) prefix = "MEDIUM";
     if (severity == GL_DEBUG_SEVERITY_LOW) prefix = "LOW";
     if (severity == GL_DEBUG_SEVERITY_NOTIFICATION) prefix = "NOTIFICATION";
-    pf_ss(OS_FMT, "[", prefix, "] ", (char *)message, "\n");
+    fmt_sss(OS_FMT, "[", prefix, "] ", (char *)message, "\n");
     ogl_prev_message[ogl_prev_message_index] = message;
     ogl_prev_message_index++;
     if (ogl_prev_message_index >= 4) ogl_prev_message_index = 0;

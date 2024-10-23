@@ -3,15 +3,25 @@
 #pragma once
 
 // This formatter has very little dependiecies
+#include "mem.h"
 #include "std.h"
 #include "str.h"
 
 #if 1
+// Should be initialized by os_init
+#define OS_FMT ((Fmt *)OS_GLOBAL->fmt)
+
 typedef struct {
     File *out;
     u32 used;
     u8 data[1024];
 } Fmt;
+
+static Fmt *fmt_new(Memory *mem, File *out) {
+    Fmt *fmt = mem_struct(mem, Fmt);
+    fmt->out = out;
+    return fmt;
+}
 
 // Write buffered data to the output stream (if avaliable)
 static void fmt_flush(Fmt *fmt) {
