@@ -3,6 +3,7 @@
 #pragma once
 #include "image.h"
 #include "input.h"
+#include "mat.h"
 #include "math.h"
 #include "os.h"
 #include "vec.h"

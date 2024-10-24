@@ -85,4 +85,5 @@ build_help() {
   declare -F | cut -d '_' -f 2
 }
 
+set -x
 "build_${1:-help}"

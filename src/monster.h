@@ -116,12 +116,13 @@ static void monster_update(Monster *mon, f32 dt, Player *p, Random *rng) {
 
     mon->move_time -= dt;
     if (mon->move_time <= 0) {
-        mon->move_time = rand_f32_range(rng, 1, 4);
+        mon->move_time = rand_f32_range(rng, 2, 10);
 
-        u32 mode = rand_u32_range(rng, 0, 8);
+        u32 mode = rand_u32_range(rng, 0, 1);
+        fmt_su(OS_FMT, "mode=", mode, "\n");
         if (mode == 0) mon->move_dir = 0;
-        if (mode == 1) mon->move_dir = v2_normalize(p->pos.xz - mon->pos.xz);
-        if (mode >= 2) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.5;
+        // if (mode == 1) mon->move_dir = v2_normalize(p->pos.xz - mon->pos.xz)*0.1;
+        if (mode == 1) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.25;
         monster_set_eyes(mon, rng);
     }
 

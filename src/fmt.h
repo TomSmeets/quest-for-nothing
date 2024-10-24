@@ -6,7 +6,6 @@
 #include "mem.h"
 #include "os_api.h"
 #include "std.h"
-#include "str.h"
 
 // Should be initialized by os_init
 #define OS_FMT ((Fmt *)OS_GLOBAL->fmt)
@@ -45,13 +44,17 @@ static void fmt_flush(Fmt *fmt) {
     fmt->used = 0;
 }
 
+static void fmt_grow(Fmt *fmt) {
+    // Not implemented yet, do we want this?
+}
+
 // Append a single character
-//   If full    -> grow buffer
-//   On newline -> flush output
+//   Full    -> grow
+//   Newline -> flush
 static void fmt_c(Fmt *fmt, u8 chr) {
-    // if (fmt->used == sizeof(fmt->data)) {
-    //     fmt_flush(fmt);
-    // }
+    if (fmt->used == sizeof(fmt->data)) {
+        fmt_grow(fmt);
+    }
 
     assert(fmt->used < sizeof(fmt->data), "Out of memory for this formatter");
 
