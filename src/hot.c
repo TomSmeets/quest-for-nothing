@@ -45,12 +45,11 @@ static void embed_file(Fmt *output, char *name, char *file_path) {
         assert(len >= 0, "Failed to read data");
         if (len == 0) break;
         for (u32 i = 0; i < len; ++i) {
+            if(i % 32 == 0) fmt_s(output, "\n    ");
             fmt_su(output, "", data[i], ",");
-            // TODO: fix bug, fmt_reverse does not work anymore
-            fmt_flush(output);
         }
     }
-    fmt_s(output, "0};\n");
+    fmt_s(output, "0\n};\n");
     os_close(fd);
 }
 

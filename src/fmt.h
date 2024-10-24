@@ -50,9 +50,9 @@ static void fmt_flush(Fmt *fmt) {
 //   If full    -> grow buffer
 //   On newline -> flush output
 static void fmt_c(Fmt *fmt, u8 chr) {
-    if (fmt->used == sizeof(fmt->data)) {
-        fmt_flush(fmt);
-    }
+    // if (fmt->used == sizeof(fmt->data)) {
+    //     fmt_flush(fmt);
+    // }
 
     assert(fmt->used < sizeof(fmt->data), "Out of memory for this formatter");
 
@@ -73,14 +73,6 @@ static char *fmt_close(Fmt *fmt) {
         fmt_c(fmt, 0);
         return (char *)fmt->data;
     }
-}
-
-// Free this formatter and return the buffered data as a null terminated string
-static char *fmt_free(Fmt *fmt) {
-    assert(!fmt->out, "Expected a memory formatter that does not write to a file");
-    if (!fmt->out) fmt_c(fmt, 0);
-    fmt_flush(fmt);
-    return (char *)fmt->data;
 }
 
 // Append multiple bytes
