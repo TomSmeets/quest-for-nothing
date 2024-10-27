@@ -68,7 +68,7 @@ function js_gfx_init() {
     document.addEventListener("mousedown", (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
     document.addEventListener("mouseup",   (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
-        ctx.ex.js_gfx_resize(canvas.width, canvas.height);
+        ctx.exports.js_gfx_resize(canvas.width, canvas.height);
         console.log(ev);
     }, false);
 }
@@ -82,6 +82,7 @@ WebAssembly.instantiateStreaming(fetch('main.wasm'), {
 }).then(({instance}) => {
     ctx.memory  = instance.exports.memory;
     ctx.exports = instance.exports;
+    console.log(ctx.exports)
     js_gfx_init()
     js_loop()
 });

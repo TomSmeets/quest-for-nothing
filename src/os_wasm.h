@@ -11,11 +11,10 @@
 WASM_IMPORT(js_time) u64 js_time(void);
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 
-static OS JS_OS;
-
 u64 js_main(void) {
-    os_main(&JS_OS);
-    return JS_OS.sleep_time;
+    if (!OS_GLOBAL) os_init(0, 0);
+    os_main(OS_GLOBAL);
+    return OS_GLOBAL->sleep_time;
 }
 
 static u64 os_time(void) {
@@ -57,12 +56,12 @@ static void *os_alloc_raw(u32 size) {
 // C wil very "helpfully" detect memcpy and memset for loops.
 // And translate them to a call to memcpy and memset.
 // TODO: Test if this is still the case
-void *memcpy(void *restrict dst, const void *restrict src, u64 size) {
+void *memcpy(void *restrict dst, const void *restrict src, u32 size) {
     std_memcpy(dst, src, size);
     return dst;
 }
 
-void *memset(void *restrict dst, u8 value, u64 size) {
+void *memset(void *restrict dst, u8 value, u32 size) {
     std_memset(dst, value, size);
     return dst;
 }
