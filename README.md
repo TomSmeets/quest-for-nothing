@@ -23,7 +23,7 @@ The first version of this game. I will first implement v1.0, which will have ver
     - [x] Eyes
     - [x] Body
     - [x] Color
-    - [ ] Walking animation
+    - [x] Walking animation
 
 - [ ] Level
   - [ ] Simple aligned walls
