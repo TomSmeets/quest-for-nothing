@@ -14,6 +14,9 @@ typedef struct Monster {
     v2 move_dir;
     f32 move_time;
 
+    f32 speed;
+    f32 wiggle;
+
     u32 health;
     u32 eye_x;
     u32 eye_y;
@@ -111,7 +114,13 @@ static void monster_collide(Monster *m1, Monster *m2) {
 }
 
 static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng) {
+    v3 vel = mon->pos - mon->old_pos;
     mon->old_pos = mon->pos;
+
+    f32 speed = v3_length(vel);
+    mon->speed += (speed / dt - mon->speed) * dt;
+    mon->wiggle += speed * 2;
+    mon->wiggle = f_fract(mon->wiggle);
 
     // Apply movement
     mon->pos.xz += mon->move_dir * dt;

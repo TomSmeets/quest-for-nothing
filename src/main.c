@@ -113,7 +113,7 @@ static void os_main(OS *os) {
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
         monster_update(mon, dt, app->game->player, &app->game->rng);
-        os_gfx_sprite(app->gfx, pl->pos, mon->pos, mon->image);
+        os_gfx_sprite(app->gfx, pl->pos, mon->pos, mon->image, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2));
     }
 
     for (Cell *cell = app->game->level; cell; cell = cell->next) {

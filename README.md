@@ -54,7 +54,7 @@ The first version of this game. I will first implement v1.0, which will have ver
   - [ ] Wasm
 
 - Bugs
-  - [ ] Textures have small border
+  - [ ] Textures have small border (blending artifact)
 
 This should be enough for a first publishable version.
 
