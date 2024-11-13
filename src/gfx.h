@@ -10,7 +10,9 @@
 #include "gfx_wasm.h"
 #endif
 
+// Render a flat upright sprite facing the camera
 static void os_gfx_sprite(Gfx *gfx, v3 player, v3 pos, Image *img) {
+    // Relative direction to the camera in xz
     v3 dir = pos - player;
     dir.y = 0;
 

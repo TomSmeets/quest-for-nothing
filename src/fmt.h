@@ -113,8 +113,9 @@ static void fmt_pad(Fmt *fmt, u32 cursor, u8 chr, u32 pad_total, bool pad_left) 
     u32 pad = pad_total - len;
 
     // Create space
-    for (u32 i = 0; i < pad; ++i)
+    for (u32 i = 0; i < pad; ++i) {
         fmt_c(fmt, chr);
+    }
 
     assert(fmt->used - cursor == pad_total, "Incorreclty calculated padding");
 
