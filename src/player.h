@@ -26,14 +26,15 @@ typedef struct {
     bool fly;
 } Player_Input;
 
+// Map Keys and mouse movement to player input
 static Player_Input player_parse_input(Input *input) {
     Player_Input in = {};
     if (key_down(input, KEY_W)) in.move.z += 1;
     if (key_down(input, KEY_S)) in.move.z -= 1;
     if (key_down(input, KEY_A)) in.move.x += 1;
     if (key_down(input, KEY_D)) in.move.x -= 1;
-    if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
-    if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
+    if (key_down(input, KEY_1)) in.look.z -= 1.0f / 8;
+    if (key_down(input, KEY_2)) in.look.z += 1.0f / 8;
     if (key_down(input, KEY_SPACE)) in.jump = 1;
     if (key_down(input, KEY_SPACE)) in.move.y += 1;
     if (key_down(input, KEY_SHIFT)) in.move.y -= 1;
@@ -46,49 +47,31 @@ static Player_Input player_parse_input(Input *input) {
     return in;
 }
 
+// Player update function
 static void player_update(Player *pl, f32 dt, Player_Input *in) {
+    // ==== Input ====
+    // Toggle flight
     if (in->fly) pl->flying = !pl->flying;
 
-    // Velocity
-    // v3 old_pos = pl->old_pos;
-    // pl->old_pos = pl->pos;
-    v3 old = pl->old_pos;
-    pl->old_pos = pl->pos;
-    pl->pos += pl->pos - old;
-
-    if (!pl->flying) pl->pos.y -= 9.81 * dt * dt;
-
-    // Look
+    // Update player head rotation
+    // x -> pitch
+    // y -> yaw
+    // z -> roll
     pl->rot.xy += in->look.xy;
+
+    // Limit pitch to full up and full down
     pl->rot.x = f_clamp(pl->rot.x, -0.5, 0.5);
+
+    // wraparound yaw
+    pl->rot.y = f_wrap(pl->rot.y, -1, 1);
+
+    // Ease towards target Roll
     pl->rot.z += (in->look.z - pl->rot.z) * 10 * dt;
-    while (pl->rot.y < -1)
-        pl->rot.y += 2;
-    while (pl->rot.y > 1)
-        pl->rot.y -= 2;
 
-    // Move
-    m4 player_yaw_mtx = m4_id();
-    m4_rot_y(&player_yaw_mtx, pl->rot.y * PI); // Yaw
-    v3 move = m4s_mul_dir(&player_yaw_mtx.fwd, in->move);
-    move.xz = v2_limit(move.xz, 0, 1);
-    move.y = in->move.y * pl->flying;
-
-    pl->pos += move * 1.4 * dt;
-    if (in->jump && pl->on_ground) {
-        pl->old_pos.y = pl->pos.y;
-        pl->pos.y += 5 * dt;
-    }
-
-    // Collision
-    pl->on_ground = false;
-    if (pl->pos.y <= 0) {
-        pl->pos.y = 0;
-        pl->on_ground = true;
-    }
-
-    // Reduce velocity
+    // ==== Physics ====
+    // Player displacement since previous frame (velocity * dt)
     v3 vel = pl->pos - pl->old_pos;
+    pl->old_pos = pl->pos;
     if (pl->flying) {
         vel = v3_limit(vel, 0.01f * dt, 5.0f / 3.6f * dt);
         vel *= 1.0f - 0.2;
@@ -96,5 +79,36 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
         vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
         vel.xz *= 1.0f - 0.2;
     }
-    pl->old_pos = pl->pos - vel;
+    pl->pos += vel;
+
+    // Apply Gravity
+    if (!pl->flying) pl->pos.y -= 9.81 * dt * dt;
+
+    // Apply movement input
+    m4 player_yaw_mtx = m4_id();
+    m4_rot_y(&player_yaw_mtx, pl->rot.y * PI); // Yaw
+    v3 move = m4s_mul_dir(&player_yaw_mtx.fwd, in->move);
+    move.xz = v2_limit(move.xz, 0, 1);
+    move.y = in->move.y * pl->flying;
+    pl->pos += move * 1.4 * dt;
+
+    // Jumping
+    if (in->jump && pl->on_ground) {
+        pl->old_pos.y = pl->pos.y;
+        pl->pos.y += 4 * dt;
+    }
+
+    // Ground Collision
+    pl->on_ground = false;
+    if (pl->pos.y <= 0) {
+        pl->pos.y = 0;
+        pl->on_ground = true;
+    }
+
+    // Monster Collision
+    // for(Monster *mon = 0; mon; mon = mon->next) {
+    // }
+
+    // // Reduce velocity
+    // pl->old_pos = pl->pos - vel;
 }

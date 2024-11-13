@@ -13,18 +13,17 @@ The first version of this game. I will first implement v1.0, which will have ver
   - [ ] Can die
   - [ ] Hitscan pistol
 
-- [ ] Aliens
-  - [ ] Movement
+- [x] Aliens
+  - [x] Movement
     - [x] Idle: stand still
     - [x] Stroll: move randomly to another cell
-    - [ ] Attack: move to the player
+    - [x] Attack: move to the player
 
   - [x] Generated Texture
     - [x] Eyes
     - [x] Body
     - [x] Color
-    - [ ] Hands
-    - [ ] Feet
+    - [ ] Walking animation
 
 - [ ] Level
   - [ ] Simple aligned walls
@@ -53,6 +52,9 @@ The first version of this game. I will first implement v1.0, which will have ver
   - [x] Linux
   - [x] Windows
   - [ ] Wasm
+
+- Bugs
+  - [ ] Textures have small border
 
 This should be enough for a first publishable version.
 

@@ -18,18 +18,15 @@
     if (!(cond)) os_fail(msg "\n")
 
 static void std_memcpy(void *restrict dst, const void *restrict src, u64 size) {
-    while (size--)
-        *(u8 *)dst++ = *(u8 *)src++;
+    while (size--) *(u8 *)dst++ = *(u8 *)src++;
 }
 
 static void std_memzero(void *restrict dst, u64 size) {
-    while (size--)
-        *(u8 *)dst++ = 0;
+    while (size--) *(u8 *)dst++ = 0;
 }
 
 static void std_memset(void *restrict dst, u8 value, u64 size) {
-    while (size--)
-        *(u8 *)dst++ = value;
+    while (size--) *(u8 *)dst++ = value;
 }
 
 static void std_reverse(u8 *buf, u32 size) {

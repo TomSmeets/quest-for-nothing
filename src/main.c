@@ -69,11 +69,8 @@ static void handle_basic_input(Input *input, Gfx *gfx) {
 }
 
 static void os_main(OS *os) {
-    // os_printf("Time: %u\n", os_time());
-
     // Initialize App
     if (!os->app) os->app = app_init();
-
     App *app = os->app;
 
     // Allocate memory for this frame (and free at the end of the frame)
@@ -84,15 +81,23 @@ static void os_main(OS *os) {
     // 'dt' is the time this frame will take in secods
     f32 dt = time_begin(&app->time, 60);
 
-    // Handle Input
+    // Read Input
     Input *input = os_gfx_poll(app->gfx);
+
+    // Handle System keys (Quittng, Mouse grab, etc...)
     handle_basic_input(input, app->gfx);
 
+    // Player update
     Player *pl = app->game->player;
     Player_Input in = player_parse_input(input);
     player_update(pl, dt, &in);
 
-    // Render
+    // Monster Update
+    for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
+        monster_update(mon, dt, app->game->player, &app->game->rng);
+    }
+
+    // Do collisions
     m4 player_mtx = m4_id();
     m4_rot_z(&player_mtx, pl->rot.z * PI); // Roll
     m4_rot_x(&player_mtx, pl->rot.x * PI); // Pitch
@@ -130,6 +135,7 @@ static void os_main(OS *os) {
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
 
     // Finish
+    // TODO: pass matrix at the end, so don't render before gfx_end
     os_gfx_end(app->gfx);
     mem_free(tmp);
     os->sleep_time = time_end(&app->time);

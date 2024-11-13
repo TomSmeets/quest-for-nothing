@@ -79,14 +79,12 @@ static char *fmt_close(Fmt *fmt) {
 
 // Append multiple bytes
 static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
-    for (u32 i = 0; i < size; ++i)
-        fmt_c(fmt, data[i]);
+    for (u32 i = 0; i < size; ++i) fmt_c(fmt, data[i]);
 }
 
 // Append a null terminated string
 static void fmt_s(Fmt *fmt, char *str) {
-    while (*str)
-        fmt_c(fmt, *str++);
+    while (*str) fmt_c(fmt, *str++);
 }
 
 // Return current location

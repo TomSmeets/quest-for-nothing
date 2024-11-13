@@ -6,8 +6,7 @@
 // Number of chars in a zero terminated string
 static u32 str_len(char *s) {
     u32 n = 0;
-    while (*s++)
-        n++;
+    while (*s++) n++;
     return n;
 }
 

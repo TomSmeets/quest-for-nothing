@@ -54,6 +54,14 @@ static f32 f_clamp(f32 x, f32 l, f32 h) {
     return x;
 }
 
+// clamp 'x' between l and h, inclusive
+static f32 f_wrap(f32 x, f32 l, f32 h) {
+    assert(l < h, "Lower bound should be lower than higher bound");
+    while (x < l) x += h - l;
+    while (x > h) x += l - h;
+    return x;
+}
+
 // ==== Trigonometric functions ====
 
 // Very good and simple sine approximation

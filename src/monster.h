@@ -110,28 +110,30 @@ static void monster_collide(Monster *m1, Monster *m2) {
     m2->pos -= push * 0.25;
 }
 
-static void monster_update(Monster *mon, f32 dt, Player *p, Random *rng) {
+static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng) {
     mon->old_pos = mon->pos;
+
+    // Apply movement
     mon->pos.xz += mon->move_dir * dt;
 
     mon->move_time -= dt;
     if (mon->move_time <= 0) {
         mon->move_time = rand_f32_range(rng, 2, 10);
 
-        u32 mode = rand_u32_range(rng, 0, 1);
+        u32 mode = rand_u32_range(rng, 0, 2);
         // fmt_su(OS_FMT, "mode=", mode, "\n");
         if (mode == 0) mon->move_dir = 0;
-        // if (mode == 1) mon->move_dir = v2_normalize(p->pos.xz - mon->pos.xz)*0.1;
-        if (mode == 1) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.25;
+        if (mode == 1) mon->move_dir = v2_normalize(player->pos.xz - mon->pos.xz) * 0.1;
+        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.25;
         monster_set_eyes(mon, rng);
     }
 
-    // v3 old = mon->old_pos;
-    // mon->old_pos = mon->pos;
-    // mon->pos += mon->pos - old;
+    // Player Collision
+    v2 player_dir = player->pos.xz - mon->pos.xz;
+    f32 player_distance = v2_length(player_dir);
 
-    // v3 vel = mon->pos - mon->old_pos;
-    // vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
-    // vel.xz *= 1.0f - 0.01;
-    // mon->old_pos = mon->pos - vel;
+    float radius = 0.5;
+    if (player_distance < radius) {
+        mon->pos.xz -= player_dir * (radius - player_distance) / player_distance;
+    }
 }

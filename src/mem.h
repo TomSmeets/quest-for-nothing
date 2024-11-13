@@ -48,8 +48,7 @@ static void *mem_alloc_chunk(void) {
 static void mem_free_chunk_list(Memory_Chunk *chunk) {
     // Find last element in the list
     Memory_Chunk *last = chunk;
-    while (last->next)
-        last = last->next;
+    while (last->next) last = last->next;
 
     // Add it to the free chunk list
     last->next = OS_GLOBAL->memory_cache;

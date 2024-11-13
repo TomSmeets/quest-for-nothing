@@ -14,8 +14,7 @@ typedef struct {
 static f32 time_begin(Time_Info *time, u64 target_rate) {
     u64 target_increment = 1e6 / target_rate;
     u64 increment = target_increment;
-    while (time->compute_time > increment)
-        increment += target_increment;
+    while (time->compute_time > increment) increment += target_increment;
 
     // os_printf("target=%u us compute=%u us increment=%u us\n", target_increment, time->compute_time, increment);
 
