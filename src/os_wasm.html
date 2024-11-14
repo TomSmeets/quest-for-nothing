@@ -73,15 +73,16 @@ function js_gfx_init() {
     }, false);
 }
 
-WebAssembly.instantiateStreaming(fetch('main.wasm'), {
+fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
     env: {
-    js_time,
-    js_write,
-    js_gfx_grab,
-    },
-}).then(({instance}) => {
-    ctx.memory  = instance.exports.memory;
-    ctx.exports = instance.exports;
+        js_time,
+        js_write,
+        js_gfx_grab,
+        },
+    })
+).then(ret => {
+    ctx.memory  = ret.instance.exports.memory;
+    ctx.exports = ret.instance.exports;
     console.log(ctx.exports)
     js_gfx_init()
     js_loop()
