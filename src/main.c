@@ -22,6 +22,10 @@ typedef struct {
     Memory *mem;
 
     f32 shoot_time;
+    f32 step_volume;
+
+    u32 reverb_ix;
+    v2 reverb[1024 * 4];
 } App;
 
 static App *app_init(void) {
@@ -34,6 +38,9 @@ static App *app_init(void) {
     return app;
 }
 
+static v2 audio_shift(f32 input, f32 shift) {
+    return (v2){input * (1 + shift), input * (1 - shift)};
+}
 static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
     if (!app) return;
@@ -41,7 +48,33 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     Audio *audio = &app->audio;
     for (u32 i = 0; i < count; ++i) {
         audio_begin_sample(audio, dt);
-        output[i] = 0;
+
+        f32 background = audio_noise_white(audio) * (1 + 0.5 * audio_sine(audio, 0.025));
+        background = audio_filter(audio, 150 * (2 + audio_sine(audio, 0.001) * audio_sine(audio, 0.02) * 0.5), background).low_pass;
+
+        f32 noise = (1 + 0.3 * audio_noise_white(audio)) * app->step_volume * f_max(audio_sine(audio, 4) + 0.5, 0);
+        noise = audio_filter(audio, 500, noise).high_pass;
+        noise = audio_filter(audio, 1000, noise).low_pass;
+
+        v2 out = 0;
+        out += audio_shift(noise, audio_sine(audio, 1) * 0.8);
+        out += audio_shift(background * 0.5, audio_sine(audio, 0.1) * 0.4);
+
+        u32 ix = app->reverb_ix++;
+        if (app->reverb_ix >= array_count(app->reverb)) app->reverb_ix = 0;
+
+        out += app->reverb[ix] * 0.5;
+
+        f32 amp = 1.0;
+        app->reverb[ix] = 0;
+        for (u32 o = 0; o < 8; ++o) {
+            i32 ox = (i32)ix - (i32)o;
+            if (ox < 0) ox += array_count(app->reverb);
+            app->reverb[ox] += out * amp;
+            amp *= 0.2;
+        }
+
+        output[i] = out;
     }
 }
 
@@ -90,6 +123,9 @@ static void os_main(OS *os) {
     // Player update
     Player *pl = app->game->player;
     Player_Input in = player_parse_input(input);
+    f32 speed = v3_length_sq(in.move);
+    if (!pl->on_ground) speed = 0;
+    app->step_volume += (f_min(speed, 1) - app->step_volume) * 8 * dt;
     player_update(pl, dt, &in);
 
     // Monster Update
