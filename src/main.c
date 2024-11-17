@@ -52,7 +52,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
         f32 background = audio_noise_white(audio) * (1 + 0.5 * audio_sine(audio, 0.025));
         background = audio_filter(audio, 150 * (2 + audio_sine(audio, 0.001) * audio_sine(audio, 0.02) * 0.5), background).low_pass;
 
-        f32 noise = (1 + 0.3 * audio_noise_white(audio)) * app->step_volume * f_max(audio_sine(audio, 4) + 0.5, 0);
+        f32 noise = (1 + 0.3 * audio_noise_white(audio)) * app->step_volume * f_max(audio_sine(audio, 4), 0);
         noise = audio_filter(audio, 500, noise).high_pass;
         noise = audio_filter(audio, 1000, noise).low_pass;
 
@@ -67,11 +67,11 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 
         f32 amp = 1.0;
         app->reverb[ix] = 0;
-        for (u32 o = 0; o < 8; ++o) {
+        for (u32 o = 0; o < 6; ++o) {
             i32 ox = (i32)ix - (i32)o;
             if (ox < 0) ox += array_count(app->reverb);
             app->reverb[ox] += out * amp;
-            amp *= 0.2;
+            amp *= 0.4;
         }
 
         output[i] = out;
