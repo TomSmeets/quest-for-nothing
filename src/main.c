@@ -50,7 +50,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
         audio_begin_sample(audio, dt);
 
         f32 background = audio_noise_white(audio) * (1 + 0.5 * audio_sine(audio, 0.025));
-        background = audio_filter(audio, 150 * (2 + audio_sine(audio, 0.001) * audio_sine(audio, 0.02) * 0.5), background).low_pass;
+        background = audio_filter(audio, 120 * (2 + audio_sine(audio, 0.001) * audio_sine(audio, 0.02) * 0.5), background).low_pass;
 
         f32 noise = (1 + 0.3 * audio_noise_white(audio)) * app->step_volume * f_max(audio_sine(audio, 4), 0);
         noise = audio_filter(audio, 500, noise).high_pass;
@@ -58,7 +58,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 
         v2 out = 0;
         out += audio_shift(noise, audio_sine(audio, 1) * 0.8);
-        out += audio_shift(background * 0.5, audio_sine(audio, 0.1) * 0.4);
+        out += audio_shift(background * 0.2, audio_sine(audio, 0.1) * 0.4);
 
         u32 ix = app->reverb_ix++;
         if (app->reverb_ix >= array_count(app->reverb)) app->reverb_ix = 0;
