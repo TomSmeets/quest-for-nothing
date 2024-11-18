@@ -25,14 +25,6 @@ void main() {
     // vec3 normal = normalize(frag_normal);
     out_color = textureGrad(img, uv, dFdx(frag_uv), dFdy(frag_uv));
 
-    // float z = 1.0f - (1.0f / (1.0f + frag_z));
-    float z = 1.0 - frag_z * 0.03;
-    z = smoothstep(0.0, 1.0, 1.0f - z * z * z * z);
-
-    float l = 0.3 * out_color.r + 0.6 * out_color.g + 0.1 * out_color.b;
-    out_color.rgb += z * (vec3(l, l, l) - out_color.rgb);
-    out_color.rgb = mix(out_color.rgb, vec3(0.02), z);
-
     // if(frag_z > 3) out_color.rgb = vec3(1, 0, 0);
     // if(frag_z < 0) out_color.rgb = vec3(0, 0, 1);
     // out_color = texture(img, frag_uv);

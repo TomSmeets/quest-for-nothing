@@ -17,6 +17,11 @@ typedef struct {
     v3 rot;
     bool flying;
     bool on_ground;
+
+
+    // Derived matrices
+    m4 body_mtx;
+    m4 eye_mtx;
 } Player;
 
 typedef struct {
@@ -104,4 +109,16 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
         pl->pos.y = 0;
         pl->on_ground = true;
     }
+
+    // Update matricies
+    pl->eye_mtx = m4_id();
+    m4_rot_z(&pl->eye_mtx, pl->rot.z * PI); // Roll
+    m4_rot_x(&pl->eye_mtx, pl->rot.x * PI); // Pitch
+    m4_rot_y(&pl->eye_mtx, pl->rot.y * PI); // Yaw
+    m4_trans(&pl->eye_mtx, pl->pos);
+    m4_trans(&pl->eye_mtx, (v3){0, .5, 0});
+
+    pl->body_mtx = m4_id();
+    m4_rot_y(&pl->body_mtx, pl->rot.y * PI); // Yaw
+    m4_trans(&pl->body_mtx, pl->pos);
 }

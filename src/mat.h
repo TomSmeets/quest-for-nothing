@@ -177,3 +177,25 @@ static void m4_screen_to_clip(m4 *m, v2 size) {
     m4_scale(m, (v3){sx, -sy, 1});
     m4_trans(m, (v3){-1, 1, 0});
 }
+
+// Render a flat upright sprite facing the camera
+static m4s m4s_billboard(v3 pos, v3 player, v2u image_size, float wiggle) {
+    // Relative direction to the camera in xz
+    v3 dir = pos - player;
+    dir.y = 0;
+
+    v3 z = v3_normalize(dir);
+    v3 x = {z.z, 0, -z.x};
+    v3 y = {0, 1, 0};
+
+    y += x * wiggle;
+
+    v2 size = v2u_to_v2(image_size) / 32.0;
+
+    m4s mtx = m4s_id();
+    mtx.x.xyz = x * size.x;
+    mtx.y.xyz = y * size.y;
+    mtx.z.xyz = z;
+    mtx.w.xyz = pos + (v3){0, size.y * .5f, 0} + x * wiggle * .5;
+    return mtx;
+}

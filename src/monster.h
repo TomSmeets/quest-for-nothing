@@ -3,24 +3,37 @@
 #pragma once
 #include "color.h"
 #include "image.h"
+#include "gfx.h"
 #include "player.h"
 #include "rand.h"
 #include "vec.h"
 
 typedef struct Monster {
+    // ==== Physics ====
     v3 pos;
     v3 old_pos;
 
+    // ==== AI ====
+    u32 health;
+
+    // Current movement direction
     v2 move_dir;
+
+    // Cooldown until new movement direction is chosen
     f32 move_time;
 
+    // ==== Animation ====
+    // Movement speed
     f32 speed;
     f32 wiggle;
 
-    u32 health;
+    // ==== Graphics ====
+    Image *image;
     u32 eye_x;
     u32 eye_y;
-    Image *image;
+    m4s sprite_mtx;
+
+    // ==== Other ====
     struct Monster *next;
 } Monster;
 
@@ -101,26 +114,10 @@ static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     return mon;
 }
 
-static void monster_collide(Monster *m1, Monster *m2) {
-    v3 diff = m1->pos - m2->pos;
-    f32 len = v3_length(diff);
-    f32 radius = 0.40f;
-    if (len > radius) return;
-    if (len <= 0) return;
-
-    v3 push = diff / len * (radius - len);
-    m1->pos += push * 0.25;
-    m2->pos -= push * 0.25;
-}
-
-static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng) {
+static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gfx *gfx) {
+    // ==== Physics ====
     v3 vel = mon->pos - mon->old_pos;
     mon->old_pos = mon->pos;
-
-    f32 speed = v3_length(vel);
-    mon->speed += (speed / dt - mon->speed) * dt;
-    mon->wiggle += speed * 2;
-    mon->wiggle = f_fract(mon->wiggle);
 
     // Apply movement
     mon->pos.xz += mon->move_dir * dt;
@@ -145,4 +142,13 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng) {
     if (player_distance < radius) {
         mon->pos.xz -= player_dir * (radius - player_distance) / player_distance;
     }
+
+
+    // ==== Animation ====
+    f32 speed = v3_length(vel);
+    mon->speed += (speed / dt - mon->speed) * dt;
+    mon->wiggle += speed * 2;
+    mon->wiggle = f_fract(mon->wiggle);
+    mon->sprite_mtx = m4s_billboard(mon->pos, player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2));
+    os_gfx_quad(gfx, &mon->sprite_mtx, mon->image, false);
 }
