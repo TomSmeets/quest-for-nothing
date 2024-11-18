@@ -26,6 +26,9 @@ typedef struct {
 
     u32 reverb_ix;
     v2 reverb[1024 * 4];
+
+    Image *cursor;
+    Image *gun;
 } App;
 
 static App *app_init(void) {
@@ -35,6 +38,17 @@ static App *app_init(void) {
     app->mem = mem;
     app->game = game_new();
     app->gfx = os_gfx_init(mem, "Quest For Nothing");
+
+    u32 size = 5;
+    app->cursor = image_new(mem, (v2u){size, size});
+    for (u32 i = 0; i < size; ++i) {
+        v4 col = WHITE;
+        image_write(app->cursor, (v2i){i, i}, col);
+        image_write(app->cursor, (v2i){i, size - 1 - i}, col);
+    }
+
+    app->gun = image_new(mem, (v2u){size, size});
+    image_grid(app->gun, WHITE, BLACK);
     return app;
 }
 
@@ -63,7 +77,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
         u32 ix = app->reverb_ix++;
         if (app->reverb_ix >= array_count(app->reverb)) app->reverb_ix = 0;
 
-        out += app->reverb[ix] * 0.5;
+        out += app->reverb[ix] * 0.3;
 
         f32 amp = 1.0;
         app->reverb[ix] = 0;
@@ -114,6 +128,13 @@ static void os_main(OS *os) {
     // 'dt' is the time this frame will take in secods
     f32 dt = time_begin(&app->time, 60);
 
+    // Start rendering
+    os_gfx_begin(app->gfx);
+
+    fmt_s(OS_FMT, "P: ");
+    fmt_v3(OS_FMT, app->game->player->pos);
+    fmt_s(OS_FMT, "\n");
+
     // Read Input
     Input *input = os_gfx_poll(app->gfx);
 
@@ -123,17 +144,16 @@ static void os_main(OS *os) {
     // Player update
     Player *pl = app->game->player;
     Player_Input in = player_parse_input(input);
-    f32 speed = v3_length_sq(in.move);
-    if (!pl->on_ground) speed = 0;
-    app->step_volume += (f_min(speed, 1) - app->step_volume) * 8 * dt;
-    player_update(pl, dt, &in);
 
-    // Monster Update
-    for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        monster_update(mon, dt, app->game->player, &app->game->rng);
+    // Step sounds
+    {
+        f32 speed = v3_length_sq(in.move);
+        if (!pl->on_ground) speed = 0;
+        app->step_volume += (f_min(speed, 1) - app->step_volume) * 8 * dt;
     }
 
-    // Do collisions
+    player_update(pl, dt, &in);
+
     m4 player_mtx = m4_id();
     m4_rot_z(&player_mtx, pl->rot.z * PI); // Roll
     m4_rot_x(&player_mtx, pl->rot.x * PI); // Pitch
@@ -145,13 +165,42 @@ static void os_main(OS *os) {
     m4_mul_inv(&proj, &player_mtx);
     m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
 
-    os_gfx_begin(app->gfx, &proj.fwd);
+    m4 screen1 = m4_id();
+    m4_perspective_to_clip(&screen1, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
+    // m4_scale(&screen1, 1.0 / input->window_size.y);
+
+    m4s screen = {
+        {2.0f / (f32)input->window_size.x, 0, 0, 0},
+        {0, 2.0f / (f32)input->window_size.y, 0, 0},
+        {0, 0, 1.0 / 10, 0},
+        {0, 0, 0, 1},
+    };
+    screen = screen1.fwd;
 
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
         monster_update(mon, dt, app->game->player, &app->game->rng);
         os_gfx_sprite(app->gfx, pl->pos, mon->pos, mon->image, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2));
     }
 
+    {
+        m4 mtx = m4_id();
+        m4_trans(&mtx, (v3){0, 0, 8});
+        // m4_scale(&mtx, (v3){app->cursor->size.x, app->cursor->size.y, 1});
+        // m4_scale(&mtx, 2);
+        os_gfx_quad(app->gfx, &mtx.fwd, app->cursor, true);
+    }
+
+    {
+        m4 mtx = m4_id();
+        m4_trans(&mtx, (v3){.2, .1, 0});
+        m4_rot_z(&mtx, R1 * 0.4 * app->shoot_time);
+        m4_rot_y(&mtx, -R1 * (.9 + 0.0 * f_sin(app->shoot_time)));
+        m4_trans(&mtx, (v3){-1, -.5, 0});
+        m4_trans(&mtx, (v3){0, 0, 1});
+        os_gfx_quad(app->gfx, &mtx.fwd, app->gun, true);
+    }
+
+    // Draw level
     for (Cell *cell = app->game->level; cell; cell = cell->next) {
         v3 p = v3i_to_v3(cell->pos);
         m4s mtx = {
@@ -165,14 +214,14 @@ static void os_main(OS *os) {
         // if (cell->x_pos) ogl_quad(app->gl, &mtx, cell->x_pos);
         // if (cell->z_pos) ogl_quad(app->gl, &mtx, cell->z_pos);
         // if (cell->y_pos) ogl_quad(app->gl, &mtx, cell->y_pos);
-        if (cell->y_neg) os_gfx_quad(app->gfx, &mtx, cell->y_neg);
+        if (cell->y_neg) os_gfx_quad(app->gfx, &mtx, cell->y_neg, false);
     }
 
-    if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 0;
+    if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 1;
+    if (app->shoot_time > 0) app->shoot_time -= dt * 4;
 
     // Finish
-    // TODO: pass matrix at the end, so don't render before gfx_end
-    os_gfx_end(app->gfx);
+    os_gfx_end(app->gfx, &proj.fwd, &screen);
     mem_free(tmp);
     os->sleep_time = time_end(&app->time);
 }

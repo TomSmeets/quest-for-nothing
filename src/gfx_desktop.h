@@ -42,22 +42,22 @@ static void os_gfx_set_mouse_grab(Gfx *gfx, bool grab) {
 // Begin a new graphics frame
 // call os_gfx_quad to draw quads
 // call os_gfx_end to finish this frame
-static void os_gfx_begin(Gfx *gfx, m4s *proj) {
+static void os_gfx_begin(Gfx *gfx) {
     // If we want to reload opengl shaders during a hot-reload
     if (1 && OS_GLOBAL->reloaded) {
         gfx->ogl = ogl_load(gfx->mem, gfx->sdl->api.SDL_GL_GetProcAddress);
     }
 
-    ogl_begin(gfx->ogl, proj, gfx->sdl->input.window_size);
+    ogl_begin(gfx->ogl, gfx->sdl->input.window_size);
 }
 
 // Draw a single textured quad in the given scale and orientation
-static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img) {
-    ogl_quad(gfx->ogl, mtx, img);
+static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img, bool ui) {
+    ogl_quad(gfx->ogl, mtx, img, ui);
 }
 
 // Finish drawing the frame and submit it to the gpu
-static void os_gfx_end(Gfx *gfx) {
-    ogl_draw(gfx->ogl);
+static void os_gfx_end(Gfx *gfx, m4s *projection, m4s *screen) {
+    ogl_draw(gfx->ogl, projection, screen);
     sdl_swap_window(gfx->sdl);
 }

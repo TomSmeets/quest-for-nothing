@@ -6,19 +6,43 @@
 #include "mem.h"
 #include "vec.h"
 
+// A region in a texture atlas
 typedef struct Packer_Area {
+    // Start position
     v2u pos;
+
+    // Size in pixels
     v2u size;
+
+    // Image id (modified or new images get a unique id)
     u32 image;
+
+    // Next pointer for linked list
     struct Packer_Area *next;
 } Packer_Area;
 
 typedef struct {
+    // Destination memory arena
     Memory *mem;
-    // Free
+
+    // Atlas texture size (width and height, the texture is a square)
     u32 texture_size;
+
+    // Free texture areas, indexed by size
+    // Each size gets their own level.
+    // level 0 is the biggest size (texture_size x texture_size)
+    // level 1 is the halved size, so 4 squares of (texture_size / 2) x (texture_size / 2)
+    // level 2 is those halved again...
+    // level 11 is the smalles possible bucket size (texture_size / 2048)
     Packer_Area *levels[12];
+
+    // A hashmap of used texture areas.
+    // Indexed by the image id for quick lookup.
     Packer_Area *used[64];
+
+    // Statistic that tracks how many pixels are already used
+    // (Equal to "sum(area(u.size) for u in used)")
+    u32 total_space_used;
 } Packer;
 
 static Packer *packer_new(u32 texture_size) {
@@ -120,4 +144,16 @@ static Packer_Area *packer_get_new(Packer *pack, Image *img) {
     area->next = *slot;
     *slot = area;
     return area;
+}
+
+// Return the number of pixels remaining in this texture
+static u32 packer_capacity(Packer *pack, u32 size) {
+    u32 total = 0;
+    u32 end_level = packer_level(pack, (v2u){size, size});
+    for (u32 level = 0; level <= end_level; ++level) {
+        for (Packer_Area *item = pack->levels[level]; item; item = item->next) {
+            total += (item->size.x / size) * (item->size.y / size);
+        }
+    }
+    return total;
 }

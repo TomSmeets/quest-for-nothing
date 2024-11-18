@@ -29,5 +29,5 @@ static void os_gfx_sprite(Gfx *gfx, v3 player, v3 pos, Image *img, float wiggle)
     mtx.y.xyz = y * size.y;
     mtx.z.xyz = z;
     mtx.w.xyz = pos + (v3){0, size.y * .5f, 0} + x * wiggle * .5;
-    os_gfx_quad(gfx, &mtx, img);
+    os_gfx_quad(gfx, &mtx, img, false);
 }

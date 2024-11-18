@@ -104,11 +104,4 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
         pl->pos.y = 0;
         pl->on_ground = true;
     }
-
-    // Monster Collision
-    // for(Monster *mon = 0; mon; mon = mon->next) {
-    // }
-
-    // // Reduce velocity
-    // pl->old_pos = pl->pos - vel;
 }

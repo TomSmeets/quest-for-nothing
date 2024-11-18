@@ -40,10 +40,11 @@ typedef struct {
     GLuint texture;
     Packer *pack;
 
-    m4s projection_mtx;
-
     u32 quad_count;
     OGL_Quad quad_list[4096];
+
+    u32 ui_quad_count;
+    OGL_Quad ui_quad_list[4096];
 } OGL;
 
 // Prevent spam
@@ -197,15 +198,12 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
 
     // Set OpenGL Settings
     api->glEnable(GL_FRAMEBUFFER_SRGB);
-    api->glEnable(GL_DEPTH_TEST);
-    api->glEnable(GL_MULTISAMPLE);
 
-    if (1) {
-        api->glEnable(GL_CULL_FACE);
-        api->glCullFace(GL_BACK);
-    } else {
-        api->glDisable(GL_CULL_FACE);
-    }
+    // Causes artifacts
+    // api->glEnable(GL_MULTISAMPLE);
+
+    api->glEnable(GL_CULL_FACE);
+    api->glCullFace(GL_BACK);
 
     if (0) {
         api->glEnable(GL_BLEND);
@@ -214,36 +212,68 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
         api->glDisable(GL_BLEND);
     }
 
-    api->glCullFace(GL_BACK);
     api->glClearColor(0.02f, 0.02f, 0.02f, 1);
     return gl;
 }
 
-static void ogl_begin(OGL *gl, m4s *mtx, v2i viewport_size) {
+static void ogl_begin(OGL *gl, v2i viewport_size) {
     gl->quad_count = 0;
+    gl->ui_quad_count = 0;
+
+    // Recreate texture pack
+    u32 cap = packer_capacity(gl->pack, 32);
+    fmt_su(OS_FMT, "Debug: Capacity: ", cap, "\n");
+    if (cap < 16) {
+        fmt_s(OS_FMT, "Debug: Recreating texture atlas\n");
+        packer_free(gl->pack);
+        gl->pack = packer_new(OGL_TEXTURE_WIDTH);
+    }
+
     gl->api.glViewport(0, 0, viewport_size.x, viewport_size.y);
     gl->api.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    gl->projection_mtx = *mtx;
 }
 
-static void ogl_draw(OGL *gl) {
+static void ogl_draw(OGL *gl, m4s *projection_matrix, m4s *screen_matrix) {
     OGL_Api *api = &gl->api;
 
-    // Setup Instances
-    api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
-    api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
+    {
+        api->glEnable(GL_DEPTH_TEST);
+        api->glDisable(GL_BLEND);
 
-    // Screen -> Clip
-    api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&gl->projection_mtx);
-    api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
+        api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
+        api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
+        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)projection_matrix);
+        api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
 
-    gl->quad_count = 0;
+        fmt_su(OS_FMT, "Quad Count: ", gl->quad_count, "\n");
+        gl->quad_count = 0;
+    }
+
+    // ==== UI ====
+    {
+        api->glDisable(GL_DEPTH_TEST);
+        api->glEnable(GL_BLEND);
+        api->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+        api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
+        api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->ui_quad_count, gl->ui_quad_list, GL_STREAM_DRAW);
+        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)screen_matrix);
+        api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->ui_quad_count);
+
+        fmt_su(OS_FMT, "UI Quad Count: ", gl->ui_quad_count, "\n");
+        gl->ui_quad_count = 0;
+    }
 }
 
-static void ogl_quad(OGL *gl, m4s *mtx, Image *img) {
-    if (gl->quad_count >= array_count(gl->quad_list)) {
-        ogl_draw(gl);
-        return ogl_quad(gl, mtx, img);
+static void ogl_quad(OGL *gl, m4s *mtx, Image *img, bool ui) {
+    if (!ui && gl->quad_count >= array_count(gl->quad_list)) {
+        fmt_s(OS_FMT, "ERROR: Too many quads\n");
+        return;
+    }
+
+    if (ui && gl->ui_quad_count >= array_count(gl->ui_quad_list)) {
+        fmt_s(OS_FMT, "ERROR: Too many UI quads\n");
+        return;
     }
 
     Packer_Area *area = packer_get_cache(gl->pack, img);
@@ -252,48 +282,25 @@ static void ogl_quad(OGL *gl, m4s *mtx, Image *img) {
         area = packer_get_new(gl->pack, img);
 
         if (!area) {
-            // Draw what is left
-            ogl_draw(gl);
-
-            // Recreate texture atlas
-            packer_free(gl->pack);
-            gl->pack = packer_new(OGL_TEXTURE_WIDTH);
-
-            // Continue
-            return ogl_quad(gl, mtx, img);
-        };
+            fmt_s(OS_FMT, "ERROR: Too many textures\n");
+            return;
+        }
 
         gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img->size.x, img->size.y, GL_RGBA, GL_FLOAT, img->pixels);
     }
 
-    gl->quad_list[gl->quad_count++] = (OGL_Quad){
+    OGL_Quad quad = {
         .x = {mtx->x.x, mtx->x.y, mtx->x.z},
         .y = {mtx->y.x, mtx->y.y, mtx->y.z},
         .z = {mtx->z.x, mtx->z.y, mtx->z.z},
         .w = {mtx->w.x, mtx->w.y, mtx->w.z},
-#if 1
         .uv_pos = {(f32)area->pos.x / OGL_TEXTURE_WIDTH, (f32)area->pos.y / OGL_TEXTURE_WIDTH},
         .uv_size = {(f32)img->size.x / OGL_TEXTURE_WIDTH, (f32)img->size.y / OGL_TEXTURE_WIDTH},
-#else
-        .uv_size = {1, 1},
-#endif
     };
-}
 
-static void ogl_sprite(OGL *gl, v3 player, v3 pos, Image *img) {
-    v3 dir = pos - player;
-    dir.y = 0;
-
-    v3 z = v3_normalize(dir);
-    v3 x = {z.z, 0, -z.x};
-    v3 y = {0, 1, 0};
-
-    v2 size = v2u_to_v2(img->size) / 32.0;
-
-    m4s mtx = m4s_id();
-    mtx.x.xyz = x * size.x;
-    mtx.y.xyz = y * size.y;
-    mtx.z.xyz = z;
-    mtx.w.xyz = pos + (v3){0, size.y * .5f, 0};
-    ogl_quad(gl, &mtx, img);
+    if (ui) {
+        gl->ui_quad_list[gl->ui_quad_count++] = quad;
+    } else {
+        gl->quad_list[gl->quad_count++] = quad;
+    }
 }

@@ -123,6 +123,8 @@ static Game *game_new(void) {
 
     // Generate player
     v3i spawn = {level_size / 2, 0, level_size / 2};
+    spawn.x = 0;
+    spawn.z = 0;
     game->player = gen_player(mem, spawn);
 
     // Generate Monsters
