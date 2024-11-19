@@ -256,6 +256,7 @@ static void os_main(OS *os) {
 
     // Finish
     os_gfx_end(app->gfx, &proj.fwd, &screen);
+
     mem_free(tmp);
     os->sleep_time = time_end(&app->time);
 }

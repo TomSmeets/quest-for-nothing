@@ -10,6 +10,10 @@ typedef struct {
     m4s inv;
 } m4;
 
+typedef struct {
+    f32 v[4][4];
+}m44;
+
 // Identity matrix, does nothing
 static m4 m4_id(void) {
     m4s id = m4s_id();
@@ -63,70 +67,7 @@ static void m4_trans(m4 *m, v3 t) {
     m4_mul(m, &a);
 }
 
-// Rotate around the Z axis
-// m = Rz(a) * m
-static void m4_rot_z(m4 *m, f32 a) {
-    f32 c = f_cos(a);
-    f32 s = f_sin(a);
 
-    m4s fwd = {
-        .x = {c, s, 0, 0},
-        .y = {-s, c, 0, 0},
-        .z = {0, 0, 1, 0},
-        .w = {0, 0, 0, 1},
-    };
-
-    m4s inv = {
-        .x = {c, -s, 0, 0},
-        .y = {s, c, 0, 0},
-        .z = {0, 0, 1, 0},
-        .w = {0, 0, 0, 1},
-    };
-
-    m4_mul(m, &(m4){fwd, inv});
-}
-
-// Rotate around the Y axis
-// m = Ry(a) * m
-static void m4_rot_y(m4 *m, f32 a) {
-    f32 c = f_cos(a);
-    f32 s = f_sin(a);
-    m4s fwd = {
-        .x = {c, 0, -s, 0},
-        .y = {0, 1, 0, 0},
-        .z = {s, 0, c, 0},
-        .w = {0, 0, 0, 1},
-    };
-
-    m4s inv = {
-        .x = {c, 0, s, 0},
-        .y = {0, 1, 0, 0},
-        .z = {-s, 0, c, 0},
-        .w = {0, 0, 0, 1},
-    };
-
-    m4_mul(m, &(m4){fwd, inv});
-}
-
-// Rotate around the X axis
-// m = Rx(a) * m
-static void m4_rot_x(m4 *m, f32 a) {
-    f32 c = f_cos(a);
-    f32 s = f_sin(a);
-    m4s fwd = {
-        .x = {1, 0, 0, 0},
-        .y = {0, c, s, 0},
-        .z = {0, -s, c, 0},
-        .w = {0, 0, 0, 1},
-    };
-    m4s inv = {
-        .x = {1, 0, 0, 0},
-        .y = {0, c, -s, 0},
-        .z = {0, s, c, 0},
-        .w = {0, 0, 0, 1},
-    };
-    m4_mul(m, &(m4){fwd, inv});
-}
 
 // Compute the perspective projection matrix
 // x: Left   --> Right
@@ -140,10 +81,8 @@ static void m4_rot_x(m4 *m, f32 a) {
 // But that is not possible.
 // However we can solve the equation for near and far.
 
-static void m4_perspective_to_clip(m4 *mtx, f32 vertical_fov, f32 aspect_w_over_h, f32 near_v, f32 far_v) {
+static m44 m4_perspective_to_clip(m4s mtx, f32 vertical_fov, f32 aspect_w_over_h, f32 near_v, f32 far_v) {
     f32 tan_vertical_fov = f_tan(vertical_fov * DEG_TO_RAD * 0.5f);
-
-    m4 m = {};
 
     f32 a = aspect_w_over_h * tan_vertical_fov;
     f32 b = tan_vertical_fov;
@@ -151,17 +90,34 @@ static void m4_perspective_to_clip(m4 *mtx, f32 vertical_fov, f32 aspect_w_over_
 
     // Perspective Projection Matrix
     // Maps 3D -> 2D
-    m.fwd.x.x = -1.0f / a;
-    m.fwd.y.y = -1.0f / b;
-    m.fwd.z.z = d;
-    m.fwd.z.w = 1.0f;
-    m.fwd.w.z = -near_v * d;
+    f32 sx = -1.0f / a;
+    f32 sy = -1.0f / b;
+    f32 sz = d;
 
-    // Check
-    // m4s check = m4s_mul(&m.fwd, &m.inv);
+    // mul
+    // P * M
 
-    // Apply
-    m4_mul(mtx, &m);
+    m44 o = {};
+    o.v[0][0] = sx * mtx.x.x;
+    o.v[0][1] = sy * mtx.x.y;
+    o.v[0][2] = sz * mtx.x.z;
+    o.v[0][3] = mtx.x.z;
+
+    o.v[1][0] = sx * mtx.y.x;
+    o.v[1][1] = sy * mtx.y.y;
+    o.v[1][2] = sz * mtx.y.z;
+    o.v[1][3] = mtx.y.z;
+
+    o.v[2][0] = sx * mtx.z.x;
+    o.v[2][1] = sy * mtx.z.y;
+    o.v[2][2] = sz * mtx.z.z;
+    o.v[2][3] = mtx.z.z;
+
+    o.v[3][0] = sx * mtx.w.x;
+    o.v[3][1] = sy * mtx.w.y;
+    o.v[3][2] = sz * mtx.w.z - near_v * d;
+    o.v[3][3] = mtx.w.z + 1;
+    return o;
 }
 
 // Screen to Clip coordinates
@@ -176,26 +132,4 @@ static void m4_screen_to_clip(m4 *m, v2 size) {
     f32 sy = 2.0 / size.y;
     m4_scale(m, (v3){sx, -sy, 1});
     m4_trans(m, (v3){-1, 1, 0});
-}
-
-// Render a flat upright sprite facing the camera
-static m4s m4s_billboard(v3 pos, v3 player, v2u image_size, float wiggle) {
-    // Relative direction to the camera in xz
-    v3 dir = pos - player;
-    dir.y = 0;
-
-    v3 z = v3_normalize(dir);
-    v3 x = {z.z, 0, -z.x};
-    v3 y = {0, 1, 0};
-
-    y += x * wiggle;
-
-    v2 size = v2u_to_v2(image_size) / 32.0;
-
-    m4s mtx = m4s_id();
-    mtx.x.xyz = x * size.x;
-    mtx.y.xyz = y * size.y;
-    mtx.z.xyz = z;
-    mtx.w.xyz = pos + (v3){0, size.y * .5f, 0} + x * wiggle * .5;
-    return mtx;
 }

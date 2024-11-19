@@ -45,6 +45,8 @@ typedef struct {
 
     u32 ui_quad_count;
     OGL_Quad ui_quad_list[4096];
+
+    v2 viewport_size;
 } OGL;
 
 // Prevent spam
@@ -216,7 +218,7 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     return gl;
 }
 
-static void ogl_begin(OGL *gl, v2i viewport_size) {
+static void ogl_begin(OGL *gl) {
     gl->quad_count = 0;
     gl->ui_quad_count = 0;
 
@@ -228,21 +230,25 @@ static void ogl_begin(OGL *gl, v2i viewport_size) {
         packer_free(gl->pack);
         gl->pack = packer_new(OGL_TEXTURE_WIDTH);
     }
+}
+
+static void ogl_draw(OGL *gl, m4s camera, v2i viewport_size) {
+    OGL_Api *api = &gl->api;
 
     gl->api.glViewport(0, 0, viewport_size.x, viewport_size.y);
     gl->api.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-}
 
-static void ogl_draw(OGL *gl, m4s *projection_matrix, m4s *screen_matrix) {
-    OGL_Api *api = &gl->api;
+    f32 aspect = (f32) viewport_size.x / (f32) viewport_size.y;
 
     {
+        m4s cam_inv = m4s_invert_tr(camera);
+        m44 projection = m4_perspective_to_clip(cam_inv, 70, aspect, 0.1, 10.0);
         api->glEnable(GL_DEPTH_TEST);
         api->glDisable(GL_BLEND);
 
         api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
         api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
-        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)projection_matrix);
+        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
         api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
 
         fmt_su(OS_FMT, "Quad Count: ", gl->quad_count, "\n");
@@ -251,13 +257,15 @@ static void ogl_draw(OGL *gl, m4s *projection_matrix, m4s *screen_matrix) {
 
     // ==== UI ====
     {
+        m4s cam_inv = m4s_id();
+        m44 projection = m4_perspective_to_clip(cam_inv, 70, aspect, 0.1, 10.0);
         api->glDisable(GL_DEPTH_TEST);
         api->glEnable(GL_BLEND);
         api->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
         api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->ui_quad_count, gl->ui_quad_list, GL_STREAM_DRAW);
-        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)screen_matrix);
+        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
         api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->ui_quad_count);
 
         fmt_su(OS_FMT, "UI Quad Count: ", gl->ui_quad_count, "\n");
@@ -265,7 +273,7 @@ static void ogl_draw(OGL *gl, m4s *projection_matrix, m4s *screen_matrix) {
     }
 }
 
-static void ogl_quad(OGL *gl, m4s *mtx, Image *img, bool ui) {
+static void ogl_quad(OGL *gl, m4s mtx, Image *img, bool ui) {
     if (!ui && gl->quad_count >= array_count(gl->quad_list)) {
         fmt_s(OS_FMT, "ERROR: Too many quads\n");
         return;
@@ -290,10 +298,10 @@ static void ogl_quad(OGL *gl, m4s *mtx, Image *img, bool ui) {
     }
 
     OGL_Quad quad = {
-        .x = {mtx->x.x, mtx->x.y, mtx->x.z},
-        .y = {mtx->y.x, mtx->y.y, mtx->y.z},
-        .z = {mtx->z.x, mtx->z.y, mtx->z.z},
-        .w = {mtx->w.x, mtx->w.y, mtx->w.z},
+        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
+        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
+        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
+        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
         .uv_pos = {(f32)area->pos.x / OGL_TEXTURE_WIDTH, (f32)area->pos.y / OGL_TEXTURE_WIDTH},
         .uv_size = {(f32)img->size.x / OGL_TEXTURE_WIDTH, (f32)img->size.y / OGL_TEXTURE_WIDTH},
     };

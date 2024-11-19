@@ -57,7 +57,7 @@ static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img, bool ui) {
 }
 
 // Finish drawing the frame and submit it to the gpu
-static void os_gfx_end(Gfx *gfx, m4s *projection, m4s *screen) {
-    ogl_draw(gfx->ogl, projection, screen);
+static void os_gfx_end(Gfx *gfx, m4s camera) {
+    ogl_draw(gfx->ogl, camera);
     sdl_swap_window(gfx->sdl);
 }

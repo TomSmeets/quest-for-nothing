@@ -129,6 +129,36 @@ static m4s m4s_invert_tr(m4s m) {
     return inv_r;
 }
 
+// Invert translation+rotation matrix (No scaling!)
+// https://www.youtube.com/watch?v=7CxKAtWqHC8
+static m4s m4s_invert(m4s m) {
+    // inv(T * R * S) = inv(S) * inv(R) * inv(T)
+    v3 t = m.w;
+    v3 inv_t = -t;
+
+    v3 s = { v3_length(m.x), v3_length(m.y), v3_length(m.z) };
+    v3 inv_s = { 1.0f / s.x, 1.0f / s.y, 1.0f / s.z };
+
+    v3 rx = m.x * inv_s.x;
+    v3 ry = m.y * inv_s.y;
+    v3 rz = m.z * inv_s.z;
+
+    // inv(R)
+    m4s inv = {
+        .x = {rx.x, ry.x, rz.x},
+        .y = {rx.y, ry.y, rz.y},
+        .z = {rx.z, ry.z, rz.z},
+    };
+
+    // inv(R) * inv(T)
+    inv.w = m4s_mul_pos(inv, inv_t);
+
+    // inv(S) * inv(R) * inv(T)
+    inv = m4s_scale(inv, inv_s);
+
+    return inv;
+}
+
 // Render a flat upright sprite facing the camera
 static m4s m4s_billboard(v3 pos, v3 target, float wiggle) {
     // Relative direction to the camera in xz
