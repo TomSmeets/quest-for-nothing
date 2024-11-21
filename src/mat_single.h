@@ -1,20 +1,19 @@
-// Copyright (c) 2023 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // mat_single.h - Math for 4d matrices on homogeneous coordinates
 #pragma once
 #include "vec.h"
 
-// Single 4x4 matrix
-// column major, just like OpenGL
-// This allows us to extract the columns directly
+// 4x4 matrix in column-major order (OpenGL style)
+// Columns can be directly extracted:
 // | X.x   Y.x   Z.x   W.x |
 // |                       |
 // | X.y   Y.y   Z.y   W.y |
 // |                       |
 // | X.z   Y.z   Z.z   W.z |
 // |                       |
-// | X.w   Y.w   Z.w   W.w |
+// |   0     0     0     1 |
 typedef struct {
-    // Rotation
+    // Rotation + Scale
     v3 x;
     v3 y;
     v3 z;
@@ -57,6 +56,9 @@ static m4s m4s_id(void) {
 }
 
 // S * M
+//
+// | S 0 |   | A B |   | SA SB |
+// | 0 1 | x | 0 1 | = |  0  1 |
 static m4s m4s_scale(m4s m, v3 s) {
     m.x*=s;
     m.y*=s;
@@ -66,36 +68,15 @@ static m4s m4s_scale(m4s m, v3 s) {
 }
 
 // T * M
+// 
+// | I T |   | A B |   | A B+T |
+// | 0 1 | x | 0 1 | = | 0  1  |
 static m4s m4s_translate(m4s m, v3 t) {
     m.w += t;
     return m;
 }
 
-// Rotate around the Z axis
-// R * M
-static m4s m4_rot_z(m4s m, f32 a) {
-    f32 c = f_cos(a);
-    f32 s = f_sin(a);
-    return m4s_mul((m4s) {
-        .x = {c, s, 0},
-        .y = {-s, c, 0},
-        .z = {0, 0, 1},
-    }, m);
-}
-
-// Rotate around the Y axis
-// R * M
-static m4s m4_rot_y(m4s m, f32 a) {
-    f32 c = f_cos(a);
-    f32 s = f_sin(a);
-    return m4s_mul((m4s) {
-        .x = { c, 0, -s},
-        .y = { 0, 1, 0 },
-        .z = { s, 0, c },
-    }, m);
-}
-
-// Rotate around the X axis
+// Right handed rotation around the X-axis (Y -> Z)
 // R * M
 static m4s m4_rot_x(m4s m, f32 a) {
     f32 c = f_cos(a);
@@ -108,12 +89,51 @@ static m4s m4_rot_x(m4s m, f32 a) {
     }, m);
 }
 
+// Right handed rotation around the Y-axis (Z -> X)
+// R * M
+static m4s m4_rot_y(m4s m, f32 a) {
+    f32 c = f_cos(a);
+    f32 s = f_sin(a);
+    return m4s_mul((m4s) {
+        .x = { c, 0, -s},
+        .y = { 0, 1, 0 },
+        .z = { s, 0, c },
+    }, m);
+}
+
+// Right handed rotation around the Z-axis (X -> Y)
+// R * M
+//
+// | R 0 |   | A B |   | RA RB |
+// | 0 1 | x | 0 1 | = | 0   1 |
+static m4s m4_rot_z(m4s m, f32 a) {
+    f32 c = f_cos(a);
+    f32 s = f_sin(a);
+    return m4s_mul((m4s) {
+        .x = {c, s, 0},
+        .y = {-s, c, 0},
+        .z = {0, 0, 1},
+    }, m);
+}
+
 // Invert translation+rotation matrix (No scaling!)
 // https://www.youtube.com/watch?v=7CxKAtWqHC8
+//
+//
+// A TR matrix looks like this:
+// | I T |   | R 0 |   | R T |
+// | 0 1 | x | 0 1 | = | 0 1 |
+//
+// TR matrix inverse
+//
+// inv(TR) = inv(R) * inv(T)
+// inv(R) = transpose(R)
+// inv(T) = -T
+// transpose(R) * (-T)
+//
+// | Rt 0 |   | 1 -T |   | Rt  Rt*(-T) |
+// | 0  1 | x | 0  1 | = | 0      1    |
 static m4s m4s_invert_tr(m4s m) {
-    // TR matrix inverse
-    // inv(T * R) = inv(R) * inv(T)
-
     // 3x3 rotation matrix inverse is it's transpose
     m4s inv_r = {
         .x = {m.x.x, m.y.x, m.z.x},
@@ -121,42 +141,12 @@ static m4s m4s_invert_tr(m4s m) {
         .z = {m.x.z, m.y.z, m.z.z},
     };
 
-    // inv(T)
+    // Translation inverse is its negative
     v3 inv_t = -m.w;
 
     // inv(R) * inv(T)
     inv_r.w = m4s_mul_pos(inv_r, inv_t);
     return inv_r;
-}
-
-// Invert translation+rotation matrix (No scaling!)
-// https://www.youtube.com/watch?v=7CxKAtWqHC8
-static m4s m4s_invert(m4s m) {
-    // inv(T * R * S) = inv(S) * inv(R) * inv(T)
-    v3 t = m.w;
-    v3 inv_t = -t;
-
-    v3 s = { v3_length(m.x), v3_length(m.y), v3_length(m.z) };
-    v3 inv_s = { 1.0f / s.x, 1.0f / s.y, 1.0f / s.z };
-
-    v3 rx = m.x * inv_s.x;
-    v3 ry = m.y * inv_s.y;
-    v3 rz = m.z * inv_s.z;
-
-    // inv(R)
-    m4s inv = {
-        .x = {rx.x, ry.x, rz.x},
-        .y = {rx.y, ry.y, rz.y},
-        .z = {rx.z, ry.z, rz.z},
-    };
-
-    // inv(R) * inv(T)
-    inv.w = m4s_mul_pos(inv, inv_t);
-
-    // inv(S) * inv(R) * inv(T)
-    inv = m4s_scale(inv, inv_s);
-
-    return inv;
 }
 
 // Render a flat upright sprite facing the camera
@@ -171,6 +161,7 @@ static m4s m4s_billboard(v3 pos, v3 target, float wiggle) {
         .w = pos + (v3) { 0, 0.5, 0 }
     };
 
-    mtx.w += mtx.x*wiggle;
+    // Wiggle a little on the x axis
+    mtx.w += mtx.x * wiggle;
     return mtx;
 }
