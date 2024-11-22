@@ -73,10 +73,14 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
         v2 out = 0;
         out += audio_shift(noise, audio_sine(audio, 1) * 0.8);
         out += audio_shift(background * 0.2, audio_sine(audio, 0.1) * 0.4);
+        out += audio_sine(audio, 80) * f_max(f_min(app->shoot_time * 2 - .5, 1), 0) +
+               audio_noise_freq(audio, 160 * 4 * 8, 0.5) * f_min(app->shoot_time * app->shoot_time * 2, 1);
 
         u32 ix = app->reverb_ix++;
         if (app->reverb_ix >= array_count(app->reverb)) app->reverb_ix = 0;
 
+        // out.x = audio_filter(audio, 4000, out.x).low_pass;
+        // out.y = audio_filter(audio, 4000, out.y).low_pass;
         out += app->reverb[ix] * 0.3;
 
         f32 amp = 1.0;
@@ -221,7 +225,10 @@ static void os_main(OS *os) {
     // }
 
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 1;
-    if (app->shoot_time > 0) app->shoot_time -= dt * 4;
+    if (app->shoot_time > 0)
+        app->shoot_time -= dt * 4;
+    else
+        app->shoot_time = 0;
 
     // Finish
     os_gfx_end(app->gfx, pl->head_mtx);

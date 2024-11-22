@@ -2,26 +2,30 @@
 // gl_shader.vert - A simple OpenGL vertex Shader
 #version 330 core
 
-layout(location = 0) in vec2 vert_uv;
+// Vertex info
+// range = [-0.5, 0.5]
+layout(location = 0) in vec2 vert_pos;
 
+// Rotation + Scalej
 layout(location = 1) in vec3 quad_x;
 layout(location = 2) in vec3 quad_y;
 layout(location = 3) in vec3 quad_z;
+
+// Translation
 layout(location = 4) in vec3 quad_w;
+
+// Texture Altas info
 layout(location = 5) in vec2 quad_uv_pos;
 layout(location = 6) in vec2 quad_uv_size;
 
+// To Fragment shader
 out vec2 frag_uv;
 out vec3 frag_normal;
 out float frag_z;
 
 uniform mat4 proj;
-uniform vec3 camera_pos;
 
 void main() {
-    // Images are centered
-    vec2 vert_pos = vert_uv - 0.5;
-
     // Calculate UV in atlas space
     frag_uv = quad_uv_pos + quad_uv_size * .5 + (vert_pos * quad_uv_size) * (1.0f - 0.25f / 32.0f);
     // frag_uv = vec2(vert_uv.x, 1- vert_uv.y);

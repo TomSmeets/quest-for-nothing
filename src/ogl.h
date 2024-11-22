@@ -147,13 +147,13 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     // Setup Vertex Buffer
     v2 verts[] = {
         // Top Left
-        {0, 1},
-        {1, 1},
-        {0, 0},
+        {-0.5, 0.5},
+        {0.5, 0.5},
+        {-0.5, -0.5},
         // Bottom Right
-        {1, 0},
-        {0, 0},
-        {1, 1},
+        {0.5, -0.5},
+        {-0.5, -0.5},
+        {0.5, 0.5},
     };
 
     api->glBindBuffer(GL_ARRAY_BUFFER, gl->vertex_buffer);
