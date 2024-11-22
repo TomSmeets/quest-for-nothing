@@ -90,6 +90,7 @@ static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     // Probably go to premultiplied alpha
     Image *image = image_new(mem, size);
     image_fill(image, color_base * (v4){1, 1, 1, 0});
+    // image_grid(image, WHITE, GRAY);
     // image_write_debug_axis(image);
 
     for (u32 y = 0; y < body_height; ++y) {

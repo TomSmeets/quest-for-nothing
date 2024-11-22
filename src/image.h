@@ -29,9 +29,9 @@ static void image_fill(Image *img, v4 color) {
 }
 
 static Image *image_grid(Image *img, v4 c1, v4 c2) {
-    for (u32 y = 0; y < img->size.y; y++) {
-        for (u32 x = 0; x < img->size.x; x++) {
-            img->pixels[y * img->size.y + x] = (x % 2 == y % 2) ? c1 : c2;
+    for (u32 y = 0; y < img->size.y; ++y) {
+        for (u32 x = 0; x < img->size.x; ++x) {
+            img->pixels[y * img->size.x + x] = (x % 2 == y % 2) ? c1 : c2;
         }
     }
     return img;

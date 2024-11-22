@@ -240,8 +240,10 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
 
     {
         m4 view = m4_invert_tr(camera);
-        f32 aspect = (f32)viewport_size.x / (f32)viewport_size.y;
-        m44 projection = m4_perspective_to_clip(view, 70, aspect, 0.1, 15.0);
+        f32 aspect_x = viewport_size.x > viewport_size.y ? (f32)viewport_size.x / (f32)viewport_size.y : 1;
+        f32 aspect_y = viewport_size.y > viewport_size.x ? (f32)viewport_size.y / (f32)viewport_size.x : 1;
+
+        m44 projection = m4_perspective_to_clip(view, 70, aspect_x, aspect_y, 0.1, 15.0);
         api->glEnable(GL_DEPTH_TEST);
         api->glDisable(GL_BLEND);
 

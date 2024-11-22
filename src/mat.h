@@ -204,7 +204,7 @@ typedef struct {
 //
 // Another explanation by Brendan Galea, but Z calculation is incorrect for OpenGL, clip space is form -1 to 1, not near to far.
 // - The Math behind (most) 3D games - Perspective Projection: https://www.youtube.com/watch?v=U0_ONQQ5ZNM
-static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_w_over_h, f32 near_v, f32 far_v) {
+static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_x, f32 aspect_y, f32 near_v, f32 far_v) {
     f32 tan_vertical_fov = f_tan(vertical_fov * DEG_TO_RAD * 0.5f);
 
     // Perspective Projection Matrix
@@ -212,8 +212,8 @@ static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_w_over_h,
     // | 0  sy  0  0 |
     // | 0   0 sz tz |
     // | 0   0  1  0 |
-    f32 sx = 1.0f / (tan_vertical_fov * aspect_w_over_h);
-    f32 sy = 1.0f / tan_vertical_fov;
+    f32 sx = 1.0f / (tan_vertical_fov * aspect_x);
+    f32 sy = 1.0f / (tan_vertical_fov * aspect_y);
     f32 sz = (far_v + near_v) / (far_v - near_v);
     f32 tz = (2 * near_v * far_v) / (near_v - far_v);
 
