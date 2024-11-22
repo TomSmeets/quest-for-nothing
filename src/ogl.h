@@ -238,11 +238,10 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
     gl->api.glViewport(0, 0, viewport_size.x, viewport_size.y);
     gl->api.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    f32 aspect = (f32) viewport_size.x / (f32) viewport_size.y;
-
     {
-        m4s cam_inv = m4s_invert_tr(camera);
-        m44 projection = m4_perspective_to_clip(cam_inv, 70, aspect, 0.1, 10.0);
+        m4 view = m4_invert_tr(camera);
+        f32 aspect = (f32)viewport_size.x / (f32)viewport_size.y;
+        m44 projection = m4_perspective_to_clip(view, 70, aspect, 0.1, 32.0);
         api->glEnable(GL_DEPTH_TEST);
         api->glDisable(GL_BLEND);
 
@@ -257,8 +256,8 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
 
     // ==== UI ====
     {
-        m4s cam_inv = m4s_id();
-        m44 projection = m4_perspective_to_clip(cam_inv, 70, aspect, 0.1, 10.0);
+        m4 cam_inv = m4_id();
+        m44 projection = m4_screen_to_clip(cam_inv, viewport_size);
         api->glDisable(GL_DEPTH_TEST);
         api->glEnable(GL_BLEND);
         api->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -273,7 +272,7 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
     }
 }
 
-static void ogl_quad(OGL *gl, m4s mtx, Image *img, bool ui) {
+static void ogl_quad(OGL *gl, m4 mtx, Image *img, bool ui) {
     if (!ui && gl->quad_count >= array_count(gl->quad_list)) {
         fmt_s(OS_FMT, "ERROR: Too many quads\n");
         return;

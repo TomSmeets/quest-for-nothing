@@ -36,9 +36,9 @@ static void os_gfx_set_mouse_grab(Gfx *gfx, bool grab) {
 
 static void os_gfx_begin(Gfx *gfx) {
 }
-static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img, bool ui) {
+static void os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
 }
-static void os_gfx_end(Gfx *gfx, m4s *proj, m4s *screen) {
+static void os_gfx_end(Gfx *gfx, m4 camera) {
 }
 
 void js_gfx_key_down(u32 key, bool down) {

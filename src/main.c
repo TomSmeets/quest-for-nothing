@@ -135,6 +135,10 @@ static void os_main(OS *os) {
     fmt_v3(OS_FMT, app->game->player->pos);
     fmt_s(OS_FMT, "\n");
 
+    fmt_s(OS_FMT, "F: ");
+    fmt_v3(OS_FMT, app->game->player->head_mtx.z);
+    fmt_s(OS_FMT, "\n");
+
     // Read Input
     Input *input = os_gfx_poll(app->gfx);
 
@@ -154,109 +158,75 @@ static void os_main(OS *os) {
 
     player_update(pl, dt, &in);
 
-    m4 proj = m4_id();
-    m4_mul_inv(&proj, &pl->eye_mtx);
-    m4_perspective_to_clip(&proj, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
-
-    m4 screen1 = m4_id();
-    m4_perspective_to_clip(&screen1, 70, (f32)input->window_size.x / (f32)input->window_size.y, 0.1, 32.0);
-    // m4_scale(&screen1, 1.0 / input->window_size.y);
-
-    m4s screen = {
-        {2.0f / (f32)input->window_size.x, 0, 0, 0},
-        {0, 2.0f / (f32)input->window_size.y, 0, 0},
-        {0, 0, 1.0 / 10, 0},
-        {0, 0, 0, 1},
-    };
-    screen = screen1.fwd;
-
     for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
         monster_update(mon, dt, app->game->player, &app->game->rng, app->gfx);
     }
 
     {
         m4 mtx = m4_id();
-        m4_trans(&mtx, (v3){0, 0, 16});
+        // m4_trans(&mtx, (v3){0, 0, 16});
         // m4_scale(&mtx, (v3){app->cursor->size.x, app->cursor->size.y, 1});
-        // m4_scale(&mtx, 2);
-        os_gfx_quad(app->gfx, &mtx.fwd, app->cursor, true);
+        m4_scale(&mtx, (v3){32, 32, 1});
+        if (!input->mouse_is_grabbed)
+            m4_translate(&mtx, (v3){input->mouse_pos.x - input->window_size.x * .5, input->mouse_pos.y - input->window_size.y * .5, 0});
+        os_gfx_quad(app->gfx, mtx, app->cursor, true);
     }
 
-    {
+    if (0) {
         m4 mtx = m4_id();
-        m4_trans(&mtx, (v3){.2, .1, 0});
-        m4_rot_z(&mtx, R1 * 0.4 * app->shoot_time);
-        m4_rot_y(&mtx, -R1 * (.9 + 0.0 * f_sin(app->shoot_time)));
-        m4_trans(&mtx, (v3){-1, -.5, 0});
-        m4_trans(&mtx, (v3){0, 0, 1});
-        os_gfx_quad(app->gfx, &mtx.fwd, app->gun, true);
+        m4_translate(&mtx, (v3){.2, .1, 0});
+        m4_rotate_z(&mtx, R1 * 0.4 * app->shoot_time);
+        m4_rotate_y(&mtx, -R1 * (.9 + 0.0 * f_sin(app->shoot_time)));
+        m4_translate(&mtx, (v3){-1, -.5, 0});
+        m4_translate(&mtx, (v3){0, 0, 1});
+        os_gfx_quad(app->gfx, mtx, app->gun, true);
     }
 
     // Draw level
     for (Cell *cell = app->game->level; cell; cell = cell->next) {
+        v3 x = {1, 0, 0};
+        v3 y = {0, 1, 0};
+        v3 z = {0, 0, 1};
         v3 p = v3i_to_v3(cell->pos);
-        m4s mtx = {
-            {1, 0, 0, 0},
-            {0, 0, 1, 0},
-            {0, 1, 0, 0},
-            {p.x, p.y, p.z, 1},
-        };
         // if (cell->x_neg) ogl_quad(app->gl, &mtx, cell->x_neg);
         // if (cell->z_neg) ogl_quad(app->gl, &mtx, cell->z_neg);
         // if (cell->x_pos) ogl_quad(app->gl, &mtx, cell->x_pos);
         // if (cell->z_pos) ogl_quad(app->gl, &mtx, cell->z_pos);
         // if (cell->y_pos) ogl_quad(app->gl, &mtx, cell->y_pos);
-        if (cell->y_neg) os_gfx_quad(app->gfx, &mtx, cell->y_neg, false);
+        if (cell->x_neg) os_gfx_quad(app->gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg, false);
+        if (cell->z_neg) os_gfx_quad(app->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg, false);
+
+        if (cell->x_pos) os_gfx_quad(app->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos, false);
+        if (cell->z_pos) os_gfx_quad(app->gfx, (m4){-x, y, -z, p + z * .5}, cell->z_pos, false);
+
+        if (cell->y_neg) os_gfx_quad(app->gfx, (m4){x, -z, y, p}, cell->y_neg, false);
+        if (cell->y_pos) os_gfx_quad(app->gfx, (m4){x, -z, y, p + y}, cell->y_pos, false);
     }
 
-    {
-        v3 pos = m4s_mul_pos(&pl->body_mtx.fwd, (v3) { 0, 0, 0 });
-        v3 dir = m4s_mul_dir(&pl->body_mtx.fwd, (v3) { 0, 0, 1 });
+    // {
+    //     v3 pos = m4s_mul_pos(&pl->body_mtx.fwd, (v3) { 0, 0, 0 });
+    //     v3 dir = m4s_mul_dir(&pl->body_mtx.fwd, (v3) { 0, 0, 1 });
 
-        // pos += dir;
+    //     // pos += dir;
 
-        // m4s mtx = {
-        //     {1, 0, 0, 0},
-        //     {0, 0, 1, 0},
-        //     {0, 1, 0, 0},
-        //     {pos.x, pos.y, pos.z, 1},
-        // };
-        
-        m4 mtx = m4_id();
-        m4_rot_x(&mtx, R1);
-        m4_mul(&mtx, &pl->body_mtx);
-        os_gfx_quad(app->gfx, &mtx.fwd, app->gun, false);
-    }
+    //     // m4s mtx = {
+    //     //     {1, 0, 0, 0},
+    //     //     {0, 0, 1, 0},
+    //     //     {0, 1, 0, 0},
+    //     //     {pos.x, pos.y, pos.z, 1},
+    //     // };
 
-    if (key_click(input, KEY_MOUSE_LEFT)) {
-        app->shoot_time = 1;
+    //     m4 mtx = m4_id();
+    //     m4_rot_x(&mtx, R1);
+    //     m4_mul(&mtx, &pl->body_mtx);
+    //     os_gfx_quad(app->gfx, &mtx.fwd, app->gun, false);
+    // }
 
-        for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-            v3 pos = 0;
-            pos = m4s_mul_pos(&pl->eye_mtx.fwd, pos);
-            pos = m4s_mul_pos(&mon->sprite_mtx, pos);
-
-            if(pos.z < 0) continue;
-            if(pos.x >  1) continue;
-            if(pos.x < -1) continue;
-            if(pos.y >  1) continue;
-            if(pos.y < -1) continue;
-
-            for(u32 i = 0; i < 8; ++i) {
-                v2 img_pos = (v2){pos.x * mon->image->size.x + (f32)mon->image->size.x / 2, pos.y * mon->image->size.y};
-                v2 offset = { rand_f32_signed(&app->game->rng), rand_f32_signed(&app->game->rng) };
-                img_pos += offset*2;
-                image_write(mon->image, (v2i){img_pos.x , img_pos.y}, RED);
-            }
-            mon->image->id = id_next();
-        }
-    }
-
+    if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 1;
     if (app->shoot_time > 0) app->shoot_time -= dt * 4;
 
     // Finish
-    os_gfx_end(app->gfx, &proj.fwd, &screen);
-
+    os_gfx_end(app->gfx, pl->head_mtx);
     mem_free(tmp);
     os->sleep_time = time_end(&app->time);
 }

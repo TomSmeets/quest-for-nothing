@@ -48,7 +48,7 @@ static void os_gfx_begin(Gfx *gfx) {
         gfx->ogl = ogl_load(gfx->mem, gfx->sdl->api.SDL_GL_GetProcAddress);
     }
 
-    ogl_begin(gfx->ogl, gfx->sdl->input.window_size);
+    ogl_begin(gfx->ogl);
 }
 
 // Draw a single textured quad in the given scale and orientation

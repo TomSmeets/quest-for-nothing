@@ -2,8 +2,8 @@
 // monster.h - Monster logic and AI
 #pragma once
 #include "color.h"
-#include "image.h"
 #include "gfx.h"
+#include "image.h"
 #include "player.h"
 #include "rand.h"
 #include "vec.h"
@@ -31,7 +31,9 @@ typedef struct Monster {
     Image *image;
     u32 eye_x;
     u32 eye_y;
-    m4s sprite_mtx;
+
+    m4 body_mtx;
+    m4 sprite_mtx;
 
     // ==== Other ====
     struct Monster *next;
@@ -143,12 +145,17 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gf
         mon->pos.xz -= player_dir * (radius - player_distance) / player_distance;
     }
 
-
     // ==== Animation ====
     f32 speed = v3_length(vel);
     mon->speed += (speed / dt - mon->speed) * dt;
     mon->wiggle += speed * 2;
     mon->wiggle = f_fract(mon->wiggle);
-    mon->sprite_mtx = m4s_billboard(mon->pos, player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2));
-    os_gfx_quad(gfx, &mon->sprite_mtx, mon->image, false);
+    mon->body_mtx = m4_billboard(mon->pos, player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2) * 0.3);
+
+    mon->sprite_mtx = m4_id();
+    m4_translate(&mon->sprite_mtx, (v3){0, 0.5, 0});
+    m4_scale(&mon->sprite_mtx, (v3){(f32)mon->image->size.x / 32.0f, (f32)mon->image->size.y / 32.0f, 1});
+    m4_apply(&mon->sprite_mtx, mon->body_mtx);
+
+    os_gfx_quad(gfx, mon->sprite_mtx, mon->image, false);
 }

@@ -18,10 +18,9 @@ typedef struct {
     bool flying;
     bool on_ground;
 
-
     // Derived matrices
     m4 body_mtx;
-    m4 eye_mtx;
+    m4 head_mtx;
 } Player;
 
 typedef struct {
@@ -36,17 +35,17 @@ static Player_Input player_parse_input(Input *input) {
     Player_Input in = {};
     if (key_down(input, KEY_W)) in.move.z += 1;
     if (key_down(input, KEY_S)) in.move.z -= 1;
-    if (key_down(input, KEY_A)) in.move.x += 1;
-    if (key_down(input, KEY_D)) in.move.x -= 1;
-    if (key_down(input, KEY_1)) in.look.z -= 1.0f / 8;
-    if (key_down(input, KEY_2)) in.look.z += 1.0f / 8;
+    if (key_down(input, KEY_A)) in.move.x -= 1;
+    if (key_down(input, KEY_D)) in.move.x += 1;
+    if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
+    if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
     if (key_down(input, KEY_SPACE)) in.jump = 1;
     if (key_down(input, KEY_SPACE)) in.move.y += 1;
     if (key_down(input, KEY_SHIFT)) in.move.y -= 1;
     if (key_click(input, KEY_F)) in.fly = 1;
 
     if (input->mouse_is_grabbed) {
-        in.look.y -= (f32)input->mouse_rel.x / 1000.0f;
+        in.look.y += (f32)input->mouse_rel.x / 1000.0f;
         in.look.x += (f32)input->mouse_rel.y / 1000.0f;
     }
     return in;
@@ -90,9 +89,10 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     if (!pl->flying) pl->pos.y -= 9.81 * dt * dt;
 
     // Apply movement input
-    m4 player_yaw_mtx = m4_id();
-    m4_rot_y(&player_yaw_mtx, pl->rot.y * PI); // Yaw
-    v3 move = m4s_mul_dir(&player_yaw_mtx.fwd, in->move);
+    m4 yaw_mtx = m4_id();
+    m4_rotate_y(&yaw_mtx, pl->rot.y * PI); // Yaw
+
+    v3 move = m4_mul_dir(yaw_mtx, in->move);
     move.xz = v2_limit(move.xz, 0, 1);
     move.y = in->move.y * pl->flying;
     pl->pos += move * 1.4 * dt;
@@ -111,14 +111,14 @@ static void player_update(Player *pl, f32 dt, Player_Input *in) {
     }
 
     // Update matricies
-    pl->eye_mtx = m4_id();
-    m4_rot_z(&pl->eye_mtx, pl->rot.z * PI); // Roll
-    m4_rot_x(&pl->eye_mtx, pl->rot.x * PI); // Pitch
-    m4_rot_y(&pl->eye_mtx, pl->rot.y * PI); // Yaw
-    m4_trans(&pl->eye_mtx, pl->pos);
-    m4_trans(&pl->eye_mtx, (v3){0, .5, 0});
+    pl->head_mtx = m4_id();
+    m4_rotate_z(&pl->head_mtx, pl->rot.z * PI); // Roll
+    m4_rotate_x(&pl->head_mtx, pl->rot.x * PI); // Pitch
+    m4_rotate_y(&pl->head_mtx, pl->rot.y * PI); // Yaw
+    m4_translate(&pl->head_mtx, pl->pos);
+    m4_translate(&pl->head_mtx, (v3){0, .5, 0});
 
     pl->body_mtx = m4_id();
-    m4_rot_y(&pl->body_mtx, pl->rot.y * PI); // Yaw
-    m4_trans(&pl->body_mtx, pl->pos);
+    m4_rotate_y(&pl->body_mtx, pl->rot.y * PI); // Yaw
+    m4_translate(&pl->body_mtx, pl->pos);
 }

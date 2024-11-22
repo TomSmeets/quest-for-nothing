@@ -31,6 +31,6 @@ void main() {
     frag_z = gl_Position.z;
 
     // Map Vulkan to OpenGL coordnaites
-    gl_Position.y *= -1;
-    gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0f;
+    // gl_Position.y *= -1;
+    // gl_Position.z = (gl_Position.z + gl_Position.w) / 2.0f;
 }
