@@ -10,7 +10,7 @@
 #include "texture_packer.h"
 #include "vec.h"
 
-#define OGL_TEXTURE_WIDTH 2048
+#define OGL_TEXTURE_WIDTH (2048 * 2)
 
 typedef struct {
     f32 x[3];
@@ -202,7 +202,7 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     api->glEnable(GL_FRAMEBUFFER_SRGB);
 
     // Causes artifacts
-    // api->glEnable(GL_MULTISAMPLE);
+    api->glEnable(GL_MULTISAMPLE);
 
     api->glEnable(GL_CULL_FACE);
     api->glCullFace(GL_FRONT);

@@ -23,7 +23,8 @@ void main() {
     vec2 vert_pos = vert_uv - 0.5;
 
     // Calculate UV in atlas space
-    frag_uv = quad_uv_pos - vec2(vert_uv.x, vert_uv.y) * quad_uv_size + quad_uv_size;
+    frag_uv = quad_uv_pos + quad_uv_size * .5 + (vert_pos * quad_uv_size) * (1.0f - 0.25f / 32.0f);
+    // frag_uv = vec2(vert_uv.x, 1- vert_uv.y);
     frag_normal = quad_z;
 
     // Calculate vertex position (world space)

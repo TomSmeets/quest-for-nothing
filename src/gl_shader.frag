@@ -13,7 +13,7 @@ out vec4 out_color;
 uniform sampler2D img;
 
 void main() {
-    vec2 texture_size = vec2(2048);
+    vec2 texture_size = vec2(2048 * 2);
 
     // Taken from: Crafting a Better Shader for Pixel Art Upscaling
     // https://www.youtube.com/watch?v=d6tp43wZqps&t=30s
