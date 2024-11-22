@@ -232,7 +232,7 @@ static void ogl_begin(OGL *gl) {
     }
 }
 
-static void ogl_draw(OGL *gl, m4s camera, v2i viewport_size) {
+static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
     OGL_Api *api = &gl->api;
 
     gl->api.glViewport(0, 0, viewport_size.x, viewport_size.y);

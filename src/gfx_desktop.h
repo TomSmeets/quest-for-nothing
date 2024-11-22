@@ -52,12 +52,12 @@ static void os_gfx_begin(Gfx *gfx) {
 }
 
 // Draw a single textured quad in the given scale and orientation
-static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img, bool ui) {
+static void os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
     ogl_quad(gfx->ogl, mtx, img, ui);
 }
 
 // Finish drawing the frame and submit it to the gpu
-static void os_gfx_end(Gfx *gfx, m4s camera) {
-    ogl_draw(gfx->ogl, camera);
+static void os_gfx_end(Gfx *gfx, m4 camera) {
+    ogl_draw(gfx->ogl, camera, gfx->sdl->input.window_size);
     sdl_swap_window(gfx->sdl);
 }

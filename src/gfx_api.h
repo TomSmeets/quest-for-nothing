@@ -19,5 +19,5 @@ static Input *os_gfx_poll(Gfx *gfx);
 static void os_gfx_set_mouse_grab(Gfx *gfx, bool grab);
 
 static void os_gfx_begin(Gfx *gfx);
-static void os_gfx_quad(Gfx *gfx, m4s *mtx, Image *img, bool ui);
-static void os_gfx_end(Gfx *gfx, m4s *projection, m4s *screen);
+static void os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui);
+static void os_gfx_end(Gfx *gfx, m4 view);
