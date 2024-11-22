@@ -205,7 +205,7 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     // api->glEnable(GL_MULTISAMPLE);
 
     api->glEnable(GL_CULL_FACE);
-    api->glCullFace(GL_BACK);
+    api->glCullFace(GL_FRONT);
 
     if (0) {
         api->glEnable(GL_BLEND);
@@ -241,7 +241,7 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
     {
         m4 view = m4_invert_tr(camera);
         f32 aspect = (f32)viewport_size.x / (f32)viewport_size.y;
-        m44 projection = m4_perspective_to_clip(view, 70, aspect, 0.1, 32.0);
+        m44 projection = m4_perspective_to_clip(view, 70, aspect, 0.1, 15.0);
         api->glEnable(GL_DEPTH_TEST);
         api->glDisable(GL_BLEND);
 

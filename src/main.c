@@ -164,11 +164,8 @@ static void os_main(OS *os) {
 
     {
         m4 mtx = m4_id();
-        // m4_trans(&mtx, (v3){0, 0, 16});
-        // m4_scale(&mtx, (v3){app->cursor->size.x, app->cursor->size.y, 1});
         m4_scale(&mtx, (v3){32, 32, 1});
-        if (!input->mouse_is_grabbed)
-            m4_translate(&mtx, (v3){input->mouse_pos.x - input->window_size.x * .5, input->mouse_pos.y - input->window_size.y * .5, 0});
+        if (!input->mouse_is_grabbed) m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
         os_gfx_quad(app->gfx, mtx, app->cursor, true);
     }
 
@@ -197,9 +194,10 @@ static void os_main(OS *os) {
         if (cell->z_neg) os_gfx_quad(app->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg, false);
 
         if (cell->x_pos) os_gfx_quad(app->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos, false);
-        if (cell->z_pos) os_gfx_quad(app->gfx, (m4){-x, y, -z, p + z * .5}, cell->z_pos, false);
+        if (cell->z_pos) os_gfx_quad(app->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos, false);
 
-        if (cell->y_neg) os_gfx_quad(app->gfx, (m4){x, -z, y, p}, cell->y_neg, false);
+        // OK
+        if (cell->y_neg) os_gfx_quad(app->gfx, (m4){x, z, -y, p}, cell->y_neg, false);
         if (cell->y_pos) os_gfx_quad(app->gfx, (m4){x, -z, y, p + y}, cell->y_pos, false);
     }
 

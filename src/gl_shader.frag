@@ -26,7 +26,10 @@ void main() {
     out_color = textureGrad(img, uv, dFdx(frag_uv), dFdy(frag_uv));
 
     // if(frag_z > 3) out_color.rgb = vec3(1, 0, 0);
-    // if(frag_z < 0) out_color.rgb = vec3(0, 0, 1);
+    // Distance fog
+    float z_near = 0.1;
+    float z_far = 15.0;
+    out_color.rgb = mix(out_color.rgb, vec3(0.02f), min((frag_z - z_near) / (z_far - z_near), 1));
     // out_color = texture(img, frag_uv);
     // out_color = vec4(frag_uv, 1, out_color.a);
     if (out_color.a < 0.5) discard;

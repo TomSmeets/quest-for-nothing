@@ -46,7 +46,7 @@ static Player_Input player_parse_input(Input *input) {
 
     if (input->mouse_is_grabbed) {
         in.look.y += (f32)input->mouse_rel.x / 1000.0f;
-        in.look.x += (f32)input->mouse_rel.y / 1000.0f;
+        in.look.x -= (f32)input->mouse_rel.y / 1000.0f;
     }
     return in;
 }

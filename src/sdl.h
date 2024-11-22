@@ -121,10 +121,10 @@ static Input *sdl_poll(Sdl *sdl) {
             input->mouse_moved = 1;
             if (input->mouse_is_grabbed) {
                 input->mouse_rel.x += src.motion.xrel;
-                input->mouse_rel.y += src.motion.yrel;
+                input->mouse_rel.y -= src.motion.yrel;
             } else {
-                input->mouse_pos.x = src.motion.x;
-                input->mouse_pos.y = src.motion.y;
+                input->mouse_pos.x = src.motion.x - input->window_size.x / 2;
+                input->mouse_pos.y = input->window_size.y / 2 - src.motion.y;
             }
         }
 

@@ -83,7 +83,7 @@ static void gen_indoor(Cell *level, Memory *mem, Random *rng) {
         if (0) cell->x_pos = gen_wall_image(mem, rng);
         if (0) cell->z_pos = gen_wall_image(mem, rng);
         if (0) cell->z_neg = gen_wall_image(mem, rng);
-        if (0) cell->y_pos = gen_wall_image(mem, rng);
+        if (1) cell->y_pos = gen_wall_image(mem, rng);
         if (1) cell->y_neg = gen_wall_image(mem, rng);
     }
 }

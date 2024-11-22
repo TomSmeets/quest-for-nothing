@@ -19,15 +19,20 @@ uniform mat4 proj;
 uniform vec3 camera_pos;
 
 void main() {
+    // Images are centered
     vec2 vert_pos = vert_uv - 0.5;
 
+    // Calculate UV in atlas space
     frag_uv = quad_uv_pos - vec2(vert_uv.x, vert_uv.y) * quad_uv_size + quad_uv_size;
     frag_normal = quad_z;
 
+    // Calculate vertex position (world space)
     vec3 pos = quad_w + vert_pos.x * quad_x + vert_pos.y * quad_y;
 
-    // 0,0 is top left
+    // Project vertex from World -> Clip
     gl_Position = proj * vec4(pos, 1);
+
+    // Pass depth info (-1 to 1)
     frag_z = gl_Position.z;
 
     // Map Vulkan to OpenGL coordnaites
