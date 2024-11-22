@@ -205,24 +205,16 @@ static void os_main(OS *os) {
         if (cell->y_pos) os_gfx_quad(app->gfx, (m4){x, -z, y, p + y}, cell->y_pos, false);
     }
 
-    // {
-    //     v3 pos = m4s_mul_pos(&pl->body_mtx.fwd, (v3) { 0, 0, 0 });
-    //     v3 dir = m4s_mul_dir(&pl->body_mtx.fwd, (v3) { 0, 0, 1 });
-
-    //     // pos += dir;
-
-    //     // m4s mtx = {
-    //     //     {1, 0, 0, 0},
-    //     //     {0, 0, 1, 0},
-    //     //     {0, 1, 0, 0},
-    //     //     {pos.x, pos.y, pos.z, 1},
-    //     // };
-
-    //     m4 mtx = m4_id();
-    //     m4_rot_x(&mtx, R1);
-    //     m4_mul(&mtx, &pl->body_mtx);
-    //     os_gfx_quad(app->gfx, &mtx.fwd, app->gun, false);
-    // }
+    {
+        m4 mtx = m4_id();
+        m4_translate(&mtx, (v3){-0.25, 0.25, 0});
+        m4_scale(&mtx, 0.5f);
+        m4_rotate_z(&mtx, -app->shoot_time * R1 * 0.25);
+        m4_rotate_y(&mtx, R1 * 0.9);
+        m4_translate(&mtx, (v3){.50, -0.30, .5});
+        m4_apply(&mtx, pl->head_mtx);
+        os_gfx_quad(app->gfx, mtx, app->gun, false);
+    }
 
     if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 1;
     if (app->shoot_time > 0)

@@ -12,8 +12,8 @@ The first version of this game. I will first implement v1.0, which will have ver
   - [x] First person movement
   - [ ] Can die
   - [ ] Hitscan pistol
-  - [ ] Draw pistol
-  - [ ] Draw cross
+  - [x] Draw pistol
+  - [x] Draw cross
 
 - [x] Aliens
   - [x] Movement
@@ -54,9 +54,6 @@ The first version of this game. I will first implement v1.0, which will have ver
   - [x] Linux
   - [x] Windows
   - [ ] Wasm
-
-- Bugs
-  - [ ] Textures have small border (blending artifact)
 
 This should be enough for a first publishable version.
 
