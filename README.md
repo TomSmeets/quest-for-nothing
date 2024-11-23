@@ -4,7 +4,49 @@ The first version of this game. I will first implement v1.0, which will have ver
 
 ![](screenshot.png)
 
-- os_api.h, types.h, input_type.h
+# Building
+
+Install:
+- clang
+- sdl2
+- mingw
+
+Then run the build script.
+
+```bash
+./build.sh
+```
+
+this wil build executavles in the out folder.
+
+main.elf | Standalone Linux (SDL/OpenGL)
+main.exe | Standalone Windows (SDL/OpenGL)
+main.wasm index.html | Web build (WebGL2)
+
+Build.sh will build every variation possible. While developing use the hot reloading.
+
+# Hot reloading
+
+Run `out/hot src/main.c` and then edit any file. The game reload while preserving it's state.
+
+```bash
+./out/hot ./src/main.c
+```
+
+To run with the debugger use the following. If the source view in gdb is outdated run `dir` to reload it.
+
+```bash
+gdb --args ./out/hot ./src/main.c
+```
+
+# Building Manually
+
+Each executable can also be compiled manually. Following are some examples.
+
+```bash
+clang -o ./out/main.elf src/main.c
+clang -o ./out/hot src/hot.c
+```
 
 # Version 1.0
 
@@ -61,35 +103,8 @@ This should be enough for a first publishable version.
 
 - [ ] Android
 - [ ] Publish Play Store
+- [ ] Time travel effects?
 
-# Building on Linux
-
-First install the `clang` and `sdl2` packages.
-
-## Standalone Executable
-
-```bash
-clang -O2 -g -o ./out/quest-for-nothing src/main.c
-./out/quest-for-nothing
-```
-
-## Automatic Hot Reloading
-
-```bash
-# Compiles 'hot' executable
-clang -O2 -g -o ./out/hot src/hot.c
-
-# Compiles the game and runs it
-# The game is updated when any source file in "src" is changed
-./out/hot ./src/main.c
-
-```
-
-To run with the debugger use the following. If the source view in gdb is outdated run `dir` to reload it.
-
-```bash
-gdb --args ./out/hot ./src/main.c
-```
 
 ## Cross compile for Windows
 
@@ -116,9 +131,6 @@ clang -O2 -g -target wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export-
 | `-Wl,--no-entry` | Don't create a main function |
 | `-Wl,--export-all` | |
 | `-fno-builtin` |  |
-
-## Everything at once
-To build everything just run `./build.sh`
 
 # Building on Windows
 
