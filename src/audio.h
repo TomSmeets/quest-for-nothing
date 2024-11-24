@@ -6,63 +6,91 @@
 #include "std.h"
 #include "types.h"
 
+// A single sound
 typedef struct {
+    // For 3d sounds
+    v3 pos;
+
+    // Time increment in seconds
     f32 dt;
-    u32 wave_ix;
 
     // List of 'phase' values for sine waves.
-    f32 wave[64];
+    u32 phase_ix;
+    f32 phase[16];
+
+    // RNG for noise
     Random rand;
+} Sound;
+
+// Sound System
+typedef struct {
+    // RNG to seed sound rngs
+    Random rand;
+
+    u32 sound_count;
+    Sound sounds[16];
 } Audio;
 
-static void audio_begin_sample(Audio *audio, f32 dt) {
-    audio->wave_ix = 0;
-    audio->dt = dt;
+static void audio_play(Audio *audio, u32 kind) {
+    Sound *sound = audio->sounds + audio->sound_count++;
+    sound->rand = rand_fork(&audio->rand);
+}
+
+static void audio_remove(Audio *audio, u32 sound) {
+    // Swap remove sound
+    u32 last_ix = --audio->sound_count;
+    audio->sounds[sound] = audio->sounds[last_ix];
+    audio->sounds[last_ix] = (Sound){0};
+}
+
+static void sound_begin_sample(Sound *sound, f32 dt) {
+    sound->phase_ix = 0;
+    sound->dt = dt;
 }
 
 // Get a new persistent variable for this sample
-static f32 *audio_var(Audio *audio) {
-    if (audio->wave_ix >= array_count(audio->wave)) return 0;
-    return audio->wave + audio->wave_ix++;
+static f32 *sound_var(Sound *sound) {
+    if (sound->phase_ix >= array_count(sound->phase)) return 0;
+    return sound->phase + sound->phase_ix++;
 }
 
 // Generate linear ramp from [0, 1) at a given frequency
-static f32 audio_ramp(Audio *audio, f32 freq) {
-    f32 *var = audio_var(audio);
+static f32 sound_ramp(Sound *sound, f32 freq) {
+    f32 *var = sound_var(sound);
     if (!var) return 0;
     f32 sample = *var;
-    *var += audio->dt * freq;
+    *var += sound->dt * freq;
     *var -= (i32)*var;
     return sample;
 }
 
-static f32 audio_saw(Audio *audio, f32 freq) {
-    return audio_ramp(audio, freq) * 2.0f - 1.0f;
+static f32 sound_saw(Sound *sound, f32 freq) {
+    return sound_ramp(sound, freq) * 2.0f - 1.0f;
 }
 
-static f32 audio_pulse(Audio *audio, f32 freq, f32 duty) {
-    return audio_ramp(audio, freq) < duty;
+static f32 sound_pulse(Sound *sound, f32 freq, f32 duty) {
+    return sound_ramp(sound, freq) < duty;
 }
 
 // Generate a pure sine wave at a given frequency
 // range = [-1, 1]
-static f32 audio_sine(Audio *audio, f32 freq) {
-    return f_sin2pi(audio_ramp(audio, freq));
+static f32 sound_sine(Sound *sound, f32 freq) {
+    return f_sin2pi(sound_ramp(sound, freq));
 }
 
 typedef struct {
     f32 low_pass;
     f32 band_pass;
     f32 high_pass;
-} Audio_Filter_Result;
+} Sound_Filter_Result;
 
 // Filter the incoming samples at a given cutoff frequency.
-static Audio_Filter_Result audio_filter(Audio *audio, f32 cutoff_freq, f32 sample) {
-    f32 *buf0 = audio_var(audio);
-    f32 *buf1 = audio_var(audio);
+static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sample) {
+    f32 *buf0 = sound_var(sound);
+    f32 *buf1 = sound_var(sound);
 
     f32 rc = 1.0 / (cutoff_freq * PI2);
-    f32 f = audio->dt / (rc + audio->dt);
+    f32 f = sound->dt / (rc + sound->dt);
 
     // f and fb calculation
     f32 q = 0.9;
@@ -82,31 +110,31 @@ static Audio_Filter_Result audio_filter(Audio *audio, f32 cutoff_freq, f32 sampl
     // Low Pass Filter
     f32 lp = *buf1;
 
-    return (Audio_Filter_Result){lp, bp, hp};
+    return (Sound_Filter_Result){lp, bp, hp};
 }
 
-static f32 audio_noise_white(Audio *audio) {
-    return rand_f32_signed(&audio->rand);
+static f32 sound_noise_white(Sound *sound) {
+    return rand_f32_signed(&sound->rand);
 }
 
-static f32 audio_noise_freq(Audio *audio, f32 freq, f32 duty) {
-    f32 *var = audio_var(audio);
-    f32 *last = audio_var(audio);
-    *var += audio->dt * freq;
+static f32 sound_noise_freq(Sound *sound, f32 freq, f32 duty) {
+    f32 *var = sound_var(sound);
+    f32 *last = sound_var(sound);
+    *var += sound->dt * freq;
     if (*var > duty) {
         *last = 0.0f;
     }
     if (*var > 1.0f) {
-        *last = rand_f32_signed(&audio->rand);
+        *last = rand_f32_signed(&sound->rand);
     }
     *var -= (i32)*var;
     return *last;
 }
 
-static f32 audio_smooth_bool(Audio *audio, f32 speed, bool b) {
-    f32 *value = audio_var(audio);
+static f32 sound_smooth_bool(Sound *sound, f32 speed, bool b) {
+    f32 *value = sound_var(sound);
     f32 target = b ? 1.0f : 0.0f;
     f32 ret = *value;
-    *value += (target - *value) * audio->dt * speed;
+    *value += (target - *value) * sound->dt * speed;
     return ret;
 }
