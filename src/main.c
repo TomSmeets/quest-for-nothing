@@ -10,9 +10,13 @@
 #include "time.h"
 
 typedef struct {
+    // Entire game state
     Game *game;
+
+    // Frame timing, for running at a consistent framerate
     Time_Info time;
 
+    // Graphics api. Platform dependent.
     Gfx *gfx;
 
     Audio audio;
