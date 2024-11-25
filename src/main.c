@@ -67,10 +67,11 @@ static App *app_init(void) {
     app->gfx = os_gfx_init(mem, "Quest For Nothing");
     app->gun = gen_gun(mem);
     app->cursor = gen_cursor(mem);
+    audio_play(&app->audio, 0, 1e9, rand_f32(&app->game->rng));
     return app;
 }
 
-static v2 audio_shift(f32 input, f32 shift) {
+static v2 sound_shift(f32 input, f32 shift) {
     return (v2){input * (1 + shift), input * (1 - shift)};
 }
 static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
@@ -79,26 +80,40 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 
     Audio *audio = &app->audio;
     for (u32 i = 0; i < count; ++i) {
-        audio_begin_sample(audio, dt);
-
-        f32 background = audio_noise_white(audio) * (1 + 0.5 * audio_sine(audio, 0.025));
-        background = audio_filter(audio, 120 * (2 + audio_sine(audio, 0.001) * audio_sine(audio, 0.02) * 0.5), background).low_pass;
-
-        f32 noise = (1 + 0.3 * audio_noise_white(audio)) * app->step_volume * f_max(audio_sine(audio, 4), 0);
-        noise = audio_filter(audio, 500, noise).high_pass;
-        noise = audio_filter(audio, 1000, noise).low_pass;
-
         v2 out = 0;
-        out += audio_shift(noise, audio_sine(audio, 1) * 0.8);
-        out += audio_shift(background * 0.2, audio_sine(audio, 0.1) * 0.4);
-        out += audio_sine(audio, 80) * f_max(f_min(app->shoot_time * 2 - .5, 1), 0) +
-               audio_noise_freq(audio, 160 * 4 * 8, 0.5) * f_min(app->shoot_time * app->shoot_time * 2, 1);
+
+        for (u32 j = 0; j < array_count(audio->sounds); ++j) {
+            Sound *snd = audio->sounds + j;
+            if (!snd->id) continue;
+            sound_begin_sample(snd, dt);
+
+            // First kind, background
+            if (snd->kind == 0) {
+                f32 background = sound_noise_white(snd) * (1 + 0.5 * sound_sine(snd, 0.025));
+                background = sound_filter(snd, 120 * (2 + sound_sine(snd, 0.001) * sound_sine(snd, 0.02) * 0.5), background).low_pass;
+                out += sound_shift(background * 0.2, sound_sine(snd, 0.1) * 0.4);
+            }
+
+            if (snd->kind == 1) {
+                f32 v = sound_sine(snd, 800 * snd->time * snd->pitch * (1 + sound_sine(snd, 20) * 0.5)) * f_min(1, snd->time);
+                out += sound_shift(v, sound_sine(snd, 100) * 0.3);
+            }
+
+            if (snd->kind == 2) {
+                // out += sound_sine(snd, 80) * f_max(f_min(app->shoot_time * 2 - .5, 1), 0) +
+                //        sound_noise_freq(snd, 160 * 4 * 8, 0.5) * f_min(app->shoot_time * app->shoot_time * 2, 1);
+            }
+
+            // Sound is finished
+            snd->time -= dt;
+            if (snd->time < 0) snd->id = 0;
+        }
+
+        // out.y = out.x;
+        out *= 0.5;
 
         u32 ix = app->reverb_ix++;
         if (app->reverb_ix >= array_count(app->reverb)) app->reverb_ix = 0;
-
-        // out.x = audio_filter(audio, 4000, out.x).low_pass;
-        // out.y = audio_filter(audio, 4000, out.y).low_pass;
         out += app->reverb[ix] * 0.3;
 
         f32 amp = 1.0;
@@ -225,7 +240,15 @@ static void os_main(OS *os) {
         os_gfx_quad(app->gfx, mtx, app->gun, false);
     }
 
-    if (key_click(input, KEY_MOUSE_LEFT)) app->shoot_time = 1;
+    if (key_click(input, KEY_MOUSE_LEFT)) {
+        app->shoot_time = 1;
+        audio_play(&app->audio, 1, 0.8, rand_f32(&app->game->rng) * 0.5 + 2.0);
+    }
+
+    if (key_click(input, KEY_SPACE)) {
+        audio_play(&app->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
+    }
+
     if (app->shoot_time > 0)
         app->shoot_time -= dt * 4;
     else
