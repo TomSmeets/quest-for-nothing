@@ -48,10 +48,12 @@ clang $WASM_DBG  -o out/main.wasm src/main.c
 cp src/os_wasm.html out/index.html
 
 # Build release
-mkdir -p out/rel
-clang $LINUX_REL -o out/rel/main.elf  src/main.c &
-clang $WIN32_REL -o out/rel/main.exe  src/main.c &
-clang $WASM_REL  -o out/rel/main.wasm src/main.c &
-cp src/os_wasm.html out/rel/index.html
-cp out/SDL2.dll out/rel
-wait
+if false; then
+  mkdir -p out/rel
+  clang $LINUX_REL -o out/rel/main.elf  src/main.c &
+  clang $WIN32_REL -o out/rel/main.exe  src/main.c &
+  clang $WASM_REL  -o out/rel/main.wasm src/main.c &
+  cp src/os_wasm.html out/rel/index.html
+  cp out/SDL2.dll out/rel
+  wait
+fi
