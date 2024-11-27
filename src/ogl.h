@@ -140,7 +140,7 @@ static OGL *ogl_load(Memory *mem, void *load(const char *)) {
     api->glGenBuffers(1, &gl->instance_buffer);
 
     // Compile Shader
-    gl->shader = ogl_program_compile_and_link(api, (char *)FILE_SHADER_VERT, (char *)FILE_SHADER_FRAG);
+    gl->shader = ogl_program_compile_and_link(api, (char *)ASSET_SHADER_VERT, (char *)ASSET_SHADER_FRAG);
     gl->uniform_proj = api->glGetUniformLocation(gl->shader, "proj");
     api->glUseProgram(gl->shader);
 

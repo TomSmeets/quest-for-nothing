@@ -2,6 +2,7 @@
 // hot.c - Dynamically compile and reload interactive programs
 //
 // Usage: ./hot src/main.c [ARGS]...
+#include "embed.h"
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
@@ -12,10 +13,6 @@
 // Configuration
 static const u32 watch_debounce = 100;
 static const char *watch_path[] = {".", "src"};
-static const char *watch_embed[][2] = {
-    {"FILE_SHADER_VERT", "src/gl_shader.vert"},
-    {"FILE_SHADER_FRAG", "src/gl_shader.frag"},
-};
 
 static const char *compile_command = "clang"
                                      // Enable most warning flags
@@ -35,38 +32,9 @@ static const char *compile_command = "clang"
 // Implementation
 typedef void os_main_t(OS *os);
 
-static void embed_file(Fmt *output, char *name, char *file_path) {
-    // Just waiting for #embed to land in clang...
-    File *fd = os_open(file_path, Open_Read);
-    fmt_ss(output, "static unsigned char ", name, "[] = {");
-    for (;;) {
-        u8 data[1024];
-        ssize_t len = os_read(fd, data, sizeof(data));
-        assert(len >= 0, "Failed to read data");
-        if (len == 0) break;
-        for (u32 i = 0; i < len; ++i) {
-            if (i % 32 == 0) fmt_s(output, "\n    ");
-            fmt_su(output, "", data[i], ",");
-        }
-    }
-    fmt_s(output, "0\n};\n");
-    os_close(fd);
-}
-
-static void embed_files(char *output_file) {
-    Memory *mem = mem_new();
-    Fmt *asset_file = fmt_open(mem, output_file);
-    fmt_s(asset_file, "#pragma once\n");
-    fmt_s(asset_file, "// clang-format off\n");
-    for (u32 i = 0; i < array_count(watch_embed); ++i) {
-        embed_file(asset_file, (char *)watch_embed[i][0], (char *)watch_embed[i][1]);
-    }
-    fmt_close(asset_file);
-    mem_free(mem);
-}
-
 static os_main_t *build_and_load(char *main_path, u64 counter) {
-    embed_files("src/asset.h");
+    // Generate 'asset.h'
+    embed_all_assets();
 
     Memory *tmp = mem_new();
 
