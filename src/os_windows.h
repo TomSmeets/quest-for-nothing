@@ -7,7 +7,7 @@
 #include <windows.h>
 
 // Export main, allowing us to dynamically call it
-void os_main_dynamic(OS *os) {
+__declspec(dllexport) void os_main_dynamic(OS *os) {
     OS_GLOBAL = os;
     os_main(os);
 }

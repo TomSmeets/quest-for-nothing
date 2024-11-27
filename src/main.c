@@ -168,13 +168,15 @@ static void os_main(OS *os) {
     // Start rendering
     os_gfx_begin(app->gfx);
 
-    fmt_s(OS_FMT, "P: ");
-    fmt_v3(OS_FMT, app->game->player->pos);
-    fmt_s(OS_FMT, "\n");
+    if (0) {
+        fmt_s(OS_FMT, "P: ");
+        fmt_v3(OS_FMT, app->game->player->pos);
+        fmt_s(OS_FMT, "\n");
 
-    fmt_s(OS_FMT, "F: ");
-    fmt_v3(OS_FMT, app->game->player->head_mtx.z);
-    fmt_s(OS_FMT, "\n");
+        fmt_s(OS_FMT, "F: ");
+        fmt_v3(OS_FMT, app->game->player->head_mtx.z);
+        fmt_s(OS_FMT, "\n");
+    }
 
     // Read Input
     Input *input = os_gfx_poll(app->gfx);

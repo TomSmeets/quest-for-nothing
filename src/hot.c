@@ -117,9 +117,7 @@ static Hot *hot_load(OS *os) {
     hot->child_os = os_init(os->argc - 1, os->argv + 1);
 
     // Init inotify
-    watch_init(&hot->watch);
-    watch_add(&hot->watch, ".");
-    watch_add(&hot->watch, "src");
+    watch_init(&hot->watch, "src");
 
     hot->first_time = 1;
 

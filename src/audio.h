@@ -31,7 +31,7 @@ static u32 audio_play(Audio *audio, u32 kind, f32 duration, f32 pitch) {
         snd->kind = kind;
         snd->time = duration;
         snd->pitch = pitch;
-        fmt_si(OS_FMT, "Playing ", id, "\n");
+        fmt_su(OS_FMT, "Playing #", id, "\n");
         return id;
     }
     return 0;

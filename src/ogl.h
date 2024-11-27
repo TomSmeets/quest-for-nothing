@@ -224,7 +224,7 @@ static void ogl_begin(OGL *gl) {
 
     // Recreate texture pack
     u32 cap = packer_capacity(gl->pack, 32);
-    fmt_su(OS_FMT, "Debug: Capacity: ", cap, "\n");
+    // fmt_su(OS_FMT, "Debug: Capacity: ", cap, "\n");
     if (cap < 16) {
         fmt_s(OS_FMT, "Debug: Recreating texture atlas\n");
         packer_free(gl->pack);
@@ -252,7 +252,7 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
         api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
         api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
 
-        fmt_su(OS_FMT, "Quad Count: ", gl->quad_count, "\n");
+        // fmt_su(OS_FMT, "Quad Count: ", gl->quad_count, "\n");
         gl->quad_count = 0;
     }
 
@@ -269,7 +269,7 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
         api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
         api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->ui_quad_count);
 
-        fmt_su(OS_FMT, "UI Quad Count: ", gl->ui_quad_count, "\n");
+        // fmt_su(OS_FMT, "UI Quad Count: ", gl->ui_quad_count, "\n");
         gl->ui_quad_count = 0;
     }
 }

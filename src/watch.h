@@ -6,19 +6,16 @@
 #include "os_api.h"
 #include "types.h"
 
+#if OS_IS_LINUX
 typedef struct {
     int fd;
 } Watch;
 
-#if OS_IS_LINUX
-
-static void watch_init(Watch *watch) {
+static void watch_init(Watch *watch, char *path) {
     int fd = inotify_init();
     assert(fd >= 0, "Could not init inotify");
     watch->fd = fd;
-}
-
-static void watch_add(Watch *watch, char *path) {
+    
     int wd = inotify_add_watch(watch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
     assert(wd >= 0, "inotify_add_watch");
 }
@@ -68,12 +65,28 @@ static bool watch_changed(Watch *watch) {
 
     return false;
 }
-#else
-static void watch_init(Watch *watch) {
+#elif OS_IS_WINDOWS
+typedef struct {
+    HANDLE handle;
+} Watch;
+
+static void watch_init(Watch *watch, char *path) {
+    HANDLE handle = FindFirstChangeNotification(path, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE);
+    assert(handle != INVALID_HANDLE_VALUE, "Could not init FindFirstChangeNotification");
+    watch->handle = handle;
 }
-static void watch_add(Watch *watch, char *path) {
-}
+
 static bool watch_changed(Watch *watch) {
-    return false;
+    DWORD wait_status = WaitForSingleObject(watch->handle, 0);
+
+    if (wait_status != WAIT_OBJECT_0) return false;
+
+    for(;;) {
+        FindNextChangeNotification(watch->handle);
+        DWORD wait_status = WaitForSingleObject(watch->handle, 100);
+        if(wait_status != WAIT_OBJECT_0) break;
+    }
+
+    return true;
 }
 #endif
