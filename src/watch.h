@@ -15,7 +15,7 @@ static void watch_init(Watch *watch, char *path) {
     int fd = inotify_init();
     assert(fd >= 0, "Could not init inotify");
     watch->fd = fd;
-    
+
     int wd = inotify_add_watch(watch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
     assert(wd >= 0, "inotify_add_watch");
 }
@@ -81,10 +81,10 @@ static bool watch_changed(Watch *watch) {
 
     if (wait_status != WAIT_OBJECT_0) return false;
 
-    for(;;) {
+    for (;;) {
         FindNextChangeNotification(watch->handle);
         DWORD wait_status = WaitForSingleObject(watch->handle, 100);
-        if(wait_status != WAIT_OBJECT_0) break;
+        if (wait_status != WAIT_OBJECT_0) break;
     }
 
     return true;

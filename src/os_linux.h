@@ -81,11 +81,12 @@ static void *os_alloc_raw(u32 size) {
 
 // ==== Desktop ====
 static File *os_open(char *path, OS_Open_Type type) {
-    int flags = 0;
-    if (type == Open_Write) flags |= O_WRONLY | O_CREAT | O_TRUNC;
-    if (type == Open_Read) flags |= O_RDONLY;
-
-    int fd = open(path, flags);
+    int fd = -1;
+    if (type == Open_Write) {
+        fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    } else if (type == Open_Read) {
+        fd = open(path, O_RDONLY);
+    }
     assert(fd >= 0, "Failed to open file");
     return fd_to_file(fd);
 }
