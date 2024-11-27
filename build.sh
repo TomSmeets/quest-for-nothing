@@ -38,6 +38,7 @@ clang-format -i src/*
 
 # Build Hot executable
 clang $LINUX_DBG -o out/hot src/hot.c
+clang $WIN32_DBG -o out/hot src/hot.c
 
 # Build for debugging
 clang $LINUX_DBG -o out/main.elf  src/main.c

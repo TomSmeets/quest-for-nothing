@@ -109,11 +109,13 @@ static void os_sleep(u64 us) {
 }
 
 static File *os_dlopen(char *path) {
-    void *handle = dlopen(path, RTLD_LOCAL | RTLD_NOW);
-    if (!handle) os_fail(dlerror());
-    return handle;
+    return dlopen(path, RTLD_LOCAL | RTLD_NOW);
 }
 
 static void *os_dlsym(File *handle, char *name) {
     return dlsym(handle, name);
+}
+
+static char *os_dlerror(void) {
+    return dlerror();
 }

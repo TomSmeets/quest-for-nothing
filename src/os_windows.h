@@ -102,3 +102,7 @@ static File *os_dlopen(char *path) {
 static void *os_dlsym(File *file, char *name) {
     return GetProcAddress((void *)file, name);
 }
+
+static char *os_dlerror(void) {
+    return 0;
+}

@@ -74,3 +74,4 @@ static void os_sleep(u64 time);
 
 static File *os_dlopen(char *path);
 static void *os_dlsym(File *handle, char *name);
+static char *os_dlerror(void);

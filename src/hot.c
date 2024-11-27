@@ -9,10 +9,7 @@
 #include "os_api.h"
 #include "rand.h"
 #include "types.h"
-
-// Configuration
-static const u32 watch_debounce = 100;
-static const char *watch_path[] = {".", "src"};
+#include "watch.h"
 
 static const char *compile_command = "clang"
                                      // Enable most warning flags
@@ -37,11 +34,10 @@ static os_main_t *build_and_load(char *main_path, u64 counter) {
     embed_all_assets();
 
     Memory *tmp = mem_new();
-
     char *out_path;
     {
         Fmt *fmt = fmt_memory(tmp);
-        fmt_sx(fmt, "/tmp/hot-", counter, ".so");
+        fmt_sx(fmt, "out/hot-", counter, ".so");
         out_path = fmt_close(fmt);
     }
 
@@ -65,77 +61,19 @@ static os_main_t *build_and_load(char *main_path, u64 counter) {
         return 0;
     }
 
-    void *handle = dlopen(out_path, RTLD_LOCAL | RTLD_NOW);
+    void *handle = os_dlopen(out_path);
     if (!handle) {
-        fmt_ss(OS_FMT, "dlopen: ", dlerror(), "\n");
+        fmt_ss(OS_FMT, "dlopen: ", os_dlerror(), "\n");
         return 0;
     }
 
-    os_main_t *fcn = dlsym(handle, "os_main_dynamic");
+    os_main_t *fcn = os_dlsym(handle, "os_main_dynamic");
     if (!fcn) {
-        fmt_ss(OS_FMT, "dlsym: ", dlerror(), "\n");
+        fmt_ss(OS_FMT, "dlsym: ", os_dlerror(), "\n");
         return 0;
     }
 
     return fcn;
-}
-
-// === Watch ===
-static int watch_init(void) {
-    int fd = inotify_init();
-    assert(fd >= 0, "Could not init inotify");
-    for (u32 i = 0; i < array_count(watch_path); ++i) {
-        int wd = inotify_add_watch(fd, watch_path[i], IN_MODIFY | IN_CREATE | IN_DELETE);
-        assert(wd >= 0, "inotify_add_watch");
-    }
-
-    return fd;
-}
-
-static bool watch_changed(int fd) {
-    u32 change_count = 0;
-
-    struct timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-
-    for (;;) {
-        fd_set fds = {};
-        FD_SET(fd, &fds);
-        int ret = select(fd + 1, &fds, 0, 0, &timeout);
-        assert(ret >= 0, "select");
-
-        if (ret == 0) {
-            return change_count > 0;
-        }
-
-        if (!FD_ISSET(fd, &fds)) {
-            continue;
-        }
-
-        u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
-
-        ssize_t length = read(fd, buffer, sizeof(buffer));
-        if (length < 0) {
-            os_print("Failed to read data from watch\n");
-            break;
-        }
-
-        struct inotify_event *event = (struct inotify_event *)buffer;
-        if (event->len) {
-            fmt_ss(OS_FMT, "changed: ", event->name, "\n");
-
-            if (str_eq(event->name, "asset.h")) {
-                continue;
-            }
-        }
-
-        // Debounce
-        timeout.tv_usec = watch_debounce * 1000;
-        change_count++;
-    }
-
-    return false;
 }
 
 typedef struct {
@@ -149,7 +87,7 @@ typedef struct {
     OS *child_os;
 
     // File watch
-    int watch;
+    Watch watch;
 
     // Update function
     bool first_time;
@@ -175,7 +113,10 @@ static Hot *hot_load(OS *os) {
     hot->child_os = os_init(os->argc - 1, os->argv + 1);
 
     // Init inotify
-    hot->watch = watch_init();
+    watch_init(&hot->watch);
+    watch_add(&hot->watch, ".");
+    watch_add(&hot->watch, "src");
+
     hot->first_time = 1;
 
     // Init rng, nested 'hot' would not work otherwise
@@ -189,7 +130,7 @@ static Hot *hot_load(OS *os) {
 void os_main(OS *os) {
     Hot *hot = hot_load(os);
 
-    if (hot->first_time || watch_changed(hot->watch)) {
+    if (hot->first_time || watch_changed(&hot->watch)) {
         hot->update = build_and_load(hot->main_path, rand_u32(&hot->rng));
         hot->child_os->reloaded = 1;
         hot->first_time = 0;
