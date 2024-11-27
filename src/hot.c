@@ -20,6 +20,9 @@ static const char *compile_command = "clang"
                                      " -Wno-format"
                                      // We are running on this cpu
                                      " -march=native"
+#if OS_IS_WINDOWS
+                                     " -target x86_64-unknown-windows-gnu"
+#endif
                                      // Don't optimize, quick compile times
                                      " -O0 -g"
                                      " -std=c23"
@@ -37,7 +40,11 @@ static os_main_t *build_and_load(char *main_path, u64 counter) {
     char *out_path;
     {
         Fmt *fmt = fmt_memory(tmp);
+#if OS_IS_WINDOWS
+        fmt_su(fmt, "out/hot-", counter, ".dll");
+#else
         fmt_su(fmt, "out/hot-", counter, ".so");
+#endif
         out_path = fmt_close(fmt);
     }
 

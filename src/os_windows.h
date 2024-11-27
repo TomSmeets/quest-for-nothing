@@ -55,6 +55,7 @@ static void os_fail(char *message) {
     DWORD last_error = GetLastError();
     char *last_error_msg = 0;
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0, (LPTSTR)&last_error_msg, 0, 0);
+    os_print("Windows Error Code: ");
     os_print(last_error_msg);
 
     // Exit
@@ -70,7 +71,7 @@ static void *os_alloc_raw(u32 size) {
 static File *os_open(char *path, OS_Open_Type type) {
     HANDLE handle = 0;
     if (type == Open_Write) {
-        handle = CreateFile(path, GENERIC_WRITE, 0, 0, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(path, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     } else if (type == Open_Read) {
         handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     }
