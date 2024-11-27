@@ -40,6 +40,8 @@ clang-format -i src/*
 clang $LINUX_DBG -o out/hot src/hot.c
 clang $WIN32_DBG -o out/hot src/hot.c
 
+./out/hot --asset
+
 # Build for debugging
 clang $LINUX_DBG -o out/main.elf  src/main.c
 clang $WIN32_DBG -o out/main.exe  src/main.c

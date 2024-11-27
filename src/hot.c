@@ -130,6 +130,12 @@ static Hot *hot_load(OS *os) {
 }
 
 void os_main(OS *os) {
+    if (os->argc >= 2 && str_eq(os->argv[1], "--asset")) {
+        os_print("Generating asset.h\n");
+        embed_all_assets();
+        os_exit(0);
+    }
+
     Hot *hot = hot_load(os);
 
     if (hot->first_time || watch_changed(&hot->watch)) {
