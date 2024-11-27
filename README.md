@@ -2,39 +2,40 @@
 
 ![](screenshot.png)
 
-# Building
-Install `clang`, `ldd`, `sdl2` and `mingw-w64`, then run the build script.
+## Building
+
+Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script:
 
 ```bash
 ./build.sh
 ```
 
-| Path | Description |
-|  --- | --- |
-| out/main.elf | Standalone Linux (SDL/OpenGL) |
-| out/main.exe | Standalone Windows (SDL/OpenGL) |
-| out/main.wasm out/index.html | Web build (WebGL2) |
-| out/hot | Hot reloader |
+| Path                | Description                         |
+|---------------------|-------------------------------------|
+| `out/main.elf`      | Standalone Linux (SDL/OpenGL)       |
+| `out/main.exe`      | Standalone Windows (SDL/OpenGL)     |
+| `out/main.wasm`, `out/index.html` | Web build (WebGL2)    |
+| `out/hot`           | Hot reloader                        |
 
-# Hot reloading
+## Hot Reloading
 
 Run `./out/hot src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
 
-For GDB, launch with `gdb --args ./out/hot ./src/main.c`. Use the `dir` command to update the source view when needed.
+For GDB, launch with `gdb --args ./out/hot ./src/main.c` and use the `dir` command to update the source view when needed.
 
-# Building Manually
+## Building Manually
 
 Each executable is compiled as a single unit, with the platform automatically detected based on the `-target` passed to Clang.
 
 - `clang -o ./out/main.elf src/main.c`
 - `clang -o ./out/hot src/hot.c`
 
-# Version 1.0
+## Version 1.0
 
-I'd like to release this some day. So keep it very simple!
+I'd like to release this someday, so keeping it very simple!
 
 - [ ] Player
-  - [x] First person movement
+  - [x] First-person movement
   - [ ] Can die
   - [ ] Hitscan pistol
   - [x] Draw pistol
@@ -46,7 +47,7 @@ I'd like to release this some day. So keep it very simple!
     - [x] Stroll: move randomly to another cell
     - [x] Attack: move to the player
 
-  - [x] Generated Texture
+  - [x] Generated texture
     - [x] Eyes
     - [x] Body
     - [x] Color
@@ -73,7 +74,7 @@ I'd like to release this some day. So keep it very simple!
   - [ ] Shorter name?
   - [ ] Description
   - [ ] Video
-  - [ ] Itch IO
+  - [ ] Itch.io
 
 - [ ] Platforms
   - [x] Linux
@@ -83,5 +84,5 @@ I'd like to release this some day. So keep it very simple!
 # Version 2.0 (ideas)
 
 - [ ] Android
-- [ ] Publish Play Store
+- [ ] Publish on Play Store
 - [ ] Time travel effects?
