@@ -20,9 +20,6 @@ static const char *compile_command = "clang"
                                      " -Wno-format"
                                      // We are running on this cpu
                                      " -march=native"
-#if OS_IS_WINDOWS
-                                     " -target x86_64-unknown-windows-msvc"
-#endif
                                      // Don't optimize, quick compile times
                                      " -O0 -g"
                                      " -std=c23"
