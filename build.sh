@@ -24,6 +24,7 @@ WASM_REL="$COMMON_WARN $COMMON_WASM $COMMON_REL"
 
 # Clean out dir
 # rm -rf out
+set -x
 mkdir -p out
 
 # Download sdl2 dll for windows
@@ -33,7 +34,7 @@ if [ ! -f out/SDL2.dll ]; then
 fi
 
 # Format Source Code
-clang-format --verbose -i src/*
+clang-format -i src/*
 
 # Build Hot executable
 clang $LINUX_DBG -o out/hot src/hot.c

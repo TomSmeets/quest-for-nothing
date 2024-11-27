@@ -1,27 +1,22 @@
 # Quest For Nothing
 
-The first version of this game. I will first implement v1.0, which will have very limited features. This will prevent me from getting stuck.
-
 ![](screenshot.png)
 
 # Building
 
-Install:
-- clang
-- sdl2
-- mingw
+Requirements: `clang` `sdl2` and `mingw`.
 
-Then run the build script.
+Build everything:
 
 ```bash
 ./build.sh
 ```
 
-this wil build executavles in the out folder.
 
-main.elf | Standalone Linux (SDL/OpenGL)
-main.exe | Standalone Windows (SDL/OpenGL)
-main.wasm index.html | Web build (WebGL2)
+  |  --- | --- |
+|out/main.elf | Standalone Linux (SDL/OpenGL) |
+|out/main.exe | Standalone Windows (SDL/OpenGL) |
+|out/main.wasm out/index.html | Web build (WebGL2) |
 
 Build.sh will build every variation possible. While developing use the hot reloading.
 
