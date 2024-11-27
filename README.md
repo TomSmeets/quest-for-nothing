@@ -2,7 +2,7 @@
 
 ![](screenshot.png)
 
-## Building
+# Building
 
 Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script:
 
@@ -17,20 +17,20 @@ Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script:
 | `out/main.wasm`, `out/index.html` | Web build (WebGL2)    |
 | `out/hot`           | Hot reloader                        |
 
-## Hot Reloading
+# Hot Reloading
 
 Run `./out/hot src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
 
 For GDB, launch with `gdb --args ./out/hot ./src/main.c` and use the `dir` command to update the source view when needed.
 
-## Building Manually
+# Building Manually
 
 Each executable is compiled as a single unit, with the platform automatically detected based on the `-target` passed to Clang.
 
 - `clang -o ./out/main.elf src/main.c`
 - `clang -o ./out/hot src/hot.c`
 
-## Version 1.0
+# Version 1.0
 
 I'd like to release this someday, so keeping it very simple!
 
