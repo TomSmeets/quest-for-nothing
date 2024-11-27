@@ -12,13 +12,11 @@ void os_main_dynamic(OS *os) {
     os_main(os);
 }
 
-int main(int argc, const char **argv) {
-    OS os = {};
-    os.argc = argc;
-    os.argv = (char **)argv;
+int main(int argc, char **argv) {
+    OS *os = os_init(argc, argv);
     for (;;) {
-        os_main_dynamic(&os);
-        os_sleep(os.sleep_time);
+        os_main(os);
+        os_sleep(os->sleep_time);
     }
 }
 
