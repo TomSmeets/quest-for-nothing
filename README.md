@@ -3,47 +3,35 @@
 ![](screenshot.png)
 
 # Building
-
-Requirements: `clang` `sdl2` and `mingw`.
-
-Build everything:
+Install `clang`, `ldd`, `sdl2` and `mingw-w64`, then run the build script.
 
 ```bash
 ./build.sh
 ```
 
-
-  |  --- | --- |
-|out/main.elf | Standalone Linux (SDL/OpenGL) |
-|out/main.exe | Standalone Windows (SDL/OpenGL) |
-|out/main.wasm out/index.html | Web build (WebGL2) |
-
-Build.sh will build every variation possible. While developing use the hot reloading.
+| Path | Description |
+|  --- | --- |
+| out/main.elf | Standalone Linux (SDL/OpenGL) |
+| out/main.exe | Standalone Windows (SDL/OpenGL) |
+| out/main.wasm out/index.html | Web build (WebGL2) |
+| out/hot | Hot reloader |
 
 # Hot reloading
 
-Run `out/hot src/main.c` and then edit any file. The game reload while preserving it's state.
+Run `./out/hot src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
 
-```bash
-./out/hot ./src/main.c
-```
-
-To run with the debugger use the following. If the source view in gdb is outdated run `dir` to reload it.
-
-```bash
-gdb --args ./out/hot ./src/main.c
-```
+For GDB, launch with `gdb --args ./out/hot ./src/main.c`. Use the `dir` command to update the source view when needed.
 
 # Building Manually
 
-Each executable can also be compiled manually. Following are some examples.
+Each executable is compiled as a single unit, with the platform automatically detected based on the `-target` passed to Clang.
 
-```bash
-clang -o ./out/main.elf src/main.c
-clang -o ./out/hot src/hot.c
-```
+- `clang -o ./out/main.elf src/main.c`
+- `clang -o ./out/hot src/hot.c`
 
 # Version 1.0
+
+I'd like to release this some day. So keep it very simple!
 
 - [ ] Player
   - [x] First person movement
@@ -92,50 +80,8 @@ clang -o ./out/hot src/hot.c
   - [x] Windows
   - [ ] Wasm
 
-This should be enough for a first publishable version.
-
-# Version 2.0
+# Version 2.0 (ideas)
 
 - [ ] Android
 - [ ] Publish Play Store
 - [ ] Time travel effects?
-
-
-## Cross compile for Windows
-
-To cross compile to windows install `mingw-w64` and copy [SDL2.dll](https://github.com/libsdl-org/SDL/releases/) to the "out" directory.
-Then add `-target x86_64-unknown-windows-gnu` to the clang command line.
-
-```bash
-clang -O2 -g -target x86_64-unknown-windows-gnu -o ./out/quest-for-nothing.exe src/main.c
-wine ./out/quest-for-nothing.exe
-```
-
-
-## To Web Assembly
-
-Install `ldd` which provides `wasm-ld`.
-
-```bash
-clang -O2 -g -target wasm32 --no-standard-libraries -Wl,--no-entry -Wl,--export-all -fno-builtin -o ./out/quest-for-nothing.wasm src/main.c
-```
-
-| Option | Purpose |
-| ------ | ------- |
-| `-target wasm32` | Target wasm 32bit |
-| `-Wl,--no-entry` | Don't create a main function |
-| `-Wl,--export-all` | |
-| `-fno-builtin` |  |
-
-# Building on Windows
-
-1. Install [Clang](https://github.com/llvm/llvm-project/releases)
-2. Download and copy [SDL2.dll](https://github.com/libsdl-org/SDL/releases/) to the "out" directory.
-3. Run the following commands
-
-```bash
-clang -O2 -g -o ./out/quest-for-nothing src/main.c
-./out/quest-for-nothing.exe
-```
-
-To compile to WASM run the following commands
