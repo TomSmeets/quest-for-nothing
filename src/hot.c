@@ -37,7 +37,7 @@ static os_main_t *build_and_load(char *main_path, u64 counter) {
     char *out_path;
     {
         Fmt *fmt = fmt_memory(tmp);
-        fmt_sx(fmt, "out/hot-", counter, ".so");
+        fmt_su(fmt, "out/hot-", counter, ".so");
         out_path = fmt_close(fmt);
     }
 
