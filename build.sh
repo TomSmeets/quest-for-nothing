@@ -33,14 +33,12 @@ if [ ! -f out/SDL2.dll ]; then
   unzip -o out/SDL2.zip SDL2.dll -d out
 fi
 
-# Format Source Code
-clang-format -i src/*
 
 # Build Hot executable
 clang $LINUX_DBG -o out/hot src/hot.c
 clang $WIN32_DBG -o out/hot src/hot.c
 
-./out/hot --asset
+./out/hot asset
 
 # Build for debugging
 clang $LINUX_DBG -o out/main.elf  src/main.c
