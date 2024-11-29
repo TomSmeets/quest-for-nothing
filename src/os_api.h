@@ -52,10 +52,6 @@ static void os_exit(i32 code);
 static void os_fail(char *message);
 static void *os_alloc_raw(u32 size);
 
-// Derived
-static void *os_alloc(void);
-static void os_free(void *ptr);
-
 // Defined in os.h
 static OS *os_init(int argc, char **argv);
 static void os_print(char *message);
