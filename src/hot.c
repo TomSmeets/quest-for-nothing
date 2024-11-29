@@ -26,9 +26,76 @@ static const char *compile_command = "clang"
                                      // Create a '.so' file for dynamic loading
                                      " -shared";
 
+ typedef enum {
+     Platform_Linux,
+     Platform_Windows,
+     Platform_Wasm,
+ } Platform;
                             
+static void build_single(char *output, char *input, Platform plat, bool release, bool dynamic) {
+    bool debug = !release;
+
+    Memory *mem = mem_new();
+    Fmt *fmt = fmt_memory(mem);
+
+    fmt_s(fmt, "clang");
+
+    // Configure warning flags
+    fmt_s(fmt, " -Wall -Werror");
+    fmt_s(fmt, " -Wno-unused-function");
+    fmt_s(fmt, " -Wno-unused-variable");
+    fmt_s(fmt, " -Wno-unused-but-set-variable");
+    fmt_s(fmt, " -Wno-format");
+
+    fmt_s(fmt, " -std=c23");
+
+    // We are running on this cpu
+    // https:// pkgstats.archlinux.de/compare/system-architectures/x86_64
+    if(plat != Platform_Wasm) {
+        if (debug) fmt_s(fmt, " -march=native");
+        if (release) fmt_s(fmt, " -march=x86-64-v3");
+    }
+
+    if(plat == Platform_Windows) {
+        fmt_s(fmt, " -target x86_64-unknown-windows-gnu");
+    }
+
+    if(plat == Platform_Wasm) {
+        fmt_s(fmt, " -target wasm32");
+        fmt_s(fmt, " --no-standard-libraries");
+        fmt_s(fmt, " -Wl,--no-entry");
+        fmt_s(fmt, " -Wl,--export-all");
+        fmt_s(fmt, " -fno-builtin");
+        fmt_s(fmt, " -msimd128");
+    }
+
+    // Don't optimize, quick compile times
+    if (debug) fmt_s(fmt, " -O0 -g0");
+    if (release) fmt_s(fmt, " -O3 -Xlinker --strip-all");
+
+    // Create a '.so' file for dynamic loading
+    if (dynamic) fmt_s(fmt, " -shared");
+
+    fmt_ss(fmt, " -o ", output, "");
+    fmt_ss(fmt, " ", input, "");
+
+    char *cmd = fmt_close(fmt);
+    os_print(cmd);
+    os_print("\n");
+    assert(system(cmd) == 0, "Compilation Failed!");
+    mem_free(mem);
+    // TODO build all
+}
+
 static void build_all(bool release) {
-    // TODO
+    embed_all_assets();
+    build_single("out/hot", "src/hot.c", Platform_Linux,   release, false);
+    build_single("out/hot", "src/hot.c", Platform_Windows, release, false);
+
+    build_single("out/main.elf", "src/main.c", Platform_Linux, release, false);
+    build_single("out/main.exe", "src/main.c", Platform_Windows, release, false);
+    build_single("out/main.wasm", "src/main.c", Platform_Wasm, release, false);
+    assert(system("cp src/os_wasm.html out/index.html") == 0, "Copy Failed");
 }
 
 // Implementation
@@ -151,8 +218,10 @@ static Hot *hot_init(OS *os) {
     } else if (str_eq(action, "watch")) {
         hot->action_build = true;
     } else if (str_eq(action, "build")) {
+        build_all(false);
         os_exit(0);
     } else if (str_eq(action, "release")) {
+        build_all(true);
         os_exit(0);
     } else if (str_eq(action, "asset")) {
         embed_all_assets();
@@ -201,7 +270,6 @@ void os_main(OS *os) {
     }
 
     if (hot->action_build && changed) {
-        embed_all_assets();
-        fmt_s(OS_FMT, "Build\n");
+        build_all(false);
     }
 }

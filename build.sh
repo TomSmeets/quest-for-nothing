@@ -37,23 +37,4 @@ fi
 # Build Hot executable
 clang $LINUX_DBG -o out/hot src/hot.c
 clang $WIN32_DBG -o out/hot src/hot.c
-
-./out/hot asset
-
-# Build for debugging
-clang $LINUX_DBG -o out/main.elf  src/main.c
-clang $WIN32_DBG -o out/main.exe  src/main.c
-clang $WASM_DBG  -o out/main.wasm src/main.c
-
-cp src/os_wasm.html out/index.html
-
-# Build release
-if false; then
-  mkdir -p out/rel
-  clang $LINUX_REL -o out/rel/main.elf  src/main.c &
-  clang $WIN32_REL -o out/rel/main.exe  src/main.c &
-  clang $WASM_REL  -o out/rel/main.wasm src/main.c &
-  cp src/os_wasm.html out/rel/index.html
-  cp out/SDL2.dll out/rel
-  wait
-fi
+./out/hot build
