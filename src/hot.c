@@ -11,28 +11,13 @@
 #include "types.h"
 #include "watch.h"
 
-static const char *compile_command = "clang"
-                                     // Enable most warning flags
-                                     " -Wall -Werror"
-                                     " -Wno-unused-function"
-                                     " -Wno-unused-variable"
-                                     " -Wno-unused-but-set-variable"
-                                     " -Wno-format"
-                                     // We are running on this cpu
-                                     " -march=native"
-                                     // Don't optimize, quick compile times
-                                     " -O0 -g"
-                                     " -std=c23"
-                                     // Create a '.so' file for dynamic loading
-                                     " -shared";
+typedef enum {
+    Platform_Linux,
+    Platform_Windows,
+    Platform_Wasm,
+} Platform;
 
- typedef enum {
-     Platform_Linux,
-     Platform_Windows,
-     Platform_Wasm,
- } Platform;
-                            
-static void build_single(char *output, char *input, Platform plat, bool release, bool dynamic) {
+static bool build_single(char *output, char *input, Platform plat, bool release, bool dynamic) {
     bool debug = !release;
 
     Memory *mem = mem_new();
@@ -50,17 +35,17 @@ static void build_single(char *output, char *input, Platform plat, bool release,
     fmt_s(fmt, " -std=c23");
 
     // We are running on this cpu
-    // https:// pkgstats.archlinux.de/compare/system-architectures/x86_64
-    if(plat != Platform_Wasm) {
+    // https://pkgstats.archlinux.de/compare/system-architectures/x86_64
+    if (plat != Platform_Wasm) {
         if (debug) fmt_s(fmt, " -march=native");
         if (release) fmt_s(fmt, " -march=x86-64-v3");
     }
 
-    if(plat == Platform_Windows) {
+    if (plat == Platform_Windows) {
         fmt_s(fmt, " -target x86_64-unknown-windows-gnu");
     }
 
-    if(plat == Platform_Wasm) {
+    if (plat == Platform_Wasm) {
         fmt_s(fmt, " -target wasm32");
         fmt_s(fmt, " --no-standard-libraries");
         fmt_s(fmt, " -Wl,--no-entry");
@@ -82,20 +67,26 @@ static void build_single(char *output, char *input, Platform plat, bool release,
     char *cmd = fmt_close(fmt);
     os_print(cmd);
     os_print("\n");
-    assert(system(cmd) == 0, "Compilation Failed!");
+    bool ok = system(cmd) == 0;
     mem_free(mem);
-    // TODO build all
+    return ok;
 }
 
-static void build_all(bool release) {
+static bool build_all(bool release) {
     embed_all_assets();
-    build_single("out/hot", "src/hot.c", Platform_Linux,   release, false);
-    build_single("out/hot", "src/hot.c", Platform_Windows, release, false);
+    if (!build_single("out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
+    if (!build_single("out/hot", "src/hot.c", Platform_Windows, release, false)) return 0;
 
-    build_single("out/main.elf", "src/main.c", Platform_Linux, release, false);
-    build_single("out/main.exe", "src/main.c", Platform_Windows, release, false);
-    build_single("out/main.wasm", "src/main.c", Platform_Wasm, release, false);
-    assert(system("cp src/os_wasm.html out/index.html") == 0, "Copy Failed");
+    if (!build_single("out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
+    if (!build_single("out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
+    if (!build_single("out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
+
+    if (system("cp src/os_wasm.html out/index.html") != 0) {
+        fmt_s(OS_FMT, "Failed to copy\n");
+        return 0;
+    }
+
+    return 1;
 }
 
 // Implementation
@@ -106,33 +97,17 @@ static os_main_t *build_and_load(char *main_path, u64 counter) {
     embed_all_assets();
 
     Memory *tmp = mem_new();
-    char *out_path;
-    {
-        Fmt *fmt = fmt_memory(tmp);
+    Fmt *out_path_fmt = fmt_memory(tmp);
 #if OS_IS_WINDOWS
-        fmt_su(fmt, "out/hot-", counter, ".dll");
+    fmt_su(out_path_fmt, "out/hot-", counter, ".dll");
 #else
-        fmt_su(fmt, "out/hot-", counter, ".so");
+    fmt_su(out_path_fmt, "out/hot-", counter, ".so");
 #endif
-        out_path = fmt_close(fmt);
-    }
-
-    char *command;
-    {
-        Fmt *fmt = fmt_memory(tmp);
-        fmt_s(fmt, (char *)compile_command);
-        fmt_ss(fmt, " -o ", out_path, "");
-        fmt_ss(fmt, " ", main_path, "");
-        command = fmt_close(fmt);
-    }
-
-    fmt_ss(OS_FMT, "Running: ", command, "\n");
-    int ret = system(command);
-    assert(ret >= 0, "Error while compiling");
-
+    char *out_path = fmt_close(out_path_fmt);
+    bool ok = build_single(out_path, main_path, Platform_Linux, false, true);
     mem_free(tmp);
 
-    if (ret != 0) {
+    if (!ok) {
         fmt_s(OS_FMT, "Compile error!\n");
         return 0;
     }
@@ -193,13 +168,13 @@ static Hot *hot_init(OS *os) {
     Memory *mem = mem_new();
     Hot *hot = mem_struct(mem, Hot);
 
-    if(os->argc < 2) {
+    if (os->argc < 2) {
         exit_with_help(os);
     }
 
     char *action = os->argv[1];
 
-    if(str_eq(action, "run")) {
+    if (str_eq(action, "run")) {
         if (os->argc < 3) {
             fmt_s(OS_FMT, "Not enogh arguments.\n");
             fmt_s(OS_FMT, "\n");
@@ -254,7 +229,7 @@ void os_main(OS *os) {
     // Default update rate
     os->sleep_time = 100 * 1000;
 
-    if(hot->action_run) {
+    if (hot->action_run) {
         if (changed) {
             hot->update = build_and_load(hot->main_path, rand_u32(&hot->rng));
             hot->child_os->reloaded = 1;
