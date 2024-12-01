@@ -11,16 +11,28 @@
 #include "types.h"
 #include "watch.h"
 
+// Target platform
 typedef enum {
     Platform_Linux,
     Platform_Windows,
     Platform_Wasm,
 } Platform;
 
-static bool build_single(char *output, char *input, Platform plat, bool release, bool dynamic) {
+static bool hot_system(char *cmd) {
+    fmt_ss(OS_FMT, "> ", cmd, "\n");
+
+    int ret = system(cmd);
+    if(ret != 0) {
+        fmt_s(OS_FMT, "Command Failed!\n");
+    }
+    return ret == 0;
+}
+
+// Build single executable using clang
+// This will become a single 'clang' call
+static bool build_single(Memory *mem, char *output, char *input, Platform plat, bool release, bool dynamic) {
     bool debug = !release;
 
-    Memory *mem = mem_new();
     Fmt *fmt = fmt_memory(mem);
 
     fmt_s(fmt, "clang");
@@ -65,23 +77,20 @@ static bool build_single(char *output, char *input, Platform plat, bool release,
     fmt_ss(fmt, " ", input, "");
 
     char *cmd = fmt_close(fmt);
-    os_print(cmd);
-    os_print("\n");
-    bool ok = system(cmd) == 0;
-    mem_free(mem);
+    bool ok = hot_system(cmd);
     return ok;
 }
 
-static bool build_all(bool release) {
+static bool build_all(Memory *mem, bool release) {
     embed_all_assets();
-    if (!build_single("out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
-    if (!build_single("out/hot", "src/hot.c", Platform_Windows, release, false)) return 0;
+    if (!build_single(mem, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(mem, "out/hot", "src/hot.c", Platform_Windows, release, false)) return 0;
 
-    if (!build_single("out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
-    if (!build_single("out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
-    if (!build_single("out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
+    if (!build_single(mem, "out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(mem, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
+    if (!build_single(mem, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
 
-    if (system("cp src/os_wasm.html out/index.html") != 0) {
+    if (!hot_system("cp src/os_wasm.html out/index.html")) {
         fmt_s(OS_FMT, "Failed to copy\n");
         return 0;
     }
@@ -92,20 +101,18 @@ static bool build_all(bool release) {
 // Implementation
 typedef void os_main_t(OS *os);
 
-static os_main_t *build_and_load(char *main_path, u64 counter) {
+static os_main_t *build_and_load(Memory *mem, char *main_path, u64 counter) {
     // Generate 'asset.h'
     embed_all_assets();
 
-    Memory *tmp = mem_new();
-    Fmt *out_path_fmt = fmt_memory(tmp);
+    Fmt *out_path_fmt = fmt_memory(mem);
 #if OS_IS_WINDOWS
     fmt_su(out_path_fmt, "out/hot-", counter, ".dll");
 #else
     fmt_su(out_path_fmt, "out/hot-", counter, ".so");
 #endif
     char *out_path = fmt_close(out_path_fmt);
-    bool ok = build_single(out_path, main_path, Platform_Linux, false, true);
-    mem_free(tmp);
+    bool ok = build_single(mem, out_path, main_path, Platform_Linux, false, true);
 
     if (!ok) {
         fmt_s(OS_FMT, "Compile error!\n");
@@ -166,6 +173,7 @@ static void exit_with_help(OS *os) {
 
 static Hot *hot_init(OS *os) {
     Memory *mem = mem_new();
+    Memory *tmp = mem_new();
     Hot *hot = mem_struct(mem, Hot);
 
     if (os->argc < 2) {
@@ -193,17 +201,16 @@ static Hot *hot_init(OS *os) {
     } else if (str_eq(action, "watch")) {
         hot->action_build = true;
     } else if (str_eq(action, "build")) {
-        build_all(false);
+        build_all(tmp, false);
         os_exit(0);
     } else if (str_eq(action, "release")) {
-        build_all(true);
+        build_all(tmp, true);
         os_exit(0);
     } else if (str_eq(action, "asset")) {
         embed_all_assets();
         os_exit(0);
     } else if (str_eq(action, "format")) {
-        int ret = system("clang-format -i src/*");
-        assert(ret == 0, "Format failed!\n");
+        assert(hot_system("clang-format -i src/*"), "Format failed!\n");
         os_exit(0);
     } else {
         fmt_ss(OS_FMT, "Invalid action '", action, "'\n\n");
@@ -214,6 +221,7 @@ static Hot *hot_init(OS *os) {
     watch_init(&hot->watch, "src");
     hot->first_time = 1;
     hot->rng.seed = os_rand();
+    mem_free(tmp);
     return hot;
 }
 
@@ -222,6 +230,7 @@ void os_main(OS *os) {
     if (!os->app) os->app = hot_init(os);
 
     Hot *hot = os->app;
+    Memory *tmp = mem_new();
 
     bool changed = hot->first_time || watch_changed(&hot->watch);
     hot->first_time = 0;
@@ -231,7 +240,7 @@ void os_main(OS *os) {
 
     if (hot->action_run) {
         if (changed) {
-            hot->update = build_and_load(hot->main_path, rand_u32(&hot->rng));
+            hot->update = build_and_load(tmp, hot->main_path, rand_u32(&hot->rng));
             hot->child_os->reloaded = 1;
         }
 
@@ -245,6 +254,7 @@ void os_main(OS *os) {
     }
 
     if (hot->action_build && changed) {
-        build_all(false);
+        build_all(tmp, false);
     }
+    mem_free(tmp);
 }
