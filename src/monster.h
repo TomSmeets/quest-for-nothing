@@ -56,7 +56,30 @@ static void monster_set_eyes(Monster *mon, Random *rng) {
     mon->image->id = id_next();
 }
 
-static void monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
+
+typedef struct {
+    // Left and right eye positions
+    v2i eye[2];
+
+    // Generated image
+    Image *img;
+} Monster_Sprite;
+
+static void monster_sprite_look_around(Monster_Sprite *mon, Random *rng) {
+    u32 look_dir = rand_u32(rng) % 4;
+    v4 black = {0, 0, 0, 1};
+    v4 white = {1, 1, 1, 1};
+
+    for(u32 i = 0; i < array_count(mon->eye); ++i) {
+        v2i eye = mon->eye[i];
+        image_write(mon->img, eye + (v2i) {0,0}, look_dir == 0 ? black : white);
+        image_write(mon->img, eye + (v2i) {1,0}, look_dir == 1 ? black : white);
+        image_write(mon->img, eye + (v2i) {0,1}, look_dir == 3 ? black : white);
+        image_write(mon->img, eye + (v2i) {1,1}, look_dir == 2 ? black : white);
+    }
+}
+
+static Monster_Sprite *monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
     float texture = 0.05;
 
     // Initial line widths
