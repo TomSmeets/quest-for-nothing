@@ -22,7 +22,7 @@ static bool hot_system(char *cmd) {
     fmt_ss(OS_FMT, "> ", cmd, "\n");
 
     int ret = system(cmd);
-    if(ret != 0) {
+    if (ret != 0) {
         fmt_s(OS_FMT, "Command Failed!\n");
     }
     return ret == 0;
