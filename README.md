@@ -2,6 +2,14 @@
 
 ![](screenshot.png)
 
+
+# Building
+
+```bash
+clang -o out/hot src/hot.c
+out/hot build
+```
+
 # Building
 
 Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script:

@@ -60,3 +60,12 @@ static v4 rand_color(Random *rng) {
     ret.w = 1;
     return ret;
 }
+
+// Random vector in a cube shape
+static v3 rand_v3(Random *rng) {
+    v3 ret;
+    ret.x = rand_f32_signed(rng);
+    ret.y = rand_f32_signed(rng);
+    ret.z = rand_f32_signed(rng);
+    return ret;
+}
