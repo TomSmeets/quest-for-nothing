@@ -39,7 +39,7 @@ static Image *gen_gun(Memory *mem) {
     u32 size = 5;
     Image *img = image_new(mem, (v2u){size, size});
     // image_grid(img, WHITE, GRAY);
-    v4 color = {0.1, 0.1, 0.1, 1};
+    v3 color = {0.1, 0.1, 0.1};
     image_write(img, (v2i){2, 1}, color);
     image_write(img, (v2i){3, 1}, color);
     image_write(img, (v2i){4, 1}, color);
@@ -51,9 +51,9 @@ static Image *gen_cursor(Memory *mem) {
     u32 size = 5;
     Image *img = image_new(mem, (v2u){size, size});
     for (u32 i = 0; i < size; ++i) {
-        v4 col = WHITE;
-        image_write(img, (v2i){i, i}, col);
-        image_write(img, (v2i){i, size - 1 - i}, col);
+        v4 col = color_alpha(WHITE, 1);
+        image_write4(img, (v2i){i, i}, col);
+        image_write4(img, (v2i){i, size - 1 - i}, col);
     }
     return img;
 }

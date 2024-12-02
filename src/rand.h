@@ -52,12 +52,11 @@ static f32 rand_f32_signed(Random *rand) {
     return rand_f32(rand) * 2.0f - 1.0f;
 }
 
-static v4 rand_color(Random *rng) {
-    v4 ret;
+static v3 rand_color(Random *rng) {
+    v3 ret;
     ret.x = rand_f32(rng);
     ret.y = rand_f32(rng);
     ret.z = rand_f32(rng);
-    ret.w = 1;
     return ret;
 }
 

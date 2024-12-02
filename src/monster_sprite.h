@@ -19,8 +19,8 @@ typedef struct {
 // Update monster eye position
 static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
     u32 look_dir = rand_u32(rng) % 4;
-    v4 black = {0, 0, 0, 1};
-    v4 white = {1, 1, 1, 1};
+    v3 black = {0, 0, 0};
+    v3 white = {1, 1, 1};
 
     for (u32 i = 0; i < array_count(mon->eye); ++i) {
         v2i eye = mon->eye[i];
@@ -40,7 +40,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     u32 start_radius = rand_u32_range(rng, 1, 8);
     u32 eye_y = rand_u32_range(rng, 0, body_height / 2.0f);
     float spike = rand_f32_range(rng, 0.5, 3.0);
-    v4 color_base = rand_color(rng);
+    v3 color_base = rand_color(rng);
 
     u32 eye_x = 0;       // Computed later
     u32 body_radius = 0; // Computed later
@@ -62,7 +62,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     // This improves alpha blending
     // Probably go to premultiplied alpha
     Image *image = image_new(mem, size);
-    image_fill(image, color_base * (v4){1, 1, 1, 0});
+    image_fill(image, color_alpha(color_base, 0));
     // image_grid(image, WHITE, GRAY);
     // image_write_debug_axis(image);
 
@@ -80,12 +80,11 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
                 dist = f_max(dist, dist_y);
 
                 // Start with the base color
-                v4 color = color_base;
+                v3 color = color_base;
 
                 // Add a textured surface
-                color.xyz += rand_v3(rng) * texture * (1 - dist);
-                color.xyz *= 1.0 - dist * 0.2;
-                color.w = 1;
+                color += rand_v3(rng) * texture * (1 - dist);
+                color *= 1.0 - dist * 0.2;
 
                 image_write(image, (v2i){x, y}, color);
             }

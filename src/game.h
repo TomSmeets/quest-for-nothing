@@ -2,6 +2,7 @@
 // game.h - Game data structures and implementation
 #pragma once
 #include "image.h"
+#include "level_sprite.h"
 #include "mem.h"
 #include "monster.h"
 #include "player.h"
@@ -50,12 +51,6 @@ static Cell *game_cell_get(Game *game, v3i pos) {
     return 0;
 }
 
-static Image *gen_wall_image(Memory *mem, Random *rng) {
-    Image *img = image_new(mem, (v2u){32, 32});
-    image_grid(img, rand_color(rng), rand_color(rng));
-    return img;
-}
-
 static Cell *cell_new(Memory *mem, v3i pos) {
     Cell *cell = mem_struct(mem, Cell);
     cell->pos = pos;
@@ -79,12 +74,12 @@ static Cell *gen_level_outline(Memory *mem, u32 size) {
 
 static void gen_indoor(Cell *level, Memory *mem, Random *rng) {
     for (Cell *cell = level; cell; cell = cell->next) {
-        if (0) cell->x_neg = gen_wall_image(mem, rng);
-        if (0) cell->x_pos = gen_wall_image(mem, rng);
-        if (0) cell->z_pos = gen_wall_image(mem, rng);
-        if (0) cell->z_neg = gen_wall_image(mem, rng);
-        if (1) cell->y_pos = gen_wall_image(mem, rng);
-        if (1) cell->y_neg = gen_wall_image(mem, rng);
+        if (0) cell->x_neg = level_sprite_generate(mem, rng);
+        if (0) cell->x_pos = level_sprite_generate(mem, rng);
+        if (0) cell->z_pos = level_sprite_generate(mem, rng);
+        if (0) cell->z_neg = level_sprite_generate(mem, rng);
+        if (1) cell->y_pos = level_sprite_generate(mem, rng);
+        if (1) cell->y_neg = level_sprite_generate(mem, rng);
     }
 }
 

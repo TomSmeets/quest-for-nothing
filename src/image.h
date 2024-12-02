@@ -37,10 +37,14 @@ static Image *image_grid(Image *img, v4 c1, v4 c2) {
     return img;
 }
 
-static void image_write(Image *img, v2i pos, v4 value) {
+static void image_write4(Image *img, v2i pos, v4 value) {
     if (pos.x < 0 || pos.x >= img->size.x) return;
     if (pos.y < 0 || pos.y >= img->size.y) return;
     img->pixels[pos.y * img->size.x + pos.x] = value;
+}
+
+static void image_write(Image *img, v2i pos, v3 value) {
+    image_write4(img, pos, color_alpha(value, 1));
 }
 
 static void image_write_debug_axis(Image *img) {
