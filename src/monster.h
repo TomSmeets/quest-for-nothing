@@ -8,61 +8,12 @@
 #include "rand.h"
 #include "vec.h"
 
-typedef struct Monster {
-    // ==== Physics ====
-    v3 pos;
-    v3 old_pos;
-
-    // ==== AI ====
-    u32 health;
-
-    // Current movement direction
-    v2 move_dir;
-
-    // Cooldown until new movement direction is chosen
-    f32 move_time;
-
-    // ==== Animation ====
-    // Movement speed
-    f32 speed;
-    f32 wiggle;
-
-    // ==== Graphics ====
-    Image *image;
-    u32 eye_x;
-    u32 eye_y;
-
-    m4 body_mtx;
-    m4 sprite_mtx;
-
-    // ==== Other ====
-    struct Monster *next;
-} Monster;
-
-static void monster_set_eyes(Monster *mon, Random *rng) {
-    u32 look_dir = rand_u32(rng) % 4;
-    v4 black = {0, 0, 0, 1};
-    v4 white = {1, 1, 1, 1};
-
-    image_write(mon->image, (v2i){mon->image->size.x / 2 + 0 + mon->eye_x, mon->eye_y}, look_dir == 1 ? black : white);
-    image_write(mon->image, (v2i){mon->image->size.x / 2 + 1 + mon->eye_x, mon->eye_y}, look_dir == 0 ? black : white);
-    image_write(mon->image, (v2i){mon->image->size.x / 2 + 0 + mon->eye_x, mon->eye_y + 1}, look_dir == 2 ? black : white);
-    image_write(mon->image, (v2i){mon->image->size.x / 2 + 1 + mon->eye_x, mon->eye_y + 1}, look_dir == 3 ? black : white);
-
-    image_write(mon->image, (v2i){mon->image->size.x / 2 - 1 - mon->eye_x, mon->eye_y}, look_dir == 0 ? black : white);
-    image_write(mon->image, (v2i){mon->image->size.x / 2 - 2 - mon->eye_x, mon->eye_y}, look_dir == 1 ? black : white);
-    image_write(mon->image, (v2i){mon->image->size.x / 2 - 1 - mon->eye_x, mon->eye_y + 1}, look_dir == 3 ? black : white);
-    image_write(mon->image, (v2i){mon->image->size.x / 2 - 2 - mon->eye_x, mon->eye_y + 1}, look_dir == 2 ? black : white);
-    mon->image->id = id_next();
-}
-
-
 typedef struct {
     // Left and right eye positions
     v2i eye[2];
 
     // Generated image
-    Image *img;
+    Image *image;
 } Monster_Sprite;
 
 static void monster_sprite_look_around(Monster_Sprite *mon, Random *rng) {
@@ -70,16 +21,17 @@ static void monster_sprite_look_around(Monster_Sprite *mon, Random *rng) {
     v4 black = {0, 0, 0, 1};
     v4 white = {1, 1, 1, 1};
 
-    for(u32 i = 0; i < array_count(mon->eye); ++i) {
+    for (u32 i = 0; i < array_count(mon->eye); ++i) {
         v2i eye = mon->eye[i];
-        image_write(mon->img, eye + (v2i) {0,0}, look_dir == 0 ? black : white);
-        image_write(mon->img, eye + (v2i) {1,0}, look_dir == 1 ? black : white);
-        image_write(mon->img, eye + (v2i) {0,1}, look_dir == 3 ? black : white);
-        image_write(mon->img, eye + (v2i) {1,1}, look_dir == 2 ? black : white);
+        image_write(mon->image, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
+        image_write(mon->image, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
+        image_write(mon->image, eye + (v2i){0, 1}, look_dir == 3 ? black : white);
+        image_write(mon->image, eye + (v2i){1, 1}, look_dir == 2 ? black : white);
     }
+    mon->image->id = id_next();
 }
 
-static Monster_Sprite *monster_gen_image(Monster *mon, Memory *mem, Random *rng) {
+static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     float texture = 0.05;
 
     // Initial line widths
@@ -125,18 +77,50 @@ static Monster_Sprite *monster_gen_image(Monster *mon, Memory *mem, Random *rng)
             }
         }
     }
-    mon->image = image;
-    mon->eye_x = eye_x;
-    mon->eye_y = eye_y;
-    monster_set_eyes(mon, rng);
+    Monster_Sprite mon = {
+        .image = image,
+        .eye[0] = {image->size.x / 2 + eye_x, eye_y},
+        .eye[1] = {image->size.x / 2 - 1 - eye_x, eye_y},
+    };
+    monster_sprite_look_around(&mon, rng);
+    return mon;
 }
+
+typedef struct Monster {
+    // ==== Physics ====
+    v3 pos;
+    v3 old_pos;
+
+    // ==== AI ====
+    u32 health;
+
+    // Current movement direction
+    v2 move_dir;
+
+    // Cooldown until new movement direction is chosen
+    f32 move_time;
+
+    // ==== Animation ====
+    // Movement speed
+    f32 speed;
+    f32 wiggle;
+
+    // ==== Graphics ====
+    Monster_Sprite sprite;
+
+    m4 body_mtx;
+    m4 sprite_mtx;
+
+    // ==== Other ====
+    struct Monster *next;
+} Monster;
 
 static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     Monster *mon = mem_struct(mem, Monster);
     mon->pos = pos;
     mon->old_pos = pos;
     mon->health = 10;
-    monster_gen_image(mon, mem, rng);
+    mon->sprite = monster_sprite_generate(mem, rng);
     return mon;
 }
 
@@ -157,7 +141,7 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gf
         if (mode == 0) mon->move_dir = 0;
         if (mode == 1) mon->move_dir = v2_normalize(player->pos.xz - mon->pos.xz) * 0.1;
         if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.25;
-        monster_set_eyes(mon, rng);
+        monster_sprite_look_around(&mon->sprite, rng);
     }
 
     // Player Collision
@@ -178,8 +162,7 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gf
 
     mon->sprite_mtx = m4_id();
     m4_translate(&mon->sprite_mtx, (v3){0, 0.5, 0});
-    m4_scale(&mon->sprite_mtx, (v3){(f32)mon->image->size.x / 32.0f, (f32)mon->image->size.y / 32.0f, 1});
+    m4_scale(&mon->sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
     m4_apply(&mon->sprite_mtx, mon->body_mtx);
-
-    os_gfx_quad(gfx, mon->sprite_mtx, mon->image, false);
+    os_gfx_quad(gfx, mon->sprite_mtx, mon->sprite.image, false);
 }
