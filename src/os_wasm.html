@@ -68,19 +68,147 @@ function js_gfx_init() {
     document.addEventListener("mousedown", (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
     document.addEventListener("mouseup",   (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
         ctx.exports.js_gfx_resize(canvas.width, canvas.height);
-        console.log(ev);
     }, false);
+
+    // # Load Opengl
+    texture_size = 4096;
+
+    var gl = canvas.getContext("webgl2", {
+        alpha: false,
+        depth: true,
+        antialias: false,
+        powerPreference: "high-performance",
+        // desynchoronized: true,
+    });
+    ctx.gl = gl;
+
+    // shader
+    var shader_vert_code =
+       `#version 300 es
+
+        layout (location = 0) in vec3 a_pos;
+        layout (location = 1) in vec2 a_uv;
+
+        out vec2 v_uv;
+        out vec4 v_color;
+
+        uniform mat4 mat;
+
+        void main() {
+            vec4 pos = mat * vec4(a_pos, 1.0);
+
+            v_uv    = a_uv;
+            v_color = vec4(1.0f,1.0f,1.0f,1.0f);
+
+            v_color.xyz *= 1.0f/(dot(pos.xyz, pos.xyz)*0.5f + 1.0f);
+
+            gl_Position = pos;
+        }`;
+
+    var shader_frag_code =
+       `#version 300 es
+
+        precision mediump float;
+
+        out vec4 out_color;
+
+        uniform sampler2D img;
+
+        in vec2 v_uv;
+        in vec4 v_color;
+
+        void main() {
+            out_color = texture(img, v_uv)*v_color;
+            if(out_color.a <= 0.1)
+                discard;
+            out_color.rgb = sqrt(out_color.rgb);
+        }`;
+
+    var shader_vert = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(shader_vert, shader_vert_code);
+    gl.compileShader(shader_vert);
+
+    var shader_frag = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(shader_frag, shader_frag_code);
+    gl.compileShader(shader_frag);
+
+    var shader_prog = gl.createProgram();
+    gl.attachShader(shader_prog, shader_vert);
+    gl.attachShader(shader_prog, shader_frag);
+    gl.linkProgram(shader_prog);
+    gl.useProgram(shader_prog);
+
+    ctx.shader_uniform_img = gl.getUniformLocation(shader_prog, "img");
+    ctx.shader_uniform_mat = gl.getUniformLocation(shader_prog, "mat");
+    ctx.shader_prog = shader_prog;
+
+    // buffers
+    ctx.vertex_buffer = gl.createBuffer();
+    ctx.index_buffer = gl.createBuffer();
+    ctx.texture = gl.createTexture();
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, ctx.texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // These parameters have to be set for the texture.
+    // Otherwise we won't see the textures.
+    // NOTE: REQUIRED, https://www.khronos.org/opengl/wiki/Common_Mistakes#Creating_a_complete_texture/
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL,  0);
+
+    // NOTE: We store the images in linear color space!!!
+    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, texture_size, texture_size, 0, gl.RGBA, gl.FLOAT, 0);
 }
+
+function js_gfx_end() {
+    var gl = ctx.gl;
+    var canvas = ctx.canvas;
+
+    // Clear canvas
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.clearColor(0.2, 0.2, 0.2, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.useProgram(ctx.shader_prog);
+
+    if(ui) {
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+    } else {
+        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+    }
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, ctx.texture);
+}
+
+// os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui);
+function js_gfx_quad(gfx, mtx, img, ui) {}
+
+// Finish drawing the frame and submit it to the gpu
+function js_gfx_end(gfx, camera) {}
 
 fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
     env: {
         js_time,
         js_write,
         js_gfx_grab,
-        },
-    })
-).then(ret => {
+        js_gfx_begin,
+        js_gfx_quad,
+        js_gfx_end,
+    },
+})).then(ret => {
     ctx.memory  = ret.instance.exports.memory;
     ctx.exports = ret.instance.exports;
     console.log(ctx.exports)

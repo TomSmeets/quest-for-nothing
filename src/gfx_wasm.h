@@ -5,6 +5,8 @@
 #include "os.h"
 
 WASM_IMPORT(js_gfx_grab) void js_gfx_grab(bool grab);
+WASM_IMPORT(js_gfx_begin) void js_gfx_begin(void);
+WASM_IMPORT(js_gfx_end)   void js_gfx_end(void);
 
 struct Gfx {
     Input input;
@@ -35,10 +37,13 @@ static void os_gfx_set_mouse_grab(Gfx *gfx, bool grab) {
 }
 
 static void os_gfx_begin(Gfx *gfx) {
+    js_gfx_begin();
 }
+
 static void os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
 }
 static void os_gfx_end(Gfx *gfx, m4 camera) {
+    js_gfx_end();
 }
 
 void js_gfx_key_down(u32 key, bool down) {
@@ -59,4 +64,8 @@ void js_gfx_mouse_down(u32 button, bool down) {
     fmt_suu(OS_FMT, "Mouse: button=", button, " down=", down, "\n");
     if (button == 0) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_LEFT, down);
     if (button == 2) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_RIGHT, down);
+}
+
+void js_gfx_resize(i32 width, i32 height) {
+    fmt_suu(OS_FMT, "Resize: width=", width, " height=", height, "\n");
 }

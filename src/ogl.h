@@ -6,11 +6,11 @@
 #include "image.h"
 #include "mat.h"
 #include "ogl_api.h"
+#include "ogl_api2.h"
 #include "std.h"
 #include "texture_packer.h"
 #include "vec.h"
 
-#define OGL_TEXTURE_WIDTH (2048 * 2)
 
 typedef struct {
     f32 x[3];
@@ -28,7 +28,6 @@ typedef struct {
 
     // Vertex Array Object, Stores bound vertex and index buffers
     GLuint vao;
-
     GLuint vertex_buffer;
     GLuint instance_buffer;
 
@@ -232,9 +231,26 @@ static void ogl_begin(OGL *gl) {
     }
 }
 
-static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
+// Perform a draw call
+static void ogl_draw_single(OGL *gl, m44 projection, bool depth, u32 quad_count, OGL_Quad *quad_list) {
     OGL_Api *api = &gl->api;
 
+    if (depth) {
+        api->glEnable(GL_DEPTH_TEST);
+        api->glDisable(GL_BLEND);
+    } else {
+        api->glDisable(GL_DEPTH_TEST);
+        api->glEnable(GL_BLEND);
+        api->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
+    api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
+    api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
+    api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
+}
+
+static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
     gl->api.glViewport(0, 0, viewport_size.x, viewport_size.y);
     gl->api.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
@@ -244,15 +260,7 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
         f32 aspect_y = viewport_size.y > viewport_size.x ? (f32)viewport_size.y / (f32)viewport_size.x : 1;
 
         m44 projection = m4_perspective_to_clip(view, 70, aspect_x, aspect_y, 0.1, 15.0);
-        api->glEnable(GL_DEPTH_TEST);
-        api->glDisable(GL_BLEND);
-
-        api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
-        api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->quad_count, gl->quad_list, GL_STREAM_DRAW);
-        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
-        api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->quad_count);
-
-        // fmt_su(OS_FMT, "Quad Count: ", gl->quad_count, "\n");
+        ogl_draw_single(gl, projection, true, gl->quad_count, gl->ui_quad_list);
         gl->quad_count = 0;
     }
 
@@ -260,15 +268,7 @@ static void ogl_draw(OGL *gl, m4 camera, v2i viewport_size) {
     {
         m4 cam_inv = m4_id();
         m44 projection = m4_screen_to_clip(cam_inv, viewport_size);
-        api->glDisable(GL_DEPTH_TEST);
-        api->glEnable(GL_BLEND);
-        api->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-        api->glBindBuffer(GL_ARRAY_BUFFER, gl->instance_buffer);
-        api->glBufferData(GL_ARRAY_BUFFER, sizeof(OGL_Quad) * gl->ui_quad_count, gl->ui_quad_list, GL_STREAM_DRAW);
-        api->glUniformMatrix4fv(gl->uniform_proj, 1, false, (GLfloat *)&projection);
-        api->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, gl->ui_quad_count);
-
+        ogl_draw_single(gl, projection, false, gl->quad_count, gl->ui_quad_list);
         // fmt_su(OS_FMT, "UI Quad Count: ", gl->ui_quad_count, "\n");
         gl->ui_quad_count = 0;
     }
@@ -295,7 +295,7 @@ static void ogl_quad(OGL *gl, m4 mtx, Image *img, bool ui) {
             return;
         }
 
-        gl->api.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img->size.x, img->size.y, GL_RGBA, GL_FLOAT, img->pixels);
+        ogl_TexSubImage2D(&gl->api, area->pos.x, area->pos.y, img->size.x, img->size.y, img->pixels);
     }
 
     OGL_Quad quad = {
