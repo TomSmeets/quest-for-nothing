@@ -5,43 +5,25 @@
 
 # Building
 
-Any executable can be compiled simply with a single 'clang' call.
+Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script.
 
-```bash
-# Build 'hot', the build system and hot reloader
-clang -o out/hot src/hot.c
-
-# Build all current supported platforms in debug mode
-out/hot build
-```
-
-# Building
-
-Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script:
-
-```bash
-./build.sh
-```
-
-| Path                | Description                         |
-|---------------------|-------------------------------------|
-| `out/main.elf`      | Standalone Linux (SDL/OpenGL)       |
-| `out/main.exe`      | Standalone Windows (SDL/OpenGL)     |
-| `out/main.wasm`, `out/index.html` | Web build (WebGL2)    |
-| `out/hot`           | Hot reloader                        |
-
-# Hot Reloading
-
-Run `./out/hot src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
-
-For GDB, launch with `gdb --args ./out/hot ./src/main.c` and use the `dir` command to update the source view when needed.
 
 # Building Manually
 
+Any executable can be compiled with a single 'clang' call.
+
 Each executable is compiled as a single unit, with the platform automatically detected based on the `-target` passed to Clang.
 
-- `clang -o ./out/main.elf src/main.c`
+- `clang -o ./out/main src/main.c`
 - `clang -o ./out/hot src/hot.c`
+
+Note that you will need to generate 'asset.h' once using `out/hot asset` when compiling the game.
+
+# Hot Reloading
+
+Run `./out/hot run src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
+
+For GDB, launch with `gdb --args ./out/hot run ./src/main.c` and use the `dir` command to update the source view when needed.
 
 # Version 1.0
 
