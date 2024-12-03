@@ -31,13 +31,12 @@ static void embed_file(Fmt *output, char *name, char *file_path) {
 }
 
 // Embed all assets
-static void embed_all_assets(void) {
-    Memory *mem = mem_new();
-    Fmt *asset_file = fmt_open(mem, "out/asset.h");
+static void embed_all_assets(Memory *tmp) {
+    fmt_s(OS_FMT, "Generating asset.h\n");
+    Fmt *asset_file = fmt_open(tmp, "out/asset.h");
     fmt_s(asset_file, "#pragma once\n");
     fmt_s(asset_file, "// clang-format off\n");
     embed_file(asset_file, "ASSET_SHADER_VERT", "src/gl_shader.vert");
     embed_file(asset_file, "ASSET_SHADER_FRAG", "src/gl_shader.frag");
     fmt_close(asset_file);
-    mem_free(mem);
 }

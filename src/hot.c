@@ -19,7 +19,7 @@ typedef enum {
 } Platform;
 
 static bool hot_system(char *cmd) {
-    fmt_ss(OS_FMT, "> ", cmd, "\n");
+    // fmt_ss(OS_FMT, "> ", cmd, "\n");
 
     int ret = system(cmd);
     if (ret != 0) {
@@ -30,10 +30,20 @@ static bool hot_system(char *cmd) {
 
 // Build single executable using clang
 // This will become a single 'clang' call
-static bool build_single(Memory *mem, char *output, char *input, Platform plat, bool release, bool dynamic) {
+static bool build_single(Memory *tmp, char *output, char *input, Platform plat, bool release, bool dynamic) {
     bool debug = !release;
 
-    Fmt *fmt = fmt_memory(mem);
+    fmt_sss(OS_FMT, "Compiling ", input, " to ", output, " in");
+    if (dynamic) fmt_s(OS_FMT, " Dynamic");
+    fmt_s(OS_FMT, release ? " Release" : " Debug");
+    fmt_s(OS_FMT, " mode");
+    fmt_s(OS_FMT, " for");
+    if (plat == Platform_Linux) fmt_s(OS_FMT, " Linux");
+    if (plat == Platform_Windows) fmt_s(OS_FMT, " Windows");
+    if (plat == Platform_Wasm) fmt_s(OS_FMT, " WASM");
+    fmt_s(OS_FMT, "\n");
+
+    Fmt *fmt = fmt_memory(tmp);
 
     fmt_s(fmt, "clang");
 
@@ -89,7 +99,7 @@ static bool os_exists(char *path) {
     return true;
 }
 
-static void sdl2_download_dll(Memory *mem) {
+static void sdl2_download_dll(void) {
     // Skip if already downloaded
     if (os_exists("out/SDL2.dll")) return;
 
@@ -103,15 +113,15 @@ static void sdl2_download_dll(Memory *mem) {
 #endif
 }
 
-static bool build_all(Memory *mem, bool release) {
-    if (!build_single(mem, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(mem, "out/hot", "src/hot.c", Platform_Windows, release, false)) return 0;
+static bool build_all(Memory *tmp, bool release) {
+    if (!build_single(tmp, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(tmp, "out/hot.exe", "src/hot.c", Platform_Windows, release, false)) return 0;
 
-    embed_all_assets();
-    sdl2_download_dll(mem);
-    if (!build_single(mem, "out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(mem, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
-    if (!build_single(mem, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
+    embed_all_assets(tmp);
+    sdl2_download_dll();
+    if (!build_single(tmp, "out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(tmp, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
+    if (!build_single(tmp, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
 
     if (!hot_system("cp src/os_wasm.html out/index.html")) {
         fmt_s(OS_FMT, "Failed to copy\n");
@@ -124,22 +134,22 @@ static bool build_all(Memory *mem, bool release) {
 // Implementation
 typedef void os_main_t(OS *os);
 
-static os_main_t *build_and_load(Memory *mem, char *main_path, u64 counter) {
+static os_main_t *build_and_load(Memory *tmp, char *main_path, u64 counter) {
     // Generate 'asset.h'
-    embed_all_assets();
+    embed_all_assets(tmp);
 
 #if OS_IS_WINDOWS
-    sdl2_download_dll(mem);
+    sdl2_download_dll();
 #endif
 
-    Fmt *out_path_fmt = fmt_memory(mem);
+    Fmt *out_path_fmt = fmt_memory(tmp);
 #if OS_IS_WINDOWS
     fmt_su(out_path_fmt, "out/hot-", counter, ".dll");
 #else
     fmt_su(out_path_fmt, "out/hot-", counter, ".so");
 #endif
     char *out_path = fmt_close(out_path_fmt);
-    bool ok = build_single(mem, out_path, main_path, Platform_Linux, false, true);
+    bool ok = build_single(tmp, out_path, main_path, Platform_Linux, false, true);
 
     if (!ok) {
         fmt_s(OS_FMT, "Compile error!\n");
@@ -182,8 +192,8 @@ static void exit_with_help(OS *os) {
     fmt_ss(OS_FMT, "Usage: ", name, " <action> [args]...\n");
     fmt_s(OS_FMT, "\n");
     fmt_s(OS_FMT, "Actions:\n");
-    fmt_s(OS_FMT, "  run <main> [args]...    Build and run target with hot reloading.\n");
     fmt_s(OS_FMT, "  build                   Build all targets for debugging.\n");
+    fmt_s(OS_FMT, "  run <main> [args]...    Build and run target with hot reloading.\n");
     fmt_s(OS_FMT, "  watch                   Build all targets for debugging on every change.\n");
     fmt_s(OS_FMT, "  release                 Build all targets for relase.\n");
     fmt_s(OS_FMT, "  asset                   Generate code for embedded assets.\n");
@@ -234,7 +244,7 @@ static Hot *hot_init(OS *os) {
         build_all(tmp, true);
         os_exit(0);
     } else if (str_eq(action, "asset")) {
-        embed_all_assets();
+        embed_all_assets(tmp);
         os_exit(0);
     } else if (str_eq(action, "format")) {
         assert(hot_system("clang-format -i src/*"), "Format failed!\n");
