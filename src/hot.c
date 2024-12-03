@@ -67,7 +67,7 @@ static bool build_single(Memory *mem, char *output, char *input, Platform plat, 
     }
 
     // Don't optimize, quick compile times
-    if (debug) fmt_s(fmt, " -O0 -g0");
+    if (debug) fmt_s(fmt, " -O0 -g");
     if (release) fmt_s(fmt, " -O3 -Xlinker --strip-all");
 
     // Create a '.so' file for dynamic loading
@@ -81,11 +81,34 @@ static bool build_single(Memory *mem, char *output, char *input, Platform plat, 
     return ok;
 }
 
+// Check if file exists
+static bool os_exists(char *path) {
+    File *f = os_open(path, Open_Read);
+    if (!f) return false;
+    os_close(f);
+    return true;
+}
+
+static void sdl2_download_dll(Memory *mem) {
+    // Skip if already downloaded
+    if (os_exists("out/SDL2.dll")) return;
+
+#if OS_IS_WINDOWS
+    fmt_s(OS_FMT, "Please download SDL2.dll into the 'out/' directory\n");
+    fmt_s(OS_FMT, "Download here: https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip\n");
+#else
+    // Download sdl2
+    hot_system("curl -L 'https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip' -o out/SDL2.zip");
+    hot_system("unzip -o out/SDL2.zip SDL2.dll -d out");
+#endif
+}
+
 static bool build_all(Memory *mem, bool release) {
-    embed_all_assets();
     if (!build_single(mem, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
     if (!build_single(mem, "out/hot", "src/hot.c", Platform_Windows, release, false)) return 0;
 
+    embed_all_assets();
+    sdl2_download_dll(mem);
     if (!build_single(mem, "out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
     if (!build_single(mem, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
     if (!build_single(mem, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
@@ -104,6 +127,10 @@ typedef void os_main_t(OS *os);
 static os_main_t *build_and_load(Memory *mem, char *main_path, u64 counter) {
     // Generate 'asset.h'
     embed_all_assets();
+
+#if OS_IS_WINDOWS
+    sdl2_download_dll(mem);
+#endif
 
     Fmt *out_path_fmt = fmt_memory(mem);
 #if OS_IS_WINDOWS

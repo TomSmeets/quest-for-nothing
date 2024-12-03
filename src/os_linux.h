@@ -87,7 +87,10 @@ static File *os_open(char *path, OS_Open_Type type) {
     } else if (type == Open_Read) {
         fd = open(path, O_RDONLY);
     }
-    assert(fd >= 0, "Failed to open file");
+
+    // Failed to open file
+    if (fd <= 0) return 0;
+
     return fd_to_file(fd);
 }
 

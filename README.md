@@ -5,8 +5,13 @@
 
 # Building
 
+Any executable can be compiled simply with a single 'clang' call.
+
 ```bash
+# Build 'hot', the build system and hot reloader
 clang -o out/hot src/hot.c
+
+# Build all current supported platforms in debug mode
 out/hot build
 ```
 
