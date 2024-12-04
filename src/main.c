@@ -64,7 +64,7 @@ static App *app_init(void) {
 
     app->mem = mem;
     app->game = game_new();
-    app->gfx = os_gfx_init(mem, "Quest For Nothing");
+    app->gfx = gfx_init(mem, "Quest For Nothing");
     app->gun = gen_gun(mem);
     app->cursor = gen_cursor(mem);
     audio_play(&app->audio, 0, 1e9, rand_f32(&app->game->rng));
@@ -136,19 +136,19 @@ static void handle_basic_input(Input *input, Gfx *gfx) {
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) {
-        os_gfx_set_mouse_grab(gfx, true);
+        gfx_set_grab(gfx, true);
     }
 
     // Release Grab on focus lost or Esc
     if ((input->focus_lost || key_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
         fmt_s(OS_FMT, "RELEASE\n");
-        os_gfx_set_mouse_grab(gfx, false);
+        gfx_set_grab(gfx, false);
     }
 
     // Grab with G
     if (key_click(input, KEY_G)) {
         fmt_s(OS_FMT, "Grab!\n");
-        os_gfx_set_mouse_grab(gfx, !input->mouse_is_grabbed);
+        gfx_set_grab(gfx, !input->mouse_is_grabbed);
     }
 }
 
@@ -165,8 +165,8 @@ static void os_main(OS *os) {
     // 'dt' is the time this frame will take in secods
     f32 dt = time_begin(&app->time, 60);
 
-    // Start rendering
-    os_gfx_begin(app->gfx);
+    // Read Input and start render
+    Input *input = gfx_begin(app->gfx);
 
     if (0) {
         fmt_s(OS_FMT, "P: ");
@@ -177,9 +177,6 @@ static void os_main(OS *os) {
         fmt_v3(OS_FMT, app->game->player->head_mtx.z);
         fmt_s(OS_FMT, "\n");
     }
-
-    // Read Input
-    Input *input = os_gfx_poll(app->gfx);
 
     // Handle System keys (Quittng, Mouse grab, etc...)
     handle_basic_input(input, app->gfx);
@@ -205,7 +202,7 @@ static void os_main(OS *os) {
         m4 mtx = m4_id();
         m4_scale(&mtx, (v3){32, 32, 1});
         if (!input->mouse_is_grabbed) m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
-        os_gfx_quad(app->gfx, mtx, app->cursor, true);
+        gfx_quad_ui(app->gfx, mtx, app->cursor);
     }
 
     // Draw level
@@ -219,15 +216,15 @@ static void os_main(OS *os) {
         // if (cell->x_pos) ogl_quad(app->gl, &mtx, cell->x_pos);
         // if (cell->z_pos) ogl_quad(app->gl, &mtx, cell->z_pos);
         // if (cell->y_pos) ogl_quad(app->gl, &mtx, cell->y_pos);
-        if (cell->x_neg) os_gfx_quad(app->gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg, false);
-        if (cell->z_neg) os_gfx_quad(app->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg, false);
+        if (cell->x_neg) gfx_quad_3d(app->gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg);
+        if (cell->z_neg) gfx_quad_3d(app->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg);
 
-        if (cell->x_pos) os_gfx_quad(app->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos, false);
-        if (cell->z_pos) os_gfx_quad(app->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos, false);
+        if (cell->x_pos) gfx_quad_3d(app->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos);
+        if (cell->z_pos) gfx_quad_3d(app->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
 
         // OK
-        if (cell->y_neg) os_gfx_quad(app->gfx, (m4){x, z, -y, p}, cell->y_neg, false);
-        if (cell->y_pos) os_gfx_quad(app->gfx, (m4){x, -z, y, p + y}, cell->y_pos, false);
+        if (cell->y_neg) gfx_quad_3d(app->gfx, (m4){x, z, -y, p}, cell->y_neg);
+        if (cell->y_pos) gfx_quad_3d(app->gfx, (m4){x, -z, y, p + y}, cell->y_pos);
     }
 
     {
@@ -239,7 +236,7 @@ static void os_main(OS *os) {
         m4_rotate_y(&mtx, R1);
         m4_translate(&mtx, (v3){.17, -0.12, .2});
         m4_apply(&mtx, pl->head_mtx);
-        os_gfx_quad(app->gfx, mtx, app->gun, false);
+        gfx_quad_3d(app->gfx, mtx, app->gun);
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) {
@@ -257,7 +254,7 @@ static void os_main(OS *os) {
         app->shoot_time = 0;
 
     // Finish
-    os_gfx_end(app->gfx, pl->head_mtx);
+    gfx_end(app->gfx, pl->head_mtx);
     mem_free(tmp);
     os->sleep_time = time_end(&app->time);
 }

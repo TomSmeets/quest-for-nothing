@@ -87,5 +87,5 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gf
     m4_translate(&mon->sprite_mtx, (v3){0, 0.5, 0});
     m4_scale(&mon->sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
     m4_apply(&mon->sprite_mtx, mon->body_mtx);
-    os_gfx_quad(gfx, mon->sprite_mtx, mon->sprite.image, false);
+    gfx_quad_3d(gfx, mon->sprite_mtx, mon->sprite.image);
 }

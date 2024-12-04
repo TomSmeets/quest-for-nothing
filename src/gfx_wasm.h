@@ -8,44 +8,6 @@ WASM_IMPORT(js_gfx_grab) void js_gfx_grab(bool grab);
 WASM_IMPORT(js_gfx_begin) void js_gfx_begin(void);
 WASM_IMPORT(js_gfx_end)   void js_gfx_end(void);
 
-struct Gfx {
-    Input input;
-    Input input_copy;
-};
-
-static Gfx GFX_GLOBAL;
-
-static Gfx *os_gfx_init(Memory *mem, char *title) {
-    return &GFX_GLOBAL;
-}
-
-static Input *os_gfx_poll(Gfx *gfx) {
-    Input *input = &gfx->input;
-
-    // Atomic copy of input, js will get events while we are updating
-    gfx->input_copy = *input;
-
-    // Reset input
-    input_reset(input);
-
-    return &gfx->input_copy;
-}
-
-static void os_gfx_set_mouse_grab(Gfx *gfx, bool grab) {
-    js_gfx_grab(grab);
-    gfx->input.mouse_is_grabbed = grab;
-}
-
-static void os_gfx_begin(Gfx *gfx) {
-    js_gfx_begin();
-}
-
-static void os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
-}
-static void os_gfx_end(Gfx *gfx, m4 camera) {
-    js_gfx_end();
-}
-
 void js_gfx_key_down(u32 key, bool down) {
     fmt_suu(OS_FMT, "KEY: key=", key, " down=", down, "\n");
     input_emit(&GFX_GLOBAL.input, key_from_char(key), down);
