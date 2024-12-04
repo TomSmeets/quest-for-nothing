@@ -48,13 +48,13 @@ static void gfx_end(Gfx *gfx, m4 camera) {
 
     // 3d World
     m44 projection = m4_perspective_to_clip(view, 70, aspect_x, aspect_y, 0.1, 15.0);
-    os_gfx_draw(gfx->os, projection, true, gfx->quad_count, gfx->ui_quad_list);
+    os_gfx_draw(gfx->os, projection, true, gfx->quad_count, gfx->quad_list);
     gfx->quad_count = 0;
 
     // 2d UI
     m4 ui_view = m4_id();
     m44 ui_projection = m4_screen_to_clip(ui_view, gfx->viewport_size);
-    os_gfx_draw(gfx->os, ui_projection, false, gfx->quad_count, gfx->ui_quad_list);
+    os_gfx_draw(gfx->os, ui_projection, false, gfx->ui_quad_count, gfx->ui_quad_list);
     gfx->ui_quad_count = 0;
 
     // Swap windows

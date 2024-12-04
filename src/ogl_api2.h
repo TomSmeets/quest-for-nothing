@@ -1,9 +1,9 @@
 // ogl_api2.h: opengl api abstrcation between webgl2 and desktop opengl 3.3
 #pragma once
 
+#include "fmt.h"
 #include "ogl_api.h"
 #include "types.h"
-#include "fmt.h"
 
 static GLuint _ogl_compile_shader_single(OGL_Api *gl, GLenum type, char *source) {
     GLuint shader = gl->glCreateShader(type);

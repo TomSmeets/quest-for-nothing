@@ -40,10 +40,8 @@ function js_write(data, len) {
 
 // Grab the mouse
 function js_gfx_grab(grab) {
-    console.log("Grab: " + grab)
     if(grab) {
         canvas.requestPointerLock()
-        // canvas.requestPointerLock({unadjustedMovement: true}) }
     } else {
         document.exitPointerLock()
     }
@@ -53,28 +51,34 @@ function js_loop() {
     try {
         let result = ctx.exports.js_main()
         let timeout = Number(result) / 1000
-        // console.log("Timeout: " + timeout)
         window.setTimeout(js_loop, timeout)
     } catch(error) {
         // Exit called
+        console.log("Exit: ", error);
     }
 }
 
 function js_gfx_init() {
     ctx.canvas = document.getElementById('canvas')
-    document.addEventListener("keydown",   (ev) => { console.log(ev); ctx.exports.js_gfx_key_down(ev.keyCode, true) }, true)
-    document.addEventListener("keyup",     (ev) => { console.log(ev); ctx.exports.js_gfx_key_down(ev.keyCode, false) }, true)
+
+    document.addEventListener("keydown",   (ev) => { ctx.exports.js_gfx_key_down(ev.keyCode, true) }, true)
+    document.addEventListener("keyup",     (ev) => { ctx.exports.js_gfx_key_down(ev.keyCode, false) }, true)
     document.addEventListener("mousemove", (ev) => { ctx.exports.js_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
-    document.addEventListener("mousedown", (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
-    document.addEventListener("mouseup",   (ev) => { console.log(ev); ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
+    document.addEventListener("mousedown", (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
+    document.addEventListener("mouseup",   (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         ctx.exports.js_gfx_resize(canvas.width, canvas.height);
     }, false);
 
+    // Send initial size to wasm
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.exports.js_gfx_resize(canvas.width, canvas.height);
+
     // # Load Opengl
-    texture_size = 4096;
+    const texture_size = 4096;
 
     var gl = canvas.getContext("webgl2", {
         alpha: false,
@@ -86,133 +90,201 @@ function js_gfx_init() {
     ctx.gl = gl;
 
     // shader
-    var shader_vert_code =
+    const shader_vert_code =
        `#version 300 es
-
-        layout (location = 0) in vec3 a_pos;
-        layout (location = 1) in vec2 a_uv;
-
-        out vec2 v_uv;
-        out vec4 v_color;
-
-        uniform mat4 mat;
-
+        layout(location = 0) in vec2 vert_pos;
+        
+        layout(location = 1) in vec3 quad_x;
+        layout(location = 2) in vec3 quad_y;
+        layout(location = 3) in vec3 quad_z;
+        
+        layout(location = 4) in vec3 quad_w;
+        
+        layout(location = 5) in vec2 quad_uv_pos;
+        layout(location = 6) in vec2 quad_uv_size;
+        
+        out vec2 frag_uv;
+        out vec3 frag_normal;
+        out float frag_z;
+        
+        uniform mat4 proj;
+        
         void main() {
-            vec4 pos = mat * vec4(a_pos, 1.0);
-
-            v_uv    = a_uv;
-            v_color = vec4(1.0f,1.0f,1.0f,1.0f);
-
-            v_color.xyz *= 1.0f/(dot(pos.xyz, pos.xyz)*0.5f + 1.0f);
-
-            gl_Position = pos;
+            frag_uv = quad_uv_pos + quad_uv_size * 0.5 + vert_pos * quad_uv_size * vec2(1.0, -1.0) * (1.0 - 0.25 / 32.0);
+            frag_normal = quad_z;
+            vec3 pos = quad_w + vert_pos.x * quad_x + vert_pos.y * quad_y;
+            gl_Position = proj * vec4(pos, 1.0);
+            frag_z = gl_Position.z;
         }`;
 
-    var shader_frag_code =
-       `#version 300 es
+    const  shader_frag_code =
+        `#version 300 es
 
-        precision mediump float;
+         precision mediump float;
 
-        out vec4 out_color;
+         in vec2 frag_uv;
+         in vec3 frag_normal;
+         in float frag_z;
 
-        uniform sampler2D img;
+         out vec4 out_color;
 
-        in vec2 v_uv;
-        in vec4 v_color;
+         uniform sampler2D img;
 
-        void main() {
-            out_color = texture(img, v_uv)*v_color;
-            if(out_color.a <= 0.1)
-                discard;
-            out_color.rgb = sqrt(out_color.rgb);
-        }`;
+         void main() {
+             vec2 texture_size = vec2(2048.0 * 2.0);
+             vec2 box_size = min(fwidth(frag_uv) * texture_size, 1.0);
+             vec2 tx = frag_uv * texture_size - 0.5 * box_size;
+             vec2 tx_offset = smoothstep(vec2(1.0) - box_size, vec2(1.0), fract(tx));
+             vec2 uv = (floor(tx) + 0.5 + tx_offset) / texture_size;
 
-    var shader_vert = gl.createShader(gl.VERTEX_SHADER);
+             out_color = textureGrad(img, uv, dFdx(frag_uv), dFdy(frag_uv));
+             float z_near = 0.1;
+             float z_far = 15.0;
+             out_color.rgb = mix(out_color.rgb, vec3(0.02), min((frag_z - z_near) / (z_far - z_near), 1.0));
+             if (out_color.a < 0.5) discard;
+         }`;
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+
+    const vertex_buffer = gl.createBuffer();
+    const instance_buffer = gl.createBuffer();
+
+    const shader_vert = gl.createShader(gl.VERTEX_SHADER);
     gl.shaderSource(shader_vert, shader_vert_code);
     gl.compileShader(shader_vert);
 
-    var shader_frag = gl.createShader(gl.FRAGMENT_SHADER);
+    const shader_frag = gl.createShader(gl.FRAGMENT_SHADER);
     gl.shaderSource(shader_frag, shader_frag_code);
     gl.compileShader(shader_frag);
 
-    var shader_prog = gl.createProgram();
+    const shader_prog = gl.createProgram();
     gl.attachShader(shader_prog, shader_vert);
     gl.attachShader(shader_prog, shader_frag);
     gl.linkProgram(shader_prog);
     gl.useProgram(shader_prog);
 
-    ctx.shader_uniform_img = gl.getUniformLocation(shader_prog, "img");
-    ctx.shader_uniform_mat = gl.getUniformLocation(shader_prog, "mat");
-    ctx.shader_prog = shader_prog;
+    const shader_uniform_proj = gl.getUniformLocation(shader_prog, "proj");
 
-    // buffers
-    ctx.vertex_buffer = gl.createBuffer();
-    ctx.index_buffer = gl.createBuffer();
-    ctx.texture = gl.createTexture();
+    // Setup Vertex Buffer
+    const verts = new Float32Array([
+        // Top Left
+        -0.5, 0.5,
+         0.5, 0.5,
+        -0.5, -0.5,
+        // Bottom Right
+         0.5, -0.5,
+        -0.5, -0.5,
+         0.5, 0.5,
+    ]);
 
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertex_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, verts, gl.STREAM_DRAW);
+
+    gl.enableVertexAttribArray(0);
+    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 2 * 4, 0);
+
+    // Setup Instances
+    gl.bindBuffer(gl.ARRAY_BUFFER, instance_buffer);
+
+    for (let i = 1; i <= 6; i++) {
+        gl.enableVertexAttribArray(i);
+        gl.vertexAttribDivisor(i, 1);
+    }
+
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 64, 4*0);
+    gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 64, 4*3);
+    gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 64, 4*6);
+    gl.vertexAttribPointer(4, 3, gl.FLOAT, false, 64, 4*9);
+    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 64, 4*12);
+    gl.vertexAttribPointer(6, 2, gl.FLOAT, false, 64, 4*14);
+
+    // Texture atlas
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, ctx.texture);
+
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     // These parameters have to be set for the texture.
-    // Otherwise we won't see the textures.
+    // Otherwise, we won't see the textures.
     // NOTE: REQUIRED, https://www.khronos.org/opengl/wiki/Common_Mistakes#Creating_a_complete_texture/
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL,  0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
+    
+    // NOTE: Linear color space
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 4096, 4096, 0, gl.RGBA, gl.FLOAT, null);
 
-    // NOTE: We store the images in linear color space!!!
-    // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, texture_size, texture_size, 0, gl.RGBA, gl.FLOAT, 0);
+    // Set WebGL Settings
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.FRONT);
+    gl.clearColor(1.00, 0.00, 0.00, 1);
+
+    ctx.instance_buffer = instance_buffer;
+    ctx.uniform_proj = shader_uniform_proj;
 }
 
-function js_gfx_end() {
+function js_gfx_begin() {
     var gl = ctx.gl;
     var canvas = ctx.canvas;
 
     // Clear canvas
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(0.2, 0.2, 0.2, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    gl.useProgram(ctx.shader_prog);
-
-    if(ui) {
-        gl.disable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-    } else {
-        gl.enable(gl.DEPTH_TEST);
-        gl.disable(gl.BLEND);
-    }
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.CULL_FACE);
-    gl.cullFace(gl.BACK);
-
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, ctx.texture);
 }
 
-// os_gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui);
-function js_gfx_quad(gfx, mtx, img, ui) {}
+function js_gfx_texture(x, y, sx, sy, pixels) {
+    const gl = ctx.gl;
+    const pixel_array = new Float32Array(ctx.memory.buffer, pixels, sx*sy*4);
+    gl.texSubImage2D( gl.TEXTURE_2D, 0,  x,  y,  sx,  sy,  gl.RGBA,  gl.FLOAT,  pixel_array);
+}
 
-// Finish drawing the frame and submit it to the gpu
-function js_gfx_end(gfx, camera) {}
+function js_gfx_draw(projection, depth, quad_count, quad_list) {
+    const gl = ctx.gl;
+    const quad_array = new Float32Array(ctx.memory.buffer, quad_list, quad_count*16);
+    const projection_array = new Float32Array(ctx.memory.buffer, projection, 4*4);
+
+    if (depth) {
+        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.BLEND);
+    } else {
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
+
+    // Bind and update instance buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, ctx.instance_buffer);
+    gl.bufferData(gl.ARRAY_BUFFER, quad_array, gl.STREAM_DRAW);
+
+    // Set projection uniform
+    gl.uniformMatrix4fv(ctx.uniform_proj, false, projection_array);
+
+    // Perform instanced draw call
+    gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, quad_count);
+}
+
+function js_gfx_end() {
+}
 
 fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
     env: {
         js_time,
         js_write,
         js_gfx_grab,
+        js_gfx_init,
         js_gfx_begin,
-        js_gfx_quad,
+        js_gfx_texture,
+        js_gfx_draw,
         js_gfx_end,
     },
 })).then(ret => {
     ctx.memory  = ret.instance.exports.memory;
     ctx.exports = ret.instance.exports;
-    console.log(ctx.exports)
-    js_gfx_init()
     js_loop()
 });
 </script>

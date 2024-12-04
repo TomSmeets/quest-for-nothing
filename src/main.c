@@ -163,7 +163,7 @@ static void os_main(OS *os) {
 
     // Frame Timing
     // 'dt' is the time this frame will take in secods
-    f32 dt = time_begin(&app->time, 60);
+    f32 dt = time_begin(&app->time, 120);
 
     // Read Input and start render
     Input *input = gfx_begin(app->gfx);

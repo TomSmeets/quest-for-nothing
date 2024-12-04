@@ -1,9 +1,9 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // os_gfx.h - Graphics, Audio, and Input handling abstraction api definition
 #pragma once
+#include "asset.h"
 #include "image.h"
 #include "input.h"
-#include "asset.h"
 #include "mat.h"
 #include "math.h"
 #include "os.h"
@@ -47,8 +47,8 @@ static void os_gfx_audio_callback(OS *os, f32 dt, u32 count, v2 *samples);
 static void os_gfx_end(OS_Gfx *gfx);
 
 #if OS_IS_WINDOWS || OS_IS_LINUX
-#include "sdl.h"
 #include "ogl_api.h"
+#include "sdl.h"
 
 struct OS_Gfx {
     OGL_Api gl;
