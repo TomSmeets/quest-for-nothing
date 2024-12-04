@@ -6,7 +6,7 @@
 // range = [-0.5, 0.5]
 layout(location = 0) in vec2 vert_pos;
 
-// Rotation + Scalej
+// Rotation + Scale
 layout(location = 1) in vec3 quad_x;
 layout(location = 2) in vec3 quad_y;
 layout(location = 3) in vec3 quad_z;
