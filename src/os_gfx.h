@@ -33,6 +33,7 @@ static Input *os_gfx_begin(OS_Gfx *gfx);
 
 // Grab mouse
 static void os_gfx_set_grab(OS_Gfx *gfx, bool grab);
+static void os_gfx_set_fullscreen(OS_Gfx *gfx, bool full);
 
 // Write to texture atlas
 static void os_gfx_texture(OS_Gfx *gfx, v2u pos, Image *img);
@@ -242,6 +243,11 @@ static void os_gfx_set_grab(OS_Gfx *gfx, bool grab) {
     sdl_set_mouse_grab(gfx->sdl, grab);
 }
 
+static void os_gfx_set_fullscreen(OS_Gfx *gfx, bool full) {
+    gfx->sdl->api.SDL_SetWindowFullscreen(gfx->sdl->win, full ? SDL_WINDOW_FULLSCREEN : 0);
+    gfx->sdl->input.is_fullscreen = full;
+}
+
 // Write to texture atlas
 static void os_gfx_texture(OS_Gfx *gfx, v2u pos, Image *img) {
     gfx->gl.glTexSubImage2D(GL_TEXTURE_2D, 0, pos.x, pos.y, img->size.x, img->size.y, GL_RGBA, GL_FLOAT, img->pixels);
@@ -272,6 +278,7 @@ static void os_gfx_end(OS_Gfx *gfx) {
 }
 #elif OS_IS_WASM
 WASM_IMPORT(js_gfx_grab) void js_gfx_grab(bool grab);
+WASM_IMPORT(js_gfx_fullscreen) void js_gfx_fullscreen(bool fullscreen);
 WASM_IMPORT(js_gfx_begin) void js_gfx_begin(void);
 WASM_IMPORT(js_gfx_init) void js_gfx_init(void);
 WASM_IMPORT(js_gfx_texture) void js_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
@@ -310,6 +317,11 @@ static Input *os_gfx_begin(OS_Gfx *gfx) {
 static void os_gfx_set_grab(OS_Gfx *gfx, bool grab) {
     js_gfx_grab(grab);
     gfx->input.mouse_is_grabbed = grab;
+}
+
+static void os_gfx_set_fullscreen(OS_Gfx *gfx, bool full) {
+    js_gfx_fullscreen(full);
+    gfx->input.is_fullscreen = full;
 }
 
 // Write to texture atlas

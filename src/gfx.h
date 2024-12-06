@@ -112,3 +112,7 @@ static void gfx_quad_3d(Gfx *gfx, m4 mtx, Image *img) {
 static void gfx_set_grab(Gfx *gfx, bool grab) {
     os_gfx_set_grab(gfx->os, grab);
 }
+
+static void gfx_set_fullscreen(Gfx *gfx, bool full) {
+    os_gfx_set_fullscreen(gfx->os, full);
+}

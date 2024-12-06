@@ -89,6 +89,7 @@ typedef struct {
 
     // Events
     bool mouse_is_grabbed;
+    bool is_fullscreen;
 
     bool quit;
 } Input;

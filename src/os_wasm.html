@@ -47,6 +47,15 @@ function js_gfx_grab(grab) {
     }
 }
 
+// Grab the mouse
+function js_gfx_fullscreen(full) {
+    if(full) {
+        canvas.requestFullscreen()
+    } else {
+        document.exitFullscreen()
+    }
+}
+
 function js_loop() {
     try {
         let result = ctx.exports.js_main()
@@ -276,6 +285,7 @@ fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instant
         js_time,
         js_write,
         js_gfx_grab,
+        js_gfx_fullscreen,
         js_gfx_init,
         js_gfx_begin,
         js_gfx_texture,

@@ -150,6 +150,10 @@ static void handle_basic_input(Input *input, Gfx *gfx) {
         fmt_s(OS_FMT, "Grab!\n");
         gfx_set_grab(gfx, !input->mouse_is_grabbed);
     }
+
+    if (key_click(input, KEY_F)) {
+        gfx_set_fullscreen(gfx, !input->is_fullscreen);
+    }
 }
 
 static void os_main(OS *os) {
