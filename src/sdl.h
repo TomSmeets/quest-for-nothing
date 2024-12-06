@@ -126,9 +126,9 @@ static Input *sdl_poll(Sdl *sdl) {
                 input->mouse_pos.x = src.motion.x - input->window_size.x / 2;
                 input->mouse_pos.y = input->window_size.y / 2 - src.motion.y;
             }
-            fmt_sffff(
-                OS_FMT, "Mouse: x=", input->mouse_pos.x, " y=", input->mouse_pos.y, " dx=", input->mouse_rel.x, " dy=", input->mouse_rel.y, "\n"
-            );
+            // fmt_sffff(
+            //     OS_FMT, "Mouse: x=", input->mouse_pos.x, " y=", input->mouse_pos.y, " dx=", input->mouse_rel.x, " dy=", input->mouse_rel.y, "\n"
+            // );
         }
 
         if (src.type == SDL_MOUSEBUTTONDOWN || src.type == SDL_MOUSEBUTTONUP) {

@@ -131,7 +131,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
 
 static void handle_basic_input(Input *input, Gfx *gfx) {
     // Quit
-    if (input->quit || key_down(input, KEY_Q)) {
+    if (input->quit || (key_down(input, KEY_SHIFT) && key_down(input, KEY_Q))) {
         os_exit(0);
     }
 
