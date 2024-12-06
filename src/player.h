@@ -42,7 +42,7 @@ static Player_Input player_parse_input(Input *input) {
     if (key_down(input, KEY_SPACE)) in.jump = 1;
     if (key_down(input, KEY_SPACE)) in.move.y += 1;
     if (key_down(input, KEY_SHIFT)) in.move.y -= 1;
-    if (key_click(input, KEY_F)) in.fly = 1;
+    if (key_click(input, KEY_3)) in.fly = 1;
 
     if (input->mouse_is_grabbed) {
         in.look.y += (f32)input->mouse_rel.x / 1000.0f;
