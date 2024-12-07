@@ -125,7 +125,7 @@ static void game_update(Game *game, Engine *eng) {
         game->shoot_time = 0;
 
     for (Monster *mon = game->monsters; mon; mon = mon->next) {
-        monster_update(mon, eng->dt, game->player, &game->rng, eng->gfx);
+        monster_update(mon, eng, game->player);
     }
 
     // Draw level

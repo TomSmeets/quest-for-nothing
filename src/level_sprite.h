@@ -25,7 +25,7 @@ static Image *level_sprite_generate(Memory *mem, Random *rng) {
 
             v3 color = WHITE;
             color = color_blend(color, 0, color_splatter(rng, 0.8, 0.0, 0.1));
-            color = color_blend(color, (v3){27, 94, 32} / 255.0f, color_splatter(rng, 0.01, 0.2, 0.8));
+            // color = color_blend(color, (v3){27, 94, 32} / 255.0f, color_splatter(rng, 0.01, 0.2, 0.8));
 
             // Border
             color = color_blend(color, (v3){.3, .3, .3}, f_clamp(1 - r * 0.3, 0, 1));

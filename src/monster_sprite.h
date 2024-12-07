@@ -14,15 +14,17 @@ typedef struct {
 
     // Generated image
     Image *image;
+
+    u32 eye_count;
 } Monster_Sprite;
 
 // Update monster eye position
 static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
-    u32 look_dir = rand_u32(rng) % 4;
     v3 black = {0, 0, 0};
     v3 white = {1, 1, 1};
 
-    for (u32 i = 0; i < array_count(mon->eye); ++i) {
+    for (u32 i = 0; i < mon->eye_count; ++i) {
+        u32 look_dir = rand_u32(rng) % 4;
         v2i eye = mon->eye[i];
         image_write(mon->image, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
         image_write(mon->image, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
@@ -92,11 +94,14 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     }
     Monster_Sprite mon = {
         .image = image,
-        .eye[0] = {image->size.x / 2 + eye_x, eye_y},
-
-        // This is not centered, but I like this even more tbh
-        .eye[1] = {image->size.x / 2 - 1 - eye_x, eye_y},
     };
+
+    if (eye_x <= 1) eye_x = 0;
+
+    mon.eye[mon.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
+
+    // This is not centered, but I like this even more tbh
+    if (eye_x > 0) mon.eye[mon.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
     monster_sprite_update_eyes(&mon, rng);
     return mon;
 }

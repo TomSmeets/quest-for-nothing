@@ -2,6 +2,7 @@
 // monster.h - Monster logic and AI
 #pragma once
 #include "color.h"
+#include "engine.h"
 #include "gfx.h"
 #include "image.h"
 #include "monster_sprite.h"
@@ -47,24 +48,24 @@ static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     return mon;
 }
 
-static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gfx *gfx) {
+static void monster_update(Monster *mon, Engine *eng, Player *player) {
     // ==== Physics ====
     v3 vel = mon->pos - mon->old_pos;
     mon->old_pos = mon->pos;
 
     // Apply movement
-    mon->pos.xz += mon->move_dir * dt;
+    mon->pos.xz += mon->move_dir * eng->dt;
 
-    mon->move_time -= dt;
+    mon->move_time -= eng->dt;
     if (mon->move_time <= 0) {
-        mon->move_time = rand_f32_range(rng, 2, 10);
+        mon->move_time = rand_f32_range(&eng->rng, 2, 10);
 
-        u32 mode = rand_u32_range(rng, 0, 2);
+        u32 mode = rand_u32_range(&eng->rng, 0, 2);
         // fmt_su(OS_FMT, "mode=", mode, "\n");
         if (mode == 0) mon->move_dir = 0;
         if (mode == 1) mon->move_dir = v2_normalize(player->pos.xz - mon->pos.xz) * 0.1;
-        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(rng) * PI) * 0.25;
-        monster_sprite_update_eyes(&mon->sprite, rng);
+        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
+        monster_sprite_update_eyes(&mon->sprite, &eng->rng);
     }
 
     // Player Collision
@@ -78,7 +79,7 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gf
 
     // ==== Animation ====
     f32 speed = v3_length(vel);
-    mon->speed += (speed / dt - mon->speed) * dt;
+    mon->speed += (speed / eng->dt - mon->speed) * eng->dt;
     mon->wiggle += speed * 2;
     mon->wiggle = f_fract(mon->wiggle);
     mon->body_mtx = m4_billboard(mon->pos, player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2) * 0.3);
@@ -87,5 +88,5 @@ static void monster_update(Monster *mon, f32 dt, Player *player, Random *rng, Gf
     m4_translate(&mon->sprite_mtx, (v3){0, 0.5, 0});
     m4_scale(&mon->sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
     m4_apply(&mon->sprite_mtx, mon->body_mtx);
-    gfx_quad_3d(gfx, mon->sprite_mtx, mon->sprite.image);
+    gfx_quad_3d(eng->gfx, mon->sprite_mtx, mon->sprite.image);
 }

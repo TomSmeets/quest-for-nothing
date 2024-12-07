@@ -59,7 +59,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
             if (snd->kind == 0) {
                 f32 background = sound_noise_white(snd) * (1 + 0.5 * sound_sine(snd, 0.025));
                 background = sound_filter(snd, 120 * (2 + sound_sine(snd, 0.001) * sound_sine(snd, 0.02) * 0.5), background).low_pass;
-                out += sound_shift(background * 0.2, sound_sine(snd, 0.1) * 0.4);
+                out += sound_shift(background * 1.0, sound_sine(snd, 0.1) * 0.4);
             }
 
             if (snd->kind == 1) {

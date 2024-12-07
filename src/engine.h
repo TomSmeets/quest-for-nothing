@@ -6,6 +6,7 @@
 #include "audio.h"
 #include "gfx.h"
 #include "input.h"
+#include "rand.h"
 #include "time.h"
 
 typedef struct {
@@ -17,6 +18,7 @@ typedef struct {
     Input *input;
     f32 dt;
     m4 camera;
+    Random rng;
 } Engine;
 
 static Engine *engine_new(Memory *mem, OS *os, char *title) {
@@ -25,6 +27,7 @@ static Engine *engine_new(Memory *mem, OS *os, char *title) {
     eng->audio = audio_new(mem);
     eng->gfx = gfx_new(mem, title);
     eng->input = 0;
+    eng->rng = (Random){os_rand()};
     return eng;
 }
 
