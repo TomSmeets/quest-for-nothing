@@ -17,7 +17,7 @@ typedef struct {
     v2i viewport_size;
 } Gfx;
 
-static Gfx *gfx_init(Memory *mem, char *title) {
+static Gfx *gfx_new(Memory *mem, char *title) {
     Gfx *gfx = mem_struct(mem, Gfx);
     gfx->os = os_gfx_init(mem, title);
     gfx->pack = packer_new(OS_GFX_ATLAS_SIZE);

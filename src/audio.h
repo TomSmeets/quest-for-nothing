@@ -18,6 +18,11 @@ typedef struct {
     Sound sounds[16];
 } Audio;
 
+
+static Audio *audio_new(Memory *mem) {
+    return mem_struct(mem, Audio);
+}
+
 static u32 audio_play(Audio *audio, u32 kind, f32 duration, f32 pitch) {
     for (u32 i = 0; i < array_count(audio->sounds); ++i) {
         Sound *snd = audio->sounds + i;

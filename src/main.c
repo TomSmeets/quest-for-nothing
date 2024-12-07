@@ -1,7 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
-#include "audio.h"
 #include "fmt.h"
+#include "engine.h"
 #include "game.h"
 #include "gfx.h"
 #include "input.h"
@@ -12,6 +12,7 @@
 typedef struct {
     // Entire game state
     Game *game;
+    Engine *eng;
 
     // Frame timing, for running at a consistent framerate
     Time time;
@@ -37,7 +38,7 @@ static App *app_init(void) {
 
     app->mem = mem;
     app->game = game_new();
-    app->gfx = gfx_init(mem, "Quest For Nothing");
+    app->eng = engine_new(mem, "Quest For Nothing");
     app->cursor = gen_cursor(mem);
     audio_play(&app->audio, 0, 1e9, rand_f32(&app->game->rng));
     return app;
