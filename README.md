@@ -7,6 +7,30 @@
 
 Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script.
 
+```bash
+./build.sh build
+```
+
+See `./build.sh` for more options:
+
+```bash
+Usage: ./build.sh <action> [args]...
+
+Actions:
+  build                   Build all targets for debugging.
+  run <main> [args]...    Build and run target with hot reloading.
+  watch                   Build all targets for debugging on every change.
+  release                 Build all targets for relase.
+  asset                   Generate code for embedded assets.
+  format                  Format code
+
+Examples:
+  ./build.sh run src/main.c
+  ./build.sh run src/hot.c watch
+  ./build.sh build
+  ./build.sh release
+  ./build.sh asset
+```
 
 # Building Manually
 
@@ -49,7 +73,7 @@ I'd like to release this someday, so keeping it very simple!
     - [x] Walking animation
 
 - [ ] Level
-  - [ ] Simple aligned walls
+  - [x] Simple aligned walls
   - [ ] 2D layout
   - [ ] Collision
   - [ ] Randomly generated
@@ -60,7 +84,7 @@ I'd like to release this someday, so keeping it very simple!
 
 - [ ] Sound
   - [ ] Simple synthesized music
-  - [ ] Simple synthesized sounds
+  - [x] Simple synthesized sounds
 
 - [x] Hot reloadable during development (`src/hot.c`)
 - [x] Custom printf/sprintf (`src/fmt.h`)
@@ -71,10 +95,10 @@ I'd like to release this someday, so keeping it very simple!
   - [ ] Video
   - [ ] Itch.io
 
-- [ ] Platforms
+- [x] Platforms
   - [x] Linux
   - [x] Windows
-  - [ ] Wasm
+  - [x] Wasm
 
 # Version 2.0 (ideas)
 
