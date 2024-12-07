@@ -132,24 +132,22 @@ static void os_main(OS *os) {
     Engine *eng = app->eng;
 
     engine_begin(eng);
-    f32 dt = eng->dt;
-    Input *input = eng->input;
 
     // Handle System keys (Quittng, Mouse grab, etc...)
-    handle_basic_input(input, eng);
+    handle_basic_input(eng->input, eng);
 
     // Player update
     Player *pl = app->game->player;
     {
         m4 mtx = m4_id();
         m4_scale(&mtx, (v3){32, 32, 1});
-        if (!input->mouse_is_grabbed) m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
+        if (!eng->input->mouse_is_grabbed) m4_translate(&mtx, (v3){eng->input->mouse_pos.x, eng->input->mouse_pos.y, 0});
         gfx_quad_ui(eng->gfx, mtx, app->cursor);
     }
 
     game_update(app->game, eng);
 
-    if (key_click(input, KEY_SPACE)) {
+    if (key_click(eng->input, KEY_SPACE)) {
         audio_play(eng->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
     }
 

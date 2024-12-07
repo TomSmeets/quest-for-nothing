@@ -236,6 +236,25 @@ function js_gfx_init() {
 
     ctx.instance_buffer = instance_buffer;
     ctx.uniform_proj = shader_uniform_proj;
+
+    ctx.audio = new AudioContext();
+}
+
+function js_submit_audio(sample_count, _sample_list) {
+    const sample_list = new Float32Array(ctx.memory.buffer, _sample_list, sample_count*2);
+    const audio_buffer = ctx.audio.createBuffer(2, sample_count, ctx.audio.sampleRate);
+
+    const chan_0 = audio_buffer.getChannelData(0);
+    const chan_1 = audio_buffer.getChannelData(1);
+    for(let i = 0; i < sample_count; ++i) {
+        chan_0[i] = sample_list[i*2 + 0];
+        chan_1[i] = sample_list[i*2 + 1];
+    }
+
+    const source = ctx.audio.createBufferSource();
+    source.buffer = audio_buffer;
+    source.connect(ctx.audio.destination);
+    source.start();
 }
 
 function js_gfx_begin() {
@@ -292,6 +311,7 @@ fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instant
         js_gfx_texture,
         js_gfx_draw,
         js_gfx_end,
+        js_submit_audio,
     },
 })).then(ret => {
     ctx.memory  = ret.instance.exports.memory;

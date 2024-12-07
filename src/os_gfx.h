@@ -284,10 +284,13 @@ WASM_IMPORT(js_gfx_init) void js_gfx_init(void);
 WASM_IMPORT(js_gfx_texture) void js_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
 WASM_IMPORT(js_gfx_draw) void js_gfx_draw(float *projection, bool depth, u32 quad_count, OS_Gfx_Quad *quad_list);
 WASM_IMPORT(js_gfx_end) void js_gfx_end(void);
+WASM_IMPORT(js_submit_audio) void js_submit_audio(u32 sample_count, f32 *sample_list);
 
 struct OS_Gfx {
     Input input;
     Input input_copy;
+
+    u64 audio_time;
 };
 
 // WASM allows for globals, there is no reload anyway
@@ -296,6 +299,7 @@ static OS_Gfx GFX_GLOBAL;
 // Initialize Graphics stack
 static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     js_gfx_init();
+    GFX_GLOBAL.audio_time = os_time();
     return &GFX_GLOBAL;
 }
 
@@ -310,6 +314,20 @@ static Input *os_gfx_begin(OS_Gfx *gfx) {
     // Start frame
     js_gfx_begin();
 
+    u32 sample_rate = 48000;
+    u64 audio_time = os_time();
+
+    // Time elapsed since last frame
+    u64 dt = audio_time - gfx->audio_time;
+    gfx->audio_time += dt;
+
+    // Samples within this time
+    Memory *tmp = mem_new();
+    u64 sample_count = dt * sample_rate / (1000ULL*1000ULL);
+    v2 *sound_buffer = mem_array_uninit(mem, v2, sample_count*2);
+    os_gfx_audio_callback(OS_GLOBAL, 1.0f / (f32) sample_rate, sample_count, sound_buffer);
+    js_submit_audio(sample_count, sound_buffer);
+    mem_free(tmp);
     return &gfx->input_copy;
 }
 
