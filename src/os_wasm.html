@@ -151,6 +151,7 @@ function js_gfx_init() {
              float z_far = 15.0;
              out_color.rgb = mix(out_color.rgb, vec3(0.02), min((frag_z - z_near) / (z_far - z_near), 1.0));
              if (out_color.a < 0.5) discard;
+             out_color.rgb = pow(out_color.rgb, vec3(1.0f / 2.2f));
          }`;
 
     const vao = gl.createVertexArray();
