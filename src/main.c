@@ -25,38 +25,11 @@ typedef struct {
     f32 duty;
     Memory *mem;
 
-    f32 shoot_time;
-    f32 step_volume;
-
     u32 reverb_ix;
     v2 reverb[1024 * 4];
 
     Image *cursor;
-    Image *gun;
 } App;
-
-static Image *gen_gun(Memory *mem) {
-    u32 size = 5;
-    Image *img = image_new(mem, (v2u){size, size});
-    // image_grid(img, WHITE, GRAY);
-    v3 color = {0.1, 0.1, 0.1};
-    image_write(img, (v2i){2, 1}, color);
-    image_write(img, (v2i){3, 1}, color);
-    image_write(img, (v2i){4, 1}, color);
-    image_write(img, (v2i){4, 2}, color);
-    return img;
-}
-
-static Image *gen_cursor(Memory *mem) {
-    u32 size = 5;
-    Image *img = image_new(mem, (v2u){size, size});
-    for (u32 i = 0; i < size; ++i) {
-        v4 col = color_alpha(WHITE, 1);
-        image_write4(img, (v2i){i, i}, col);
-        image_write4(img, (v2i){i, size - 1 - i}, col);
-    }
-    return img;
-}
 
 static App *app_init(void) {
     Memory *mem = mem_new();
@@ -65,7 +38,6 @@ static App *app_init(void) {
     app->mem = mem;
     app->game = game_new();
     app->gfx = gfx_init(mem, "Quest For Nothing");
-    app->gun = gen_gun(mem);
     app->cursor = gen_cursor(mem);
     audio_play(&app->audio, 0, 1e9, rand_f32(&app->game->rng));
     return app;
@@ -187,21 +159,6 @@ static void os_main(OS *os) {
 
     // Player update
     Player *pl = app->game->player;
-    Player_Input in = player_parse_input(input);
-
-    // Step sounds
-    {
-        f32 speed = v3_length_sq(in.move);
-        if (!pl->on_ground) speed = 0;
-        app->step_volume += (f_min(speed, 1) - app->step_volume) * 8 * dt;
-    }
-
-    player_update(pl, dt, &in);
-
-    for (Monster *mon = app->game->monsters; mon; mon = mon->next) {
-        monster_update(mon, dt, app->game->player, &app->game->rng, app->gfx);
-    }
-
     {
         m4 mtx = m4_id();
         m4_scale(&mtx, (v3){32, 32, 1});
@@ -209,53 +166,11 @@ static void os_main(OS *os) {
         gfx_quad_ui(app->gfx, mtx, app->cursor);
     }
 
-    // Draw level
-    for (Cell *cell = app->game->level; cell; cell = cell->next) {
-        v3 x = {1, 0, 0};
-        v3 y = {0, 1, 0};
-        v3 z = {0, 0, 1};
-        v3 p = v3i_to_v3(cell->pos);
-        // if (cell->x_neg) ogl_quad(app->gl, &mtx, cell->x_neg);
-        // if (cell->z_neg) ogl_quad(app->gl, &mtx, cell->z_neg);
-        // if (cell->x_pos) ogl_quad(app->gl, &mtx, cell->x_pos);
-        // if (cell->z_pos) ogl_quad(app->gl, &mtx, cell->z_pos);
-        // if (cell->y_pos) ogl_quad(app->gl, &mtx, cell->y_pos);
-        if (cell->x_neg) gfx_quad_3d(app->gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg);
-        if (cell->z_neg) gfx_quad_3d(app->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg);
-
-        if (cell->x_pos) gfx_quad_3d(app->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos);
-        if (cell->z_pos) gfx_quad_3d(app->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
-
-        // OK
-        if (cell->y_neg) gfx_quad_3d(app->gfx, (m4){x, z, -y, p}, cell->y_neg);
-        if (cell->y_pos) gfx_quad_3d(app->gfx, (m4){x, -z, y, p + y}, cell->y_pos);
-    }
-
-    {
-        m4 mtx = m4_id();
-        m4_translate(&mtx, (v3){-2.0f / 5.0f, 0, 0});
-        m4_scale(&mtx, 0.2f);
-        m4_rotate_z(&mtx, -app->shoot_time * R1 * 0.25);
-        m4_translate(&mtx, (v3){app->shoot_time * 0.05, 0, 0});
-        m4_rotate_y(&mtx, R1);
-        m4_translate(&mtx, (v3){.17, -0.12, .2});
-        m4_apply(&mtx, pl->head_mtx);
-        gfx_quad_3d(app->gfx, mtx, app->gun);
-    }
-
-    if (key_click(input, KEY_MOUSE_LEFT)) {
-        app->shoot_time = 1;
-        audio_play(&app->audio, 1, 0.8, rand_f32(&app->game->rng) * 0.5 + 2.0);
-    }
+    game_update(app->game, &app->audio, app->gfx, input, dt);
 
     if (key_click(input, KEY_SPACE)) {
         audio_play(&app->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
     }
-
-    if (app->shoot_time > 0)
-        app->shoot_time -= dt * 4;
-    else
-        app->shoot_time = 0;
 
     // Finish
     gfx_end(app->gfx, pl->head_mtx);
