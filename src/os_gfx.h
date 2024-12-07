@@ -42,7 +42,7 @@ static void os_gfx_texture(OS_Gfx *gfx, v2u pos, Image *img);
 static void os_gfx_draw(OS_Gfx *gfx, m44 projection, bool depth, u32 quad_count, OS_Gfx_Quad *quad_list);
 
 // Callback (called by os_gfx)
-static void os_gfx_audio_callback(OS *os, f32 dt, u32 count, v2 *samples);
+static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *samples);
 
 // Finish frame
 static void os_gfx_end(OS_Gfx *gfx);
@@ -320,14 +320,16 @@ static Input *os_gfx_begin(OS_Gfx *gfx) {
     // Time elapsed since last frame
     u64 dt = audio_time - gfx->audio_time;
     gfx->audio_time += dt;
+    u64 sample_count = dt * sample_rate / (1000ULL * 1000ULL);
 
     // Samples within this time
-    Memory *tmp = mem_new();
-    u64 sample_count = dt * sample_rate / (1000ULL*1000ULL);
-    v2 *sound_buffer = mem_array_uninit(mem, v2, sample_count*2);
-    os_gfx_audio_callback(OS_GLOBAL, 1.0f / (f32) sample_rate, sample_count, sound_buffer);
-    js_submit_audio(sample_count, sound_buffer);
-    mem_free(tmp);
+    if (sample_count > 0) {
+        Memory *tmp = mem_new();
+        v2 *sound_buffer = mem_array_uninit(tmp, v2, sample_count * 2);
+        os_audio_callback(OS_GLOBAL, 1.0f / (f32)sample_rate, sample_count, sound_buffer);
+        js_submit_audio(sample_count, (f32 *)sound_buffer);
+        mem_free(tmp);
+    }
     return &gfx->input_copy;
 }
 
