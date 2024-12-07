@@ -2,6 +2,7 @@
 // game.h - Game data structures and implementation
 #pragma once
 #include "audio.h"
+#include "engine.h"
 #include "image.h"
 #include "level.h"
 #include "level_sprite.h"
@@ -101,30 +102,30 @@ static Game *game_new(void) {
     return game;
 }
 
-static void game_update(Game *game, Audio *audio, Gfx *gfx, Input *input, f32 dt) {
-    Player_Input in = player_parse_input(input);
-    player_update(game->player, dt, &in);
+static void game_update(Game *game, Engine *eng) {
+    Player_Input in = player_parse_input(eng->input);
+    player_update(game->player, eng->dt, &in);
 
     // Step sounds
     {
         f32 speed = v3_length_sq(in.move);
         if (!game->player->on_ground) speed = 0;
-        game->step_volume += (f_min(speed, 1) - game->step_volume) * 8 * dt;
+        game->step_volume += (f_min(speed, 1) - game->step_volume) * 8 * eng->dt;
     }
 
     // Shooting
-    if (key_click(input, KEY_MOUSE_LEFT)) {
+    if (key_click(eng->input, KEY_MOUSE_LEFT)) {
         game->shoot_time = 1;
-        audio_play(audio, 1, 0.8, rand_f32(&game->rng) * 0.5 + 2.0);
+        audio_play(eng->audio, 1, 0.8, rand_f32(&game->rng) * 0.5 + 2.0);
     }
 
     if (game->shoot_time > 0)
-        game->shoot_time -= dt * 4;
+        game->shoot_time -= eng->dt * 4;
     else
         game->shoot_time = 0;
 
     for (Monster *mon = game->monsters; mon; mon = mon->next) {
-        monster_update(mon, dt, game->player, &game->rng, gfx);
+        monster_update(mon, eng->dt, game->player, &game->rng, eng->gfx);
     }
 
     // Draw level
@@ -133,15 +134,15 @@ static void game_update(Game *game, Audio *audio, Gfx *gfx, Input *input, f32 dt
         v3 y = {0, 1, 0};
         v3 z = {0, 0, 1};
         v3 p = v3i_to_v3(cell->pos);
-        if (cell->x_neg) gfx_quad_3d(gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg);
-        if (cell->z_neg) gfx_quad_3d(gfx, (m4){x, y, z, p - z * .5}, cell->z_neg);
+        if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg);
+        if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg);
 
-        if (cell->x_pos) gfx_quad_3d(gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos);
-        if (cell->z_pos) gfx_quad_3d(gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
+        if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos);
+        if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
 
         // OK
-        if (cell->y_neg) gfx_quad_3d(gfx, (m4){x, z, -y, p}, cell->y_neg);
-        if (cell->y_pos) gfx_quad_3d(gfx, (m4){x, -z, y, p + y}, cell->y_pos);
+        if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p}, cell->y_neg);
+        if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y}, cell->y_pos);
     }
 
     // Draw Gun
@@ -154,7 +155,7 @@ static void game_update(Game *game, Audio *audio, Gfx *gfx, Input *input, f32 dt
         m4_rotate_y(&mtx, R1);
         m4_translate(&mtx, (v3){.17, -0.12, .2});
         m4_apply(&mtx, game->player->head_mtx);
-        gfx_quad_3d(gfx, mtx, game->gun);
+        gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
 }
 

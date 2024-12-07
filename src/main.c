@@ -147,7 +147,7 @@ static void os_main(OS *os) {
         gfx_quad_ui(eng->gfx, mtx, app->cursor);
     }
 
-    game_update(app->game, eng->audio, eng->gfx, input, dt);
+    game_update(app->game, eng);
 
     if (key_click(input, KEY_SPACE)) {
         audio_play(eng->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
