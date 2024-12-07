@@ -9,9 +9,9 @@ typedef struct {
     u64 frame_start;
     u64 frame_end;
     u64 compute_time;
-} Time_Info;
+} Time;
 
-static f32 time_begin(Time_Info *time, u64 target_rate) {
+static f32 time_begin(Time *time, u64 target_rate) {
     u64 target_increment = 1e6 / target_rate;
     u64 increment = target_increment;
     while (time->compute_time > increment) increment += target_increment;
@@ -33,7 +33,7 @@ static f32 time_begin(Time_Info *time, u64 target_rate) {
     return (f32)increment / 1e6f;
 }
 
-static u64 time_end(Time_Info *time) {
+static u64 time_end(Time *time) {
     u64 now = os_time();
 
     u64 compute_time = now - time->frame_start;
