@@ -66,4 +66,3 @@ static void level_gen_indoor(Level *level, Memory *mem, Random *rng) {
         if (1) cell->y_neg = level_sprite_generate(mem, rng);
     }
 }
-

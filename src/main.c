@@ -1,7 +1,7 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
-#include "fmt.h"
 #include "engine.h"
+#include "fmt.h"
 #include "game.h"
 #include "gfx.h"
 #include "input.h"

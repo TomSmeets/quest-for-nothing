@@ -18,7 +18,6 @@ typedef struct {
     Sound sounds[16];
 } Audio;
 
-
 static Audio *audio_new(Memory *mem) {
     return mem_struct(mem, Audio);
 }

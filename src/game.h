@@ -1,13 +1,13 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // game.h - Game data structures and implementation
 #pragma once
+#include "audio.h"
 #include "image.h"
 #include "level.h"
 #include "level_sprite.h"
 #include "mem.h"
 #include "monster.h"
 #include "player.h"
-#include "audio.h"
 #include "rand.h"
 #include "types.h"
 #include "vec.h"
@@ -35,7 +35,6 @@ typedef struct {
     f32 shoot_time;
     f32 step_volume;
 } Game;
-
 
 static Image *gen_gun(Memory *mem) {
     u32 size = 5;
@@ -106,12 +105,11 @@ static void game_update(Game *game, Audio *audio, Gfx *gfx, Input *input, f32 dt
     Player_Input in = player_parse_input(input);
     player_update(game->player, dt, &in);
 
-
     // Step sounds
     {
         f32 speed = v3_length_sq(in.move);
         if (!game->player->on_ground) speed = 0;
-        game->step_volume += (f_min(speed, 1) -game->step_volume) * 8 * dt;
+        game->step_volume += (f_min(speed, 1) - game->step_volume) * 8 * dt;
     }
 
     // Shooting

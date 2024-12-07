@@ -5,16 +5,15 @@
 
 #include "audio.h"
 #include "gfx.h"
-#include "time.h"
 #include "input.h"
-
+#include "time.h"
 
 typedef struct {
     Memory *tmp;
     Time time;
     OS *os;
     Audio *audio;
-    Gfx   *gfx;
+    Gfx *gfx;
     Input *input;
     f32 dt;
     m4 camera;
@@ -24,7 +23,7 @@ static Engine *engine_new(Memory *mem, OS *os, char *title) {
     Engine *eng = mem_struct(mem, Engine);
     eng->os = os;
     eng->audio = audio_new(mem);
-    eng->gfx   = gfx_new(mem, title);
+    eng->gfx = gfx_new(mem, title);
     eng->input = 0;
     return eng;
 }
