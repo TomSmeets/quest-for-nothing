@@ -32,6 +32,15 @@ Examples:
   ./build.sh asset
 ```
 
+# Running web version
+
+To run the web version start a simple http server after building. Then navigate to `http://localhost:8000/out`.
+
+```bash
+./build.sh build
+python -m http.server
+```
+
 # Building Manually
 
 Any executable can be compiled with a single 'clang' call.
