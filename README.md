@@ -5,7 +5,7 @@
 
 # Building
 
-Install `clang`, `ldd`, `sdl2`, and `mingw-w64`, then run the build script.
+Install `clang`, `lld`, `sdl2`, and `mingw-w64`, then run the build script.
 
 ```bash
 ./build.sh build
