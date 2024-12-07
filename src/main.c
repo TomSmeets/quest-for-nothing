@@ -14,7 +14,7 @@ typedef struct {
     Game *game;
 
     // Frame timing, for running at a consistent framerate
-    Time_Info time;
+    Time time;
 
     // Graphics api. Platform dependent.
     Gfx *gfx;
