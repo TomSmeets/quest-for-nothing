@@ -10,21 +10,16 @@
 #include "time.h"
 
 typedef struct {
+    Memory *mem;
+
     // Entire game state
     Game *game;
+
+    // Game engine, audio, video, input, timing
     Engine *eng;
-
-    // Frame timing, for running at a consistent framerate
-    Time time;
-
-    // Graphics api. Platform dependent.
-    Gfx *gfx;
-
-    Audio audio;
 
     f32 cutoff;
     f32 duty;
-    Memory *mem;
 
     u32 reverb_ix;
     v2 reverb[1024 * 4];
@@ -32,15 +27,15 @@ typedef struct {
     Image *cursor;
 } App;
 
-static App *app_init(void) {
+static App *app_init(OS *os) {
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
 
     app->mem = mem;
     app->game = game_new();
-    app->eng = engine_new(mem, "Quest For Nothing");
+    app->eng = engine_new(mem, os, "Quest For Nothing");
     app->cursor = gen_cursor(mem);
-    audio_play(&app->audio, 0, 1e9, rand_f32(&app->game->rng));
+    audio_play(app->eng->audio, 0, 1e9, rand_f32(&app->game->rng));
     return app;
 }
 
@@ -51,7 +46,7 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     App *app = os->app;
     if (!app) return;
 
-    Audio *audio = &app->audio;
+    Audio *audio = app->eng->audio;
     for (u32 i = 0; i < count; ++i) {
         v2 out = 0;
 
@@ -102,61 +97,46 @@ static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
     }
 }
 
-static void handle_basic_input(Input *input, Gfx *gfx) {
+static void handle_basic_input(Input *input, Engine *eng) {
     // Quit
     if (input->quit || (key_down(input, KEY_SHIFT) && key_down(input, KEY_Q))) {
         os_exit(0);
     }
 
     if (key_click(input, KEY_MOUSE_LEFT)) {
-        gfx_set_grab(gfx, true);
+        // TODO: gfx -> input
+        gfx_set_grab(eng->gfx, true);
     }
 
     // Release Grab on focus lost or Esc
     if ((input->focus_lost || key_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
         fmt_s(OS_FMT, "RELEASE\n");
-        gfx_set_grab(gfx, false);
+        gfx_set_grab(eng->gfx, false);
     }
 
     // Grab with G
     if (key_click(input, KEY_G)) {
         fmt_s(OS_FMT, "Grab!\n");
-        gfx_set_grab(gfx, !input->mouse_is_grabbed);
+        gfx_set_grab(eng->gfx, !input->mouse_is_grabbed);
     }
 
     if (key_click(input, KEY_F)) {
-        gfx_set_fullscreen(gfx, !input->is_fullscreen);
+        gfx_set_fullscreen(eng->gfx, !input->is_fullscreen);
     }
 }
 
 static void os_main(OS *os) {
     // Initialize App
-    if (!os->app) os->app = app_init();
+    if (!os->app) os->app = app_init(os);
     App *app = os->app;
+    Engine *eng = app->eng;
 
-    // Allocate memory for this frame (and free at the end of the frame)
-    // These memory blocks are reused every frame, so this is very cheap
-    Memory *tmp = mem_new();
-
-    // Frame Timing
-    // 'dt' is the time this frame will take in secods
-    f32 dt = time_begin(&app->time, 120);
-
-    // Read Input and start render
-    Input *input = gfx_begin(app->gfx);
-
-    if (0) {
-        fmt_s(OS_FMT, "P: ");
-        fmt_v3(OS_FMT, app->game->player->pos);
-        fmt_s(OS_FMT, "\n");
-
-        fmt_s(OS_FMT, "F: ");
-        fmt_v3(OS_FMT, app->game->player->head_mtx.z);
-        fmt_s(OS_FMT, "\n");
-    }
+    engine_begin(eng);
+    f32 dt = eng->dt;
+    Input *input = eng->input;
 
     // Handle System keys (Quittng, Mouse grab, etc...)
-    handle_basic_input(input, app->gfx);
+    handle_basic_input(input, eng);
 
     // Player update
     Player *pl = app->game->player;
@@ -164,17 +144,15 @@ static void os_main(OS *os) {
         m4 mtx = m4_id();
         m4_scale(&mtx, (v3){32, 32, 1});
         if (!input->mouse_is_grabbed) m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
-        gfx_quad_ui(app->gfx, mtx, app->cursor);
+        gfx_quad_ui(eng->gfx, mtx, app->cursor);
     }
 
-    game_update(app->game, &app->audio, app->gfx, input, dt);
+    game_update(app->game, eng->audio, eng->gfx, input, dt);
 
     if (key_click(input, KEY_SPACE)) {
-        audio_play(&app->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
+        audio_play(eng->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
     }
 
-    // Finish
-    gfx_end(app->gfx, pl->head_mtx);
-    mem_free(tmp);
-    os->sleep_time = time_end(&app->time);
+    eng->camera = pl->head_mtx;
+    engine_end(app->eng);
 }
