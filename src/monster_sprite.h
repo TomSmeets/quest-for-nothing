@@ -23,8 +23,8 @@ static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
     v3 black = {0, 0, 0};
     v3 white = {1, 1, 1};
 
+    u32 look_dir = rand_u32(rng) % 4;
     for (u32 i = 0; i < mon->eye_count; ++i) {
-        u32 look_dir = rand_u32(rng) % 4;
         v2i eye = mon->eye[i];
         image_write(mon->image, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
         image_write(mon->image, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
