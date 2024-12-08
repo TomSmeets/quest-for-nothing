@@ -50,11 +50,10 @@ For cross compiling to windows you need `wasm-ld` which is in the `lld` package 
 ./build.sh web
 ```
 
-To run the web version start a simple http server after building. Then navigate to `http://localhost:8000/out`.
+To run the web version start a simple python http server after building. Then navigate to `http://localhost:8000/out`.
 
 ```bash
-./build.sh build
-python -m http.server
+./build.sh serve
 ```
 
 # Building Manually
