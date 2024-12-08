@@ -315,17 +315,18 @@ static Input *os_gfx_begin(OS_Gfx *gfx) {
     js_gfx_begin();
 
     u32 sample_rate = 48000;
-    u64 audio_time = os_time();
+    u64 audio_time = (os_time() / 1000ULL) * ((u64)sample_rate / 1000ULL);
 
     // Time elapsed since last frame
-    u64 dt = audio_time - gfx->audio_time;
-    gfx->audio_time += dt;
-    u64 sample_count = dt * sample_rate / (1000ULL * 1000ULL);
+    i64 sample_count = (i64)audio_time - (i64)gfx->audio_time;
+    gfx->audio_time += sample_count;
+    fmt_si(OS_FMT, "audio_time:   ", audio_time, "\n");
+    fmt_si(OS_FMT, "sample_count: ", sample_count, "\n");
 
     // Samples within this time
     if (sample_count > 0) {
         Memory *tmp = mem_new();
-        v2 *sound_buffer = mem_array_uninit(tmp, v2, sample_count * 2);
+        v2 *sound_buffer = mem_array_uninit(tmp, v2, sample_count);
         os_audio_callback(OS_GLOBAL, 1.0f / (f32)sample_rate, sample_count, sound_buffer);
         js_submit_audio(sample_count, (f32 *)sound_buffer);
         mem_free(tmp);

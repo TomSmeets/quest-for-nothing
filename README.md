@@ -37,7 +37,7 @@ Examples:
 ```
 
 # Building windows
-For cross compiling to windows you need `lld`, and `mingw-w64`.
+For cross compiling to windows you need `mingw-w64`.
 
 ```bash
 ./build.sh windows
@@ -63,15 +63,15 @@ Any executable can be compiled with a single 'clang' call.
 Each executable is compiled as a single unit, with the platform automatically detected based on the `-target` passed to Clang.
 
 - `clang -o ./out/main src/main.c`
-- `clang -o ./out/hot src/hot.c`
+- `clang -o ./out/build src/build.c`
 
-Note that you will need to generate 'asset.h' once using `out/hot asset` when compiling the game.
+Note that you will need to generate 'asset.h' once using `out/build asset` when compiling the game.
 
 # Hot Reloading
 
-Run `./out/hot run src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
+Run `./out/build run src/main.c` to launch the game. Edit any file, and the game will reload while preserving its state.
 
-For GDB, launch with `gdb --args ./out/hot run ./src/main.c` and use the `dir` command to update the source view when needed.
+For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir` command to update the source view when needed.
 
 # Version 1.0
 

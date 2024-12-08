@@ -42,58 +42,47 @@ static App *app_init(OS *os) {
 static v2 sound_shift(f32 input, f32 shift) {
     return (v2){input * (1 + shift), input * (1 - shift)};
 }
-static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output) {
+
+static v2 sound_sample_single(Sound *snd, f32 dt) {
+    sound_begin_sample(snd, dt);
+    v2 out = 0;
+
+    // First kind, background
+    if (snd->kind == 0) {
+        f32 background = sound_noise_white(snd) * (1 + 0.5 * sound_sine(snd, 0.025));
+        background = sound_filter(snd, 120 * (2 + sound_sine(snd, 0.001) * sound_sine(snd, 0.02) * 0.5), background).low_pass;
+        out += sound_shift(background * 1.0, sound_sine(snd, 0.1) * 0.4);
+    }
+
+    if (snd->kind == 1) {
+        f32 v = sound_sine(snd, 800 * snd->time * snd->pitch * (1 + sound_sine(snd, 20) * 0.5)) * f_min(1, snd->time);
+        out += sound_shift(v, sound_sine(snd, 100) * 0.3);
+    }
+    return out;
+}
+static void sound_sample_many(Sound *snd, f32 dt, v2 *output, u32 count) {
+    for (u32 i = 0; i < count; ++i) {
+        if (!snd->id) break;
+        output[i] += sound_sample_single(snd, dt);
+        snd->time -= dt;
+        if (snd->time <= 0) snd->id = 0;
+    }
+}
+
+static void os_audio_callback(OS *os, f32 dt, u32 sample_count, v2 *samples) {
     App *app = os->app;
     if (!app) return;
 
     Audio *audio = app->eng->audio;
-    for (u32 i = 0; i < count; ++i) {
-        v2 out = 0;
+    std_memzero(samples, sizeof(v2) * sample_count);
 
-        for (u32 j = 0; j < array_count(audio->sounds); ++j) {
-            Sound *snd = audio->sounds + j;
-            if (!snd->id) continue;
-            sound_begin_sample(snd, dt);
+    for (u32 i_snd = 0; i_snd < array_count(audio->sounds); ++i_snd) {
+        Sound *snd = audio->sounds + i_snd;
+        sound_sample_many(snd, dt, samples, sample_count);
+    }
 
-            // First kind, background
-            if (snd->kind == 0) {
-                f32 background = sound_noise_white(snd) * (1 + 0.5 * sound_sine(snd, 0.025));
-                background = sound_filter(snd, 120 * (2 + sound_sine(snd, 0.001) * sound_sine(snd, 0.02) * 0.5), background).low_pass;
-                out += sound_shift(background * 1.0, sound_sine(snd, 0.1) * 0.4);
-            }
-
-            if (snd->kind == 1) {
-                f32 v = sound_sine(snd, 800 * snd->time * snd->pitch * (1 + sound_sine(snd, 20) * 0.5)) * f_min(1, snd->time);
-                out += sound_shift(v, sound_sine(snd, 100) * 0.3);
-            }
-
-            if (snd->kind == 2) {
-                // out += sound_sine(snd, 80) * f_max(f_min(app->shoot_time * 2 - .5, 1), 0) +
-                //        sound_noise_freq(snd, 160 * 4 * 8, 0.5) * f_min(app->shoot_time * app->shoot_time * 2, 1);
-            }
-
-            // Sound is finished
-            snd->time -= dt;
-            if (snd->time < 0) snd->id = 0;
-        }
-
-        // out.y = out.x;
-        out *= 0.5;
-
-        u32 ix = app->reverb_ix++;
-        if (app->reverb_ix >= array_count(app->reverb)) app->reverb_ix = 0;
-        out += app->reverb[ix] * 0.3;
-
-        f32 amp = 1.0;
-        app->reverb[ix] = 0;
-        for (u32 o = 0; o < 6; ++o) {
-            i32 ox = (i32)ix - (i32)o;
-            if (ox < 0) ox += array_count(app->reverb);
-            app->reverb[ox] += out * amp;
-            amp *= 0.4;
-        }
-
-        output[i] = out;
+    for (u32 i = 0; i < sample_count; ++i) {
+        samples[i] *= 0.5;
     }
 }
 
