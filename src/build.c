@@ -1,7 +1,5 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
-// hot.c - Dynamically compile and reload interactive programs
-//
-// Usage: ./hot src/main.c [ARGS]...
+// build.c - Dynamically compile and reload interactive programs
 #include "cli.h"
 #include "embed.h"
 #include "fmt.h"
@@ -116,14 +114,14 @@ static void sdl2_download_dll(void) {
 
 static bool build_linux(Memory *tmp, bool release) {
     embed_all_assets(tmp);
-    if (!build_single(tmp, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(tmp, "out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(tmp, "out/build", "src/build.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(tmp, "out/main", "src/main.c", Platform_Linux, release, false)) return 0;
     return 1;
 }
 
 static bool build_windows(Memory *tmp, bool release) {
     sdl2_download_dll();
-    if (!build_single(tmp, "out/hot.exe", "src/hot.c", Platform_Windows, release, false)) return 0;
+    if (!build_single(tmp, "out/build.exe", "src/build.c", Platform_Windows, release, false)) return 0;
     if (!build_single(tmp, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
     return 1;
 }
@@ -206,7 +204,7 @@ static void exit_with_help(Cli *cli) {
     fmt_s(OS_FMT, "\n");
     fmt_s(OS_FMT, "Examples:\n");
     fmt_ss(OS_FMT, "  ", name, " run src/main.c\n");
-    fmt_ss(OS_FMT, "  ", name, " run src/hot.c watch\n");
+    fmt_ss(OS_FMT, "  ", name, " run src/build.c watch\n");
     fmt_ss(OS_FMT, "  ", name, " build\n");
     fmt_ss(OS_FMT, "  ", name, " release\n");
     fmt_ss(OS_FMT, "  ", name, " asset\n");
