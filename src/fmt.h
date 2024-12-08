@@ -246,7 +246,6 @@ static void fmt_ssss(Fmt *fmt, char *a0, char *a1, char *a2, char *a3, char *a4,
     fmt_s(fmt, a6);
 }
 
-
 static void fmt_suu(Fmt *fmt, char *a0, u32 a1, char *a2, u32 a3, char *a4) {
     fmt_s(fmt, a0);
     fmt_u(fmt, a1);

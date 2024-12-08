@@ -2,11 +2,11 @@
 // hot.c - Dynamically compile and reload interactive programs
 //
 // Usage: ./hot src/main.c [ARGS]...
+#include "cli.h"
 #include "embed.h"
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
-#include "arg.h"
 #include "os_api.h"
 #include "rand.h"
 #include "types.h"
@@ -138,9 +138,9 @@ static bool build_web(Memory *tmp, bool release) {
 }
 
 static bool build_all(Memory *tmp, bool release) {
-    if(!build_linux(tmp, release)) return 0;
-    if(!build_windows(tmp, release)) return 0;
-    if(!build_web(tmp, release)) return 0;
+    if (!build_linux(tmp, release)) return 0;
+    if (!build_windows(tmp, release)) return 0;
+    if (!build_web(tmp, release)) return 0;
     return 1;
 }
 
@@ -230,6 +230,9 @@ static Hot *hot_init(OS *os) {
         hot->child_os = os_init(os->argc - 2, os->argv + 2);
     } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
+    } else if (cli_action(cli, "all", "", "Build all targets")) {
+        build_all(tmp, false);
+        os_exit(0);
     } else if (cli_action(cli, "linux", "", "Build for linux")) {
         build_linux(tmp, false);
         os_exit(0);
@@ -239,8 +242,8 @@ static Hot *hot_init(OS *os) {
     } else if (cli_action(cli, "web", "", "Build for web")) {
         build_web(tmp, false);
         os_exit(0);
-    } else if (cli_action(cli, "all", "", "Build all targets")) {
-        build_all(tmp, false);
+    } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
+        assert(hot_system("python -m http.server"), "Failed to start python http server. Is python installed?\n");
         os_exit(0);
     } else if (cli_action(cli, "release", "", "Build all targets in release mode")) {
         build_all(tmp, true);

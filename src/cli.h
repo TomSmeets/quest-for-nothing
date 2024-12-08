@@ -35,7 +35,7 @@ static bool cli_action(Cli *cli, char *name, char *args, char *description) {
 
 static u32 cli_arg_help_len(Cli_Action *act) {
     u32 len_name = str_len(act->name);
-    u32 len_arg  = str_len(act->args);
+    u32 len_arg = str_len(act->args);
     return len_name + len_arg;
 }
 
@@ -47,12 +47,12 @@ static void cli_show_help(Cli *cli) {
     fmt_s(fmt, "Actions:\n");
 
     u32 max_len = 0;
-    for(Cli_Action *act = cli->action_list; act; act = act->next) {
+    for (Cli_Action *act = cli->action_list; act; act = act->next) {
         u32 len = cli_arg_help_len(act);
-        if(len > max_len) max_len = len;
+        if (len > max_len) max_len = len;
     }
 
-    for(Cli_Action *act = cli->action_list; act; act = act->next) {
+    for (Cli_Action *act = cli->action_list; act; act = act->next) {
         u32 len = cli_arg_help_len(act);
         u32 pad = max_len - len;
         fmt_s(fmt, "  ");
@@ -60,7 +60,7 @@ static void cli_show_help(Cli *cli) {
         fmt_s(fmt, " ");
         fmt_s(fmt, act->args);
         fmt_s(fmt, " ");
-        for(u32 i = 0; i < pad; ++i) {
+        for (u32 i = 0; i < pad; ++i) {
             fmt_s(fmt, " ");
         }
         fmt_s(fmt, act->description);

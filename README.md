@@ -5,10 +5,10 @@
 
 # Building
 
-Install `clang`, `lld`, `sdl2`, and `mingw-w64`, then run the build script.
+Install `clang` and `sdl2`, then run the build script.
 
 ```bash
-./build.sh build
+./build.sh linux
 ```
 
 See `./build.sh` for more options:
@@ -17,12 +17,16 @@ See `./build.sh` for more options:
 Usage: ./build.sh <action> [args]...
 
 Actions:
-  build                   Build all targets for debugging.
-  run <main> [args]...    Build and run target with hot reloading.
-  watch                   Build all targets for debugging on every change.
-  release                 Build all targets for relase.
-  asset                   Generate code for embedded assets.
-  format                  Format code
+  run <main> [args]... Build and run with hot reloading
+  watch                Build all targets and rebuild on every change
+  all                  Build all targets
+  linux                Build for linux
+  windows              Build for windows
+  web                  Build for web
+  serve                Start a simple local python http server for testing the web version
+  release              Build all targets in release mode
+  asset                Build asset.h
+  format               Format code
 
 Examples:
   ./build.sh run src/main.c
@@ -32,7 +36,19 @@ Examples:
   ./build.sh asset
 ```
 
+# Building windows
+For cross compiling to windows you need `lld`, and `mingw-w64`.
+
+```bash
+./build.sh windows
+```
+
 # Running web version
+For cross compiling to windows you need `wasm-ld` which is in the `lld` package on Arch Linux.
+
+```bash
+./build.sh web
+```
 
 To run the web version start a simple http server after building. Then navigate to `http://localhost:8000/out`.
 
