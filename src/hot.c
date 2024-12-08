@@ -234,7 +234,7 @@ static Hot *hot_init(OS *os) {
 
         hot->action_run = true;
         hot->main_path = os->argv[2];
-        hot->child_os = os_init(os->argc - 1, os->argv + 1);
+        hot->child_os = os_init(os->argc - 2, os->argv + 2);
     } else if (str_eq(action, "watch")) {
         hot->action_build = true;
     } else if (str_eq(action, "build")) {
