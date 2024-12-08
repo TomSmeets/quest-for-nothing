@@ -284,7 +284,6 @@ WASM_IMPORT(js_gfx_init) void js_gfx_init(void);
 WASM_IMPORT(js_gfx_texture) void js_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
 WASM_IMPORT(js_gfx_draw) void js_gfx_draw(float *projection, bool depth, u32 quad_count, OS_Gfx_Quad *quad_list);
 WASM_IMPORT(js_gfx_end) void js_gfx_end(void);
-WASM_IMPORT(js_submit_audio) void js_submit_audio(u32 sample_count, f32 *sample_list);
 
 struct OS_Gfx {
     Input input;
@@ -313,24 +312,6 @@ static Input *os_gfx_begin(OS_Gfx *gfx) {
 
     // Start frame
     js_gfx_begin();
-
-    u32 sample_rate = 48000;
-    u64 audio_time = (os_time() / 1000ULL) * ((u64)sample_rate / 1000ULL);
-
-    // Time elapsed since last frame
-    i64 sample_count = (i64)audio_time - (i64)gfx->audio_time;
-    gfx->audio_time += sample_count;
-    fmt_si(OS_FMT, "audio_time:   ", audio_time, "\n");
-    fmt_si(OS_FMT, "sample_count: ", sample_count, "\n");
-
-    // Samples within this time
-    if (sample_count > 0) {
-        Memory *tmp = mem_new();
-        v2 *sound_buffer = mem_array_uninit(tmp, v2, sample_count);
-        os_audio_callback(OS_GLOBAL, 1.0f / (f32)sample_rate, sample_count, sound_buffer);
-        js_submit_audio(sample_count, (f32 *)sound_buffer);
-        mem_free(tmp);
-    }
     return &gfx->input_copy;
 }
 
@@ -386,5 +367,12 @@ void js_gfx_resize(i32 width, i32 height) {
     // fmt_suu(OS_FMT, "Resize: width=", width, " height=", height, "\n");
     GFX_GLOBAL.input.window_size.x = width;
     GFX_GLOBAL.input.window_size.y = height;
+}
+
+static v2 audio_buffer[1024];
+v2 *js_audio_callback(u32 sample_count) {
+    assert(sample_count == array_count(audio_buffer), "Invalid sample count");
+    os_audio_callback(OS_GLOBAL, 1.0f / 48000.0f, sample_count, audio_buffer);
+    return audio_buffer;
 }
 #endif

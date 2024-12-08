@@ -237,29 +237,46 @@ function js_gfx_init() {
     ctx.instance_buffer = instance_buffer;
     ctx.uniform_proj = shader_uniform_proj;
 
+    const sample_count = 1024;
+
     ctx.audio = new AudioContext();
-}
+    ctx.audio_processor = ctx.audio.createScriptProcessor(sample_count, 2, 2);
+    ctx.audio_processor.onaudioprocess = function (ev) {
+        output = ev.outputBuffer;
+        const sample_list_c = ctx.exports.js_audio_callback(sample_count);
+        const sample_list = new Float32Array(ctx.memory.buffer, sample_list_c, sample_count*2);
 
-function js_submit_audio(sample_count, _sample_list) {
-    const sample_list = new Float32Array(ctx.memory.buffer, _sample_list, sample_count*2);
-    const audio_buffer = ctx.audio.createBuffer(2, sample_count, ctx.audio.sampleRate);
-
-    const chan_0 = audio_buffer.getChannelData(0);
-    const chan_1 = audio_buffer.getChannelData(1);
-    for(let i = 0; i < sample_count; ++i) {
-        chan_0[i] = sample_list[i*2 + 0];
-        chan_1[i] = sample_list[i*2 + 1];
+        const chan_0 = output.getChannelData(0);
+        const chan_1 = output.getChannelData(1);
+        for(let i = 0; i < sample_count; ++i) {
+            chan_0[i] = sample_list[i*2 + 0];
+            chan_1[i] = sample_list[i*2 + 1];
+        }
     }
-
-    const source = ctx.audio.createBufferSource();
-    source.buffer = audio_buffer;
-    source.connect(ctx.audio.destination);
-    source.start();
+    ctx.audio_processor.connect(ctx.audio.destination);
 }
+
+// function js_submit_audio(sample_count, _sample_list) {
+//     const sample_list = new Float32Array(ctx.memory.buffer, _sample_list, sample_count*2);
+//     const audio_buffer = ctx.audio.createBuffer(2, sample_count, ctx.audio.sampleRate);
+// 
+//     const chan_0 = audio_buffer.getChannelData(0);
+//     const chan_1 = audio_buffer.getChannelData(1);
+//     for(let i = 0; i < sample_count; ++i) {
+//         chan_0[i] = sample_list[i*2 + 0];
+//         chan_1[i] = sample_list[i*2 + 1];
+//     }
+// 
+//     const source = ctx.audio.createBufferSource();
+//     source.buffer = audio_buffer;
+//     source.connect(ctx.audio.destination);
+//     source.start();
+// }
 
 function js_gfx_begin() {
     var gl = ctx.gl;
     var canvas = ctx.canvas;
+    ctx.audio.resume();
 
     // Clear canvas
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -311,7 +328,6 @@ fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instant
         js_gfx_texture,
         js_gfx_draw,
         js_gfx_end,
-        js_submit_audio,
     },
 })).then(ret => {
     ctx.memory  = ret.instance.exports.memory;

@@ -85,7 +85,7 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
         .freq = AUDIO_SAMPLE_RATE,
         .format = AUDIO_F32,
         .channels = 2,
-        .samples = AUDIO_SAMPLE_RATE / 60,
+        .samples = 1024,
         .userdata = sdl,
         .callback = sdl_audio_callback_wrapper,
     };
