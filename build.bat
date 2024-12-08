@@ -1,1 +1,2 @@
-clang -o out\hot src\hot.c && out\hot %*
+if not exist out mkdir out
+clang -o out\build src\hot.c && out\build %*
