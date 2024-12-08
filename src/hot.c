@@ -6,6 +6,7 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
+#include "arg.h"
 #include "os_api.h"
 #include "rand.h"
 #include "types.h"
@@ -113,21 +114,33 @@ static void sdl2_download_dll(void) {
 #endif
 }
 
-static bool build_all(Memory *tmp, bool release) {
-    if (!build_single(tmp, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(tmp, "out/hot.exe", "src/hot.c", Platform_Windows, release, false)) return 0;
-
+static bool build_linux(Memory *tmp, bool release) {
     embed_all_assets(tmp);
-    sdl2_download_dll();
+    if (!build_single(tmp, "out/hot", "src/hot.c", Platform_Linux, release, false)) return 0;
     if (!build_single(tmp, "out/main.elf", "src/main.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(tmp, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
-    if (!build_single(tmp, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
+    return 1;
+}
 
+static bool build_windows(Memory *tmp, bool release) {
+    sdl2_download_dll();
+    if (!build_single(tmp, "out/hot.exe", "src/hot.c", Platform_Windows, release, false)) return 0;
+    if (!build_single(tmp, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
+    return 1;
+}
+
+static bool build_web(Memory *tmp, bool release) {
+    if (!build_single(tmp, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
     if (!hot_system("cp src/os_wasm.html out/index.html")) {
         fmt_s(OS_FMT, "Failed to copy\n");
         return 0;
     }
+    return 1;
+}
 
+static bool build_all(Memory *tmp, bool release) {
+    if(!build_linux(tmp, release)) return 0;
+    if(!build_windows(tmp, release)) return 0;
+    if(!build_web(tmp, release)) return 0;
     return 1;
 }
 
@@ -187,17 +200,9 @@ typedef struct {
     bool first_time;
 } Hot;
 
-static void exit_with_help(OS *os) {
-    char *name = os->argv[0];
-    fmt_ss(OS_FMT, "Usage: ", name, " <action> [args]...\n");
-    fmt_s(OS_FMT, "\n");
-    fmt_s(OS_FMT, "Actions:\n");
-    fmt_s(OS_FMT, "  build                   Build all targets for debugging.\n");
-    fmt_s(OS_FMT, "  run <main> [args]...    Build and run target with hot reloading.\n");
-    fmt_s(OS_FMT, "  watch                   Build all targets for debugging on every change.\n");
-    fmt_s(OS_FMT, "  release                 Build all targets for relase.\n");
-    fmt_s(OS_FMT, "  asset                   Generate code for embedded assets.\n");
-    fmt_s(OS_FMT, "  format                  Format code\n");
+static void exit_with_help(Cli *cli) {
+    char *name = cli->argv[0];
+    cli_show_help(cli);
     fmt_s(OS_FMT, "\n");
     fmt_s(OS_FMT, "Examples:\n");
     fmt_ss(OS_FMT, "  ", name, " run src/main.c\n");
@@ -212,46 +217,42 @@ static Hot *hot_init(OS *os) {
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
     Hot *hot = mem_struct(mem, Hot);
+    Cli *cli = cli_new(tmp, os);
 
-    if (os->argc < 2) {
-        exit_with_help(os);
-    }
-
-    char *action = os->argv[1];
-
-    if (str_eq(action, "run")) {
+    if (cli_action(cli, "run", "<main> [args]...", "Build and run with hot reloading")) {
         if (os->argc < 3) {
-            fmt_s(OS_FMT, "Not enogh arguments.\n");
-            fmt_s(OS_FMT, "\n");
-            fmt_s(OS_FMT, "Usage:\n");
-            fmt_ss(OS_FMT, "  ", os->argv[0], " run <main> [args]...\n");
-            fmt_s(OS_FMT, "\n");
-            fmt_s(OS_FMT, "Examples:\n");
-            fmt_ss(OS_FMT, "  ", os->argv[0], " run src/main.c\n");
-            fmt_ss(OS_FMT, "  ", os->argv[0], " run src/hot.c watch\n");
-            os_exit(1);
+            fmt_s(OS_FMT, "Not enogh arguments\n");
+            exit_with_help(cli);
         }
 
         hot->action_run = true;
         hot->main_path = os->argv[2];
         hot->child_os = os_init(os->argc - 2, os->argv + 2);
-    } else if (str_eq(action, "watch")) {
+    } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
-    } else if (str_eq(action, "build")) {
+    } else if (cli_action(cli, "linux", "", "Build for linux")) {
+        build_linux(tmp, false);
+        os_exit(0);
+    } else if (cli_action(cli, "windows", "", "Build for windows")) {
+        build_windows(tmp, false);
+        os_exit(0);
+    } else if (cli_action(cli, "web", "", "Build for web")) {
+        build_web(tmp, false);
+        os_exit(0);
+    } else if (cli_action(cli, "all", "", "Build all targets")) {
         build_all(tmp, false);
         os_exit(0);
-    } else if (str_eq(action, "release")) {
+    } else if (cli_action(cli, "release", "", "Build all targets in release mode")) {
         build_all(tmp, true);
         os_exit(0);
-    } else if (str_eq(action, "asset")) {
+    } else if (cli_action(cli, "asset", "", "Build asset.h")) {
         embed_all_assets(tmp);
         os_exit(0);
-    } else if (str_eq(action, "format")) {
+    } else if (cli_action(cli, "format", "", "Format code")) {
         assert(hot_system("clang-format -i src/*"), "Format failed!\n");
         os_exit(0);
     } else {
-        fmt_ss(OS_FMT, "Invalid action '", action, "'\n\n");
-        exit_with_help(os);
+        exit_with_help(cli);
     }
 
     // Init inotify
@@ -269,7 +270,7 @@ void os_main(OS *os) {
     Hot *hot = os->app;
     Memory *tmp = mem_new();
 
-    bool changed = hot->first_time || watch_changed(&hot->watch);
+    bool changed = watch_changed(&hot->watch) || hot->first_time;
     hot->first_time = 0;
 
     // Default update rate

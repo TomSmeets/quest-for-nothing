@@ -59,7 +59,7 @@ static bool watch_changed(Watch *watch) {
         }
 
         // Debounce (100 ms)
-        timeout.tv_usec = 100 * 1000;
+        timeout.tv_usec = 200 * 1000;
         change_count++;
     }
 
