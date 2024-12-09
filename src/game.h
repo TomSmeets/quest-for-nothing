@@ -32,9 +32,6 @@ typedef struct {
     Monster *monsters;
     Player *player;
     Image *gun;
-
-    f32 shoot_time;
-    f32 step_volume;
 } Game;
 
 static Image *gen_gun(Memory *mem) {
@@ -145,6 +142,12 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     gfx_quad_3d(eng->gfx, mon->sprite_mtx, mon->sprite.image);
 }
 
+static f32 animate(f32 x, f32 dt) {
+    x -= dt;
+    if (x <= 0) return 0;
+    return x;
+}
+
 // Player update function
 static void player_update(Player *pl, Game *game, Engine *eng) {
     f32 dt = eng->dt;
@@ -223,27 +226,23 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     {
         f32 speed = v3_length_sq(in.move);
         if (!game->player->on_ground) speed = 0;
-        game->step_volume += (f_min(speed, 1) - game->step_volume) * 8 * eng->dt;
+        pl->step_volume += (f_min(speed, 1) - pl->step_volume) * 8 * eng->dt;
     }
 
     // Shooting
-    if (key_click(eng->input, KEY_MOUSE_LEFT)) {
-        game->shoot_time = 1;
+    pl->shoot_time = animate(pl->shoot_time, eng->dt * 4);
+    if (in.shoot_single && pl->shoot_time == 0) {
+        pl->shoot_time = 1;
         audio_play(eng->audio, 1, 0.8, rand_f32(&game->rng) * 0.5 + 2.0);
     }
-
-    if (game->shoot_time > 0)
-        game->shoot_time -= eng->dt * 4;
-    else
-        game->shoot_time = 0;
 
     // Draw Gun
     {
         m4 mtx = m4_id();
         m4_translate(&mtx, (v3){-2.0f / 5.0f, 0, 0});
         m4_scale(&mtx, 0.2f);
-        m4_rotate_z(&mtx, -game->shoot_time * R1 * 0.25);
-        m4_translate(&mtx, (v3){game->shoot_time * 0.05, 0, 0});
+        m4_rotate_z(&mtx, -pl->shoot_time * R1 * 0.25);
+        m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
         m4_rotate_y(&mtx, R1);
         m4_translate(&mtx, (v3){.17, -0.12, .2});
         m4_apply(&mtx, game->player->head_mtx);

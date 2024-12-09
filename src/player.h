@@ -21,6 +21,10 @@ typedef struct {
     // Derived matrices
     m4 body_mtx;
     m4 head_mtx;
+
+    // stuff
+    f32 shoot_time;
+    f32 step_volume;
 } Player;
 
 typedef struct {
@@ -28,6 +32,8 @@ typedef struct {
     v3 look;
     bool jump;
     bool fly;
+    bool shoot;
+    bool shoot_single;
 } Player_Input;
 
 // Map Keys and mouse movement to player input
@@ -40,6 +46,8 @@ static Player_Input player_parse_input(Input *input) {
     if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
     if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
     if (key_down(input, KEY_SPACE)) in.jump = 1;
+    if (key_down(input, KEY_MOUSE_LEFT)) in.shoot = 1;
+    if (key_click(input, KEY_MOUSE_LEFT)) in.shoot_single = 1;
     if (key_down(input, KEY_SPACE)) in.move.y += 1;
     if (key_down(input, KEY_SHIFT)) in.move.y -= 1;
     if (key_click(input, KEY_3)) in.fly = 1;
