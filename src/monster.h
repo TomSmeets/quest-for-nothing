@@ -35,6 +35,8 @@ typedef struct Monster {
     m4 body_mtx;
     m4 sprite_mtx;
 
+    f32 death_ani;
+
     // ==== Other ====
     struct Monster *next;
 } Monster;

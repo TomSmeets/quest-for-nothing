@@ -99,53 +99,87 @@ static Game *game_new(void) {
     return game;
 }
 
-static void monster_update(Monster *mon, Game *game, Engine *eng) {
-    // ==== Physics ====
-    v3 vel = mon->pos - mon->old_pos;
-    mon->old_pos = mon->pos;
-
-    // Apply movement
-    mon->pos.xz += mon->move_dir * eng->dt;
-
-    mon->move_time -= eng->dt;
-    if (mon->move_time <= 0) {
-        mon->move_time = rand_f32_range(&eng->rng, 2, 10);
-
-        u32 mode = rand_u32_range(&eng->rng, 0, 2);
-        // fmt_su(OS_FMT, "mode=", mode, "\n");
-        if (mode == 0) mon->move_dir = 0;
-        if (mode == 1) mon->move_dir = v2_normalize(game->player->pos.xz - mon->pos.xz) * 0.1;
-        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
-        monster_sprite_update_eyes(&mon->sprite, &eng->rng);
-    }
-
-    // Player Collision
-    v2 player_dir = game->player->pos.xz - mon->pos.xz;
-    f32 player_distance = v2_length(player_dir);
-
-    float radius = 0.5;
-    if (player_distance < radius) {
-        mon->pos.xz -= player_dir * (radius - player_distance) / player_distance;
-    }
-
-    // ==== Animation ====
-    f32 speed = v3_length(vel);
-    mon->speed += (speed / eng->dt - mon->speed) * eng->dt;
-    mon->wiggle += speed * 2;
-    mon->wiggle = f_fract(mon->wiggle);
-    mon->body_mtx = m4_billboard(mon->pos, game->player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2) * 0.3);
-
-    mon->sprite_mtx = m4_id();
-    m4_translate(&mon->sprite_mtx, (v3){0, 0.5, 0});
-    m4_scale(&mon->sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
-    m4_apply(&mon->sprite_mtx, mon->body_mtx);
-    gfx_quad_3d(eng->gfx, mon->sprite_mtx, mon->sprite.image);
+static f32 animate(f32 x, f32 dt) {
+    x += dt;
+    return f_clamp(x, 0, 1);
 }
 
-static f32 animate(f32 x, f32 dt) {
-    x -= dt;
-    if (x <= 0) return 0;
-    return x;
+static void monster_update(Monster *mon, Game *game, Engine *eng) {
+    // ==== Physics ====
+    if (mon->health > 0) {
+        v3 vel = mon->pos - mon->old_pos;
+        mon->old_pos = mon->pos;
+
+        // Apply movement
+        mon->pos.xz += mon->move_dir * eng->dt;
+
+        mon->move_time -= eng->dt;
+        if (mon->move_time <= 0) {
+            mon->move_time = rand_f32_range(&eng->rng, 2, 10);
+
+            u32 mode = rand_u32_range(&eng->rng, 0, 2);
+            // fmt_su(OS_FMT, "mode=", mode, "\n");
+            if (mode == 0) mon->move_dir = 0;
+            if (mode == 1) mon->move_dir = v2_normalize(game->player->pos.xz - mon->pos.xz) * 0.1;
+            if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
+            monster_sprite_update_eyes(&mon->sprite, &eng->rng);
+        }
+
+        // Player Collision
+        v2 player_dir = game->player->pos.xz - mon->pos.xz;
+        f32 player_distance = v2_length(player_dir);
+
+        float radius = 0.5;
+        if (player_distance < radius) {
+            mon->pos.xz -= player_dir * (radius - player_distance) / player_distance;
+        }
+
+        // ==== Animation ====
+        f32 speed = v3_length(vel);
+        mon->speed += (speed / eng->dt - mon->speed) * eng->dt;
+        mon->wiggle += speed * 2;
+        mon->wiggle = f_fract(mon->wiggle);
+        mon->body_mtx = m4_billboard(mon->pos, game->player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2) * 0.3);
+        m4_translate(&mon->body_mtx, (v3){0, mon->sprite.image->size.y / 32.0f * .5, 0});
+    }
+
+    m4 sprite_mtx = m4_id();
+    if (mon->health == 0) {
+        mon->death_ani = animate(mon->death_ani, eng->dt * 4);
+        f32 ang = R1 * mon->death_ani;
+        m4_rotate_x(&sprite_mtx, ang);
+        m4_translate(&sprite_mtx, (v3){0, -.495f * (1.0f - f_cos(ang)), 0});
+    }
+    m4_scale(&sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
+    m4_apply(&sprite_mtx, mon->body_mtx);
+    gfx_quad_3d(eng->gfx, sprite_mtx, mon->sprite.image);
+}
+
+typedef struct {
+    bool hit;
+    v3 pos;
+    v2 uv;
+    f32 distance;
+} Collide_Result;
+
+static Collide_Result collide_quad_ray(m4 quad, v2 size, v3 ray_pos, v3 ray_dir) {
+    Collide_Result result = {0};
+    m4 quad_inv = m4_invert_tr(quad);
+    v3 ray_pos_local = m4_mul_pos(quad_inv, ray_pos);
+    v3 ray_dir_local = m4_mul_dir(quad_inv, ray_dir);
+    f32 distance = ray_pos_local.z / -ray_dir_local.z;
+    if (distance < 0) return result;
+
+    v3 hit_local = ray_pos_local + ray_dir_local * distance;
+    v3 hit_global = ray_pos + ray_dir * distance;
+    if (hit_local.x > 0.5 * size.x || hit_local.x < -0.5 * size.x) return result;
+    if (hit_local.y > 0.5 * size.y || hit_local.y < -0.5 * size.y) return result;
+    return (Collide_Result){
+        .hit = true,
+        .pos = hit_global,
+        .uv = hit_local.xy,
+        .distance = distance,
+    };
 }
 
 // Player update function
@@ -230,10 +264,30 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     }
 
     // Shooting
-    pl->shoot_time = animate(pl->shoot_time, eng->dt * 4);
+    pl->shoot_time = animate(pl->shoot_time, -eng->dt * 4);
     if (in.shoot_single && pl->shoot_time == 0) {
         pl->shoot_time = 1;
         audio_play(eng->audio, 1, 0.8, rand_f32(&game->rng) * 0.5 + 2.0);
+
+        v3 ray_pos = pl->head_mtx.w;
+        v3 ray_dir = pl->head_mtx.z;
+
+        Collide_Result best_result = {0};
+        Monster *best_monster = 0;
+        for (Monster *mon = game->monsters; mon; mon = mon->next) {
+            Image *image = mon->sprite.image;
+            if (mon->health == 0) continue;
+            Collide_Result result = collide_quad_ray(mon->body_mtx, (v2){(f32)image->size.x / 32.0f, (f32)image->size.y / 32.0f}, ray_pos, ray_dir);
+            if (!result.hit) continue;
+            if (best_result.hit && result.distance > best_result.distance) continue;
+            best_monster = mon;
+            best_result = result;
+        }
+
+        if (best_monster) {
+            fmt_s(OS_FMT, "HIT!\n");
+            best_monster->health = 0;
+        }
     }
 
     // Draw Gun
