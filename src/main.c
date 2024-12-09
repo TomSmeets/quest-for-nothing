@@ -114,6 +114,32 @@ static void handle_basic_input(Input *input, Engine *eng) {
     }
 }
 
+typedef struct {
+    bool hit;
+    v3 pos;
+    v2 uv;
+    f32 distance;
+} Collide_Result;
+
+static bool collide_quad_ray(Collide_Result *result, m4 quad, v2 size, v3 ray_pos, v3 ray_dir) {
+    m4 quad_inv = m4_invert_tr(quad);
+    v3 ray_pos_local = m4_mul_pos(quad_inv, ray_pos);
+    v3 ray_dir_local = m4_mul_dir(quad_inv, ray_dir);
+    f32 distance = ray_pos_local.z / -ray_dir_local.z;
+    if (distance < 0) return false;
+
+    v3 hit_local = ray_pos_local + ray_dir_local * distance;
+    v3 hit_global = ray_pos + ray_dir * distance;
+    if (hit_local.x > 0.5 * size.x || hit_local.x < -0.5 * size.x) return false;
+    if (hit_local.y > 0.5 * size.y || hit_local.y < -0.5 * size.y) return false;
+    *result = (Collide_Result){
+        .pos = hit_global,
+        .uv = hit_local.xy,
+        .distance = distance,
+    };
+    return true;
+}
+
 static void os_main(OS *os) {
     // Initialize App
     if (!os->app) os->app = app_init(os);
