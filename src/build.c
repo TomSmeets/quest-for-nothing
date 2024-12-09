@@ -18,8 +18,7 @@ typedef enum {
 } Platform;
 
 static bool hot_system(char *cmd) {
-    // fmt_ss(OS_FMT, "> ", cmd, "\n");
-
+    fmt_ss(OS_FMT, "> ", cmd, "\n");
     int ret = system(cmd);
     if (ret != 0) {
         fmt_s(OS_FMT, "Command Failed!\n");
@@ -42,6 +41,11 @@ static bool build_single(Memory *tmp, char *output, char *input, Platform plat, 
     if (plat == Platform_Wasm) fmt_s(OS_FMT, " WASM");
     fmt_s(OS_FMT, "\n");
 
+    if (plat == Platform_Linux && OS_IS_WINDOWS) {
+        fmt_s(OS_FMT, "Cannot cross-compile to linux from windows.\n");
+        return true;
+    }
+
     Fmt *fmt = fmt_memory(tmp);
 
     fmt_s(fmt, "clang");
@@ -63,7 +67,11 @@ static bool build_single(Memory *tmp, char *output, char *input, Platform plat, 
     }
 
     if (plat == Platform_Windows) {
+#if OS_IS_WINDOWS
+        fmt_s(fmt, " -target x86_64-unknown-windows-msvc");
+#else
         fmt_s(fmt, " -target x86_64-unknown-windows-gnu");
+#endif
     }
 
     if (plat == Platform_Wasm) {
@@ -77,7 +85,8 @@ static bool build_single(Memory *tmp, char *output, char *input, Platform plat, 
 
     // Don't optimize, quick compile times
     if (debug) fmt_s(fmt, " -O0 -g");
-    if (release) fmt_s(fmt, " -O3 -Xlinker --strip-all");
+    if (release) fmt_s(fmt, " -O3");
+    if (release && OS_IS_LINUX) fmt_s(fmt, " -Xlinker --strip-all");
 
     // Create a '.so' file for dynamic loading
     if (dynamic) fmt_s(fmt, " -shared");
@@ -102,18 +111,16 @@ static void sdl2_download_dll(void) {
     // Skip if already downloaded
     if (os_exists("out/SDL2.dll")) return;
 
-#if OS_IS_WINDOWS
-    fmt_s(OS_FMT, "Please download SDL2.dll into the 'out/' directory\n");
-    fmt_s(OS_FMT, "Download here: https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip\n");
-#else
     // Download sdl2
-    hot_system("curl -L 'https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip' -o out/SDL2.zip");
-    hot_system("unzip -o out/SDL2.zip SDL2.dll -d out");
+    hot_system("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip");
+#if OS_IS_WINDOWS
+    hot_system("cd out && tar -xf SDL2.zip SDL2.dll");
+#else
+    hot_system("cd out && unzip SDL2.zip SDL2.dll");
 #endif
 }
 
 static bool build_linux(Memory *tmp, bool release) {
-    embed_all_assets(tmp);
     if (!build_single(tmp, "out/build", "src/build.c", Platform_Linux, release, false)) return 0;
     if (!build_single(tmp, "out/main", "src/main.c", Platform_Linux, release, false)) return 0;
     return 1;
@@ -128,7 +135,13 @@ static bool build_windows(Memory *tmp, bool release) {
 
 static bool build_web(Memory *tmp, bool release) {
     if (!build_single(tmp, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
-    if (!hot_system("cp src/os_wasm.html out/index.html")) {
+    if (!hot_system(
+#if OS_IS_WINDOWS
+            "COPY src\\os_wasm.html out\\index.html"
+#else
+            "cp src/os_wasm.html out/index.html"
+#endif
+        )) {
         fmt_s(OS_FMT, "Failed to copy\n");
         return 0;
     }
@@ -229,28 +242,33 @@ static Hot *hot_init(OS *os) {
     } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
     } else if (cli_action(cli, "all", "", "Build all targets")) {
+        embed_all_assets(tmp);
         build_all(tmp, false);
         os_exit(0);
     } else if (cli_action(cli, "linux", "", "Build for linux")) {
+        embed_all_assets(tmp);
         build_linux(tmp, false);
         os_exit(0);
     } else if (cli_action(cli, "windows", "", "Build for windows")) {
+        embed_all_assets(tmp);
         build_windows(tmp, false);
         os_exit(0);
     } else if (cli_action(cli, "web", "", "Build for web")) {
+        embed_all_assets(tmp);
         build_web(tmp, false);
         os_exit(0);
     } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
         assert(hot_system("python -m http.server"), "Failed to start python http server. Is python installed?\n");
         os_exit(0);
     } else if (cli_action(cli, "release", "", "Build all targets in release mode")) {
+        embed_all_assets(tmp);
         build_all(tmp, true);
         os_exit(0);
     } else if (cli_action(cli, "asset", "", "Build asset.h")) {
         embed_all_assets(tmp);
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
-        assert(hot_system("clang-format -i src/*"), "Format failed!\n");
+        assert(hot_system("clang-format --verbose -i src/*"), "Format failed!\n");
         os_exit(0);
     } else {
         exit_with_help(cli);
@@ -293,6 +311,7 @@ void os_main(OS *os) {
     }
 
     if (hot->action_build && changed) {
+        embed_all_assets(tmp);
         build_all(tmp, false);
     }
     mem_free(tmp);

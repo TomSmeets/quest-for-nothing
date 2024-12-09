@@ -75,8 +75,8 @@ static File *os_open(char *path, OS_Open_Type type) {
     } else if (type == Open_Read) {
         handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     }
-    assert(handle != INVALID_HANDLE_VALUE, "Could not open file");
-    assert(handle, "Could not open file");
+
+    if (handle == INVALID_HANDLE_VALUE) handle = 0;
     return handle;
 }
 
