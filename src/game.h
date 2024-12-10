@@ -77,15 +77,14 @@ static Player *gen_player(Memory *mem, v3i pos) {
 
 // Create a new game
 static Game *game_new(void) {
-    u32 level_size = 32;
+    u32 level_size = 16;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
     game->mem = mem;
 
     // Create Level
-    level_gen_outline(&game->level, mem, level_size);
-    level_gen_indoor(&game->level, mem, &game->rng);
+    level_gen_outline(&game->level, &game->rng, mem, level_size);
 
     // Generate player
     v3i spawn = {level_size / 2, 0, level_size / 2};
@@ -95,7 +94,7 @@ static Game *game_new(void) {
     game->gun = gen_gun(mem);
 
     // Generate Monsters
-    game_gen_monsters(game, spawn);
+    // game_gen_monsters(game, spawn);
     return game;
 }
 
@@ -308,16 +307,16 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
     v3 x = {1, 0, 0};
     v3 y = {0, 1, 0};
     v3 z = {0, 0, 1};
-    v3 p = v3i_to_v3(cell->pos);
-    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p - x * .5}, cell->x_neg);
-    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){x, y, z, p - z * .5}, cell->z_neg);
+    v3 p = v3i_to_v3(cell->pos) + y * .5;
+    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p - x * .5}, cell->x_neg);
+    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p + x * .5}, cell->x_pos);
 
-    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p + x * .5}, cell->x_pos);
     if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
+    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){-x, y, -z, p - z * .5}, cell->z_neg);
 
     // OK
-    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p}, cell->y_neg);
-    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y}, cell->y_pos);
+    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p - y * .5}, cell->y_neg);
+    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y * .5}, cell->y_pos);
 }
 
 static void game_update(Game *game, Engine *eng) {
@@ -330,6 +329,8 @@ static void game_update(Game *game, Engine *eng) {
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         cell_update(cell, game, eng);
     }
+
+    fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
 }
 
 static void game_free(Game *game) {

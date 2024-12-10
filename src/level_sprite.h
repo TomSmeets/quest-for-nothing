@@ -33,5 +33,6 @@ static Image *level_sprite_generate(Memory *mem, Random *rng) {
             image_write(img, (v2i){x, y}, color);
         }
     }
+    image_write_debug_axis(img);
     return img;
 }

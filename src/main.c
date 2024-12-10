@@ -124,6 +124,10 @@ static void os_main(OS *os) {
 
     engine_begin(eng);
 
+    if (key_click(eng->input, KEY_R)) {
+        app->game = game_new();
+    }
+
     // Handle System keys (Quittng, Mouse grab, etc...)
     handle_basic_input(eng->input, eng);
 

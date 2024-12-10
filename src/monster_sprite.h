@@ -103,5 +103,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     // This is not centered, but I like this even more tbh
     if (eye_x > 0) mon.eye[mon.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
     monster_sprite_update_eyes(&mon, rng);
+    image_write_debug_axis(image);
     return mon;
 }
