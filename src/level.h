@@ -55,12 +55,10 @@ static void level_gen_outline(Level *level, Random *rng, Memory *mem, u32 size) 
             for (u32 x = 0; x < sx; ++x) {
                 Cell *cell = cell_new(mem, (v3i){x, y, z});
                 LIST_APPEND(first, last, cell);
-
                 if (x == 0) cell->x_neg = level_sprite_generate(mem, rng);
                 if (x == sx - 1) cell->x_pos = level_sprite_generate(mem, rng);
                 if (z == 0) cell->z_neg = level_sprite_generate(mem, rng);
                 if (z == sz - 1) cell->z_pos = level_sprite_generate(mem, rng);
-
                 if (y == 0) cell->y_neg = level_sprite_generate(mem, rng);
                 if (y == sy - 1) cell->y_pos = level_sprite_generate(mem, rng);
             }

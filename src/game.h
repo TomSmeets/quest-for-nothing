@@ -61,6 +61,7 @@ static void game_gen_monsters(Game *game, v3i spawn) {
     Monster *first = 0;
     Monster *last = 0;
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
+        if (!cell->y_neg) continue;
         if (v3i_eq(cell->pos, spawn)) continue;
         Monster *mon = monster_new(game->mem, &game->rng, v3i_to_v3(cell->pos));
         LIST_APPEND(first, last, mon);
@@ -94,7 +95,7 @@ static Game *game_new(void) {
     game->gun = gen_gun(mem);
 
     // Generate Monsters
-    // game_gen_monsters(game, spawn);
+    game_gen_monsters(game, spawn);
     return game;
 }
 
@@ -142,16 +143,25 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         m4_translate(&mon->body_mtx, (v3){0, mon->sprite.image->size.y / 32.0f * .5, 0});
     }
 
+    f32 height = mon->sprite.image->size.y / 32.0f;
+
     m4 sprite_mtx = m4_id();
     if (mon->health == 0) {
         mon->death_ani = animate(mon->death_ani, eng->dt * 4);
         f32 ang = R1 * mon->death_ani;
         m4_rotate_x(&sprite_mtx, ang);
-        m4_translate(&sprite_mtx, (v3){0, -.495f * (1.0f - f_cos(ang)), 0});
+        m4_translate(&sprite_mtx, (v3){0, height * -.495f * (1.0f - f_cos(ang)), 0});
     }
-    m4_scale(&sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
+    // m4_scale(&sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
     m4_apply(&sprite_mtx, mon->body_mtx);
     gfx_quad_3d(eng->gfx, sprite_mtx, mon->sprite.image);
+
+    if (mon->health > 0) {
+        m4 shadow_mtx = m4_id();
+        m4_rotate_x(&shadow_mtx, R1);
+        m4_translate(&shadow_mtx, mon->body_mtx.w + (v3){0, 0.01 - mon->sprite.image->size.y / 32.0f * .5, 0});
+        gfx_quad_3d(eng->gfx, shadow_mtx, mon->shadow);
+    }
 }
 
 typedef struct {
@@ -264,7 +274,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     // Shooting
     pl->shoot_time = animate(pl->shoot_time, -eng->dt * 4);
-    if (in.shoot_single && pl->shoot_time == 0) {
+    if (in.shoot && pl->shoot_time == 0) {
         pl->shoot_time = 1;
         audio_play(eng->audio, 1, 0.8, rand_f32(&game->rng) * 0.5 + 2.0);
 
@@ -292,8 +302,8 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // Draw Gun
     {
         m4 mtx = m4_id();
-        m4_translate(&mtx, (v3){-2.0f / 5.0f, 0, 0});
-        m4_scale(&mtx, 0.2f);
+        m4_translate(&mtx, (v3){-0.04, 0, 0});
+        // m4_scale(&mtx, 0.2f);
         m4_rotate_z(&mtx, -pl->shoot_time * R1 * 0.25);
         m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
         m4_rotate_y(&mtx, R1);
@@ -330,7 +340,7 @@ static void game_update(Game *game, Engine *eng) {
         cell_update(cell, game, eng);
     }
 
-    fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
+    // fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
 }
 
 static void game_free(Game *game) {

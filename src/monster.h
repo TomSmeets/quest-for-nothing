@@ -31,6 +31,7 @@ typedef struct Monster {
 
     // ==== Graphics ====
     Monster_Sprite sprite;
+    Image *shadow;
 
     m4 body_mtx;
     m4 sprite_mtx;
@@ -47,5 +48,6 @@ static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
     mon->old_pos = pos;
     mon->health = 10;
     mon->sprite = monster_sprite_generate(mem, rng);
+    mon->shadow = monster_gen_shadow(mem, mon->sprite.image->size.x * .5);
     return mon;
 }

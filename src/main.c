@@ -57,7 +57,7 @@ static v2 sound_sample_single(Sound *snd, f32 dt) {
 
     if (snd->kind == 1) {
         f32 v = sound_sine(snd, 800 * snd->time * snd->pitch * (1 + sound_sine(snd, 20) * 0.5)) * f_min(1, snd->time);
-        out += sound_shift(v, sound_sine(snd, 100) * 0.3);
+        out += sound_shift(v, sound_sine(snd, 40) * 0.8);
     }
     return out;
 }

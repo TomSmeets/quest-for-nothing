@@ -34,6 +34,21 @@ static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
     mon->image->id = id_next();
 }
 
+static Image *monster_gen_shadow(Memory *mem, u32 size) {
+    Image *img = image_new(mem, (v2u){size, size});
+    f32 r = (f32)size / 2.0f;
+    for (u32 y = 0; y < size; ++y) {
+        for (u32 x = 0; x < size; ++x) {
+            f32 dx = (f32)x - (f32)r;
+            f32 dy = (f32)y - (f32)r;
+            f32 dist = f_sqrt(dx * dx + dy * dy);
+            f32 color = 0.0;
+            if (dist < r) image_write(img, (v2i){x, y}, (v3){color, color, color});
+        }
+    }
+    return img;
+}
+
 static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     float texture = rand_f32_range(rng, 0.02, 0.05);
 
@@ -103,6 +118,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     // This is not centered, but I like this even more tbh
     if (eye_x > 0) mon.eye[mon.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
     monster_sprite_update_eyes(&mon, rng);
-    image_write_debug_axis(image);
+    // image_write_debug_axis(image);
     return mon;
 }
