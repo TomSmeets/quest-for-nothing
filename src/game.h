@@ -28,9 +28,11 @@ Game Design V1.0
 typedef struct {
     Memory *mem;
     Random rng;
-    Level level;
-    Monster *monsters;
+
     Player *player;
+    Monster *monsters;
+    Level level;
+
     Image *gun;
 } Game;
 
@@ -63,7 +65,7 @@ static void game_gen_monsters(Game *game, v3i spawn) {
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         if (!cell->y_neg) continue;
         if (v3i_eq(cell->pos, spawn)) continue;
-        Monster *mon = monster_new(game->mem, &game->rng, v3i_to_v3(cell->pos));
+        Monster *mon = monster_new(game->mem, &game->rng, v3i_to_v3(cell->pos * 4));
         LIST_APPEND(first, last, mon);
     }
     game->monsters = first;
@@ -314,19 +316,35 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 }
 
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
+    f32 s = 4;
     v3 x = {1, 0, 0};
     v3 y = {0, 1, 0};
     v3 z = {0, 0, 1};
-    v3 p = v3i_to_v3(cell->pos) + y * .5;
-    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p - x * .5}, cell->x_neg);
-    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p + x * .5}, cell->x_pos);
+    v3 p = (v3i_to_v3(cell->pos) + y * .5) * s;
 
-    if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
-    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){-x, y, -z, p - z * .5}, cell->z_neg);
+    // x*=2;
+    // y*=2;
+    // z*=2;
+    // p*=2;
+
+    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p - x * s * .5}, cell->x_neg);
+    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p + x * s * .5}, cell->x_pos);
+
+    if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * s * .5}, cell->z_pos);
+    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){-x, y, -z, p - z * s * .5}, cell->z_neg);
 
     // OK
-    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p - y * .5}, cell->y_neg);
-    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y * .5}, cell->y_pos);
+    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p - y * s * .5}, cell->y_neg);
+    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y * s * .5}, cell->y_pos);
+
+    // v3i dx = cell->direction->pos - cell->pos;
+    // if(cell->direction) {
+    //     m4 mtx = m4_id();
+    //     m4_rotate_x(&mtx, R1);
+    //     m4_rotate_y(&mtx, -R1*(cell->direction-1));
+    //     m4_translate(&mtx, v3i_to_v3(cell->pos) + y *.1);
+    //     gfx_quad_3d(eng->gfx, mtx, eng->image_arrow);
+    // }
 }
 
 static void game_update(Game *game, Engine *eng) {

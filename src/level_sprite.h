@@ -14,8 +14,8 @@ static Image *level_sprite_generate(Memory *mem, Random *rng) {
     float dirt = 0;
     float moss = 0;
 
-    u32 sx = 32;
-    u32 sy = 32;
+    u32 sx = 32 * 4;
+    u32 sy = 32 * 4;
 
     Image *img = image_new(mem, (v2u){sx, sy});
     v3 tint = rand_color(rng);

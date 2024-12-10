@@ -20,6 +20,8 @@ typedef struct {
     f32 dt;
     m4 camera;
     Random rng;
+
+    Image *image_arrow;
 } Engine;
 
 static Engine *engine_new(Memory *mem, OS *os, char *title) {
@@ -29,6 +31,14 @@ static Engine *engine_new(Memory *mem, OS *os, char *title) {
     eng->gfx = gfx_new(mem, title);
     eng->input = 0;
     eng->rng = (Random){os_rand()};
+
+    eng->image_arrow = image_new(mem, (v2u){10, 5});
+    image_write(eng->image_arrow, (v2i){9 - 1, 1}, RED);
+    image_write(eng->image_arrow, (v2i){9 - 2, 0}, RED);
+    image_write(eng->image_arrow, (v2i){9 - 1, 3}, RED);
+    image_write(eng->image_arrow, (v2i){9 - 2, 4}, RED);
+    for (u32 i = 0; i < 10; ++i) image_write(eng->image_arrow, (v2i){i, 2}, RED);
+
     return eng;
 }
 
