@@ -6,6 +6,7 @@
 #include "gfx.h"
 #include "input.h"
 #include "math.h"
+#include "os.h"
 #include "player.h"
 #include "time.h"
 
@@ -69,8 +70,9 @@ static void sound_sample_many(Sound *snd, f32 dt, v2 *output, u32 count) {
     }
 }
 
-static void os_audio_callback(OS *os, f32 dt, u32 sample_count, v2 *samples) {
-    App *app = os->app;
+static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
+    f32 dt = 1.0f / AUDIO_SAMPLE_RATE;
+    App *app = OS_GLOBAL->app;
     if (!app) return;
 
     Audio *audio = app->eng->audio;

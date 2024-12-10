@@ -11,25 +11,24 @@
 
 #define AUDIO_SAMPLE_RATE 48000
 
+// Output audio samples
+static void os_gfx_audio_callback(u32 count, v2 *output);
+
 typedef struct {
     Sdl_Api api;
     SDL_Window *win;
     SDL_GLContext *ctx;
     Input input;
-    void (*audio_callback)(OS *os, f32 dt, u32 count, v2 *output);
+    void (*audio_callback)(u32 count, v2 *output);
 } Sdl;
-
-// Output audio samples
-static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *output);
 
 static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     Sdl *sdl = user;
-    f32 dt = 1.0f / (float)AUDIO_SAMPLE_RATE;
 
     u32 count = (u32)size / sizeof(v2);
     v2 *samples = (v2 *)data;
 
-    sdl->audio_callback(OS_GLOBAL, dt, count, samples);
+    sdl->audio_callback(count, samples);
 
     // Protect my ears
     f32 volume = 0.5f;
@@ -89,7 +88,7 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
         .userdata = sdl,
         .callback = sdl_audio_callback_wrapper,
     };
-    sdl->audio_callback = os_audio_callback;
+    sdl->audio_callback = os_gfx_audio_callback;
 
     assert(api->SDL_OpenAudio(&want, 0) == 0, "Failed to load SDL2 audio");
 
@@ -109,7 +108,7 @@ static Input *sdl_poll(Sdl *sdl) {
 
     Input *input = &sdl->input;
     input_reset(input);
-    sdl->audio_callback = os_audio_callback;
+    sdl->audio_callback = os_gfx_audio_callback;
 
     SDL_Event src;
     while (api->SDL_PollEvent(&src)) {

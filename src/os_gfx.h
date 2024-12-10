@@ -11,6 +11,7 @@
 
 // Size of the square texture atlas
 #define OS_GFX_ATLAS_SIZE 4096
+#define AUDIO_SAMPLE_RATE 48000
 
 typedef struct OS_Gfx OS_Gfx;
 
@@ -41,8 +42,8 @@ static void os_gfx_texture(OS_Gfx *gfx, v2u pos, Image *img);
 // Perform a draw call
 static void os_gfx_draw(OS_Gfx *gfx, m44 projection, bool depth, u32 quad_count, OS_Gfx_Quad *quad_list);
 
-// Callback (called by os_gfx)
-static void os_audio_callback(OS *os, f32 dt, u32 count, v2 *samples);
+// Audio callback, called from platform layer
+static void os_gfx_audio_callback(u32 count, v2 *samples);
 
 // Finish frame
 static void os_gfx_end(OS_Gfx *gfx);
@@ -288,8 +289,7 @@ WASM_IMPORT(js_gfx_end) void js_gfx_end(void);
 struct OS_Gfx {
     Input input;
     Input input_copy;
-
-    u64 audio_time;
+    v2 audio_buffer[1024];
 };
 
 // WASM allows for globals, there is no reload anyway
@@ -298,7 +298,6 @@ static OS_Gfx GFX_GLOBAL;
 // Initialize Graphics stack
 static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     js_gfx_init();
-    GFX_GLOBAL.audio_time = os_time();
     return &GFX_GLOBAL;
 }
 
@@ -369,10 +368,9 @@ void js_gfx_resize(i32 width, i32 height) {
     GFX_GLOBAL.input.window_size.y = height;
 }
 
-static v2 audio_buffer[1024];
 v2 *js_audio_callback(u32 sample_count) {
-    assert(sample_count == array_count(audio_buffer), "Invalid sample count");
-    os_audio_callback(OS_GLOBAL, 1.0f / 48000.0f, sample_count, audio_buffer);
-    return audio_buffer;
+    assert(sample_count == array_count(GFX_GLOBAL.audio_buffer), "Invalid sample count");
+    os_gfx_audio_callback(sample_count, GFX_GLOBAL.audio_buffer);
+    return GFX_GLOBAL.audio_buffer;
 }
 #endif
