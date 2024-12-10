@@ -1,4 +1,5 @@
-// Game engine core
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// engine.h - Immediate Mode Game Engine
 #pragma once
 
 #include "os_gfx.h"
