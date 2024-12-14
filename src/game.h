@@ -80,7 +80,7 @@ static Player *gen_player(Memory *mem, v3i pos) {
 
 // Create a new game
 static Game *game_new(void) {
-    u32 level_size = 16;
+    u32 level_size = 8;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);

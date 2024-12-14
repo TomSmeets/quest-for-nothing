@@ -80,7 +80,7 @@ I'd like to release this someday, so keeping it very simple!
 - [ ] Player
   - [x] First-person movement
   - [ ] Can die
-  - [ ] Hitscan pistol
+  - [x] Hitscan pistol
   - [x] Draw pistol
   - [x] Draw cross
 
@@ -98,13 +98,20 @@ I'd like to release this someday, so keeping it very simple!
 
 - [ ] Level
   - [x] Simple aligned walls
-  - [ ] 2D layout
+  - [x] 2D layout
   - [ ] Collision
-  - [ ] Randomly generated
-      1. [ ] Create outline
-      2. [ ] Fill with maze
+  - [x] Randomly generated
+      1. [x] Create outline
+      2. [x] Fill with maze
       3. [ ] Remove some walls with only one connection
       4. [ ] Decorate with textures
+
+    - Generated
+      - [ ] Genrate a few random cells (outline)
+        - 0-3: place+move up,down,left,rigth
+      - [ ] mirror on other side
+      - [ ] Generate maze inside
+      - [ ] Reduce wall count
 
 - [ ] Sound
   - [ ] Simple synthesized music
