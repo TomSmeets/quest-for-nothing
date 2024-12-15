@@ -1,8 +1,8 @@
 #pragma once
 
-#include "vec.h"
 #include "audio.h"
 #include "gfx.h"
+#include "vec.h"
 
 typedef struct {
     v2 pos;
@@ -11,7 +11,6 @@ typedef struct {
     Audio *audio;
     Gfx *gfx;
 } UI;
-
 
 static void ui_begin(UI *ui) {
     m4 mtx = m4_id();

@@ -33,10 +33,10 @@ static App *app_init(OS *os) {
     App *app = mem_struct(mem, App);
 
     app->mem = mem;
-    app->game = game_new();
     app->eng = engine_new(mem, os, "Quest For Nothing");
+    app->game = game_new(&app->eng->rng);
     app->cursor = gen_cursor(mem);
-    audio_play(app->eng->audio, 0, 1e9, rand_f32(&app->game->rng));
+    audio_play(app->eng->audio, 0, 1e9, rand_f32(&app->eng->rng));
     return app;
 }
 
@@ -119,13 +119,17 @@ static void handle_basic_input(Input *input, Engine *eng) {
 static void os_main(OS *os) {
     // Initialize App
     if (!os->app) os->app = app_init(os);
+
+    // Update Loop
     App *app = os->app;
     Engine *eng = app->eng;
 
     engine_begin(eng);
 
+    // Reload level with 'R'
     if (key_click(eng->input, KEY_R)) {
-        app->game = game_new();
+        mem_free(app->game->mem);
+        app->game = game_new(&eng->rng);
     }
 
     // Handle System keys (Quittng, Mouse grab, etc...)
@@ -143,7 +147,7 @@ static void os_main(OS *os) {
     game_update(app->game, eng);
 
     if (key_click(eng->input, KEY_SPACE)) {
-        audio_play(eng->audio, 1, 0.5, rand_f32(&app->game->rng) * 0.1 + 1.0);
+        audio_play(eng->audio, 1, 0.5, rand_f32(&eng->rng) * 0.1 + 1.0);
     }
 
     eng->camera = pl->head_mtx;

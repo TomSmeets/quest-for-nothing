@@ -27,12 +27,9 @@ Game Design V1.0
 
 typedef struct {
     Memory *mem;
-    Random rng;
-
     Player *player;
     Monster *monsters;
     Level level;
-
     Image *gun;
 } Game;
 
@@ -59,13 +56,13 @@ static Image *gen_cursor(Memory *mem) {
     return img;
 }
 
-static void game_gen_monsters(Game *game, v3i spawn) {
+static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
     Monster *first = 0;
     Monster *last = 0;
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         if (!cell->y_neg) continue;
         if (v3i_eq(cell->pos, spawn)) continue;
-        Monster *mon = monster_new(game->mem, &game->rng, v3i_to_v3(cell->pos * 4));
+        Monster *mon = monster_new(game->mem, rng, v3i_to_v3(cell->pos * 4));
         LIST_APPEND(first, last, mon);
     }
     game->monsters = first;
@@ -79,7 +76,7 @@ static Player *gen_player(Memory *mem, v3i pos) {
 }
 
 // Create a new game
-static Game *game_new(void) {
+static Game *game_new(Random *rng) {
     u32 level_size = 8;
 
     Memory *mem = mem_new();
@@ -87,7 +84,7 @@ static Game *game_new(void) {
     game->mem = mem;
 
     // Create Level
-    level_gen_outline(&game->level, &game->rng, mem, level_size);
+    level_gen_outline(&game->level, rng, mem, level_size);
 
     // Generate player
     v3i spawn = {level_size / 2, 0, level_size / 2};
@@ -97,7 +94,7 @@ static Game *game_new(void) {
     game->gun = gen_gun(mem);
 
     // Generate Monsters
-    game_gen_monsters(game, spawn);
+    game_gen_monsters(game, rng, spawn);
     return game;
 }
 
@@ -278,7 +275,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     pl->shoot_time = animate(pl->shoot_time, -eng->dt * 4);
     if (in.shoot && pl->shoot_time == 0) {
         pl->shoot_time = 1;
-        audio_play(eng->audio, 1, 0.8, rand_f32(&game->rng) * 0.5 + 2.0);
+        audio_play(eng->audio, 1, 0.8, rand_f32(&eng->rng) * 0.5 + 2.0);
 
         v3 ray_pos = pl->head_mtx.w;
         v3 ray_dir = pl->head_mtx.z;
