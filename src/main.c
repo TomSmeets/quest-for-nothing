@@ -150,6 +150,5 @@ static void os_main(OS *os) {
         audio_play(eng->audio, 1, 0.5, rand_f32(&eng->rng) * 0.1 + 1.0);
     }
 
-    eng->camera = pl->head_mtx;
-    engine_end(app->eng);
+    engine_end(app->eng, pl->head_mtx);
 }

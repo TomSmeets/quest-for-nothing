@@ -18,7 +18,6 @@ typedef struct {
     Gfx *gfx;
     Input *input;
     f32 dt;
-    m4 camera;
     Random rng;
 
     Image *image_arrow;
@@ -51,8 +50,8 @@ static void engine_begin(Engine *eng) {
     eng->tmp = mem_new();
 }
 
-static void engine_end(Engine *eng) {
-    gfx_end(eng->gfx, eng->camera);
+static void engine_end(Engine *eng, m4 camera) {
+    gfx_end(eng->gfx, camera);
     mem_free(eng->tmp);
     eng->os->sleep_time = time_end(&eng->time);
 }
