@@ -168,7 +168,7 @@ static m4 m4_invert_tr(m4 m) {
 }
 
 // Render a flat upright sprite facing the camera
-static m4 m4_billboard(v3 pos, v3 target, float wiggle) {
+static m4 m4_billboard(v3 pos, v3 target, v2 size, float wiggle) {
     // Relative direction to the camera in xz
     v2 fwd = -v2_normalize(target.xz - pos.xz);
 
@@ -176,10 +176,16 @@ static m4 m4_billboard(v3 pos, v3 target, float wiggle) {
     // up    = y
     // fwd   = -z
 
-    m4 mtx = {.x = {fwd.y, 0, -fwd.x}, .y = {0, 1, 0}, .z = {fwd.x, 0, fwd.y}, .w = pos};
+    v3 x = {fwd.y, 0, -fwd.x};
+    v3 y = {0, 1, 0};
+    v3 z = {fwd.x, 0, fwd.y};
+    v3 w = pos;
+    m4 body = {x, y, z, w};
 
-    // Wiggle a little on the x axis
-    mtx.w += mtx.x * wiggle;
+    m4 mtx = m4_id();
+    m4_scale(&mtx, (v3){size.x, size.y, size.x});
+    m4_rotate_z(&mtx, wiggle*PI);
+    m4_apply(&mtx, body);
     return mtx;
 }
 

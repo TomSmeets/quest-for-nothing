@@ -9,45 +9,27 @@
 #include "player.h"
 #include "rand.h"
 #include "vec.h"
+#include "entity.h"
 
-typedef struct Monster {
-    // ==== Physics ====
-    v3 pos;
-    v3 old_pos;
+typedef Entity Monster;
 
-    // ==== AI ====
-    u32 health;
+static Entity *monster_new(Memory *mem, Random *rng, v3 pos) {
+    Monster_Sprite sprite = monster_sprite_generate(mem, rng);
 
-    // Current movement direction
-    v2 move_dir;
-
-    // Cooldown until new movement direction is chosen
-    f32 move_time;
-
-    // ==== Animation ====
-    // Movement speed
-    f32 speed;
-    f32 wiggle;
-
-    // ==== Graphics ====
-    Monster_Sprite sprite;
-    Image *shadow;
-
-    m4 body_mtx;
-    m4 sprite_mtx;
-
-    f32 death_ani;
-
-    // ==== Other ====
-    struct Monster *next;
-} Monster;
-
-static Monster *monster_new(Memory *mem, Random *rng, v3 pos) {
-    Monster *mon = mem_struct(mem, Monster);
+    Entity *mon = mem_struct(mem, Entity);
+    mon->mtx = m4_id();
+    mon->img = sprite.image;
+    
+    // Monster
+    mon->is_monster = true;
     mon->pos = pos;
-    mon->old_pos = pos;
+    mon->pos_old = pos;
     mon->health = 10;
-    mon->sprite = monster_sprite_generate(mem, rng);
-    mon->shadow = monster_gen_shadow(mem, mon->sprite.image->size.x * .5);
+    mon->eye_count = sprite.eye_count;
+    for (u32 i = 0; i < sprite.eye_count; ++i) mon->eye[i] = sprite.eye[i];
+    mon->shadow = monster_gen_shadow(mem, sprite.image->size.x * .5);
+
+    // AI
+    mon->is_ai = true;
     return mon;
 }

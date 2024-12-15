@@ -9,6 +9,7 @@
 typedef struct {
     v3 pos;
     v3 old_pos;
+    v2 size;
 
     // Health, probably more satisfying if it is 'discrete' instead of a float
     u32 health;

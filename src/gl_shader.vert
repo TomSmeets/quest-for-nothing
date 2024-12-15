@@ -21,7 +21,7 @@ layout(location = 6) in vec2 quad_uv_size;
 // To Fragment shader
 out vec2 frag_uv;
 out vec3 frag_normal;
-out float frag_z;
+out vec3 frag_pos;
 
 uniform mat4 proj;
 
@@ -38,5 +38,5 @@ void main() {
     gl_Position = proj * vec4(pos, 1);
 
     // Pass depth info (-1 to 1)
-    frag_z = gl_Position.z;
+    frag_pos = gl_Position.xyz;
 }

@@ -1,3 +1,5 @@
+// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// level.h - Game level
 #pragma once
 #include "image.h"
 #include "level_sprite.h"
@@ -7,6 +9,11 @@
 #include "rand.h"
 #include "types.h"
 #include "vec.h"
+
+typedef struct {
+    Image *img;
+    m4 mtx;
+} Entity;
 
 typedef struct Cell Cell;
 struct Cell {

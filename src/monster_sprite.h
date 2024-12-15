@@ -5,6 +5,7 @@
 #include "gfx.h"
 #include "image.h"
 #include "player.h"
+#include "entity.h"
 #include "rand.h"
 #include "vec.h"
 
@@ -19,19 +20,19 @@ typedef struct {
 } Monster_Sprite;
 
 // Update monster eye position
-static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
+static void monster_sprite_update_eyes(Entity *mon, Random *rng) {
     v3 black = {0, 0, 0};
     v3 white = {1, 1, 1};
 
     u32 look_dir = rand_u32(rng) % 4;
     for (u32 i = 0; i < mon->eye_count; ++i) {
         v2i eye = mon->eye[i];
-        image_write(mon->image, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
-        image_write(mon->image, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
-        image_write(mon->image, eye + (v2i){0, 1}, look_dir == 3 ? black : white);
-        image_write(mon->image, eye + (v2i){1, 1}, look_dir == 2 ? black : white);
+        image_write(mon->img, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
+        image_write(mon->img, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
+        image_write(mon->img, eye + (v2i){0, 1}, look_dir == 3 ? black : white);
+        image_write(mon->img, eye + (v2i){1, 1}, look_dir == 2 ? black : white);
     }
-    mon->image->id = id_next();
+    mon->img->id = id_next();
 }
 
 static Image *monster_gen_shadow(Memory *mem, u32 size) {

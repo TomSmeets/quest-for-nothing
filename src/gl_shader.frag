@@ -4,7 +4,7 @@
 
 in vec2 frag_uv;
 in vec3 frag_normal;
-in float frag_z;
+in vec3 frag_pos;
 
 // The final color drawn to the screen
 out vec4 out_color;
@@ -29,7 +29,8 @@ void main() {
     // Distance fog
     float z_near = 0.1;
     float z_far = 15.0;
-    out_color.rgb = mix(out_color.rgb, vec3(0.02f), min((frag_z - z_near) / (z_far - z_near), 1));
+    float z_rel = (frag_pos.z - z_near) / (z_far - z_near);
+    out_color.rgb = mix(out_color.rgb, vec3(0.02f), clamp(z_rel, 0, 1));
     // out_color = texture(img, frag_uv);
     // out_color = vec4(frag_uv, 1, out_color.a);
     if (out_color.a < 0.5) discard;

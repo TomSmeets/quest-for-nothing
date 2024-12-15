@@ -103,57 +103,91 @@ static f32 animate(f32 x, f32 dt) {
     return f_clamp(x, 0, 1);
 }
 
+
+static bool animate2(f32 *x, f32 dt) {
+    *x -= dt;
+    return *x <= 0;
+}
+
+static void monster_update_eyes() {
+}
+
+
+static void interpolate_exponential(f32 *value, f32 target, f32 dt) {
+    *value += (target - *value) * dt;
+}
+
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
-    // ==== Physics ====
-    if (mon->health > 0) {
-        v3 vel = mon->pos - mon->old_pos;
-        mon->old_pos = mon->pos;
+    Player *player = game->player;
+    bool is_alive = mon->health > 0 && mon->is_monster;
+
+    // Looking around
+    if(is_alive && animate2(&mon->look_around_timer, eng->dt)) {
+        mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
+        monster_sprite_update_eyes(mon, &eng->rng);
+    }
+
+    if (is_alive) {
+        // Physics
+        v3 vel = mon->pos - mon->pos_old;
+        mon->pos_old = mon->pos;
 
         // Apply movement
-        mon->pos.xz += mon->move_dir * eng->dt;
+        if (mon->is_ai) mon->pos.xz += mon->move_dir.xy * eng->dt;
 
-        mon->move_time -= eng->dt;
-        if (mon->move_time <= 0) {
+        // AI movement
+        if (mon->is_ai && animate2(&mon->move_time, eng->dt)) {
             mon->move_time = rand_f32_range(&eng->rng, 2, 10);
 
+            // AI Movement mode
             u32 mode = rand_u32_range(&eng->rng, 0, 2);
-            // fmt_su(OS_FMT, "mode=", mode, "\n");
+
+            // Stand still
             if (mode == 0) mon->move_dir = 0;
+
+            // To player
             if (mode == 1) mon->move_dir = v2_normalize(game->player->pos.xz - mon->pos.xz) * 0.1;
+
+            // Random direction
             if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
-            monster_sprite_update_eyes(&mon->sprite, &eng->rng);
         }
 
-        // Player Collision
-        v2 player_dir = game->player->pos.xz - mon->pos.xz;
+        // Collision (with player)
+        v2 player_dir = player->pos.xz - mon->pos.xz;
         f32 player_distance = v2_length(player_dir);
+        f32 penetration = mon->size.x * 0.5 - player->size.x *.5 - player_distance;
 
-        float radius = 0.5;
-        if (player_distance < radius) {
-            mon->pos.xz -= player_dir * (radius - player_distance) / player_distance;
+        bool collide_y = player->pos.y < mon->pos.y + mon->size.y && player->pos.y + player->size.y > mon->pos.y;
+        bool collide_x = penetration > 0;
+
+        if (collide_y && collide_x) {
+            mon->pos.xz -= player_dir * penetration / player_distance;
         }
 
         // ==== Animation ====
-        f32 speed = v3_length(vel);
-        mon->speed += (speed / eng->dt - mon->speed) * eng->dt;
-        mon->wiggle += speed * 2;
-        mon->wiggle = f_fract(mon->wiggle);
-        mon->body_mtx = m4_billboard(mon->pos, game->player->pos, f_sin2pi(mon->wiggle) * f_min(mon->speed * 0.5, 0.2) * 0.3);
-        m4_translate(&mon->body_mtx, (v3){0, mon->sprite.image->size.y / 32.0f * .5, 0});
+        f32 speed = v3_length(vel) / eng->dt;
+
+        interpolate_exponential(&mon->wiggle_amp, speed, eng->dt);
+        mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp);
+
+        mon->mtx = m4_billboard(mon->pos, game->player->pos, mon->size, f_sin2pi(mon->wiggle_phase) * f_min(mon->wiggle_amp * 0.5, 0.2) * 0.3);
+        m4_translate(&mon->mtx, (v3){0, mon->size.y * .5, 0});
     }
 
-    f32 height = mon->sprite.image->size.y / 32.0f;
+    // TODO: write to size.xy in constructor
+    f32 height = mon->size.y;
 
-    m4 sprite_mtx = m4_id();
     if (mon->health == 0) {
-        mon->death_ani = animate(mon->death_ani, eng->dt * 4);
-        f32 ang = R1 * mon->death_ani;
-        m4_rotate_x(&sprite_mtx, ang);
-        m4_translate(&sprite_mtx, (v3){0, height * -.495f * (1.0f - f_cos(ang)), 0});
+        mon->death_animation = animate(mon->death_animation, eng->dt * 4);
+        f32 ang = R1 * mon->death_animation;
+        m4 mtx = m4_id();
+        m4_rotate_x(&mtx, ang);
+        m4_translate(&mtx, (v3){0, height * -.495f * (1.0f - f_cos(ang)), 0});
+        m4_apply(&mtx, mon->mtx);
+        mon->mtx = mtx;
     }
-    // m4_scale(&sprite_mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
-    m4_apply(&sprite_mtx, mon->body_mtx);
-    gfx_quad_3d(eng->gfx, sprite_mtx, mon->sprite.image);
+    m4_scale(&mon->mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
+    gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
 
     if (mon->health > 0) {
         m4 shadow_mtx = m4_id();

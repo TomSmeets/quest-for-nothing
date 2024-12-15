@@ -258,7 +258,7 @@ static Hot *hot_init(OS *os) {
         build_web(tmp, false);
         os_exit(0);
     } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
-        assert(hot_system("python -m http.server"), "Failed to start python http server. Is python installed?\n");
+        assert(hot_system("python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
     } else if (cli_action(cli, "release", "", "Build all targets in release mode")) {
         embed_all_assets(tmp);
@@ -268,7 +268,7 @@ static Hot *hot_init(OS *os) {
         embed_all_assets(tmp);
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
-        assert(hot_system("clang-format --verbose -i src/*"), "Format failed!\n");
+        assert(hot_system("clang-format --verbose -i src/*"), "Format failed!");
         os_exit(0);
     } else {
         exit_with_help(cli);
