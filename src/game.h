@@ -103,7 +103,6 @@ static f32 animate(f32 x, f32 dt) {
     return f_clamp(x, 0, 1);
 }
 
-
 static bool animate2(f32 *x, f32 dt) {
     *x -= dt;
     return *x <= 0;
@@ -111,7 +110,6 @@ static bool animate2(f32 *x, f32 dt) {
 
 static void monster_update_eyes() {
 }
-
 
 static void interpolate_exponential(f32 *value, f32 target, f32 dt) {
     *value += (target - *value) * dt;
@@ -122,7 +120,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     bool is_alive = mon->health > 0 && mon->is_monster;
 
     // Looking around
-    if(is_alive && animate2(&mon->look_around_timer, eng->dt)) {
+    if (is_alive && animate2(&mon->look_around_timer, eng->dt)) {
         mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
         monster_sprite_update_eyes(mon, &eng->rng);
     }
@@ -155,7 +153,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         // Collision (with player)
         v2 player_dir = player->pos.xz - mon->pos.xz;
         f32 player_distance = v2_length(player_dir);
-        f32 penetration = mon->size.x * 0.5 - player->size.x *.5 - player_distance;
+        f32 penetration = mon->size.x * 0.5 - player->size.x * .5 - player_distance;
 
         bool collide_y = player->pos.y < mon->pos.y + mon->size.y && player->pos.y + player->size.y > mon->pos.y;
         bool collide_x = penetration > 0;

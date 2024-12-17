@@ -10,11 +10,6 @@
 #include "types.h"
 #include "vec.h"
 
-typedef struct {
-    Image *img;
-    m4 mtx;
-} Entity;
-
 typedef struct Cell Cell;
 struct Cell {
     v3i pos;

@@ -184,7 +184,7 @@ static m4 m4_billboard(v3 pos, v3 target, v2 size, float wiggle) {
 
     m4 mtx = m4_id();
     m4_scale(&mtx, (v3){size.x, size.y, size.x});
-    m4_rotate_z(&mtx, wiggle*PI);
+    m4_rotate_z(&mtx, wiggle * PI);
     m4_apply(&mtx, body);
     return mtx;
 }

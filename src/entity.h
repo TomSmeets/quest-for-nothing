@@ -10,7 +10,7 @@ struct Entity {
     m4 mtx;
     v2 size;
     Image *img;
-    
+
     // Monster
     bool is_monster;
     v3 pos;
@@ -40,4 +40,3 @@ static Entity *wall_new(Memory *mem, m4 mtx, Image *img) {
     ent->img = img;
     return ent;
 }
-

@@ -2,10 +2,10 @@
 // monster_sprite.h - Generate Sprites for Aliens
 #pragma once
 #include "color.h"
+#include "entity.h"
 #include "gfx.h"
 #include "image.h"
 #include "player.h"
-#include "entity.h"
 #include "rand.h"
 #include "vec.h"
 
@@ -51,7 +51,7 @@ static Image *monster_gen_shadow(Memory *mem, u32 size) {
     return img;
 }
 
-static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
+static void monster_sprite_generate(Entity *mon, Memory *mem, Random *rng) {
     float texture = rand_f32_range(rng, 0.02, 0.05);
 
     // Initial line widths
@@ -109,17 +109,20 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
             }
         }
     }
-    Monster_Sprite mon = {
-        .image = image,
-    };
 
     if (eye_x <= 1) eye_x = 0;
 
-    mon.eye[mon.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
+    // Image
+    assert(mon->img == 0, "Monster already has an image?");
+    mon->img = image;
+
+    // First eye
+    assert(mon->eye_count == 0, "Monster already has eyes?");
+    mon->eye[mon->eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
 
     // This is not centered, but I like this even more tbh
-    if (eye_x > 0) mon.eye[mon.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
-    monster_sprite_update_eyes(&mon, rng);
-    // image_write_debug_axis(image);
-    return mon;
+    if (eye_x > 0) mon->eye[mon->eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
+
+    // Update other eyes
+    monster_sprite_update_eyes(mon, rng);
 }
