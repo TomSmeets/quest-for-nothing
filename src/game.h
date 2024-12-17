@@ -108,21 +108,26 @@ static bool animate2(f32 *x, f32 dt) {
     return *x <= 0;
 }
 
-static void monster_update_eyes() {
+static void animate_exp(f32 *value, f32 target, f32 dt) {
+    *value += (target - *value) * dt;
 }
 
-static void interpolate_exponential(f32 *value, f32 target, f32 dt) {
-    *value += (target - *value) * dt;
+static void animate_lin(f32 *value, f32 target, f32 dt) {
+    f32 dir = (target - *value);
+    if (dir < -dt) dir = -dt;
+    if (dir > dt) dir = dt;
+    *value += dir;
 }
 
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
     bool is_alive = mon->health > 0 && mon->is_monster;
+    bool is_dead = mon->health == 0 && mon->is_monster;
 
     // Looking around
     if (is_alive && animate2(&mon->look_around_timer, eng->dt)) {
         mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
-        monster_sprite_update_eyes(mon, &eng->rng);
+        monster_sprite_update_eyes(&mon->sprite, &eng->rng);
     }
 
     if (is_alive) {
@@ -163,34 +168,21 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         }
 
         // ==== Animation ====
-        f32 speed = v3_length(vel) / eng->dt;
-
-        interpolate_exponential(&mon->wiggle_amp, speed, eng->dt);
-        mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp);
-
-        mon->mtx = m4_billboard(mon->pos, game->player->pos, mon->size, f_sin2pi(mon->wiggle_phase) * f_min(mon->wiggle_amp * 0.5, 0.2) * 0.3);
-        m4_translate(&mon->mtx, (v3){0, mon->size.y * .5, 0});
+        f32 speed = f_min(v3_length(vel) / eng->dt, 1.0);
+        animate_exp(&mon->wiggle_amp, speed, eng->dt * 4);
+        mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp * 0.08);
+        mon->look_target = game->player->pos;
     }
 
-    // TODO: write to size.xy in constructor
-    f32 height = mon->size.y;
-
-    if (mon->health == 0) {
-        mon->death_animation = animate(mon->death_animation, eng->dt * 4);
-        f32 ang = R1 * mon->death_animation;
-        m4 mtx = m4_id();
-        m4_rotate_x(&mtx, ang);
-        m4_translate(&mtx, (v3){0, height * -.495f * (1.0f - f_cos(ang)), 0});
-        m4_apply(&mtx, mon->mtx);
-        mon->mtx = mtx;
-    }
-    m4_scale(&mon->mtx, (v3){(f32)mon->sprite.image->size.x / 32.0f, (f32)mon->sprite.image->size.y / 32.0f, 1});
+    // Death animation
+    if (is_dead) animate_lin(&mon->death_animation, 1, eng->dt * 4);
+    mon->mtx = m4_billboard(mon->pos, mon->look_target, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
     gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
 
-    if (mon->health > 0) {
+    if (is_alive) {
         m4 shadow_mtx = m4_id();
         m4_rotate_x(&shadow_mtx, R1);
-        m4_translate(&shadow_mtx, mon->body_mtx.w + (v3){0, 0.01 - mon->sprite.image->size.y / 32.0f * .5, 0});
+        m4_translate(&shadow_mtx, mon->pos + (v3){0, 0.01 - mon->img->size.y / 32.0f * .5, 0});
         gfx_quad_3d(eng->gfx, shadow_mtx, mon->shadow);
     }
 }
@@ -202,7 +194,7 @@ typedef struct {
     f32 distance;
 } Collide_Result;
 
-static Collide_Result collide_quad_ray(m4 quad, v2 size, v3 ray_pos, v3 ray_dir) {
+static Collide_Result collide_quad_ray(m4 quad, v3 ray_pos, v3 ray_dir) {
     Collide_Result result = {0};
     m4 quad_inv = m4_invert_tr(quad);
     v3 ray_pos_local = m4_mul_pos(quad_inv, ray_pos);
@@ -212,8 +204,8 @@ static Collide_Result collide_quad_ray(m4 quad, v2 size, v3 ray_pos, v3 ray_dir)
 
     v3 hit_local = ray_pos_local + ray_dir_local * distance;
     v3 hit_global = ray_pos + ray_dir * distance;
-    if (hit_local.x > 0.5 * size.x || hit_local.x < -0.5 * size.x) return result;
-    if (hit_local.y > 0.5 * size.y || hit_local.y < -0.5 * size.y) return result;
+    if (hit_local.x > 0.5 || hit_local.x < -0.5) return result;
+    if (hit_local.y > 0.5 || hit_local.y < -0.5) return result;
     return (Collide_Result){
         .hit = true,
         .pos = hit_global,
@@ -315,9 +307,9 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         Collide_Result best_result = {0};
         Monster *best_monster = 0;
         for (Monster *mon = game->monsters; mon; mon = mon->next) {
-            Image *image = mon->sprite.image;
+            Image *image = mon->img;
             if (mon->health == 0) continue;
-            Collide_Result result = collide_quad_ray(mon->body_mtx, (v2){(f32)image->size.x / 32.0f, (f32)image->size.y / 32.0f}, ray_pos, ray_dir);
+            Collide_Result result = collide_quad_ray(mon->mtx, ray_pos, ray_dir);
             if (!result.hit) continue;
             if (best_result.hit && result.distance > best_result.distance) continue;
             best_monster = mon;
@@ -346,25 +338,25 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
     f32 s = 4;
-    v3 x = {1, 0, 0};
-    v3 y = {0, 1, 0};
-    v3 z = {0, 0, 1};
-    v3 p = (v3i_to_v3(cell->pos) + y * .5) * s;
+    v3 x = {s, 0, 0};
+    v3 y = {0, s, 0};
+    v3 z = {0, 0, s};
+    v3 p = v3i_to_v3(cell->pos) * s + y * .5;
 
     // x*=2;
     // y*=2;
     // z*=2;
     // p*=2;
 
-    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p - x * s * .5}, cell->x_neg);
-    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p + x * s * .5}, cell->x_pos);
+    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p - x * .5}, cell->x_neg);
+    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p + x * .5}, cell->x_pos);
 
-    if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * s * .5}, cell->z_pos);
-    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){-x, y, -z, p - z * s * .5}, cell->z_neg);
+    if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
+    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){-x, y, -z, p - z * .5}, cell->z_neg);
 
     // OK
-    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p - y * s * .5}, cell->y_neg);
-    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y * s * .5}, cell->y_pos);
+    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p - y * .5}, cell->y_neg);
+    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y * .5}, cell->y_pos);
 
     // v3i dx = cell->direction->pos - cell->pos;
     // if(cell->direction) {

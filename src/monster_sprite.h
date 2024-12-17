@@ -20,19 +20,19 @@ typedef struct {
 } Monster_Sprite;
 
 // Update monster eye position
-static void monster_sprite_update_eyes(Entity *mon, Random *rng) {
+static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
     v3 black = {0, 0, 0};
     v3 white = {1, 1, 1};
 
     u32 look_dir = rand_u32(rng) % 4;
     for (u32 i = 0; i < mon->eye_count; ++i) {
         v2i eye = mon->eye[i];
-        image_write(mon->img, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
-        image_write(mon->img, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
-        image_write(mon->img, eye + (v2i){0, 1}, look_dir == 3 ? black : white);
-        image_write(mon->img, eye + (v2i){1, 1}, look_dir == 2 ? black : white);
+        image_write(mon->image, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
+        image_write(mon->image, eye + (v2i){1, 0}, look_dir == 1 ? black : white);
+        image_write(mon->image, eye + (v2i){0, 1}, look_dir == 3 ? black : white);
+        image_write(mon->image, eye + (v2i){1, 1}, look_dir == 2 ? black : white);
     }
-    mon->img->id = id_next();
+    mon->image->id = id_next();
 }
 
 static Image *monster_gen_shadow(Memory *mem, u32 size) {
@@ -51,7 +51,7 @@ static Image *monster_gen_shadow(Memory *mem, u32 size) {
     return img;
 }
 
-static void monster_sprite_generate(Entity *mon, Memory *mem, Random *rng) {
+static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     float texture = rand_f32_range(rng, 0.02, 0.05);
 
     // Initial line widths
@@ -113,16 +113,14 @@ static void monster_sprite_generate(Entity *mon, Memory *mem, Random *rng) {
     if (eye_x <= 1) eye_x = 0;
 
     // Image
-    assert(mon->img == 0, "Monster already has an image?");
-    mon->img = image;
-
-    // First eye
-    assert(mon->eye_count == 0, "Monster already has eyes?");
-    mon->eye[mon->eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
+    Monster_Sprite sprite = {};
+    sprite.image = image;
+    sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
 
     // This is not centered, but I like this even more tbh
-    if (eye_x > 0) mon->eye[mon->eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
+    if (eye_x > 0) sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
 
     // Update other eyes
-    monster_sprite_update_eyes(mon, rng);
+    monster_sprite_update_eyes(&sprite, rng);
+    return sprite;
 }

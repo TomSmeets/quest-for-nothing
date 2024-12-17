@@ -148,9 +148,10 @@ static m4 m4_invert_tr(m4 m) {
     f32 l1 = v3_length_sq(m.x);
     f32 l2 = v3_length_sq(m.y);
     f32 l3 = v3_length_sq(m.z);
-    assert(l1 > 0.98 && l1 < 1.02, "Matrix has scaling in x");
-    assert(l2 > 0.98 && l2 < 1.02, "Matrix has scaling in y");
-    assert(l3 > 0.98 && l3 < 1.02, "Matrix has scaling in z");
+
+    m.x *= 1.0 / l1;
+    m.y *= 1.0 / l2;
+    m.z *= 1.0 / l3;
 
     // 3x3 rotation matrix inverse is it's transpose
     m4 inv_r = {
@@ -168,7 +169,7 @@ static m4 m4_invert_tr(m4 m) {
 }
 
 // Render a flat upright sprite facing the camera
-static m4 m4_billboard(v3 pos, v3 target, v2 size, float wiggle) {
+static m4 m4_billboard(v3 pos, v3 target, v2 size, float wiggle, float death) {
     // Relative direction to the camera in xz
     v2 fwd = -v2_normalize(target.xz - pos.xz);
 
@@ -182,9 +183,14 @@ static m4 m4_billboard(v3 pos, v3 target, v2 size, float wiggle) {
     v3 w = pos;
     m4 body = {x, y, z, w};
 
+    death *= R1;
     m4 mtx = m4_id();
+    // m4_translate(&mtx, (v3){0, -.495f * (1.0f - f_cos(death)), 0});
+    m4_translate(&mtx, (v3){0, 0.5, 0});
     m4_scale(&mtx, (v3){size.x, size.y, size.x});
+    m4_rotate_x(&mtx, death);
     m4_rotate_z(&mtx, wiggle * PI);
+    m4_translate(&mtx, (v3){0, 0.01, 0});
     m4_apply(&mtx, body);
     return mtx;
 }

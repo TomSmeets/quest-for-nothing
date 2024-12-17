@@ -4,6 +4,7 @@
 
 #include "image.h"
 #include "mat.h"
+#include "monster_sprite.h"
 
 typedef struct Entity Entity;
 struct Entity {
@@ -17,14 +18,14 @@ struct Entity {
     v3 pos_old;
     u32 health; // Integer health is more satisfying
 
-    u32 eye_count;
-    v2i eye[2];
+    Monster_Sprite sprite;
     f32 look_around_timer;
 
     f32 wiggle_phase;
     f32 wiggle_amp;
     Image *shadow;
     f32 death_animation; // 0 -> alive, 1 -> dead
+    v3 look_target;
 
     // Monster AI
     bool is_ai;

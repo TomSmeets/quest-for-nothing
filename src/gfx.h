@@ -85,8 +85,8 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
         os_gfx_texture(gfx->os, area->pos, img);
     }
 
-    mtx.x *= img->size.x / 32.0f;
-    mtx.y *= img->size.y / 32.0f;
+    // mtx.x *= img->size.x / 32.0f;
+    // mtx.y *= img->size.y / 32.0f;
 
     OS_Gfx_Quad quad = {
         .x = {mtx.x.x, mtx.x.y, mtx.x.z},
