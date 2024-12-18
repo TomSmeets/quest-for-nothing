@@ -3,6 +3,7 @@
 #pragma once
 #include "audio.h"
 #include "engine.h"
+#include "id.h"
 #include "image.h"
 #include "level.h"
 #include "level_sprite.h"
@@ -72,6 +73,7 @@ static Player *gen_player(Memory *mem, v3i pos) {
     Player *player = mem_struct(mem, Player);
     player->pos = v3i_to_v3(pos);
     player->old_pos = player->pos;
+    player->size = (v2){0.5, 0.5};
     return player;
 }
 
@@ -112,79 +114,113 @@ static void animate_exp(f32 *value, f32 target, f32 dt) {
     *value += (target - *value) * dt;
 }
 
-static void animate_lin(f32 *value, f32 target, f32 dt) {
-    f32 dir = (target - *value);
-    if (dir < -dt) dir = -dt;
-    if (dir > dt) dir = dt;
-    *value += dir;
+static bool animate_lin(f32 *value, f32 target, f32 dt) {
+    if (*value > target + dt) {
+        *value -= dt;
+        return false;
+    } else if (*value < target - dt) {
+        *value += dt;
+        return false;
+    } else {
+        *value = target;
+        return true;
+    }
+}
+
+static void monster_update_eyes(Entity *mon, Engine *eng) {
+    if (animate2(&mon->look_around_timer, eng->dt)) {
+        mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
+        monster_sprite_update_eyes(&mon->sprite, &eng->rng);
+    }
+}
+
+static void monster_update_ai(Entity *mon, Game *game, Engine *eng) {
+    // Apply movement
+    mon->pos.xz += mon->move_dir.xy * eng->dt;
+
+    // AI movement
+    if (animate2(&mon->move_time, eng->dt)) {
+        mon->move_time = rand_f32_range(&eng->rng, 2, 10);
+
+        // AI Movement mode
+        u32 mode = rand_u32_range(&eng->rng, 0, 2);
+
+        // Stand still
+        if (mode == 0) mon->move_dir = 0;
+
+        // To player
+        if (mode == 1) mon->move_dir = v2_normalize(game->player->pos.xz - mon->pos.xz) * 0.1;
+
+        // Random direction
+        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
+    }
+
+    // Look direction
+    mon->look_dir = v3_normalize((game->player->pos - mon->pos) * (v3){1, 0, 1});
+}
+
+static void monster_update_physics(Monster *mon, Engine *eng) {
+    // Physics
+    mon->vel = (mon->pos - mon->pos_old) / eng->dt;
+    mon->pos_old = mon->pos;
+}
+
+static void monster_collide_with(Monster *mon, Player *player) {
+    // Collision (with player)
+    v2 player_dir = player->pos.xz - mon->pos.xz;
+    f32 player_distance = v2_length(player_dir);
+    f32 penetration = mon->size.x * 0.5 + player->size.x * .5 - player_distance;
+
+    bool collide_y = player->pos.y < mon->pos.y + mon->size.y && player->pos.y + player->size.y > mon->pos.y;
+    bool collide_x = penetration > 0;
+
+    if (collide_y && collide_x) {
+        mon->pos.xz -= player_dir * penetration / player_distance;
+    }
+}
+
+static void monster_wiggle(Monster *mon, Engine *eng) {
+    // ==== Animation ====
+    f32 speed = f_min(v3_length(mon->vel), 0.6);
+    animate_exp(&mon->wiggle_amp, speed, eng->dt * 4);
+    mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp * 0.08);
+}
+
+static void monster_die(Monster *mon, Engine *eng) {
+    mon->wiggle_amp = 0;
+    mon->wiggle_phase = 0;
+    animate_lin(&mon->death_animation, 1, eng->dt * 4);
+}
+
+static void monster_draw_shadow(Monster *mon, Engine *eng) {
+    m4 shadow_mtx = m4_id();
+    m4_rotate_x(&shadow_mtx, R1);
+    m4_translate(&shadow_mtx, mon->pos + (v3){0, 0.01 - mon->img->size.y / 32.0f * .5, 0});
+    gfx_quad_3d(eng->gfx, shadow_mtx, mon->shadow);
 }
 
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
-    bool is_alive = mon->health > 0 && mon->is_monster;
-    bool is_dead = mon->health == 0 && mon->is_monster;
+
+    bool is_alive = mon->health > 0;
 
     // Looking around
-    if (is_alive && animate2(&mon->look_around_timer, eng->dt)) {
-        mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
-        monster_sprite_update_eyes(&mon->sprite, &eng->rng);
-    }
-
-    if (is_alive) {
-        // Physics
-        v3 vel = mon->pos - mon->pos_old;
-        mon->pos_old = mon->pos;
-
-        // Apply movement
-        if (mon->is_ai) mon->pos.xz += mon->move_dir.xy * eng->dt;
-
-        // AI movement
-        if (mon->is_ai && animate2(&mon->move_time, eng->dt)) {
-            mon->move_time = rand_f32_range(&eng->rng, 2, 10);
-
-            // AI Movement mode
-            u32 mode = rand_u32_range(&eng->rng, 0, 2);
-
-            // Stand still
-            if (mode == 0) mon->move_dir = 0;
-
-            // To player
-            if (mode == 1) mon->move_dir = v2_normalize(game->player->pos.xz - mon->pos.xz) * 0.1;
-
-            // Random direction
-            if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
+    if (mon->is_monster) {
+        if (is_alive) {
+            monster_update_physics(mon, eng);
+            monster_update_eyes(mon, eng);
+            monster_update_ai(mon, game, eng);
+            monster_collide_with(mon, game->player);
+            monster_wiggle(mon, eng);
+        } else {
+            monster_die(mon, eng);
         }
 
-        // Collision (with player)
-        v2 player_dir = player->pos.xz - mon->pos.xz;
-        f32 player_distance = v2_length(player_dir);
-        f32 penetration = mon->size.x * 0.5 - player->size.x * .5 - player_distance;
-
-        bool collide_y = player->pos.y < mon->pos.y + mon->size.y && player->pos.y + player->size.y > mon->pos.y;
-        bool collide_x = penetration > 0;
-
-        if (collide_y && collide_x) {
-            mon->pos.xz -= player_dir * penetration / player_distance;
-        }
-
-        // ==== Animation ====
-        f32 speed = f_min(v3_length(vel) / eng->dt, 1.0);
-        animate_exp(&mon->wiggle_amp, speed, eng->dt * 4);
-        mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp * 0.08);
-        mon->look_target = game->player->pos;
+        mon->mtx = m4_billboard(mon->pos, mon->look_dir, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
+        monster_draw_shadow(mon, eng);
     }
 
-    // Death animation
-    if (is_dead) animate_lin(&mon->death_animation, 1, eng->dt * 4);
-    mon->mtx = m4_billboard(mon->pos, mon->look_target, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
     gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
-
-    if (is_alive) {
-        m4 shadow_mtx = m4_id();
-        m4_rotate_x(&shadow_mtx, R1);
-        m4_translate(&shadow_mtx, mon->pos + (v3){0, 0.01 - mon->img->size.y / 32.0f * .5, 0});
-        gfx_quad_3d(eng->gfx, shadow_mtx, mon->shadow);
-    }
 }
 
 typedef struct {

@@ -28,8 +28,5 @@ static Entity *monster_new(Memory *mem, Random *rng, v3 pos) {
     mon->size.x = (f32)mon->img->size.x / 32.0f;
     mon->size.y = (f32)mon->img->size.y / 32.0f;
     mon->shadow = monster_gen_shadow(mem, mon->img->size.x * .5);
-
-    // AI
-    mon->is_ai = true;
     return mon;
 }

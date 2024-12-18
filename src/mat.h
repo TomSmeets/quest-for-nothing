@@ -169,9 +169,9 @@ static m4 m4_invert_tr(m4 m) {
 }
 
 // Render a flat upright sprite facing the camera
-static m4 m4_billboard(v3 pos, v3 target, v2 size, float wiggle, float death) {
+static m4 m4_billboard(v3 pos, v3 forward, v2 size, float wiggle, float death) {
     // Relative direction to the camera in xz
-    v2 fwd = -v2_normalize(target.xz - pos.xz);
+    v2 fwd = -forward.xz;
 
     // right = x
     // up    = y

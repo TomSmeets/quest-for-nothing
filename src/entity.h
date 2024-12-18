@@ -8,6 +8,7 @@
 
 typedef struct Entity Entity;
 struct Entity {
+    // Every entity is a oriented image
     m4 mtx;
     v2 size;
     Image *img;
@@ -16,6 +17,8 @@ struct Entity {
     bool is_monster;
     v3 pos;
     v3 pos_old;
+    v3 vel;
+
     u32 health; // Integer health is more satisfying
 
     Monster_Sprite sprite;
@@ -25,12 +28,11 @@ struct Entity {
     f32 wiggle_amp;
     Image *shadow;
     f32 death_animation; // 0 -> alive, 1 -> dead
-    v3 look_target;
 
     // Monster AI
-    bool is_ai;
     f32 move_time;
     v2 move_dir;
+    v3 look_dir;
 
     Entity *next;
 };

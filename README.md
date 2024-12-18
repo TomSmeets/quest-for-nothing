@@ -74,7 +74,7 @@ Run `./out/build run src/main.c` to launch the game. Edit any file, and the game
 For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir` command to update the source view when needed.
 
 # Short Term Taks
-- Transition to "Entity" and make project build again
+- Transition to "Entity" 
 - Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
 
 # Version 1.0
