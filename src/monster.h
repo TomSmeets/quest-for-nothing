@@ -27,6 +27,6 @@ static Entity *monster_new(Memory *mem, Random *rng, v3 pos) {
     mon->health = 10;
     mon->size.x = (f32)mon->img->size.x / 32.0f;
     mon->size.y = (f32)mon->img->size.y / 32.0f;
-    mon->shadow = monster_gen_shadow(mem, mon->img->size.x * .5);
+    mon->shadow = monster_gen_shadow(mem, mon->img->size.x * .8);
     return mon;
 }
