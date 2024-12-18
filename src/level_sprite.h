@@ -28,7 +28,7 @@ static Image *level_sprite_generate(Memory *mem, Random *rng) {
 
             f32 dirt = f_max(rand_f32(rng) * 2 - 1, 0);
 
-            v3 color = color_blend(WHITE, tint, 0.1);
+            v3 color = color_blend(WHITE, tint, 0.2);
             color = color_blend(color, tint2, color_splatter(rng, 0.8, 0.0, 0.1));
             // color = color_blend(color, (v3){27, 94, 32} / 255.0f, color_splatter(rng, 0.01, 0.2, 0.8));
 
