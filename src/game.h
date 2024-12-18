@@ -326,11 +326,11 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     {
         m4 mtx = m4_id();
         m4_translate(&mtx, (v3){-0.04, 0, 0});
-        // m4_scale(&mtx, 0.2f);
+        m4_scale(&mtx, 0.25f);
         m4_rotate_z(&mtx, -pl->shoot_time * R1 * 0.25);
         m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
         m4_rotate_y(&mtx, R1);
-        m4_translate(&mtx, (v3){.17, -0.12, .2});
+        m4_translate(&mtx, (v3){.15, -0.12, .3});
         m4_apply(&mtx, game->player->head_mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
