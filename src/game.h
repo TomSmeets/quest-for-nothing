@@ -216,12 +216,12 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
             monster_update_ai(mon, game, eng);
             monster_collide_with(mon, game->player);
             monster_wiggle(mon, eng);
+            monster_draw_shadow(mon, eng);
         } else {
             monster_die(mon, eng);
         }
 
         mon->mtx = m4_billboard(mon->pos, mon->look_dir, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
-        monster_draw_shadow(mon, eng);
     }
 
     gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
@@ -348,7 +348,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         Monster *best_monster = 0;
         for (Monster *mon = game->monsters; mon; mon = mon->next) {
             Image *image = mon->img;
-            if (mon->health == 0) continue;
+            // if (mon->health == 0) continue;
             Collide_Result result = collide_quad_ray(mon->mtx, ray_pos, ray_dir);
             if (!result.hit) continue;
             if (best_result.hit && result.distance > best_result.distance) continue;
@@ -358,7 +358,41 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
         if (best_monster) {
             fmt_s(OS_FMT, "HIT!\n");
-            best_monster->health = 0;
+
+            Image *img = best_monster->img;
+
+            if (best_monster->health > 0) {
+                best_monster->health = 0;
+                for (u32 y = 0; y < img->size.y; ++y) {
+                    for (u32 x = 0; x < img->size.x; ++x) {
+                        v4 *px = img->pixels + y * img->size.x + x;
+                        v3 gray = {0.5f, 0.5f, 0.5f};
+                        px->xyz = px->xyz * 0.4f + gray * 0.6f;
+                    }
+                }
+            }
+
+            for (u32 i = 0; i < 32; ++i) {
+                f32 ox = rand_f32_signed(&eng->rng);
+                f32 oy = rand_f32_signed(&eng->rng);
+
+                ox = ox * ox - 0.5;
+                oy = oy * oy - 0.5;
+
+                i32 x = (best_result.uv.x + 0.5) * img->size.x + ox * best_result.distance * 4;
+                i32 y = (0.5 - best_result.uv.y) * img->size.y + oy * best_result.distance * 4;
+                v4 *px = image_get(img, (v2i){x, y});
+                if (!px) continue;
+
+                v3 red = RED;
+                px->xyz = px->xyz * 0.4f + red * 0.6f;
+
+                // if(v3_length_sq(red - px->xyz) < 0.01*0.01) {
+                //     *px = (v4){0, 0, 0, 0};
+                // }
+            }
+
+            img->id = id_next();
         }
     }
 
