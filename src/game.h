@@ -307,7 +307,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     // Ground Collision
     pl->on_ground = false;
-    if (pl->pos.y <= 0) {
+    if (pl->pos.y <= 0 && !pl->flying) {
         pl->pos.y = 0;
         pl->on_ground = true;
     }
