@@ -190,7 +190,7 @@ static m4 m4_billboard(v3 pos, v3 forward, v2 size, float wiggle, float death) {
     m4_scale(&mtx, (v3){size.x, size.y, size.x});
     m4_rotate_x(&mtx, death);
     m4_rotate_z(&mtx, wiggle * PI);
-    m4_translate(&mtx, (v3){0, 0.01, 0});
+    m4_translate(&mtx, (v3){0, 0.02, 0});
     m4_apply(&mtx, body);
     return mtx;
 }

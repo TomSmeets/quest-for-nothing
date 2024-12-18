@@ -193,9 +193,13 @@ static void monster_die(Monster *mon, Engine *eng) {
 }
 
 static void monster_draw_shadow(Monster *mon, Engine *eng) {
+    v3 shadow_pos = mon->pos;
+    shadow_pos.y = 0.01;
+
     m4 shadow_mtx = m4_id();
+    m4_scale(&shadow_mtx, (v3){mon->shadow->size.x / 32.0, mon->shadow->size.x / 32.0, 1});
     m4_rotate_x(&shadow_mtx, R1);
-    m4_translate(&shadow_mtx, mon->pos + (v3){0, 0.01 - mon->img->size.y / 32.0f * .5, 0});
+    m4_translate(&shadow_mtx, shadow_pos);
     gfx_quad_3d(eng->gfx, shadow_mtx, mon->shadow);
 }
 
