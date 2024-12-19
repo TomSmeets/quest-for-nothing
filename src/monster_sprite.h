@@ -13,6 +13,9 @@ typedef struct {
     // Left and right eye positions
     v2i eye[2];
 
+    v3 base_color;
+    v3 blood_color;
+
     // Generated image
     Image *image;
 
@@ -116,6 +119,8 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     Monster_Sprite sprite = {};
     sprite.image = image;
     sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
+    sprite.base_color = color_base;
+    sprite.blood_color = rand_v3(rng);
 
     // This is not centered, but I like this even more tbh
     if (eye_x > 0) sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};

@@ -347,7 +347,6 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         Collide_Result best_result = {0};
         Monster *best_monster = 0;
         for (Monster *mon = game->monsters; mon; mon = mon->next) {
-            Image *image = mon->img;
             // if (mon->health == 0) continue;
             Collide_Result result = collide_quad_ray(mon->mtx, ray_pos, ray_dir);
             if (!result.hit) continue;
@@ -384,12 +383,8 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
                 v4 *px = image_get(img, (v2i){x, y});
                 if (!px) continue;
 
-                v3 red = RED;
+                v3 red = best_monster->sprite.blood_color;
                 px->xyz = px->xyz * 0.4f + red * 0.6f;
-
-                // if(v3_length_sq(red - px->xyz) < 0.01*0.01) {
-                //     *px = (v4){0, 0, 0, 0};
-                // }
             }
 
             img->id = id_next();
