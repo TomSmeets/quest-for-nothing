@@ -34,6 +34,7 @@ struct Entity {
     v2 move_dir;
     v3 look_dir;
 
+    // Next entity in the list
     Entity *next;
 };
 
