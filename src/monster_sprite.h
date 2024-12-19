@@ -117,7 +117,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     // Image
     Monster_Sprite sprite = {};
     sprite.base_color = color_base;
-    sprite.blood_color = rand_v3(rng);
+    sprite.blood_color = v3_normalize(rand_v3(rng));
 
     sprite.image = image;
     sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};

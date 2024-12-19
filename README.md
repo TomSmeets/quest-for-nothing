@@ -75,6 +75,8 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 
 # Short Term Taks
 - Transition to "Entity" 
+  - Make Player an Entity
+  - Player and monster are the same, except for AI logic and Input
 - Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
 - Work on sound system, make it like sfxr
 
@@ -84,7 +86,7 @@ I'd like to release this someday, so keeping it very simple!
 - [ ] Player
   - [x] First-person movement
   - [ ] Can die
-  - [x] Hitscan pistol
+  - [x] Hit-scan pistol
   - [x] Draw pistol
   - [x] Draw cross
 

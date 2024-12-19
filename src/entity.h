@@ -8,31 +8,42 @@
 
 typedef struct Entity Entity;
 struct Entity {
-    // Every entity is a oriented image
     m4 mtx;
     v2 size;
-    Image *img;
 
-    // Monster
-    bool is_monster;
+    // Visible entity
+    Image *img;
+    Image *shadow;
+
+    // Moving Entity
+    bool can_move;
+    bool can_fly;
+    bool on_ground;
     v3 pos;
     v3 pos_old;
     v3 vel;
 
+    // Living Entity
     u32 health; // Integer health is more satisfying
 
+    // Monster
+    bool is_monster;
     Monster_Sprite sprite;
     f32 look_around_timer;
-
     f32 wiggle_phase;
     f32 wiggle_amp;
-    Image *shadow;
     f32 death_animation; // 0 -> alive, 1 -> dead
 
     // Monster AI
     f32 move_time;
     v2 move_dir;
     v3 look_dir;
+
+    // Player
+    bool is_player;
+    v3 rot;
+    f32 shoot_time;
+    f32 step_volume;
 
     // Next entity in the list
     Entity *next;

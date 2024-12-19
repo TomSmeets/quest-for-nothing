@@ -159,7 +159,7 @@ static void monster_update_ai(Entity *mon, Game *game, Engine *eng) {
     mon->look_dir = v3_normalize((game->player->pos - mon->pos) * (v3){1, 0, 1});
 }
 
-static void monster_update_physics(Monster *mon, Engine *eng) {
+static void entity_update_movement(Monster *mon, Engine *eng) {
     // Physics
     mon->vel = (mon->pos - mon->pos_old) / eng->dt;
     mon->pos_old = mon->pos;
@@ -192,31 +192,29 @@ static void monster_die(Monster *mon, Engine *eng) {
     animate_lin(&mon->death_animation, 1, eng->dt * 4);
 }
 
-static void monster_draw_shadow(Monster *mon, Engine *eng) {
-    v3 shadow_pos = mon->pos;
+static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
     shadow_pos.y = 0.01;
 
     m4 shadow_mtx = m4_id();
-    m4_scale(&shadow_mtx, (v3){mon->shadow->size.x / 32.0, mon->shadow->size.x / 32.0, 1});
+    m4_scale(&shadow_mtx, (v3){image->size.x / 32.0, image->size.x / 32.0, 1});
     m4_rotate_x(&shadow_mtx, R1);
     m4_translate(&shadow_mtx, shadow_pos);
-    gfx_quad_3d(eng->gfx, shadow_mtx, mon->shadow);
+    gfx_quad_3d(eng->gfx, shadow_mtx, image);
 }
 
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
 
     bool is_alive = mon->health > 0;
+    entity_update_movement(mon, eng);
 
     // Looking around
     if (mon->is_monster) {
         if (is_alive) {
-            monster_update_physics(mon, eng);
             monster_update_eyes(mon, eng);
             monster_update_ai(mon, game, eng);
             monster_collide_with(mon, game->player);
             monster_wiggle(mon, eng);
-            monster_draw_shadow(mon, eng);
         } else {
             monster_die(mon, eng);
         }
@@ -224,7 +222,8 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         mon->mtx = m4_billboard(mon->pos, mon->look_dir, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
     }
 
-    gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
+    if (mon->img) gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
+    if (mon->shadow) draw_shadow(eng, mon->mtx.w, mon->shadow);
 }
 
 typedef struct {
@@ -360,13 +359,17 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
             Image *img = best_monster->img;
 
+            // Damage entity
             if (best_monster->health > 0) {
-                best_monster->health = 0;
-                for (u32 y = 0; y < img->size.y; ++y) {
-                    for (u32 x = 0; x < img->size.x; ++x) {
-                        v4 *px = img->pixels + y * img->size.x + x;
-                        v3 gray = {0.5f, 0.5f, 0.5f};
-                        px->xyz = px->xyz * 0.4f + gray * 0.6f;
+                best_monster->health--;
+
+                // Entity just died
+                if (best_monster->health == 0) {
+                    for (u32 y = 0; y < img->size.y; ++y) {
+                        for (u32 x = 0; x < img->size.x; ++x) {
+                            v4 *px = img->pixels + y * img->size.x + x;
+                            px->xyz = color_blend(px->xyz, GRAY, 0.5f);
+                        }
                     }
                 }
             }
@@ -383,8 +386,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
                 v4 *px = image_get(img, (v2i){x, y});
                 if (!px) continue;
 
-                v3 red = best_monster->sprite.blood_color;
-                px->xyz = px->xyz * 0.4f + red * 0.6f;
+                px->xyz = color_blend(px->xyz, best_monster->sprite.blood_color, 0.6);
             }
 
             img->id = id_next();
