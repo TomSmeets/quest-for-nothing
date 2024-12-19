@@ -76,6 +76,7 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Short Term Taks
 - Transition to "Entity" 
 - Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
+- Work on sound system, make it like sfxr
 
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!

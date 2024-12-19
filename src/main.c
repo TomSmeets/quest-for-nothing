@@ -19,12 +19,6 @@ typedef struct {
     // Game engine, audio, video, input, timing
     Engine *eng;
 
-    f32 cutoff;
-    f32 duty;
-
-    u32 reverb_ix;
-    v2 reverb[1024 * 4];
-
     Image *cursor;
 } App;
 

@@ -43,9 +43,9 @@ static Image *monster_gen_shadow(Memory *mem, u32 size) {
     f32 r = (f32)size / 2.0f;
     for (u32 y = 0; y < size; ++y) {
         for (u32 x = 0; x < size; ++x) {
-            f32 dx = (f32)x - (f32)r;
-            f32 dy = (f32)y - (f32)r;
-            f32 dist = f_sqrt(dx * dx + dy * dy);
+            v2 pos = {(f32)x + 0.5f, (f32)y + 0.5f};
+            v2 center = {r, r};
+            f32 dist = v2_length(pos - center);
             f32 color = 0.0;
             f32 alpha = dist < r ? 1.0 : 0.0;
             image_write4(img, (v2i){x, y}, (v4){color, color, color, alpha});
