@@ -257,6 +257,11 @@ static Hot *hot_init(OS *os) {
         embed_all_assets(tmp);
         build_web(tmp, false);
         os_exit(0);
+    } else if (cli_action(cli, "web-upload", "", "Build for web and upload to my website using rclone. https://tsmeets.nl/qfn")) {
+        embed_all_assets(tmp);
+        build_web(tmp, true);
+        hot_system("rclone copy out --include main.wasm --include index.html fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/");
+        os_exit(0);
     } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
         assert(hot_system("python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
