@@ -77,8 +77,11 @@ static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
         sound_sample_many(snd, dt, samples, sample_count);
     }
 
+    // Reduce volume and clamp (Protect my ears)
     for (u32 i = 0; i < sample_count; ++i) {
-        samples[i] *= 0.5;
+        v2 *sample = samples + i;
+        sample->x = f_clamp(sample->x * 0.25, -1, 1);
+        sample->y = f_clamp(sample->y * 0.25, -1, 1);
     }
 }
 

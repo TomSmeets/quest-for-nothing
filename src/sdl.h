@@ -24,18 +24,7 @@ typedef struct {
 
 static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     Sdl *sdl = user;
-
-    u32 count = (u32)size / sizeof(v2);
-    v2 *samples = (v2 *)data;
-
-    sdl->audio_callback(count, samples);
-
-    // Protect my ears
-    f32 volume = 0.5f;
-    for (u32 i = 0; i < count; ++i) {
-        samples[i].x = f_clamp(samples[i].x * volume, -1, 1);
-        samples[i].y = f_clamp(samples[i].y * volume, -1, 1);
-    }
+    sdl->audio_callback((u32)size / sizeof(v2), (v2 *)data);
 }
 
 static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
