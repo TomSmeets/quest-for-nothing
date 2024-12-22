@@ -2,10 +2,7 @@
 // monster_sprite.h - Generate Sprites for Aliens
 #pragma once
 #include "color.h"
-#include "entity.h"
-#include "gfx.h"
 #include "image.h"
-#include "player.h"
 #include "rand.h"
 #include "vec.h"
 

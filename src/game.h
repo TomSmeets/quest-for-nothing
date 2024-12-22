@@ -72,8 +72,9 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
 static Player *gen_player(Memory *mem, v3i pos) {
     Player *player = mem_struct(mem, Player);
     player->pos = v3i_to_v3(pos);
-    player->old_pos = player->pos;
+    player->pos_old = player->pos;
     player->size = (v2){0.5, 0.5};
+    player->shadow = monster_gen_shadow(mem, 16);
     return player;
 }
 
@@ -260,7 +261,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     // ==== Input ====
     // Toggle flight
-    if (in.fly) pl->flying = !pl->flying;
+    if (in.fly) pl->can_fly = !pl->can_fly;
 
     // Update player head rotation
     // x -> pitch
@@ -279,9 +280,9 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     // ==== Physics ====
     // Player displacement since previous frame (velocity * dt)
-    v3 vel = pl->pos - pl->old_pos;
-    pl->old_pos = pl->pos;
-    if (pl->flying) {
+    v3 vel = pl->pos - pl->pos_old;
+    pl->pos_old = pl->pos;
+    if (pl->can_fly) {
         vel = v3_limit(vel, 0.01f * dt, 5.0f / 3.6f * dt);
         vel *= 1.0f - 0.2;
     } else {
@@ -291,7 +292,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     pl->pos += vel;
 
     // Apply Gravity
-    if (!pl->flying) pl->pos.y -= 9.81 * dt * dt;
+    if (!pl->can_fly) pl->pos.y -= 9.81 * dt * dt;
 
     // Apply movement input
     m4 yaw_mtx = m4_id();
@@ -299,18 +300,18 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     v3 move = m4_mul_dir(yaw_mtx, in.move);
     move.xz = v2_limit(move.xz, 0, 1);
-    move.y = in.move.y * pl->flying;
+    move.y = in.move.y * pl->can_fly;
     pl->pos += move * 1.4 * dt;
 
     // Jumping
     if (in.jump && pl->on_ground) {
-        pl->old_pos.y = pl->pos.y;
+        pl->pos_old.y = pl->pos.y;
         pl->pos.y += 4 * dt;
     }
 
     // Ground Collision
     pl->on_ground = false;
-    if (pl->pos.y <= 0 && !pl->flying) {
+    if (pl->pos.y <= 0 && !pl->can_fly) {
         pl->pos.y = 0;
         pl->on_ground = true;
     }
@@ -323,9 +324,9 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     m4_translate(&pl->head_mtx, pl->pos);
     m4_translate(&pl->head_mtx, (v3){0, .5, 0});
 
-    pl->body_mtx = m4_id();
-    m4_rotate_y(&pl->body_mtx, pl->rot.y * PI); // Yaw
-    m4_translate(&pl->body_mtx, pl->pos);
+    pl->mtx = m4_id();
+    m4_rotate_y(&pl->mtx, pl->rot.y * PI); // Yaw
+    m4_translate(&pl->mtx, pl->pos);
 
     // Step sounds
     {

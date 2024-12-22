@@ -1,7 +1,6 @@
 // Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 // entity.h - Generic object that exists in the game
 #pragma once
-
 #include "image.h"
 #include "mat.h"
 #include "monster_sprite.h"
@@ -9,6 +8,7 @@
 typedef struct Entity Entity;
 struct Entity {
     m4 mtx;
+    m4 head_mtx;
     v2 size;
 
     // Visible entity
@@ -41,6 +41,8 @@ struct Entity {
 
     // Player
     bool is_player;
+
+    // Player rotation around each axis. [0-1]
     v3 rot;
     f32 shoot_time;
     f32 step_volume;

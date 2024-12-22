@@ -2,31 +2,12 @@
 // player.h - The player character
 #pragma once
 
+#include "entity.h"
 #include "input.h"
 #include "mat.h"
 #include "math.h"
 
-typedef struct {
-    v3 pos;
-    v3 old_pos;
-    v2 size;
-
-    // Health, probably more satisfying if it is 'discrete' instead of a float
-    u32 health;
-
-    // Player rotation around each axis. [0-1]
-    v3 rot;
-    bool flying;
-    bool on_ground;
-
-    // Derived matrices
-    m4 body_mtx;
-    m4 head_mtx;
-
-    // stuff
-    f32 shoot_time;
-    f32 step_volume;
-} Player;
+typedef Entity Player;
 
 typedef struct {
     v3 move;
