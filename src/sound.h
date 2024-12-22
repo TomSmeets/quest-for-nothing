@@ -8,6 +8,34 @@
 #include "std.h"
 #include "types.h"
 
+// https://www.eetimes.com/making-sounds-with-analogue-electronics-part-1-before-the-synthesizer/
+typedef struct {
+    // Parameters
+    f32 attack;
+    f32 decay;
+    f32 sustain;
+    f32 release;
+
+    // Runtime
+    f32 time;
+    bool done;
+} Sound_Envelope;
+
+static f32 sound_envelope(Sound_Envelope *env, f32 dt) {
+    f32 v = 0.0;
+    f32 t = env->time;
+    v += f_step(t / env->attack);
+    t -= env->attack;
+    v -= f_step(t / env->decay) * 0.5;
+    t -= env->decay;
+    t -= env->sustain;
+    v -= f_step(t / env->release) * 0.5;
+    t -= env->release;
+    env->done = t >= 0;
+    env->time += dt;
+    return v;
+}
+
 // A single sound
 typedef struct {
     // id

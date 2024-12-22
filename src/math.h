@@ -40,6 +40,16 @@ static u32 u_max(u32 a, u32 b) { return a >= b ? a : b; }
 
 // clang-format on
 
+// Exponential Step function from 0 to 1
+static f32 f_step(f32 x) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    x = 1 - x;
+    x = x * x * x;
+    x = 1 - x;
+    return x;
+}
+
 // clamp 'x' between l and h, inclusive
 static i32 i_clamp(i32 x, i32 l, i32 h) {
     if (x < l) x = l;

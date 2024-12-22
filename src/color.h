@@ -19,8 +19,8 @@ static v4 color_alpha(v3 color, f32 alpha) {
 }
 
 static v3 color_rainbow(f32 v) {
-    f32 r = 0.5f + 0.5*f_cos2pi(v+0.0f/3.0f);
-    f32 g = 0.5f + 0.5*f_cos2pi(v+1.0f/3.0f);
-    f32 b = 0.5f + 0.5*f_cos2pi(v+2.0f/3.0f);
+    f32 r = 0.5f + 0.5 * f_cos2pi(v + 0.0f / 3.0f);
+    f32 g = 0.5f + 0.5 * f_cos2pi(v + 1.0f / 3.0f);
+    f32 b = 0.5f + 0.5 * f_cos2pi(v + 2.0f / 3.0f);
     return (v3){r, g, b};
 }
