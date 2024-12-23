@@ -254,18 +254,20 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     if (mon->shadow) draw_shadow(eng, mon->mtx.w, mon->shadow);
 
     // Draw Gun
-    if (mon->health > 0) {
+    {
+        f32 aliveness = 1.0 - mon->death_animation;
         m4 mtx = m4_id();
         m4_translate(&mtx, (v3){-0.04, 0, 0});
+        m4_rotate_z(&mtx, R1 * .4 * mon->death_animation);
         // m4_rotate_z(&mtx, -mon->shoot_time * R1 * 0.25);
         // m4_translate(&mtx, (v3){mon->shoot_time * 0.05, 0, 0});
         // m4_scale(&mtx, 0.25f);
         m4_scale(&mtx, (v3){1.0 / mon->size.x, 1.0 / mon->size.y, 1.0 / mon->size.x});
         m4_scale(&mtx, 0.25f);
-        m4_rotate_y(&mtx, -R1 * .8);
+        m4_rotate_y(&mtx, -R1 * .8 * aliveness);
         // m4_translate(&mtx, mon->pos);
         // m4_translate(&mtx, (v3){0, .5, 0});
-        m4_translate(&mtx, (v3){0, 0, -.1 / mon->size.x});
+        m4_translate(&mtx, (v3){-.3 * (1.0f - aliveness), 0, -.1 / mon->size.x * aliveness - 0.01});
         m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->img->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->img->size.y - 0.5f, 0});
         // m4_translate(&mtx, (v3){0, .5, 0});
         m4_apply(&mtx, mon->mtx);
