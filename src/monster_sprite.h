@@ -10,6 +10,7 @@ typedef struct {
     // Left and right eye positions
     u32 eye_count;
     v2i eye[2];
+    v2i hand[2];
 
     v3 base_color;
     v3 blood_color;
@@ -57,6 +58,8 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     u32 body_height = rand_u32_range(rng, 12, 32);
     u32 start_radius = rand_u32_range(rng, 1, 8);
     u32 eye_y = rand_u32_range(rng, 0, body_height / 2.0f);
+    u32 hand_y = body_height * 0.45f;
+    u32 hand_x = 0;
     float spike = rand_f32_range(rng, 0.5, 3.0);
     v3 color_base = rand_color(rng);
 
@@ -68,6 +71,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
         radius_list[i] = radius;
         if (radius > body_radius) body_radius = radius;
         if (i == eye_y) eye_x = radius / 2.0f;
+        if (i == hand_y) hand_x = radius / 2.0f;
 
         radius += rand_f32_signed(rng) * spike;
         if (radius < 1) radius = 1;
@@ -118,6 +122,8 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
 
     sprite.image = image;
     sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
+    sprite.hand[0] = (v2i){image->size.x / 2 + hand_x, hand_y};
+    sprite.hand[1] = (v2i){image->size.x / 2 - 1 - hand_x, hand_y};
     // This is not centered, but I like this even more tbh
     if (eye_x > 0) sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 - 1 - eye_x, eye_y};
 

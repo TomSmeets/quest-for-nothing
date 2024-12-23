@@ -74,7 +74,8 @@ static Player *gen_player(Memory *mem, v3i pos) {
     player->pos = v3i_to_v3(pos);
     player->pos_old = player->pos;
     player->size = (v2){0.5, 0.5};
-    player->shadow = monster_gen_shadow(mem, 16);
+    player->shadow = monster_gen_shadow(mem, 0.5 * 32 * 0.8);
+    player->health = 100;
     return player;
 }
 
@@ -160,10 +161,33 @@ static void monster_update_ai(Entity *mon, Game *game, Engine *eng) {
     mon->look_dir = v3_normalize((game->player->pos - mon->pos) * (v3){1, 0, 1});
 }
 
-static void entity_update_movement(Monster *mon, Engine *eng) {
+static void entity_update_movement(Monster *mon, Engine *eng, Player_Input *in) {
+    // Reset state
+    mon->on_ground = false;
+
     // Physics
-    mon->vel = (mon->pos - mon->pos_old) / eng->dt;
+    v3 vel_dt = mon->pos - mon->pos_old;
+    mon->vel = vel_dt / eng->dt;
     mon->pos_old = mon->pos;
+
+    if (!mon->can_fly) {
+        // Gravity
+        mon->pos.y -= 9.81 * eng->dt * eng->dt;
+
+        // Vertical velocity
+        mon->pos.y += vel_dt.y;
+
+        if (mon->pos.y < 0) {
+            mon->pos.y = 0;
+            mon->on_ground = true;
+        }
+    }
+
+    // Jumping
+    if (in->jump && mon->on_ground && mon->health > 0) {
+        mon->pos_old.y = mon->pos.y;
+        mon->pos.y += 4 * eng->dt;
+    }
 }
 
 static void monster_collide_with(Monster *mon, Player *player) {
@@ -207,7 +231,10 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
 
     bool is_alive = mon->health > 0;
-    entity_update_movement(mon, eng);
+    Player_Input in = {
+        .jump = 0,
+    };
+    entity_update_movement(mon, eng, &in);
 
     // Looking around
     if (mon->is_monster) {
@@ -225,6 +252,25 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
 
     if (mon->img) gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
     if (mon->shadow) draw_shadow(eng, mon->mtx.w, mon->shadow);
+
+    // Draw Gun
+    if (mon->health > 0) {
+        m4 mtx = m4_id();
+        m4_translate(&mtx, (v3){-0.04, 0, 0});
+        // m4_rotate_z(&mtx, -mon->shoot_time * R1 * 0.25);
+        // m4_translate(&mtx, (v3){mon->shoot_time * 0.05, 0, 0});
+        // m4_scale(&mtx, 0.25f);
+        m4_scale(&mtx, (v3){1.0 / mon->size.x, 1.0 / mon->size.y, 1.0 / mon->size.x});
+        m4_scale(&mtx, 0.25f);
+        m4_rotate_y(&mtx, -R1 * .8);
+        // m4_translate(&mtx, mon->pos);
+        // m4_translate(&mtx, (v3){0, .5, 0});
+        m4_translate(&mtx, (v3){0, 0, -.1 / mon->size.x});
+        m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->img->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->img->size.y - 0.5f, 0});
+        // m4_translate(&mtx, (v3){0, .5, 0});
+        m4_apply(&mtx, mon->mtx);
+        gfx_quad_3d(eng->gfx, mtx, game->gun);
+    }
 }
 
 typedef struct {
@@ -257,10 +303,10 @@ static Collide_Result collide_quad_ray(m4 quad, v3 ray_pos, v3 ray_dir) {
 // Player update function
 static void player_update(Player *pl, Game *game, Engine *eng) {
     f32 dt = eng->dt;
-    Player_Input in = player_parse_input(eng->input);
 
     // ==== Input ====
     // Toggle flight
+    Player_Input in = player_parse_input(eng->input);
     if (in.fly) pl->can_fly = !pl->can_fly;
 
     // Update player head rotation
@@ -280,19 +326,8 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     // ==== Physics ====
     // Player displacement since previous frame (velocity * dt)
-    v3 vel = pl->pos - pl->pos_old;
-    pl->pos_old = pl->pos;
-    if (pl->can_fly) {
-        vel = v3_limit(vel, 0.01f * dt, 5.0f / 3.6f * dt);
-        vel *= 1.0f - 0.2;
-    } else {
-        vel.xz = v2_limit(vel.xz, 0.01f * dt, 5.0f / 3.6f * dt);
-        vel.xz *= 1.0f - 0.2;
-    }
-    pl->pos += vel;
-
-    // Apply Gravity
-    if (!pl->can_fly) pl->pos.y -= 9.81 * dt * dt;
+    // entity_update_movement(pl, eng);
+    entity_update_movement(pl, eng, &in);
 
     // Apply movement input
     m4 yaw_mtx = m4_id();
@@ -302,19 +337,6 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     move.xz = v2_limit(move.xz, 0, 1);
     move.y = in.move.y * pl->can_fly;
     pl->pos += move * 1.4 * dt;
-
-    // Jumping
-    if (in.jump && pl->on_ground) {
-        pl->pos_old.y = pl->pos.y;
-        pl->pos.y += 4 * dt;
-    }
-
-    // Ground Collision
-    pl->on_ground = false;
-    if (pl->pos.y <= 0 && !pl->can_fly) {
-        pl->pos.y = 0;
-        pl->on_ground = true;
-    }
 
     // Update matricies
     pl->head_mtx = m4_id();
@@ -403,9 +425,12 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
         m4_rotate_y(&mtx, R1);
         m4_translate(&mtx, (v3){.15, -0.12, .3});
-        m4_apply(&mtx, game->player->head_mtx);
+        m4_translate(&mtx, (v3){0, .5, 0});
+        m4_apply(&mtx, game->player->mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
+
+    if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
 }
 
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
