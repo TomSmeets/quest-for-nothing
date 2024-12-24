@@ -62,6 +62,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     u32 hand_x = 0;
     float spike = rand_f32_range(rng, 0.5, 3.0);
     v3 color_base = rand_color(rng);
+    v3 color_accent = rand_color(rng);
 
     u32 eye_x = 0;       // Computed later
     u32 body_radius = 0; // Computed later
@@ -102,7 +103,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
                 dist = f_max(dist, dist_y);
 
                 // Start with the base color
-                v3 color = color_base;
+                v3 color = color_blend(color_base, color_accent, (f32)y / (body_height - 1) * 0.5);
 
                 // Add a textured surface
                 color += rand_v3(rng) * texture * (1 - dist);

@@ -170,7 +170,7 @@ static void entity_update_movement(Monster *mon, Engine *eng, Player_Input *in) 
     mon->vel = vel_dt / eng->dt;
     mon->pos_old = mon->pos;
 
-    if (!mon->can_fly) {
+    if (!mon->is_flying) {
         // Gravity
         mon->pos.y -= 9.81 * eng->dt * eng->dt;
 
@@ -309,7 +309,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // ==== Input ====
     // Toggle flight
     Player_Input in = player_parse_input(eng->input);
-    if (in.fly) pl->can_fly = !pl->can_fly;
+    if (in.fly) pl->is_flying = !pl->is_flying;
 
     // Update player head rotation
     // x -> pitch
@@ -337,7 +337,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
     v3 move = m4_mul_dir(yaw_mtx, in.move);
     move.xz = v2_limit(move.xz, 0, 1);
-    move.y = in.move.y * pl->can_fly;
+    move.y = in.move.y * pl->is_flying;
     pl->pos += move * 1.4 * dt;
 
     // Update matricies

@@ -5,34 +5,57 @@
 #include "mat.h"
 #include "monster_sprite.h"
 
+typedef enum {
+    Entity_None,
+    Entity_Player,  // Player
+    Entity_Monster, // Ai
+    Entity_Bullet,  //
+    Entity_Wall,
+} Entity_Type;
+
+// An entity represents any object in the 3D world.
+// This improves simplicity and flexibility.
+// - Monster: AI
+// - Player: Input
+// - Bullet
+// - Wall
+//
+// This Simplifies storage, collision detection and allows for
 typedef struct Entity Entity;
 struct Entity {
-    // Body Orientation
+    // Body Position, orientation and Scaling (TRS Matrix)
+    // Used for collision and rendering
     m4 mtx;
 
-    // Head Orientation
+    // Entity Head Orientation. (TR Matrix)
+    // - Gun direction
+    // - Camera direction
     m4 head_mtx;
 
-    // Entity Size (radius, height)
+    // Entity Size (width, height)
     v2 size;
 
-    // Visible entity
+    // Main sprite
     Image *image;
+
+    // Shadow
     Image *shadow;
 
-    // Moving Entity
-    bool can_move;
-    bool can_fly;
-    bool on_ground;
+    bool is_player;
+    bool is_monster;
+    bool is_wall;
+    bool is_flying;
+
     v3 pos;
     v3 pos_old;
     v3 vel;
+
+    bool on_ground;
 
     // Living Entity
     u32 health; // Integer health is more satisfying
 
     // Monster
-    bool is_monster;
     Monster_Sprite sprite;
     f32 look_around_timer;
     f32 wiggle_phase;
@@ -43,9 +66,6 @@ struct Entity {
     f32 move_time;
     v2 move_dir;
     v3 look_dir;
-
-    // Player
-    bool is_player;
 
     // Player rotation around each axis. [0-1]
     v3 rot;
@@ -60,5 +80,6 @@ static Entity *wall_new(Memory *mem, m4 mtx, Image *img) {
     Entity *ent = mem_struct(mem, Entity);
     ent->mtx = mtx;
     ent->image = img;
+    ent->is_wall = true;
     return ent;
 }
