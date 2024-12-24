@@ -7,12 +7,17 @@
 
 typedef struct Entity Entity;
 struct Entity {
+    // Body Orientation
     m4 mtx;
+
+    // Head Orientation
     m4 head_mtx;
+
+    // Entity Size (radius, height)
     v2 size;
 
     // Visible entity
-    Image *img;
+    Image *image;
     Image *shadow;
 
     // Moving Entity
@@ -54,6 +59,6 @@ struct Entity {
 static Entity *wall_new(Memory *mem, m4 mtx, Image *img) {
     Entity *ent = mem_struct(mem, Entity);
     ent->mtx = mtx;
-    ent->img = img;
+    ent->image = img;
     return ent;
 }

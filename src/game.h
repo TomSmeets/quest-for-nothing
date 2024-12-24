@@ -250,7 +250,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         mon->mtx = m4_billboard(mon->pos, mon->look_dir, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
     }
 
-    if (mon->img) gfx_quad_3d(eng->gfx, mon->mtx, mon->img);
+    if (mon->image) gfx_quad_3d(eng->gfx, mon->mtx, mon->image);
     if (mon->shadow) draw_shadow(eng, mon->mtx.w, mon->shadow);
 
     // Draw Gun
@@ -268,7 +268,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         // m4_translate(&mtx, mon->pos);
         // m4_translate(&mtx, (v3){0, .5, 0});
         m4_translate(&mtx, (v3){-.3 * (1.0f - aliveness), 0, -.1 / mon->size.x * aliveness - 0.01});
-        m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->img->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->img->size.y - 0.5f, 0});
+        m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->image->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->image->size.y - 0.5f, 0});
         // m4_translate(&mtx, (v3){0, .5, 0});
         m4_apply(&mtx, mon->mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
@@ -382,7 +382,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         if (best_monster) {
             fmt_s(OS_FMT, "HIT!\n");
 
-            Image *img = best_monster->img;
+            Image *img = best_monster->image;
 
             // Damage entity
             if (best_monster->health > 0) {

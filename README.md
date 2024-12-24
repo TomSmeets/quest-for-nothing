@@ -13,7 +13,7 @@ Install `clang` and `sdl2`, then run the build script.
 
 See `./build.sh` for more options:
 
-```bash
+```
 Usage: ./build.sh <action> [args]...
 
 Actions:
