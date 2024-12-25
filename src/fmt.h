@@ -175,14 +175,17 @@ static void fmt_p(Fmt *fmt, void *ptr) {
 }
 
 static void fmt_f(Fmt *fmt, f32 value) {
-    // Truncate towards 0
-    i32 i_part = (i32)value;
-
-    // value = f_part
-    value -= i_part;
+    bool sign = false;
 
     // Remove sign
-    if (value < 0) value = -value;
+    if (value < 0) {
+        sign = true;
+        value = -value;
+    }
+
+    // Truncate towards 0
+    u32 i_part = (u32)value;
+    value -= i_part;
 
     u32 f_width = 4;
     for (u32 i = 0; i < f_width; ++i) {
@@ -190,7 +193,8 @@ static void fmt_f(Fmt *fmt, f32 value) {
     }
     u32 f_part = value + 0.5f;
 
-    fmt_i(fmt, i_part);
+    if (sign) fmt_c(fmt, '-');
+    fmt_u(fmt, i_part);
     fmt_c(fmt, '.');
 
     u32 cur = fmt_cursor(fmt);

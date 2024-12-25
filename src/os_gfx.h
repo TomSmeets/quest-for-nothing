@@ -226,7 +226,7 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     gl->glEnable(GL_FRAMEBUFFER_SRGB);
     gl->glEnable(GL_MULTISAMPLE);
     gl->glEnable(GL_CULL_FACE);
-    gl->glCullFace(GL_FRONT);
+    gl->glCullFace(GL_BACK);
     gl->glClearColor(0.02f, 0.02f, 0.02f, 1);
     return gfx;
 }

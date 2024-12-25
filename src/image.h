@@ -10,6 +10,7 @@ typedef struct {
     // Unique id, update on every change
     u32 id;
     v2u size;
+    v2u origin;
     v4 *pixels;
 } Image;
 
@@ -17,6 +18,7 @@ static Image *image_new(Memory *mem, v2u size) {
     Image *img = mem_struct(mem, Image);
     img->id = id_next();
     img->size = size;
+    img->origin = size / 2;
     img->pixels = mem_array_uninit(mem, v4, size.x * size.y);
     return img;
 }

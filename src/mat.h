@@ -79,6 +79,16 @@ static void m4_translate(m4 *m, v3 t) {
     m->w += t;
 }
 
+static void m4_translate_x(m4 *m, f32 x) {
+    m->w.x += x;
+}
+static void m4_translate_y(m4 *m, f32 y) {
+    m->w.y += y;
+}
+static void m4_translate_z(m4 *m, f32 z) {
+    m->w.z += z;
+}
+
 // Right handed rotation around the X-axis (Y -> Z)
 // R * M
 static void m4_rotate_x(m4 *m, f32 a) {
@@ -149,9 +159,15 @@ static m4 m4_invert_tr(m4 m) {
     f32 l2 = v3_length_sq(m.y);
     f32 l3 = v3_length_sq(m.z);
 
-    m.x *= 1.0 / l1;
-    m.y *= 1.0 / l2;
-    m.z *= 1.0 / l3;
+    if (1) {
+        assert(l1 <= 1.0f + 0.01 && l1 >= 1.0f - 0.01, "Matrix has scaling in x");
+        assert(l2 <= 1.0f + 0.01 && l2 >= 1.0f - 0.01, "Matrix has scaling in y");
+        assert(l3 <= 1.0f + 0.01 && l3 >= 1.0f - 0.01, "Matrix has scaling in z");
+    } else {
+        m.x *= 1.0 / l1;
+        m.y *= 1.0 / l2;
+        m.z *= 1.0 / l3;
+    }
 
     // 3x3 rotation matrix inverse is it's transpose
     m4 inv_r = {
@@ -168,16 +184,22 @@ static m4 m4_invert_tr(m4 m) {
     return inv_r;
 }
 
+static void m4_euler(m4 *mtx, f32 yaw, f32 pitch, f32 roll) {
+    m4_rotate_z(mtx, roll);
+    m4_rotate_x(mtx, pitch);
+    m4_rotate_y(mtx, yaw);
+}
+
 // Render a flat upright sprite facing the camera
-static m4 m4_billboard(v3 pos, v3 forward, v2 size, float wiggle, float death) {
+static m4 m4_billboard(v3 pos, v3 forward, float wiggle, float death) {
     // Relative direction to the camera in xz
-    v2 fwd = -forward.xz;
+    v2 fwd = forward.xz;
 
     // right = x
     // up    = y
     // fwd   = -z
 
-    v3 x = {fwd.y, 0, -fwd.x};
+    v3 x = {-fwd.y, 0, fwd.x};
     v3 y = {0, 1, 0};
     v3 z = {fwd.x, 0, fwd.y};
     v3 w = pos;
@@ -186,11 +208,11 @@ static m4 m4_billboard(v3 pos, v3 forward, v2 size, float wiggle, float death) {
     death *= R1;
     m4 mtx = m4_id();
     // m4_translate(&mtx, (v3){0, -.495f * (1.0f - f_cos(death)), 0});
-    m4_translate(&mtx, (v3){0, 0.5, 0});
-    m4_scale(&mtx, (v3){size.x, size.y, size.x});
-    m4_rotate_x(&mtx, death);
+    // m4_translate(&mtx, (v3){0, 0.5, 0});
+    // m4_scale(&mtx, (v3){size.x, size.y, size.x});
+    m4_rotate_x(&mtx, -death);
     m4_rotate_z(&mtx, wiggle * PI);
-    m4_translate(&mtx, (v3){0, 0.02, 0});
+    // m4_translate(&mtx, (v3){0, 0.02, 0});
     m4_apply(&mtx, body);
     return mtx;
 }

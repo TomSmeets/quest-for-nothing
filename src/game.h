@@ -34,6 +34,19 @@ typedef struct {
     Image *gun;
 } Game;
 
+static void gfx_draw_mtx(Engine *eng, m4 mtx) {
+    for (u32 j = 0; j < 3; ++j) {
+        for (u32 i = 0; i < 4; ++i) {
+            m4 res = m4_id();
+            m4_rotate_x(&res, R1 * i);
+            if (j == 1) m4_rotate_z(&res, R1);
+            if (j == 2) m4_rotate_y(&res, -R1);
+            m4_apply(&res, mtx);
+            gfx_quad_3d(eng->gfx, res, eng->image_arrow[j]);
+        }
+    }
+}
+
 static Image *gen_gun(Memory *mem) {
     u32 size = 5;
     Image *img = image_new(mem, (v2u){size, size});
@@ -221,8 +234,7 @@ static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
     shadow_pos.y = 0.01;
 
     m4 shadow_mtx = m4_id();
-    m4_scale(&shadow_mtx, (v3){image->size.x / 32.0, image->size.x / 32.0, 1});
-    m4_rotate_x(&shadow_mtx, R1);
+    m4_rotate_x(&shadow_mtx, -R1);
     m4_translate(&shadow_mtx, shadow_pos);
     gfx_quad_3d(eng->gfx, shadow_mtx, image);
 }
@@ -247,7 +259,23 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
             monster_die(mon, eng);
         }
 
-        mon->mtx = m4_billboard(mon->pos, mon->look_dir, mon->size, f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25 * 0.3, mon->death_animation);
+        v3 dir = player->pos - mon->pos;
+
+        f32 yaw = f_atan2(dir.x, dir.z);
+
+        // mon->mtx = m4_billboard(mon->pos, mon->look_dir, , mon->death_animation);
+
+        mon->mtx = m4_id();
+        m4_rotate_z(&mon->mtx, R1 * f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25);
+        m4_rotate_x(&mon->mtx, -mon->death_animation * R1);
+        m4_rotate_y(&mon->mtx, yaw);
+        m4_translate(&mon->mtx, mon->pos);
+        gfx_draw_mtx(eng, mon->mtx);
+
+        mon->head_mtx = m4_id();
+        m4_rotate_y(&mon->head_mtx, yaw);
+        m4_translate(&mon->head_mtx, mon->pos);
+        m4_translate_y(&mon->head_mtx, mon->size.y);
     }
 
     if (mon->image) gfx_quad_3d(eng->gfx, mon->mtx, mon->image);
@@ -257,20 +285,15 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     {
         f32 aliveness = 1.0 - mon->death_animation;
         m4 mtx = m4_id();
-        m4_translate(&mtx, (v3){-0.04, 0, 0});
-        m4_rotate_z(&mtx, R1 * .4 * mon->death_animation);
-        // m4_rotate_z(&mtx, -mon->shoot_time * R1 * 0.25);
-        // m4_translate(&mtx, (v3){mon->shoot_time * 0.05, 0, 0});
-        // m4_scale(&mtx, 0.25f);
-        m4_scale(&mtx, (v3){1.0 / mon->size.x, 1.0 / mon->size.y, 1.0 / mon->size.x});
-        m4_scale(&mtx, 0.25f);
+        m4_translate(&mtx, (v3){-0.4, 0, 0});
+        // m4_rotate_z(&mtx, R1 * .4 * mon->death_animation);
+        // m4_scale(&mtx, (v3){1.0 / mon->size.x, 1.0 / mon->size.y, 1.0 / mon->size.x});
         m4_rotate_y(&mtx, -R1 * .8 * aliveness);
-        // m4_translate(&mtx, mon->pos);
-        // m4_translate(&mtx, (v3){0, .5, 0});
+        m4_scale(&mtx, 0.25f);
         m4_translate(&mtx, (v3){-.3 * (1.0f - aliveness), 0, -.1 / mon->size.x * aliveness - 0.01});
-        m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->image->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->image->size.y - 0.5f, 0});
-        // m4_translate(&mtx, (v3){0, .5, 0});
-        m4_apply(&mtx, mon->mtx);
+        // m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->image->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->image->size.y - 0.5f,
+        // 0});
+        m4_apply(&mtx, mon->head_mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
 }
@@ -436,7 +459,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 }
 
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
-    f32 s = 4;
+    f32 s = 1;
     v3 x = {s, 0, 0};
     v3 y = {0, s, 0};
     v3 z = {0, 0, s};
@@ -478,7 +501,7 @@ static void game_update(Game *game, Engine *eng) {
         cell_update(cell, game, eng);
     }
 
-    // fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
+    fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
 }
 
 static void game_free(Game *game) {

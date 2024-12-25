@@ -85,14 +85,25 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
         os_gfx_texture(gfx->os, area->pos, img);
     }
 
+    // Scale to image size
+    // mtx.w.x -= (f32) img->origin.x - (f32) img->size.x*.5;
+    // mtx.w.y -= (f32) img->origin.y - (f32) img->size.y*.5;
     // mtx.x *= img->size.x / 32.0f;
     // mtx.y *= img->size.y / 32.0f;
 
+    f32 pixel_scale = 1.0f / 32.0f;
+    m4 mtx2 = m4_id();
+    m4_scale(&mtx2, (v3){img->size.x, img->size.y, 1});
+    m4_translate_x(&mtx2, (f32)img->size.x / 2.0f - (f32)img->origin.x);
+    m4_translate_y(&mtx2, (f32)img->origin.y - (f32)img->size.y / 2.0f);
+    m4_scale(&mtx2, (v3){pixel_scale, pixel_scale, 1});
+    m4_apply(&mtx2, mtx);
+
     OS_Gfx_Quad quad = {
-        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
-        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
-        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
-        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
+        .x = {mtx2.x.x, mtx2.x.y, mtx2.x.z},
+        .y = {mtx2.y.x, mtx2.y.y, mtx2.y.z},
+        .z = {mtx2.z.x, mtx2.z.y, mtx2.z.z},
+        .w = {mtx2.w.x, mtx2.w.y, mtx2.w.z},
         .uv_pos = {(f32)area->pos.x / OS_GFX_ATLAS_SIZE, (f32)area->pos.y / OS_GFX_ATLAS_SIZE},
         .uv_size = {(f32)img->size.x / OS_GFX_ATLAS_SIZE, (f32)img->size.y / OS_GFX_ATLAS_SIZE},
     };

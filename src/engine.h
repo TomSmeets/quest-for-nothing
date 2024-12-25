@@ -20,7 +20,8 @@ typedef struct {
     f32 dt;
     Random rng;
 
-    Image *image_arrow;
+    // X,Y and Z arrows
+    Image *image_arrow[3];
 } Engine;
 
 static Engine *engine_new(Memory *mem, OS *os, char *title) {
@@ -31,13 +32,27 @@ static Engine *engine_new(Memory *mem, OS *os, char *title) {
     eng->input = 0;
     eng->rng = (Random){os_rand()};
 
-    eng->image_arrow = image_new(mem, (v2u){10, 5});
-    image_write(eng->image_arrow, (v2i){9 - 1, 1}, RED);
-    image_write(eng->image_arrow, (v2i){9 - 2, 0}, RED);
-    image_write(eng->image_arrow, (v2i){9 - 1, 3}, RED);
-    image_write(eng->image_arrow, (v2i){9 - 2, 4}, RED);
-    for (u32 i = 0; i < 10; ++i) image_write(eng->image_arrow, (v2i){i, 2}, RED);
+    f32 sx = 12 * 2;
+    f32 sy = 6 * 2;
 
+    for (u32 j = 0; j < 3; ++j) {
+        v3 color = {
+            j == 0,
+            j == 1,
+            j == 2,
+        };
+        Image *img = image_new(mem, (v2u){sx, sy});
+        img->origin = (v2u){0, sy / 2};
+        for (u32 i = 0; i <= 3; ++i) {
+            image_write(img, (v2i){sx - 1 - i, sy / 2 - i - 1}, color);
+            image_write(img, (v2i){sx - 1 - i, sy / 2 + i}, color);
+        }
+        for (u32 x = 0; x < sx; ++x) {
+            image_write(img, (v2i){x, sy / 2 - 1}, color);
+            image_write(img, (v2i){x, sy / 2}, color);
+        }
+        eng->image_arrow[j] = img;
+    }
     return eng;
 }
 
