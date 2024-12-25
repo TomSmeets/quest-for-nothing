@@ -255,27 +255,27 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
             monster_update_ai(mon, game, eng);
             monster_collide_with(mon, game->player);
             monster_wiggle(mon, eng);
+
+            v3 dir = player->pos - mon->pos;
+            mon->rot.y = f_atan2(dir.x, dir.z);
+            mon->rot.z = R1 * f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25;
         } else {
             monster_die(mon, eng);
+            mon->rot.x = -mon->death_animation * R1;
         }
+    }
 
-        v3 dir = player->pos - mon->pos;
-
-        f32 yaw = f_atan2(dir.x, dir.z);
-
-        // mon->mtx = m4_billboard(mon->pos, mon->look_dir, , mon->death_animation);
-
+    if (mon->is_monster || mon->is_player) {
         mon->mtx = m4_id();
-        m4_rotate_z(&mon->mtx, R1 * f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25);
-        m4_rotate_x(&mon->mtx, -mon->death_animation * R1);
-        m4_rotate_y(&mon->mtx, yaw);
+        m4_rotate_z(&mon->mtx, mon->rot.z);
+        m4_rotate_x(&mon->mtx, mon->rot.x);
+        m4_rotate_y(&mon->mtx, mon->rot.y);
         m4_translate(&mon->mtx, mon->pos);
-        gfx_draw_mtx(eng, mon->mtx);
 
         mon->head_mtx = m4_id();
-        m4_rotate_y(&mon->head_mtx, yaw);
-        m4_translate(&mon->head_mtx, mon->pos);
-        m4_translate_y(&mon->head_mtx, mon->size.y);
+        m4_translate_y(&mon->head_mtx, mon->size.y * .7);
+        m4_apply(&mon->head_mtx, mon->mtx);
+        gfx_draw_mtx(eng, mon->head_mtx);
     }
 
     if (mon->image) gfx_quad_3d(eng->gfx, mon->mtx, mon->image);
