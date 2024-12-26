@@ -51,30 +51,83 @@ static Image *monster_gen_shadow(Memory *mem, u32 size) {
     return img;
 }
 
+// Properties for generating a monster
+typedef struct {
+    // How textured the skin is
+    f32 texture;
+
+    // Monster size
+    f32 body_height;
+
+    // How thick is the top part of the head
+    f32 start_radius;
+
+    f32 eye_y;
+    f32 hand_y;
+
+    f32 spike;
+
+    v3 color_base;
+    v3 color_accent;
+    v3 color_blood;
+} Sprite_Properties;
+
+static Sprite_Properties sprite_new(Random *rng) {
+    return (Sprite_Properties){
+        .texture = rand_f32_range(rng, 0.02, 0.08),
+        .body_height = rand_f32_range(rng, 12, 32),
+        .start_radius = rand_f32_range(rng, 1, 8),
+        .eye_y = rand_f32_range(rng, 0, 0.5),
+        .hand_y = rand_f32_range(rng, 0, 0.5),
+        .spike = rand_f32_range(rng, 0.5, 3.0),
+        .color_base = rand_color(rng),
+        .color_accent = rand_color(rng),
+        .color_blood = color_rainbow(rand_f32(rng)),
+    };
+}
+
+// Blend between two sprites
+static void sprite_blend(Sprite_Properties *x, Sprite_Properties y, f32 amount) {
+#define blend(FIELD) x->FIELD += (y.FIELD - x->FIELD) * amount
+    blend(texture);
+    blend(body_height);
+    blend(start_radius);
+    blend(eye_y);
+    blend(hand_y);
+    blend(spike);
+    blend(color_base);
+    blend(color_accent);
+    blend(color_blood);
+#undef blend
+}
+
 static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
-    float texture = rand_f32_range(rng, 0.02, 0.05);
+    static Sprite_Properties prop = {};
+    static bool first = false;
+
+    // TMP
+    if (!first) {
+        rng->seed += 5;
+        prop = sprite_new(rng);
+        first = 1;
+    }
 
     // Initial line widths
-    u32 body_height = rand_u32_range(rng, 12, 32);
-    u32 start_radius = rand_u32_range(rng, 1, 8);
-    u32 eye_y = rand_u32_range(rng, 0, body_height / 2.0f);
-    u32 hand_y = body_height * 0.45f;
+    u32 body_height = f_round(prop.body_height);
+    u32 eye_y = prop.eye_y * prop.body_height;
+    u32 hand_y = prop.hand_y * prop.body_height;
+    u32 eye_x = 0;
     u32 hand_x = 0;
-    float spike = rand_f32_range(rng, 0.5, 3.0);
-    v3 color_base = rand_color(rng);
-    v3 color_accent = rand_color(rng);
+    u32 body_radius = 0;
 
-    u32 eye_x = 0;       // Computed later
-    u32 body_radius = 0; // Computed later
     f32 *radius_list = mem_array_uninit(mem, f32, body_height);
-    f32 radius = start_radius;
+    f32 radius = prop.start_radius;
     for (u32 i = 0; i < body_height; ++i) {
         radius_list[i] = radius;
         if (radius > body_radius) body_radius = radius;
         if (i == eye_y) eye_x = radius / 2.0f;
         if (i == hand_y) hand_x = radius / 2.0f;
-
-        radius += rand_f32_signed(rng) * spike;
+        radius += rand_f32_signed(rng) * prop.spike;
         if (radius < 1) radius = 1;
     }
 
@@ -85,7 +138,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     // This improves alpha blending
     // Probably go to premultiplied alpha
     Image *image = image_new(mem, size);
-    image_fill(image, color_alpha(color_base, 0));
+    image_fill(image, color_alpha(prop.color_base, 0));
     // image_grid(image, WHITE, GRAY);
 
     for (u32 y = 0; y < body_height; ++y) {
@@ -102,10 +155,10 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
                 dist = f_max(dist, dist_y);
 
                 // Start with the base color
-                v3 color = color_blend(color_base, color_accent, (f32)y / (body_height - 1) * 0.5);
+                v3 color = color_blend(prop.color_base, prop.color_accent, (f32)y / (body_height - 1) * 0.5);
 
                 // Add a textured surface
-                color += rand_v3(rng) * texture * (1 - dist);
+                color += rand_v3(rng) * prop.texture * (1 - dist);
                 color *= 1.0 - dist * 0.2;
 
                 image_write(image, (v2i){x, y}, color);
@@ -117,8 +170,8 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
 
     // Image
     Monster_Sprite sprite = {};
-    sprite.base_color = color_base;
-    sprite.blood_color = color_rainbow(rand_f32(rng));
+    sprite.base_color = prop.color_base;
+    sprite.blood_color = prop.color_blood;
 
     sprite.image = image;
     sprite.eye[sprite.eye_count++] = (v2i){image->size.x / 2 + eye_x - 1, eye_y};
@@ -132,6 +185,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
 
     // Update other eyes
     monster_sprite_update_eyes(&sprite, rng);
-    // image_write_debug_axis(image);
+    image_write_debug_axis(image);
     return sprite;
 }

@@ -275,7 +275,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         mon->head_mtx = m4_id();
         m4_translate_y(&mon->head_mtx, mon->size.y * .7);
         m4_apply(&mon->head_mtx, mon->mtx);
-        gfx_draw_mtx(eng, mon->head_mtx);
+        // gfx_draw_mtx(eng, mon->head_mtx);
     }
 
     if (mon->image) gfx_quad_3d(eng->gfx, mon->mtx, mon->image);
@@ -456,38 +456,18 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     }
 
     if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
+    // gfx_draw_mtx(eng, pl->head_mtx);
 }
 
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
-    f32 s = 1;
-    v3 x = {s, 0, 0};
-    v3 y = {0, s, 0};
-    v3 z = {0, 0, s};
-    v3 p = v3i_to_v3(cell->pos) * s + y * .5;
+    gfx_draw_mtx(eng, m4_id());
 
-    // x*=2;
-    // y*=2;
-    // z*=2;
-    // p*=2;
-
-    if (cell->x_neg) gfx_quad_3d(eng->gfx, (m4){z, y, -x, p - x * .5}, cell->x_neg);
-    if (cell->x_pos) gfx_quad_3d(eng->gfx, (m4){-z, y, x, p + x * .5}, cell->x_pos);
-
-    if (cell->z_pos) gfx_quad_3d(eng->gfx, (m4){x, y, z, p + z * .5}, cell->z_pos);
-    if (cell->z_neg) gfx_quad_3d(eng->gfx, (m4){-x, y, -z, p - z * .5}, cell->z_neg);
-
-    // OK
-    if (cell->y_neg) gfx_quad_3d(eng->gfx, (m4){x, z, -y, p - y * .5}, cell->y_neg);
-    if (cell->y_pos) gfx_quad_3d(eng->gfx, (m4){x, -z, y, p + y * .5}, cell->y_pos);
-
-    // v3i dx = cell->direction->pos - cell->pos;
-    // if(cell->direction) {
-    //     m4 mtx = m4_id();
-    //     m4_rotate_x(&mtx, R1);
-    //     m4_rotate_y(&mtx, -R1*(cell->direction-1));
-    //     m4_translate(&mtx, v3i_to_v3(cell->pos) + y *.1);
-    //     gfx_quad_3d(eng->gfx, mtx, eng->image_arrow);
-    // }
+    f32 scale = 4;
+    m4 mtx = m4_id();
+    m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
+    m4_translate_y(&mtx, scale / 2);
+    gfx_draw_mtx(eng, mtx);
+    if (cell->y_neg) gfx_quad_3d(eng->gfx, mtx, cell->y_neg);
 }
 
 static void game_update(Game *game, Engine *eng) {
