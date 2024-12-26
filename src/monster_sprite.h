@@ -78,7 +78,7 @@ static Sprite_Properties sprite_new(Random *rng) {
         .body_height = rand_f32_range(rng, 12, 32),
         .start_radius = rand_f32_range(rng, 1, 8),
         .eye_y = rand_f32_range(rng, 0, 0.5),
-        .hand_y = rand_f32_range(rng, 0, 0.5),
+        .hand_y = rand_f32_range(rng, 0.5, 0.7),
         .spike = rand_f32_range(rng, 0.5, 3.0),
         .color_base = rand_color(rng),
         .color_accent = rand_color(rng),
@@ -185,6 +185,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
 
     // Update other eyes
     monster_sprite_update_eyes(&sprite, rng);
-    image_write_debug_axis(image);
+    // image_write_debug_axis(image);
     return sprite;
 }

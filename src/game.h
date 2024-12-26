@@ -50,15 +50,36 @@ static void gfx_draw_mtx(Engine *eng, m4 mtx) {
     }
 }
 
-static Image *gen_gun(Memory *mem) {
-    u32 size = 5;
-    Image *img = image_new(mem, (v2u){size, size});
-    // image_grid(img, WHITE, GRAY);
-    v3 color = {0.1, 0.1, 0.1};
-    image_write(img, (v2i){2, 1}, color);
-    image_write(img, (v2i){3, 1}, color);
-    image_write(img, (v2i){4, 1}, color);
-    image_write(img, (v2i){4, 2}, color);
+static Image *gen_gun(Memory *mem, Random *rng) {
+    u32 length = 8;
+    u32 height = 3;
+
+    u32 size = 8;
+    Image *img = image_new(mem, (v2u){length, height + 3});
+    // image_grid(img, (v4){1, 0, 0, 1}, (v4){0, 0, 1, 1});
+
+    v3 color_barrel = rand_color(rng) * 0.2;
+    v3 color_sight = rand_color(rng) * 0.2;
+    v3 color_grip = rand_color(rng) * 0.2;
+
+    // Barrel
+    for (u32 x = 0; x < length; ++x) {
+        for (u32 y = 0; y < height; ++y) {
+            image_write(img, (v2i){x, y + 1}, color_barrel);
+        }
+    }
+
+    // Sight
+    image_write(img, (v2i){1, 0}, color_sight);
+    image_write(img, (v2i){length - 1, 0}, color_sight);
+
+    for (u32 x = 0; x < 2; ++x) {
+        image_write(img, (v2i){length - 1 - x, height + 1}, color_grip);
+        image_write(img, (v2i){length - 1 - x, height + 2}, color_grip);
+    }
+
+    img->origin.x = length - 2;
+    img->origin.y = img->size.y - 2;
     return img;
 }
 
@@ -111,7 +132,7 @@ static Game *game_new(Random *rng) {
     spawn.x = 0;
     spawn.z = 0;
     game->player = gen_player(mem, spawn);
-    game->gun = gen_gun(mem);
+    game->gun = gen_gun(mem, rng);
 
     // Generate Monsters
     game_gen_monsters(game, rng, spawn);
@@ -289,15 +310,13 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     {
         f32 aliveness = 1.0 - mon->death_animation;
         m4 mtx = m4_id();
-        m4_translate(&mtx, (v3){-0.4, 0, 0});
-        // m4_rotate_z(&mtx, R1 * .4 * mon->death_animation);
-        // m4_scale(&mtx, (v3){1.0 / mon->size.x, 1.0 / mon->size.y, 1.0 / mon->size.x});
-        m4_rotate_y(&mtx, -R1 * .8 * aliveness);
-        m4_scale(&mtx, 0.25f);
-        m4_translate(&mtx, (v3){-.3 * (1.0f - aliveness), 0, -.1 / mon->size.x * aliveness - 0.01});
-        // m4_translate(&mtx, (v3){-(f32)mon->sprite.hand[0].x / mon->image->size.x * 0.5, (f32)mon->sprite.hand[0].y / mon->image->size.y - 0.5f,
-        // 0});
-        m4_apply(&mtx, mon->head_mtx);
+        m4_translate_x(&mtx, -0.1 - 0.1 * mon->death_animation);
+        m4_rotate_z(&mtx, -R1 * mon->death_animation * 0.2);
+        m4_rotate_y(&mtx, R1 * .8 * aliveness);
+        m4_translate_y(&mtx, (f32)(mon->sprite.image->size.y - mon->sprite.hand[0].y) / 32.0);
+        m4_translate_x(&mtx, -(f32)mon->sprite.hand[0].x / 32.0 * 0.5f * 0.9);
+        m4_apply(&mtx, mon->mtx);
+        // gfx_draw_mtx(eng, mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
 }
@@ -471,14 +490,14 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // Draw Gun
     {
         m4 mtx = m4_id();
-        m4_translate(&mtx, (v3){-0.04, 0, 0});
-        m4_scale(&mtx, 0.25f);
-        m4_rotate_z(&mtx, -pl->shoot_time * R1 * 0.25);
-        m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
-        m4_rotate_y(&mtx, R1);
-        m4_translate(&mtx, (v3){.15, -0.12, .3});
-        m4_translate(&mtx, (v3){0, .5, 0});
-        m4_apply(&mtx, game->player->mtx);
+        // m4_translate(&mtx, (v3){-0.04, 0, 0});
+        // m4_scale(&mtx, 0.25f);
+        // m4_rotate_z(&mtx, -pl->shoot_time * R1 * 0.25);
+        // m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
+        // m4_rotate_y(&mtx, R1);
+        // m4_translate(&mtx, (v3){.15, -0.12, .3});
+        // m4_translate(&mtx, (v3){0, .5, 0});
+        m4_apply(&mtx, game->player->head_mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
 
@@ -514,7 +533,7 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
         }
 
         m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
-        gfx_draw_mtx(eng, mtx);
+        // gfx_draw_mtx(eng, mtx);
         gfx_quad_3d(eng->gfx, mtx, img);
     }
 }
