@@ -172,13 +172,13 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     // Setup Vertex Buffer
     v2 verts[] = {
         // Top Left
+        {-0.5, -0.5},
+        {0.5, 0.5},
         {-0.5, 0.5},
-        {0.5, 0.5},
-        {-0.5, -0.5},
         // Bottom Right
-        {0.5, -0.5},
-        {-0.5, -0.5},
         {0.5, 0.5},
+        {-0.5, -0.5},
+        {0.5, -0.5},
     };
 
     gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->vertex_buffer);

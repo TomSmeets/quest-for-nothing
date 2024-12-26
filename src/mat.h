@@ -227,8 +227,8 @@ typedef struct {
 // OpenGL clip coordinates:
 //
 // +y is up
-// +x is right
-// -z is forwards
+// +x is left
+// +z is forwards
 //
 // Clip space ranges from -1 to 1 for each of these axis
 //
@@ -241,15 +241,16 @@ typedef struct {
 static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_x, f32 aspect_y, f32 near_v, f32 far_v) {
     f32 tan_vertical_fov = f_tan(vertical_fov * DEG_TO_RAD * 0.5f);
 
-    // Perspective Projection Matrix
-    // | sx  0  0  0 |
-    // | 0  sy  0  0 |
-    // | 0   0 sz tz |
-    // | 0   0 -1  0 |
-    f32 sx = 1.0f / (tan_vertical_fov * aspect_x);
+    // Right handed Perspective Projection Matrix
+    // | sx   0   0   0 |
+    // |  0  sy   0   0 |
+    // |  0   0  sz  tz |
+    // |  0   0  sw   0 |
+    f32 sx = -1.0f / (tan_vertical_fov * aspect_x);
     f32 sy = 1.0f / (tan_vertical_fov * aspect_y);
-    f32 sz = (near_v + far_v) / (near_v - far_v);
+    f32 sz = (far_v + near_v) / (far_v - near_v);
     f32 tz = (2 * near_v * far_v) / (near_v - far_v);
+    f32 sw = 1;
 
     // Solving for near and far planes:
     // (sz*z + tz) / z = z1
@@ -279,7 +280,7 @@ static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_x, f32 as
     // | sx  0  0  0 |   | xx yx zx wx |   | sx*xx   sx*yx   sx*zx   sx*wx      |
     // | 0  sy  0  0 |   | xy yy zy wy |   | sy*xy   sy*yy   sy*zy   sy*wy      |
     // | 0   0 sz tz | x | xz yz zz wz | = | sz*xz   sz*yz   sz*zz   sz*wz + tz |
-    // | 0   0 -1  0 |   |  0  0  0  1 |   |  -xz     -yz     -zz     -wz       |
+    // | 0   0 sw  0 |   |  0  0  0  1 |   | sw*xz   sw*yz   sw*zz   sw*wz      |
 
     // mul
     // P * M
@@ -288,22 +289,22 @@ static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_x, f32 as
     o.v[0][0] = sx * mtx.x.x;
     o.v[0][1] = sy * mtx.x.y;
     o.v[0][2] = sz * mtx.x.z;
-    o.v[0][3] = -mtx.x.z;
+    o.v[0][3] = sw * mtx.x.z;
 
     o.v[1][0] = sx * mtx.y.x;
     o.v[1][1] = sy * mtx.y.y;
     o.v[1][2] = sz * mtx.y.z;
-    o.v[1][3] = -mtx.y.z;
+    o.v[1][3] = sw * mtx.y.z;
 
     o.v[2][0] = sx * mtx.z.x;
     o.v[2][1] = sy * mtx.z.y;
     o.v[2][2] = sz * mtx.z.z;
-    o.v[2][3] = -mtx.z.z;
+    o.v[2][3] = sw * mtx.z.z;
 
     o.v[3][0] = sx * mtx.w.x;
     o.v[3][1] = sy * mtx.w.y;
     o.v[3][2] = sz * mtx.w.z + tz;
-    o.v[3][3] = -mtx.w.z;
+    o.v[3][3] = sw * mtx.w.z;
     return o;
 }
 

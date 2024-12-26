@@ -87,7 +87,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
     Image *image = image_new(mem, size);
     image_fill(image, color_alpha(color_base, 0));
     // image_grid(image, WHITE, GRAY);
-    // image_write_debug_axis(image);
 
     for (u32 y = 0; y < body_height; ++y) {
         f32 r = radius_list[y];
@@ -133,5 +132,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
 
     // Update other eyes
     monster_sprite_update_eyes(&sprite, rng);
+    // image_write_debug_axis(image);
     return sprite;
 }
