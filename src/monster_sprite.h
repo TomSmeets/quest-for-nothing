@@ -101,17 +101,7 @@ static void sprite_blend(Sprite_Properties *x, Sprite_Properties y, f32 amount) 
 #undef blend
 }
 
-static Monster_Sprite monster_sprite_generate(Memory *mem, Random *rng) {
-    static Sprite_Properties prop = {};
-    static bool first = false;
-
-    // TMP
-    if (!first) {
-        rng->seed += 5;
-        prop = sprite_new(rng);
-        first = 1;
-    }
-
+static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties prop, Random *rng) {
     // Initial line widths
     u32 body_height = f_round(prop.body_height);
     u32 eye_y = prop.eye_y * prop.body_height;

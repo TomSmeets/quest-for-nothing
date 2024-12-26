@@ -97,10 +97,18 @@ static Image *gen_cursor(Memory *mem) {
 static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
     Monster *first = 0;
     Monster *last = 0;
+
+    Sprite_Properties s1 = sprite_new(rng);
+    Sprite_Properties s2 = sprite_new(rng);
+
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         if (!cell->y_neg) continue;
         if (v3i_eq(cell->pos, spawn)) continue;
-        Monster *mon = monster_new(game->mem, rng, v3i_to_v3(cell->pos * 4));
+
+        Sprite_Properties prop = s1;
+        if (rand_f32(rng) > 0.5) prop = s2;
+
+        Monster *mon = monster_new(game->mem, rng, v3i_to_v3(cell->pos * 4), prop);
         LIST_APPEND(first, last, mon);
     }
     game->monsters = first;

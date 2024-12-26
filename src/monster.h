@@ -13,11 +13,10 @@
 
 typedef Entity Monster;
 
-static Entity *monster_new(Memory *mem, Random *rng, v3 pos) {
-
+static Entity *monster_new(Memory *mem, Random *rng, v3 pos, Sprite_Properties prop) {
     Entity *mon = mem_struct(mem, Entity);
     mon->mtx = m4_id();
-    mon->sprite = monster_sprite_generate(mem, rng);
+    mon->sprite = monster_sprite_generate(mem, prop, rng);
     mon->image = mon->sprite.image;
 
     // Monster
