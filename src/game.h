@@ -26,6 +26,9 @@ Game Design V1.0
 - walls can be painted
 */
 
+#define SHADOW_OFFSET 0.01
+#define MONSTER_OFFSET 0.02
+
 typedef struct {
     Memory *mem;
     Player *player;
@@ -231,7 +234,7 @@ static void monster_die(Monster *mon, Engine *eng) {
 }
 
 static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
-    shadow_pos.y = 0.01;
+    shadow_pos.y = SHADOW_OFFSET;
 
     m4 shadow_mtx = m4_id();
     m4_rotate_x(&shadow_mtx, -R1);
@@ -270,6 +273,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         m4_rotate_z(&mon->mtx, mon->rot.z);
         m4_rotate_x(&mon->mtx, mon->rot.x);
         m4_rotate_y(&mon->mtx, mon->rot.y);
+        m4_translate_y(&mon->mtx, MONSTER_OFFSET);
         m4_translate(&mon->mtx, mon->pos);
 
         mon->head_mtx = m4_id();
@@ -526,7 +530,7 @@ static void game_update(Game *game, Engine *eng) {
         cell_update(cell, game, eng);
     }
 
-    fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
+    // fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
 }
 
 static void game_free(Game *game) {
