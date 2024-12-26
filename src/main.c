@@ -136,8 +136,7 @@ static void os_main(OS *os) {
     Player *pl = app->game->player;
     {
         m4 mtx = m4_id();
-        m4_scale(&mtx, 5);
-        m4_scale(&mtx, 4);
+        m4_scale(&mtx, 32 * 4);
         if (!eng->input->mouse_is_grabbed) m4_translate(&mtx, (v3){eng->input->mouse_pos.x, eng->input->mouse_pos.y, 0});
         gfx_quad_ui(eng->gfx, mtx, app->cursor);
     }
