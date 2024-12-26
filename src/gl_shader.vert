@@ -28,7 +28,6 @@ uniform mat4 proj;
 void main() {
     // Calculate UV in atlas space
     frag_uv = quad_uv_pos + quad_uv_size * .5 + vert_pos * quad_uv_size * vec2(1, -1) * (1.0f - 0.25f / 32.0f);
-    // frag_uv = vec2(vert_uv.x, 1- vert_uv.y);
     frag_normal = quad_z;
 
     // Calculate vertex position (world space)

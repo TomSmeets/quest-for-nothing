@@ -302,10 +302,11 @@ typedef struct {
     bool hit;
     v3 pos;
     v2 uv;
+    v2 pixel;
     f32 distance;
 } Collide_Result;
 
-static Collide_Result collide_quad_ray(m4 quad, v3 ray_pos, v3 ray_dir) {
+static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_dir) {
     Collide_Result result = {0};
     m4 quad_inv = m4_invert_tr(quad);
     v3 ray_pos_local = m4_mul_pos(quad_inv, ray_pos);
@@ -315,12 +316,34 @@ static Collide_Result collide_quad_ray(m4 quad, v3 ray_pos, v3 ray_dir) {
 
     v3 hit_local = ray_pos_local + ray_dir_local * distance;
     v3 hit_global = ray_pos + ray_dir * distance;
-    if (hit_local.x > 0.5 || hit_local.x < -0.5) return result;
-    if (hit_local.y > 0.5 || hit_local.y < -0.5) return result;
+
+    f32 image_scale = 1.0f / 32.0f;
+    v2 min = {0, 0};
+    v2 max = {img->size.x * image_scale, img->size.y * image_scale};
+
+    v2 origin = v2u_to_v2(img->origin);
+    origin.y = img->size.y - origin.y - 1;
+
+    min -= origin * image_scale;
+    max -= origin * image_scale;
+
+    if (hit_local.x > max.x) return result;
+    if (hit_local.x < min.x) return result;
+    if (hit_local.y > max.y) return result;
+    if (hit_local.y < min.y) return result;
+
+    v2 pixel = (hit_local.xy - min) / image_scale;
+    pixel.y = img->size.y - pixel.y - 1;
+
+    v4 *px = image_get(img, (v2i){pixel.x, pixel.y});
+    if (!px) return result;
+    if (px->w <= 0.1) return result;
+
     return (Collide_Result){
         .hit = true,
         .pos = hit_global,
         .uv = hit_local.xy,
+        .pixel = pixel,
         .distance = distance,
     };
 }
@@ -395,7 +418,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         Monster *best_monster = 0;
         for (Monster *mon = game->monsters; mon; mon = mon->next) {
             // if (mon->health == 0) continue;
-            Collide_Result result = collide_quad_ray(mon->mtx, ray_pos, ray_dir);
+            Collide_Result result = collide_quad_ray(mon->mtx, mon->image, ray_pos, ray_dir);
             if (!result.hit) continue;
             if (best_result.hit && result.distance > best_result.distance) continue;
             best_monster = mon;
@@ -429,8 +452,8 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
                 ox = ox * ox - 0.5;
                 oy = oy * oy - 0.5;
 
-                i32 x = (best_result.uv.x + 0.5) * img->size.x + ox * best_result.distance * 4;
-                i32 y = (0.5 - best_result.uv.y) * img->size.y + oy * best_result.distance * 4;
+                i32 x = best_result.pixel.x + ox * best_result.distance * 4;
+                i32 y = best_result.pixel.y + oy * best_result.distance * 4;
                 v4 *px = image_get(img, (v2i){x, y});
                 if (!px) continue;
 
