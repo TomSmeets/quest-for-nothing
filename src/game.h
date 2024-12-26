@@ -460,14 +460,36 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 }
 
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
-    gfx_draw_mtx(eng, m4_id());
-
     f32 scale = 4;
-    m4 mtx = m4_id();
-    m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
-    m4_translate_y(&mtx, scale / 2);
-    gfx_draw_mtx(eng, mtx);
-    if (cell->y_neg) gfx_quad_3d(eng->gfx, mtx, cell->y_neg);
+
+    Image *img_list[6] = {
+        cell->z_neg, cell->x_neg, cell->z_pos, cell->x_pos, cell->y_neg, cell->y_pos,
+    };
+
+    for (u32 i = 0; i < 6; ++i) {
+        Image *img = img_list[i];
+        if (!img) continue;
+
+        m4 mtx = m4_id();
+        if (i < 4) {
+            m4_translate_z(&mtx, -scale / 2);
+            m4_translate_y(&mtx, scale / 2);
+            m4_rotate_y(&mtx, R1 * i);
+        }
+
+        if (i == 4) {
+            m4_rotate_x(&mtx, -R1);
+        }
+
+        if (i == 5) {
+            m4_rotate_x(&mtx, R1);
+            m4_translate_y(&mtx, scale);
+        }
+
+        m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
+        gfx_draw_mtx(eng, mtx);
+        gfx_quad_3d(eng->gfx, mtx, img);
+    }
 }
 
 static void game_update(Game *game, Engine *eng) {
