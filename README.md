@@ -76,6 +76,7 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
+- Share memory in quad_list (single quad list for ui and world)
 - Transition to "Entity" 
 - Make Player an Entity
 - Player and monster are the same, except for AI logic and Input
@@ -99,3 +100,4 @@ I'd like to release this someday, so keeping it very simple!
 - [ ] Android
 - [ ] Publish on Play Store
 - [ ] Time travel effects?
+- Missions: Alien hitman, Show sprite in ui, find and kill in secret.

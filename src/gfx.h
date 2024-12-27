@@ -83,6 +83,9 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
         }
 
         os_gfx_texture(gfx->os, area->pos, img);
+    } else if (area->variation != img->variation) {
+        area->variation = img->variation;
+        os_gfx_texture(gfx->os, area->pos, img);
     }
 
     // Scale to image size
@@ -91,7 +94,7 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
     // mtx.x *= img->size.x / 32.0f;
     // mtx.y *= img->size.y / 32.0f;
 
-    f32 pixel_scale = 1.0f / 32.0f;
+    f32 pixel_scale = ui ? 4.0f : 1.0f / 32.0f;
     m4 mtx2 = m4_id();
     m4_scale(&mtx2, (v3){img->size.x, img->size.y, 1});
     m4_translate_x(&mtx2, (f32)img->size.x / 2.0f - (f32)img->origin.x);

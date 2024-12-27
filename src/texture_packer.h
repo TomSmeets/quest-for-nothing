@@ -14,8 +14,11 @@ typedef struct Packer_Area {
     // Size in pixels
     v2u size;
 
-    // Image id (modified or new images get a unique id)
+    // Image id (new images get a unique id)
     u32 image;
+
+    // Modified images increment variation
+    u32 variation;
 
     // Next pointer for linked list
     struct Packer_Area *next;
@@ -141,6 +144,7 @@ static Packer_Area *packer_get_new(Packer *pack, Image *img) {
 
     // Insert into hash table
     area->image = img->id;
+    area->variation = img->variation;
     area->next = *slot;
     *slot = area;
     return area;

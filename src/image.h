@@ -9,6 +9,7 @@
 typedef struct {
     // Unique id, update on every change
     u32 id;
+    u32 variation;
     v2u size;
     v2u origin;
     v4 *pixels;
@@ -27,7 +28,7 @@ static void image_fill(Image *img, v4 color) {
     for (u32 i = 0; i < img->size.x * img->size.y; ++i) {
         img->pixels[i] = color;
     }
-    img->id = id_next();
+    img->variation++;
 }
 
 static Image *image_grid(Image *img, v4 c1, v4 c2) {
@@ -36,6 +37,7 @@ static Image *image_grid(Image *img, v4 c1, v4 c2) {
             img->pixels[y * img->size.x + x] = (x % 2 == y % 2) ? c1 : c2;
         }
     }
+    img->variation++;
     return img;
 }
 
@@ -63,4 +65,5 @@ static void image_write_debug_axis(Image *img) {
     for (u32 y = 1; y < img->size.y * .5; ++y) {
         image_write(img, (v2i){0, y}, GREEN);
     }
+    img->variation++;
 }

@@ -487,7 +487,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
                 px->xyz = color_blend(px->xyz, best_monster->sprite.blood_color, 0.6);
             }
 
-            img->id = id_next();
+            img->variation++;
         }
     }
 

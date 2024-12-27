@@ -32,7 +32,7 @@ static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
         image_write(mon->image, eye + (v2i){0, 1}, look_dir == 3 ? black : white);
         image_write(mon->image, eye + (v2i){1, 1}, look_dir == 2 ? black : white);
     }
-    mon->image->id = id_next();
+    mon->image->variation++;
 }
 
 static Image *monster_gen_shadow(Memory *mem, u32 size) {
