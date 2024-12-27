@@ -146,23 +146,25 @@ static void os_main(OS *os) {
         audio_play(eng->audio, 1, 0.5, rand_f32(&eng->rng) * 0.1 + 1.0);
     }
 
-    for (Monster *m = app->game->monsters; m; m = m->next) {
-        if (!m->is_monster) continue;
-        if (m->health <= 0) continue;
-        m4 mtx = m4_id();
-        gfx_quad_ui(eng->gfx, mtx, m->image);
-        break;
-    }
+    if (key_down(eng->input, KEY_4)) {
+        for (Monster *m = app->game->monsters; m; m = m->next) {
+            if (!m->is_monster) continue;
+            if (m->health <= 0) continue;
+            m4 mtx = m4_id();
+            gfx_quad_ui(eng->gfx, mtx, m->image);
+            break;
+        }
 
-    OS_Gfx_Quad quad = {
-        .x = {400, 0, 0},
-        .y = {0, 400, 0},
-        .z = {0, 0, 1},
-        .w = {0, 0, 0},
-        .uv_pos = {0, 0},
-        .uv_size = {1, 1},
-    };
-    eng->gfx->ui_quad_list[eng->gfx->ui_quad_count++] = quad;
+        OS_Gfx_Quad quad = {
+            .x = {400, 0, 0},
+            .y = {0, 400, 0},
+            .z = {0, 0, 1},
+            .w = {0, 0, 0},
+            .uv_pos = {0, 0},
+            .uv_size = {1, 1},
+        };
+        eng->gfx->ui_quad_list[eng->gfx->ui_quad_count++] = quad;
+    }
 
     engine_end(app->eng, pl->head_mtx);
 }
