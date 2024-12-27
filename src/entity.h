@@ -69,7 +69,7 @@ struct Entity {
 
     // Player rotation around each axis. [0-1]
     v3 rot;
-    f32 shoot_time;
+    f32 recoil_animation;
     f32 step_volume;
 
     // Next entity in the list

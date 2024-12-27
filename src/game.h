@@ -101,6 +101,16 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
 
+    // Player
+    {
+        Sprite_Properties s = sprite_new(rng);
+        Monster *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
+        player->is_monster = false;
+        player->is_player = true;
+        LIST_APPEND(first, last, player);
+        game->player = player;
+    }
+
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         if (!cell->y_neg) continue;
         if (v3i_eq(cell->pos, spawn)) continue;
@@ -139,7 +149,7 @@ static Game *game_new(Random *rng) {
     v3i spawn = {level_size / 2, 0, level_size / 2};
     spawn.x = 0;
     spawn.z = 0;
-    game->player = gen_player(mem, spawn);
+    // game->player = gen_player(mem, spawn);
     game->gun = gen_gun(mem, rng);
 
     // Generate Monsters
@@ -206,7 +216,45 @@ static void monster_update_ai(Entity *mon, Game *game, Engine *eng) {
     mon->look_dir = v3_normalize((game->player->pos - mon->pos) * (v3){1, 0, 1});
 }
 
-static void entity_update_movement(Monster *mon, Engine *eng, Player_Input *in) {
+static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
+    // Update player head rotation
+    // x -> pitch
+    // y -> yaw
+    // z -> roll
+    ent->rot.xy += in->look.xy;
+
+    // Limit pitch to full up and full down
+    ent->rot.x = f_clamp(ent->rot.x, -0.5 * PI, 0.5 * PI);
+
+    // wraparound yaw
+    ent->rot.y = f_wrap(ent->rot.y, -PI, PI);
+
+    // Ease towards target Roll
+    ent->rot.z += (in->look.z - ent->rot.z) * 10 * eng->dt * PI;
+
+    // Jumping
+    if (in->jump && ent->on_ground && ent->health > 0) {
+        ent->pos_old.y = ent->pos.y;
+        ent->pos.y += 4 * eng->dt;
+    }
+
+    // Flying
+    if (in->fly) ent->is_flying = !ent->is_flying;
+
+    // Apply movement input
+    m4 yaw_mtx = m4_id();
+    m4_rotate_y(&yaw_mtx, ent->rot.y); // Yaw
+
+    v3 move = m4_mul_dir(yaw_mtx, in->move);
+    move.xz = v2_limit(move.xz, 0, 1);
+    move.y = in->move.y * ent->is_flying;
+    ent->pos += move * 1.4 * eng->dt;
+}
+
+static void entity_update_movement(Monster *mon, Engine *eng) {
+    bool do_gravity = !mon->is_flying;
+    bool do_ground_collision = !mon->is_flying;
+
     // Reset state
     mon->on_ground = false;
 
@@ -215,23 +263,14 @@ static void entity_update_movement(Monster *mon, Engine *eng, Player_Input *in) 
     mon->vel = vel_dt / eng->dt;
     mon->pos_old = mon->pos;
 
-    if (!mon->is_flying) {
-        // Gravity
+    if (do_gravity) {
         mon->pos.y -= 9.81 * eng->dt * eng->dt;
-
-        // Vertical velocity
         mon->pos.y += vel_dt.y;
-
-        if (mon->pos.y < 0) {
-            mon->pos.y = 0;
-            mon->on_ground = true;
-        }
     }
 
-    // Jumping
-    if (in->jump && mon->on_ground && mon->health > 0) {
-        mon->pos_old.y = mon->pos.y;
-        mon->pos.y += 4 * eng->dt;
+    if (do_ground_collision && mon->pos.y < 0) {
+        mon->pos.y = 0;
+        mon->on_ground = true;
     }
 }
 
@@ -275,28 +314,23 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
 
     bool is_alive = mon->health > 0;
-    Player_Input in = {
-        .jump = 0,
-    };
-    entity_update_movement(mon, eng, &in);
 
-    // Looking around
-    if (mon->is_monster) {
-        if (is_alive) {
-            monster_update_eyes(mon, eng);
-            monster_update_ai(mon, game, eng);
-            monster_collide_with(mon, game->player);
-            monster_wiggle(mon, eng);
+    entity_update_movement(mon, eng);
 
-            v3 dir = player->pos - mon->pos;
-            mon->rot.y = f_atan2(dir.x, dir.z);
-            mon->rot.z = R1 * f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25;
-        } else {
-            monster_die(mon, eng);
-            mon->rot.x = -mon->death_animation * R1;
-        }
+    if (is_alive) {
+        monster_update_eyes(mon, eng);
+        monster_update_ai(mon, game, eng);
+        monster_collide_with(mon, game->player);
+        monster_wiggle(mon, eng);
+        v3 dir = player->pos - mon->pos;
+        mon->rot.y = f_atan2(dir.x, dir.z);
+        mon->rot.z = R1 * f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25;
+    } else {
+        monster_die(mon, eng);
+        mon->rot.x = -mon->death_animation * R1;
     }
 
+    // Update matricies
     if (mon->is_monster || mon->is_player) {
         mon->mtx = m4_id();
         m4_rotate_z(&mon->mtx, mon->rot.z);
@@ -379,67 +413,31 @@ static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_d
     };
 }
 
+#define blend(x, y, a) ((x) + ((y) - (x)) * (a))
+
 // Player update function
 static void player_update(Player *pl, Game *game, Engine *eng) {
-    f32 dt = eng->dt;
-
-    // ==== Input ====
-    // Toggle flight
     Player_Input in = player_parse_input(eng->input);
-    if (in.fly) pl->is_flying = !pl->is_flying;
-
-    // Update player head rotation
-    // x -> pitch
-    // y -> yaw
-    // z -> roll
-    pl->rot.xy += in.look.xy;
-
-    // Limit pitch to full up and full down
-    pl->rot.x = f_clamp(pl->rot.x, -0.5, 0.5);
-
-    // wraparound yaw
-    pl->rot.y = f_wrap(pl->rot.y, -1, 1);
-
-    // Ease towards target Roll
-    pl->rot.z += (in.look.z - pl->rot.z) * 10 * dt;
-
-    // ==== Physics ====
-    // Player displacement since previous frame (velocity * dt)
-    // entity_update_movement(pl, eng);
-    entity_update_movement(pl, eng, &in);
-
-    // Apply movement input
-    m4 yaw_mtx = m4_id();
-    m4_rotate_y(&yaw_mtx, pl->rot.y * PI); // Yaw
-
-    v3 move = m4_mul_dir(yaw_mtx, in.move);
-    move.xz = v2_limit(move.xz, 0, 1);
-    move.y = in.move.y * pl->is_flying;
-    pl->pos += move * 1.4 * dt;
+    entity_update_movement(pl, eng);
+    player_apply_input(eng, pl, &in);
 
     // Update matricies
-    pl->head_mtx = m4_id();
-    m4_rotate_z(&pl->head_mtx, pl->rot.z * PI); // Roll
-    m4_rotate_x(&pl->head_mtx, pl->rot.x * PI); // Pitch
-    m4_rotate_y(&pl->head_mtx, pl->rot.y * PI); // Yaw
-    m4_translate(&pl->head_mtx, pl->pos);
-    m4_translate(&pl->head_mtx, (v3){0, .5, 0});
-
-    pl->mtx = m4_id();
-    m4_rotate_y(&pl->mtx, pl->rot.y * PI); // Yaw
-    m4_translate(&pl->mtx, pl->pos);
-
-    // Step sounds
     {
-        f32 speed = v3_length_sq(in.move);
-        if (!game->player->on_ground) speed = 0;
-        pl->step_volume += (f_min(speed, 1) - pl->step_volume) * 8 * eng->dt;
+        pl->mtx = m4_id();
+        m4_rotate_z(&pl->mtx, pl->rot.z);
+        m4_rotate_x(&pl->mtx, pl->rot.x);
+        m4_rotate_y(&pl->mtx, pl->rot.y);
+        m4_translate(&pl->mtx, pl->pos);
+
+        pl->head_mtx = m4_id();
+        m4_apply(&pl->head_mtx, pl->mtx);
+        m4_translate_y(&pl->head_mtx, .5);
     }
 
     // Shooting
-    pl->shoot_time = animate(pl->shoot_time, -eng->dt * 4);
-    if (in.shoot && pl->shoot_time == 0) {
-        pl->shoot_time = 1;
+    pl->recoil_animation = animate(pl->recoil_animation, -eng->dt * 4);
+    if (in.shoot && pl->recoil_animation == 0) {
+        pl->recoil_animation = 1;
         audio_play(eng->audio, 1, 0.8, rand_f32(&eng->rng) * 0.5 + 2.0);
 
         v3 ray_pos = pl->head_mtx.w;
@@ -448,7 +446,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         Collide_Result best_result = {0};
         Monster *best_monster = 0;
         for (Monster *mon = game->monsters; mon; mon = mon->next) {
-            // if (mon->health == 0) continue;
+            if (mon == pl) continue;
             Collide_Result result = collide_quad_ray(mon->mtx, mon->image, ray_pos, ray_dir);
             if (!result.hit) continue;
             if (best_result.hit && result.distance > best_result.distance) continue;
@@ -457,8 +455,6 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         }
 
         if (best_monster) {
-            fmt_s(OS_FMT, "HIT!\n");
-
             Image *img = best_monster->image;
 
             // Damage entity
@@ -498,14 +494,12 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // Draw Gun
     {
         m4 mtx = m4_id();
-        // m4_translate(&mtx, (v3){-0.04, 0, 0});
-        // m4_scale(&mtx, 0.25f);
-        // m4_rotate_z(&mtx, -pl->shoot_time * R1 * 0.25);
-        // m4_translate(&mtx, (v3){pl->shoot_time * 0.05, 0, 0});
-        // m4_rotate_y(&mtx, R1);
-        // m4_translate(&mtx, (v3){.15, -0.12, .3});
-        // m4_translate(&mtx, (v3){0, .5, 0});
-        m4_apply(&mtx, game->player->head_mtx);
+        m4_rotate_y(&mtx, R1);
+        m4_rotate_x(&mtx, blend(0, -R1 * .2, pl->recoil_animation));
+        m4_translate_x(&mtx, -0.2);
+        m4_translate_y(&mtx, -0.15);
+        m4_translate_z(&mtx, blend(0.3, 0.1, pl->recoil_animation));
+        m4_apply(&mtx, pl->head_mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
 
@@ -546,18 +540,19 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
     }
 }
 
-static void game_update(Game *game, Engine *eng) {
-    player_update(game->player, game, eng);
+static void entity_update(Engine *eng, Game *game, Entity *ent) {
+    if (ent->is_monster) monster_update(ent, game, eng);
+    if (ent->is_player) player_update(ent, game, eng);
+}
 
-    for (Monster *mon = game->monsters; mon; mon = mon->next) {
-        monster_update(mon, game, eng);
+static void game_update(Game *game, Engine *eng) {
+    for (Entity *ent = game->monsters; ent; ent = ent->next) {
+        entity_update(eng, game, ent);
     }
 
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         cell_update(cell, game, eng);
     }
-
-    // fmt_sfff(OS_FMT, "Player: ", game->player->pos.x, ", ", game->player->pos.y, ", ", game->player->pos.z, "\n");
 }
 
 static void game_free(Game *game) {

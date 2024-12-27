@@ -73,72 +73,29 @@ Run `./out/build run src/main.c` to launch the game. Edit any file, and the game
 
 For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir` command to update the source view when needed.
 
-# Short Term Taks
-- Transition to "Entity" 
-  - Make Player an Entity
-  - Player and monster are the same, except for AI logic and Input
-- Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
-- Work on sound system, make it like sfxr
-
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
-- [ ] Player
-  - [x] First-person movement
-  - [ ] Can die
-  - [x] Hit-scan pistol
-  - [x] Draw pistol
-  - [x] Draw cross
-
-- [x] Aliens
-  - [x] Movement
-    - [x] Idle: stand still
-    - [x] Stroll: move randomly to another cell
-    - [x] Attack: move to the player
-
-  - [x] Generated texture
-    - [x] Eyes
-    - [x] Body
-    - [x] Color
-    - [x] Walking animation
-
-- [ ] Level
-  - [x] Simple aligned walls
-  - [x] 2D layout
-  - [ ] Collision
-  - [x] Randomly generated
-      1. [x] Create outline
-      2. [x] Fill with maze
-      3. [ ] Remove some walls with only one connection
-      4. [ ] Decorate with textures
-
-    - Generated
-      - [ ] Genrate a few random cells (outline)
-        - 0-3: place+move up,down,left,rigth
-      - [ ] mirror on other side
-      - [ ] Generate maze inside
-      - [ ] Reduce wall count
-
-- [ ] Sound
-  - [ ] Simple synthesized music
-  - [x] Simple synthesized sounds
-
-- [x] Hot reloadable during development (`src/hot.c`)
-- [x] Custom printf/sprintf (`src/fmt.h`)
-
-- [ ] Publish
-  - [ ] Shorter name?
-  - [ ] Description
-  - [ ] Video
-  - [ ] Itch.io
-
-- [x] Platforms
-  - [x] Linux
-  - [x] Windows
-  - [x] Wasm
+- Transition to "Entity" 
+- Make Player an Entity
+- Player and monster are the same, except for AI logic and Input
+- Make Wall an entity (?)
+- Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
+- Work on sound system, make it like sfxr
+- Create a UI system
+- Aliens can attack
+- Player can Die
+- Player can shoot
+- Wall Collision
+- Level Generation
+- Improved General Sound system
+- Music
+- Write a good description
+- Create Gameplay Video
+- Create Development Video
+- First 1.0 release on Itch.IO
 
 # Version 2.0 (ideas)
-
 - [ ] Android
 - [ ] Publish on Play Store
 - [ ] Time travel effects?
