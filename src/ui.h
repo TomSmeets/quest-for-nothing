@@ -319,17 +319,59 @@ static Image *ui_get_char(UI *ui, u8 chr) {
                "    x     "
                "  x       ";
 
-    if (!grid) return 0;
+    if (chr == ' ')
+        grid = "          "
+               "          "
+               "          "
+               "          "
+               "          ";
+
+    if (!grid)
+        grid = "x   x   x "
+               "          "
+               "x       x "
+               "          "
+               "x   x   x ";
+
     assert(str_len((char *)grid) == 5 * 5 * 2, "Character does not match size");
 
-    v4 color_bg = {0, 0, 0, 0};
+    v4 color_bg = {0, 0, 0, 1};
     v4 color_fg = {1, 1, 1, 1};
 
-    Image *img = image_new(mem, (v2u){5, 5});
-    for (u32 i = 0; i < 5 * 5; ++i) {
-        bool value = grid[i * 2] != ' ';
-        img->pixels[i] = value ? color_fg : color_bg;
+    Image *img = image_new(mem, (v2u){6, 6});
+    image_fill(img, color_bg);
+    for (u32 y = 0; y < 5; ++y) {
+        for (u32 x = 0; x < 5; ++x) {
+            bool value = grid[(y * 5 + x) * 2] != ' ';
+            if (value) img->pixels[y * 6 + x] = color_fg;
+        }
     }
     ui->chars[chr] = img;
     return img;
+}
+
+static void ui_text(UI *ui, m4 mtx, char *text) {
+    f32 x = 0;
+    f32 y = 0;
+    for (;;) {
+        char c = *text++;
+        if (!c) break;
+
+        if (c == '\n') {
+            x = 0;
+            y -= 6 * 4;
+            continue;
+        }
+
+        Image *img = ui_get_char(ui, c);
+        if (img) {
+            m4 mtx2 = m4_id();
+            m4_translate_x(&mtx2, x);
+            m4_translate_y(&mtx2, y);
+            m4_apply(&mtx2, mtx);
+            gfx_quad_ui(ui->gfx, mtx2, img);
+        }
+
+        x += 6 * 4;
+    }
 }

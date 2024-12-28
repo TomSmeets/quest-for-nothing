@@ -167,28 +167,10 @@ static void os_main(OS *os) {
         eng->gfx->ui_quad_list[eng->gfx->ui_quad_count++] = quad;
     }
 
-    char *msg = "Hello World!\n0123456789\n3.141592";
-    f32 x = 0;
-    f32 y = 0;
-    for (;;) {
-        char c = *msg++;
-        if (!c) break;
-
-        Image *img = ui_get_char(&eng->ui, c);
-        if (img) {
-            m4 mtx = m4_id();
-            m4_translate_x(&mtx, x);
-            m4_translate_y(&mtx, y);
-            gfx_quad_ui(eng->gfx, mtx, img);
-        }
-
-        x += 6 * 4;
-
-        if (c == '\n') {
-            x = 0;
-            y -= 6 * 4;
-        }
-    }
-
+    m4 mtx = m4_id();
+    m4_translate_x(&mtx, -eng->input->window_size.x * .5 + 3 * 4);
+    m4_translate_y(&mtx, eng->input->window_size.y * .5 - 3 * 4);
+    gfx_quad_ui(eng->gfx, mtx, eng->ui.image);
+    ui_text(&eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
     engine_end(app->eng, pl->head_mtx);
 }
