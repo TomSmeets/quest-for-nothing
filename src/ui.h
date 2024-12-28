@@ -17,7 +17,7 @@ typedef struct {
     Image *image;
 
     // NULL, A-Z, 0-9
-    Image *chars[1 + 26 + 10];
+    Image *chars[256];
 } UI;
 
 static void ui_init(UI *ui, Memory *mem, Audio *audio, Input *input, Gfx *gfx) {
@@ -39,17 +39,13 @@ static Image *ui_get_char(UI *ui, u8 chr) {
     if (chr >= 'a' && chr <= 'z') chr = chr - 'a' + 'A';
 
     // Map char to index
-    u32 index = 0;
-    if (chr >= 'A' && chr <= 'Z') index = chr - 'A' + 1;
-    if (chr >= '0' && chr <= '9') index = chr - '0' + 1 + 26;
 
     // Check Cache
-    if (index == 0) return 0;
-    if (ui->chars[index]) return ui->chars[index];
+    if (ui->chars[chr]) return ui->chars[chr];
 
     // Create new
     Memory *mem = ui->mem;
-    const char *grid;
+    const char *grid = 0;
     if (chr == 'A')
         grid = "  x x x   "
                "x       x "
@@ -232,6 +228,98 @@ static Image *ui_get_char(UI *ui, u8 chr) {
                "  x       "
                "x x x x x ";
 
+    if (chr == '!')
+        grid = "    x     "
+               "    x     "
+               "    x     "
+               "          "
+               "    x     ";
+
+    if (chr == '0')
+        grid = "  x x x   "
+               "x       x "
+               "x       x "
+               "x       x "
+               "  x x x   ";
+
+    if (chr == '1')
+        grid = "  x x     "
+               "x   x     "
+               "    x     "
+               "    x     "
+               "x x x x x ";
+
+    if (chr == '2')
+        grid = "x x x x   "
+               "        x "
+               "  x x x   "
+               "x         "
+               "x x x x x ";
+
+    if (chr == '3')
+        grid = "x x x x   "
+               "        x "
+               "  x x x   "
+               "        x "
+               "x x x x   ";
+
+    if (chr == '4')
+        grid = "    x x   "
+               "  x   x   "
+               "x     x   "
+               "x x x x x "
+               "      x   ";
+
+    if (chr == '5')
+        grid = "x x x x x "
+               "x         "
+               "x x x x   "
+               "        x "
+               "x x x x   ";
+
+    if (chr == '6')
+        grid = "  x x x x "
+               "x         "
+               "x x x x   "
+               "x       x "
+               "  x x x   ";
+
+    if (chr == '7')
+        grid = "x x x x x "
+               "        x "
+               "      x   "
+               "    x     "
+               "  x       ";
+
+    if (chr == '8')
+        grid = "  x x x   "
+               "x       x "
+               "  x x x   "
+               "x       x "
+               "  x x x   ";
+
+    if (chr == '9')
+        grid = "  x x x   "
+               "x       x "
+               "  x x x x "
+               "        x "
+               "  x x x   ";
+
+    if (chr == '.')
+        grid = "          "
+               "          "
+               "          "
+               "          "
+               "    x     ";
+
+    if (chr == ',')
+        grid = "          "
+               "          "
+               "          "
+               "    x     "
+               "  x       ";
+
+    if (!grid) return 0;
     assert(str_len((char *)grid) == 5 * 5 * 2, "Character does not match size");
 
     v4 color_bg = {0, 0, 0, 0};
@@ -242,6 +330,6 @@ static Image *ui_get_char(UI *ui, u8 chr) {
         bool value = grid[i * 2] != ' ';
         img->pixels[i] = value ? color_fg : color_bg;
     }
-    ui->chars[index] = img;
+    ui->chars[chr] = img;
     return img;
 }
