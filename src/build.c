@@ -170,7 +170,7 @@ static os_main_t *build_and_load(Memory *tmp, char *main_path, u64 counter) {
 #if OS_IS_WINDOWS
     fmt_su(out_path_fmt, "out/hot-", counter, ".dll");
 #else
-    fmt_su(out_path_fmt, "out/hot-", counter, ".so");
+    fmt_su(out_path_fmt, "/tmp/hot-", counter, ".so");
 #endif
     char *out_path = fmt_close(out_path_fmt);
     bool ok = build_single(tmp, out_path, main_path, Platform_Linux, false, true);
@@ -309,7 +309,7 @@ void os_main(OS *os) {
         if (hot->update) {
             hot->update(hot->child_os);
 
-            // inheritchild update rate
+            // inherit child update rate
             os->sleep_time = hot->child_os->sleep_time;
             hot->child_os->reloaded = 0;
         }
