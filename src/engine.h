@@ -33,6 +33,7 @@ static Engine *engine_new(Memory *mem, OS *os, char *title) {
     eng->gfx = gfx_new(mem, title);
     eng->input = 0;
     eng->rng = (Random){os_rand()};
+    ui_init(&eng->ui, mem, eng->audio, 0, eng->gfx);
 
     f32 sx = 12 * 2;
     f32 sy = 6 * 2;

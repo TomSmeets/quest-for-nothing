@@ -24,6 +24,7 @@ static void ui_init(UI *ui, Memory *mem, Audio *audio, Input *input, Gfx *gfx) {
     ui->audio = audio;
     ui->input = input;
     ui->gfx = gfx;
+    ui->mem = mem;
 
     ui->image = image_new(mem, (v2u){16, 16});
     image_grid(ui->image, (v4){1, 0, 1, 1}, (v4){0, 0, 0, 1});
@@ -43,6 +44,7 @@ static Image *ui_get_char(UI *ui, u8 chr) {
     if (chr >= '0' && chr <= '9') index = chr - '0' + 1 + 26;
 
     // Check Cache
+    if (index == 0) return 0;
     if (ui->chars[index]) return ui->chars[index];
 
     // Create new

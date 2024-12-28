@@ -167,5 +167,19 @@ static void os_main(OS *os) {
         eng->gfx->ui_quad_list[eng->gfx->ui_quad_count++] = quad;
     }
 
+    char *msg = "Hello World!";
+    u32 x = 6;
+    while (*msg) {
+        Image *img = ui_get_char(&eng->ui, *msg);
+        if (img) {
+            m4 mtx = m4_id();
+            m4_translate_x(&mtx, x);
+            m4_translate_y(&mtx, 6 * 4);
+            gfx_quad_ui(eng->gfx, mtx, img);
+        }
+        x += 6 * 4;
+        msg++;
+    }
+
     engine_end(app->eng, pl->head_mtx);
 }
