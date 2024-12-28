@@ -9,6 +9,7 @@
 #include "input.h"
 #include "rand.h"
 #include "time.h"
+#include "ui.h"
 
 typedef struct {
     Memory *tmp;
@@ -19,6 +20,7 @@ typedef struct {
     Input *input;
     f32 dt;
     Random rng;
+    UI ui;
 
     // X,Y and Z arrows
     Image *image_arrow[3];

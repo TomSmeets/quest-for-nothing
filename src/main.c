@@ -9,6 +9,7 @@
 #include "os.h"
 #include "player.h"
 #include "time.h"
+#include "ui.h"
 
 typedef struct {
     Memory *mem;
