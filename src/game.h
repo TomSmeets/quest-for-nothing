@@ -438,7 +438,9 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     pl->recoil_animation = animate(pl->recoil_animation, -eng->dt * 4);
     if (in.shoot && pl->recoil_animation == 0) {
         pl->recoil_animation = 1;
-        audio_play(eng->audio, 1, 0.8, rand_f32(&eng->rng) * 0.5 + 2.0);
+
+        Sound snd = sound_new();
+        audio_play(eng->audio, snd);
 
         v3 ray_pos = pl->head_mtx.w;
         v3 ray_dir = pl->head_mtx.z;

@@ -31,7 +31,7 @@ static App *app_init(OS *os) {
     app->eng = engine_new(mem, os, "Quest For Nothing");
     app->game = game_new(&app->eng->rng);
     app->cursor = gen_cursor(mem);
-    audio_play(app->eng->audio, 0, 1e9, rand_f32(&app->eng->rng));
+    // audio_play(app->eng->audio, 0, 1e9, rand_f32(&app->eng->rng));
     return app;
 }
 
@@ -39,6 +39,7 @@ static v2 sound_shift(f32 input, f32 shift) {
     return (v2){input * (1 + shift), input * (1 - shift)};
 }
 
+#if 0
 static v2 sound_sample_single(Sound *snd, f32 dt) {
     sound_begin_sample(snd, dt);
     v2 out = 0;
@@ -56,17 +57,24 @@ static v2 sound_sample_single(Sound *snd, f32 dt) {
     }
     return out;
 }
-static void sound_sample_many(Sound *snd, f32 dt, v2 *output, u32 count) {
+#endif
+
+static void sound_sample_many(Sound *snd, v2 *output, u32 count) {
     for (u32 i = 0; i < count; ++i) {
+        // Ensure sound is not yet finished
         if (!snd->id) break;
-        output[i] += sound_sample_single(snd, dt);
-        snd->time -= dt;
-        if (snd->time <= 0) snd->id = 0;
+
+        // Add next sample
+        Sound_Result out = sound_sample(snd);
+        if (out.done) {
+            snd->id = 0;
+            break;
+        }
+        output[i] += out.volume;
     }
 }
 
 static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
-    f32 dt = 1.0f / AUDIO_SAMPLE_RATE;
     App *app = OS_GLOBAL->app;
     if (!app) return;
 
@@ -75,7 +83,7 @@ static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
 
     for (u32 i_snd = 0; i_snd < array_count(audio->sounds); ++i_snd) {
         Sound *snd = audio->sounds + i_snd;
-        sound_sample_many(snd, dt, samples, sample_count);
+        sound_sample_many(snd, samples, sample_count);
     }
 
     // Reduce volume and clamp (Protect my ears)
@@ -144,7 +152,7 @@ static void os_main(OS *os) {
     game_update(app->game, eng);
 
     if (key_click(eng->input, KEY_SPACE)) {
-        audio_play(eng->audio, 1, 0.5, rand_f32(&eng->rng) * 0.1 + 1.0);
+        // audio_play(eng->audio, 1, 0.5, rand_f32(&eng->rng) * 0.1 + 1.0);
     }
 
     if (key_down(eng->input, KEY_4)) {

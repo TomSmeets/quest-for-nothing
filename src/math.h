@@ -4,6 +4,8 @@
 #include "std.h"
 #include "types.h"
 
+#define INF (1.0f / 0.0f)
+
 #define PI 3.1415926535897931
 #define PI2 6.2831853071795862
 
@@ -49,6 +51,14 @@ static f32 f_step(f32 x) {
     x = x * x * x;
     x = 1 - x;
     return x;
+}
+
+static f32 f_step_duration(f32 t, f32 duration) {
+    if (duration == 0) {
+        return t >= 0 ? 1 : 0;
+    }
+
+    return f_step(t / duration);
 }
 
 // clamp 'x' between l and h, inclusive

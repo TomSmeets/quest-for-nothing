@@ -76,17 +76,14 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
-- Share memory in quad_list (single quad list for ui and world)
-- Transition to "Entity" 
-- Make Player an Entity
-- Player and monster are the same, except for AI logic and Input
-- Make Wall an entity (?)
-- Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
 - Work on sound system, make it like sfxr
+- Share memory in quad_list (single quad list for ui and world)
+- Player and monster are the same, except for AI logic and Input
+- Make Wall an Entity (?)
+- Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
 - Create a UI system
 - Aliens can attack
 - Player can Die
-- Player can shoot
 - Wall Collision
 - Level Generation
 - Improved General Sound system

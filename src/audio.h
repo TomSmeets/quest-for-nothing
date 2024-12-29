@@ -10,7 +10,6 @@
 
 // Sound System
 typedef struct {
-    // RNG to seed sound rngs
     f32 dt;
     Random rand;
 
@@ -22,23 +21,24 @@ static Audio *audio_new(Memory *mem) {
     return mem_struct(mem, Audio);
 }
 
-static u32 audio_play(Audio *audio, u32 kind, f32 duration, f32 pitch) {
-    for (u32 i = 0; i < array_count(audio->sounds); ++i) {
-        Sound *snd = audio->sounds + i;
-        if (snd->id) continue;
-        std_memzero(snd, sizeof(*snd));
+static void audio_play(Audio *audio, Sound new_sound) {
+    assert(new_sound.id != 0, "Sound is invalid");
 
-        u32 id = id_next();
-        snd->rand = rand_fork(&audio->rand);
-        snd->id = id;
-        snd->dt = audio->dt;
-        snd->kind = kind;
-        snd->time = duration;
-        snd->pitch = pitch;
-        fmt_su(OS_FMT, "Playing #", id, "\n");
-        return id;
+    for (u32 i = 0; i < array_count(audio->sounds); ++i) {
+        Sound *sound = audio->sounds + i;
+
+        // Find Empty slot
+        if (sound->id) continue;
+
+        // Insert sound
+        new_sound.vars.rand = rand_fork(&audio->rand);
+        *sound = new_sound;
+
+        fmt_suu(OS_FMT, "Playing #", new_sound.id, " in slot ", i, "\n");
+        return;
     }
-    return 0;
+
+    fmt_s(OS_FMT, "Could not play sound\n");
 }
 
 static void audio_stop(Audio *audio, u32 id) {
