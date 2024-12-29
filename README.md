@@ -76,7 +76,6 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
-- Work on sound system, make it like sfxr
 - Share memory in quad_list (single quad list for ui and world)
 - Player and monster are the same, except for AI logic and Input
 - Make Wall an Entity (?)
@@ -86,7 +85,6 @@ I'd like to release this someday, so keeping it very simple!
 - Player can Die
 - Wall Collision
 - Level Generation
-- Improved General Sound system
 - Music
 - Write a good description
 - Create Gameplay Video

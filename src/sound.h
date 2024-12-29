@@ -38,7 +38,7 @@ static Sound_Result sound_envelope(Sound_Envelope *env, f32 time) {
     f32 v = 0.0;
     f32 t = time;
 
-    f32 peak   = 0.2;
+    f32 peak = 0.2;
     f32 volume = 0.8;
 
     v += f_step_duration(t, env->attack) * (volume + peak);
