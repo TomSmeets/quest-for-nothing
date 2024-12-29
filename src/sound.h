@@ -38,15 +38,18 @@ static Sound_Result sound_envelope(Sound_Envelope *env, f32 time) {
     f32 v = 0.0;
     f32 t = time;
 
-    v += f_step_duration(t, env->attack) * 2;
+    f32 peak   = 0.2;
+    f32 volume = 0.8;
+
+    v += f_step_duration(t, env->attack) * (volume + peak);
     t -= env->attack;
 
-    v -= f_step_duration(t, env->decay);
+    v -= f_step_duration(t, env->decay) * peak;
     t -= env->decay;
 
     t -= env->sustain;
 
-    v -= f_step_duration(t, env->release);
+    v -= f_step_duration(t, env->release) * volume;
     t -= env->release;
     return (Sound_Result){.done = t >= 0, .volume = v};
 }
@@ -98,7 +101,7 @@ static f32 sound_saw(Sound_Vars *sound, f32 freq) {
 }
 
 static f32 sound_pulse(Sound_Vars *sound, f32 freq, f32 duty) {
-    return sound_ramp(sound, freq) < duty;
+    return sound_ramp(sound, freq) < duty * 0.5f;
 }
 
 // Generate a pure sine wave at a given frequency
@@ -201,8 +204,8 @@ static Sound sound_new(void) {
     snd.base_volume = 1;
 
     snd.volume.sustain = 1;
-    snd.freq.sustain = INF;
-    snd.duty.sustain = INF;
+    snd.freq.sustain = 100;
+    snd.duty.sustain = 100;
     snd.vars.dt = 1.0f / AUDIO_SAMPLE_RATE;
     return snd;
 }

@@ -439,8 +439,37 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     if (in.shoot && pl->recoil_animation == 0) {
         pl->recoil_animation = 1;
 
-        Sound snd = sound_new();
-        audio_play(eng->audio, snd);
+        {
+            Sound snd = sound_new();
+            snd.source = Sound_Pulse;
+            snd.base_freq = 440.0f;
+            snd.volume.attack = 0.01;
+            snd.volume.sustain = 0.0;
+            snd.volume.decay = 0.2;
+            snd.volume.release = 0.2;
+
+            snd.freq.attack = 0.0;
+            snd.freq.sustain = 0.0;
+            snd.freq.decay = 1.0;
+            snd.freq.release = 1.0;
+            audio_play(eng->audio, snd);
+        }
+
+        {
+            Sound snd = sound_new();
+            snd.source = Sound_Noise;
+            snd.base_freq = 440.0f;
+            snd.volume.attack = 0.01;
+            snd.volume.sustain = 0.0;
+            snd.volume.decay = 0.2;
+            snd.volume.release = 4.0;
+
+            snd.freq.attack = 0.0;
+            snd.freq.sustain = 1.0;
+            snd.freq.decay = 1.0;
+            snd.freq.release = 4.0;
+            audio_play(eng->audio, snd);
+        }
 
         v3 ray_pos = pl->head_mtx.w;
         v3 ray_dir = pl->head_mtx.z;
