@@ -10,6 +10,11 @@
 #include "types.h"
 #include "vec.h"
 
+// Ideas
+//   Generate in layers, layers give depth
+//   Pure white noise is boring, but by layering at different scales sometihng interesting is created.
+// Referneces
+
 typedef struct Cell Cell;
 struct Cell {
     v3i pos;

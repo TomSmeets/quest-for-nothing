@@ -10,7 +10,7 @@
 #include "types.h"
 
 // https://www.eetimes.com/making-sounds-with-analogue-electronics-part-1-before-the-synthesizer/
-
+// FM: https://www.youtube.com/watch?v=DD0UpZ5uGAo
 typedef struct {
     bool done;
     f32 volume;
@@ -18,40 +18,79 @@ typedef struct {
 
 // Sound Envelope
 typedef struct {
-    f32 attack;
-    f32 decay;
-    f32 sustain;
-    f32 release;
-} Sound_Envelope;
+    // Paramters
+    f32 volume;
+    f32 freq;
+    f32 attack_time;
+    f32 release_time;
 
-// Envelope
-// Attack to 2
-// Decay to 1
-// Sustain 1
-// Relase to 0
-//
-//
-//  /\___
-// /     \\
-// a d s r
-static Sound_Result sound_envelope(Sound_Envelope *env, f32 time) {
-    f32 v = 0.0;
-    f32 t = time;
+    // Runtime info
+    f32 phase;
+} Sound_Source;
 
-    f32 peak = 0.2;
-    f32 volume = 0.8;
+typedef struct {
+    // Paramters
+    f32 freq;
+    f32 duration;
 
-    v += f_step_duration(t, env->attack) * (volume + peak);
-    t -= env->attack;
+    // Sources
+    Sound_Source src_a;
+    Sound_Source src_b;
 
-    v -= f_step_duration(t, env->decay) * peak;
-    t -= env->decay;
+    // Runtime
+    f32 dt;
+    f32 time;
+    bool playing;
+} Sound;
 
-    t -= env->sustain;
+// Very simple envelope
+static f32 sound_envelope(f32 time, f32 duration, f32 attack_time, f32 release_time) {
+    f32 v_attack = f_step_duration(time, attack_time);
+    f32 v_release = 1 - f_step_duration(time - duration, release_time);
+    return f_min(v_attack, v_release);
+}
 
-    v -= f_step_duration(t, env->release) * volume;
-    t -= env->release;
-    return (Sound_Result){.done = t >= 0, .volume = v};
+// Increment phase by a given amount.
+static f32 sound_phase(f32 *phase, f32 dt) {
+    f32 value = *phase;
+    *phase += dt;
+    *phase -= (i32)*phase;
+    return value;
+}
+
+static f32 sound_source(Sound *sound, Sound_Source *source, f32 input) {
+    f32 envelope = sound_envelope(sound->time, sound->duration, source->attack_time, source->release_time);
+    f32 phase = sound_phase(&source->phase, sound->dt * sound->freq * source->freq * (1 + input));
+    return f_sin2pi(phase) * envelope * source->volume;
+}
+
+static void sound_reset(Sound *sound) {
+    sound->dt = 1.0f / AUDIO_SAMPLE_RATE;
+    sound->time = 0;
+    sound->src_a.phase = 0;
+    sound->src_b.phase = 0;
+    sound->playing = true;
+}
+
+static f32 sound_sample(Sound *sound) {
+    if (!sound->playing) return 0;
+
+    f32 v_b = sound_source(sound, &sound->src_b, 0);
+    f32 v_a = sound_source(sound, &sound->src_a, v_b);
+    sound->time += sound->dt;
+
+    if (sound->time > sound->duration + sound->src_a.release_time) {
+        sound->playing = false;
+    }
+
+    return v_a;
+}
+
+static bool sound_is_done(Sound *sound) {
+    f32 relase_time = sound->time - sound->duration;
+    if (relase_time < sound->src_a.release_time) return false;
+    if (relase_time < sound->src_b.release_time) return false;
+    return true;
 }
 
 typedef struct {
@@ -168,68 +207,4 @@ static Sound_Filter_Result sound_filter(Sound_Vars *sound, f32 cutoff_freq, f32 
     f32 lp = *buf1;
 
     return (Sound_Filter_Result){lp, bp, hp};
-}
-
-typedef enum {
-    Sound_Sine,
-    Sound_Pulse,
-    Sound_Saw,
-    Sound_Noise,
-} Sound_Source;
-
-// A single sound
-typedef struct {
-    u32 id;
-
-    f32 base_volume;
-    f32 base_freq;
-    f32 base_duty;
-
-    // Settings
-    Sound_Source source;
-
-    Sound_Envelope volume;
-    Sound_Envelope duty;
-    Sound_Envelope freq;
-
-    Sound_Vars vars;
-} Sound;
-
-static Sound sound_new(void) {
-    Sound snd = {};
-    snd.id = id_next();
-    snd.source = Sound_Sine;
-    snd.base_freq = 440;
-    snd.base_duty = 1.0;
-    snd.base_volume = 1;
-
-    snd.volume.sustain = 1;
-    snd.freq.sustain = 100;
-    snd.duty.sustain = 100;
-    snd.vars.dt = 1.0f / AUDIO_SAMPLE_RATE;
-    return snd;
-}
-
-static Sound_Result sound_sample(Sound *snd) {
-    sound_var_begin(&snd->vars);
-    f32 time = snd->vars.time;
-
-    //
-    Sound_Result envelope = sound_envelope(&snd->volume, time);
-    if (envelope.done) return (Sound_Result){.done = 1};
-
-    f32 volume = snd->base_volume * envelope.volume;
-    f32 freq = snd->base_freq * sound_envelope(&snd->freq, time).volume;
-    f32 duty = snd->base_duty * sound_envelope(&snd->duty, time).volume;
-
-    f32 source = 0;
-    if (snd->source == Sound_Sine) source += sound_sine(&snd->vars, freq);
-    if (snd->source == Sound_Pulse) source += sound_pulse(&snd->vars, freq, duty);
-    if (snd->source == Sound_Saw) source += sound_saw(&snd->vars, freq);
-    if (snd->source == Sound_Noise) source += sound_noise_freq(&snd->vars, freq, duty);
-
-    f32 sample = source * volume;
-
-    sound_var_end(&snd->vars);
-    return (Sound_Result){.volume = sample};
 }

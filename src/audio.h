@@ -8,7 +8,18 @@
 #include "std.h"
 #include "types.h"
 
+// Note to frequency relative to Middle C
+static f32 sound_note_to_freq(i32 note) {
+    return 440.0f * f_pow2((f32)(note + 3) / 12.0f);
+}
+
 // Sound System
+
+// References:
+//   How to disscet a Melody: https://www.youtube.com/watch?v=PZ5POrP-NMw
+//   - Melodic Embellishments + Melodic Reduction
+//   Learn every chord and chord symbol: https://www.youtube.com/watch?v=CyNiY1jzOuQ
+//   - Chords vs Melody
 typedef struct {
     f32 dt;
     Random rand;
@@ -22,29 +33,18 @@ static Audio *audio_new(Memory *mem) {
 }
 
 static void audio_play(Audio *audio, Sound new_sound) {
-    assert(new_sound.id != 0, "Sound is invalid");
+    sound_reset(&new_sound);
 
     for (u32 i = 0; i < array_count(audio->sounds); ++i) {
         Sound *sound = audio->sounds + i;
 
-        // Find Empty slot
-        if (sound->id) continue;
+        // Find an empty slot
+        if (sound->playing) continue;
 
-        // Insert sound
-        new_sound.vars.rand = rand_fork(&audio->rand);
         *sound = new_sound;
-
-        fmt_suu(OS_FMT, "Playing #", new_sound.id, " in slot ", i, "\n");
+        fmt_su(OS_FMT, "Playing Sound in slot ", i, "\n");
         return;
     }
 
     fmt_s(OS_FMT, "Could not play sound\n");
-}
-
-static void audio_stop(Audio *audio, u32 id) {
-    // Swap remove sound
-    for (u32 i = 0; i < array_count(audio->sounds); ++i) {
-        Sound *snd = audio->sounds + i;
-        if (snd->id == id) snd->id = 0;
-    }
 }

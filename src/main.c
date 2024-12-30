@@ -62,15 +62,10 @@ static v2 sound_sample_single(Sound *snd, f32 dt) {
 static void sound_sample_many(Sound *snd, v2 *output, u32 count) {
     for (u32 i = 0; i < count; ++i) {
         // Ensure sound is not yet finished
-        if (!snd->id) break;
+        if (!snd->playing) break;
 
         // Add next sample
-        Sound_Result out = sound_sample(snd);
-        if (out.done) {
-            snd->id = 0;
-            break;
-        }
-        output[i] += out.volume;
+        output[i] += sound_sample(snd);
     }
 }
 
@@ -152,7 +147,19 @@ static void os_main(OS *os) {
     game_update(app->game, eng);
 
     if (key_click(eng->input, KEY_SPACE)) {
-        // audio_play(eng->audio, 1, 0.5, rand_f32(&eng->rng) * 0.1 + 1.0);
+        Sound snd = {};
+        snd.freq = sound_note_to_freq(-12 * 3 + rand_u32_range(&app->eng->rng, 0, 12));
+        snd.duration = 0.2;
+        snd.src_a.freq = 1;
+        snd.src_a.volume = 1;
+        snd.src_a.attack_time = 0.2;
+        snd.src_a.release_time = 2.0;
+
+        snd.src_b.freq = 0.5;
+        snd.src_b.volume = 6;
+        snd.src_b.attack_time = 0.2;
+        snd.src_b.release_time = 2.0;
+        audio_play(eng->audio, snd);
     }
 
     if (key_down(eng->input, KEY_4)) {
