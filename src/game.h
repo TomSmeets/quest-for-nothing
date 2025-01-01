@@ -552,12 +552,14 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
         m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
         // gfx_draw_mtx(eng, mtx);
         gfx_quad_3d(eng->gfx, mtx, img);
+        if (key_down(eng->input, KEY_4)) gfx_draw_mtx(eng, mtx);
     }
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
+    if (key_down(eng->input, KEY_4)) gfx_draw_mtx(eng, ent->mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {

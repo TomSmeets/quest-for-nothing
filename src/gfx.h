@@ -4,17 +4,26 @@
 #include "os_gfx.h"
 #include "texture_packer.h"
 
+typedef struct Gfx_Pass Gfx_Pass;
+struct Gfx_Pass {
+    u32 quad_count;
+    OS_Gfx_Quad quad_list[2048];
+    Gfx_Pass *next;
+};
+
+typedef struct {
+    Gfx_Pass *first;
+    Gfx_Pass *last;
+} Gfx_Pass_List;
+
 typedef struct {
     OS_Gfx *os;
     Packer *pack;
-
-    u32 quad_count;
-    OS_Gfx_Quad quad_list[4096];
-
-    u32 ui_quad_count;
-    OS_Gfx_Quad ui_quad_list[4096];
-
     v2i viewport_size;
+
+    Memory *tmp;
+    Gfx_Pass_List pass_ui;
+    Gfx_Pass_List pass_3d;
 } Gfx;
 
 static Gfx *gfx_new(Memory *mem, char *title) {
@@ -25,8 +34,9 @@ static Gfx *gfx_new(Memory *mem, char *title) {
 }
 
 static Input *gfx_begin(Gfx *gfx) {
-    gfx->quad_count = 0;
-    gfx->ui_quad_count = 0;
+    gfx->pass_ui = (Gfx_Pass_List){0};
+    gfx->pass_3d = (Gfx_Pass_List){0};
+    gfx->tmp = mem_new();
 
     // Recreate texture pack
     u32 cap = packer_capacity(gfx->pack, 32);
@@ -48,30 +58,36 @@ static void gfx_end(Gfx *gfx, m4 camera) {
 
     // 3d World
     m44 projection = m4_perspective_to_clip(view, 70, aspect_x, aspect_y, 0.1, 15.0);
-    os_gfx_draw(gfx->os, projection, true, gfx->quad_count, gfx->quad_list);
-    gfx->quad_count = 0;
+    for (Gfx_Pass *pass = gfx->pass_3d.first; pass; pass = pass->next) {
+        os_gfx_draw(gfx->os, projection, true, pass->quad_count, pass->quad_list);
+    }
 
     // 2d UI
     m4 ui_view = m4_id();
     m44 ui_projection = m4_screen_to_clip(ui_view, gfx->viewport_size);
-    os_gfx_draw(gfx->os, ui_projection, false, gfx->ui_quad_count, gfx->ui_quad_list);
-    gfx->ui_quad_count = 0;
+    for (Gfx_Pass *pass = gfx->pass_ui.first; pass; pass = pass->next) {
+        os_gfx_draw(gfx->os, ui_projection, false, pass->quad_count, pass->quad_list);
+    }
 
     // Swap windows
     os_gfx_end(gfx->os);
+    mem_free(gfx->tmp);
+}
+
+static OS_Gfx_Quad *gfx_pass_quad(Gfx *gfx, Gfx_Pass_List *pass_list) {
+    Gfx_Pass *pass = pass_list->last;
+
+    // If the pass is full or not exiting, creat a new one
+    if (!pass || pass->quad_count == array_count(pass->quad_list)) {
+        pass = mem_struct(gfx->tmp, Gfx_Pass);
+        LIST_APPEND(pass_list->first, pass_list->last, pass);
+    }
+
+    u32 i = pass->quad_count++;
+    return pass->quad_list + i;
 }
 
 static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
-    if (!ui && gfx->quad_count >= array_count(gfx->quad_list)) {
-        fmt_s(OS_FMT, "ERROR: Too many quads\n");
-        return;
-    }
-
-    if (ui && gfx->ui_quad_count >= array_count(gfx->ui_quad_list)) {
-        fmt_s(OS_FMT, "ERROR: Too many UI quads\n");
-        return;
-    }
-
     Packer_Area *area = packer_get_cache(gfx->pack, img);
 
     if (!area) {
@@ -102,7 +118,7 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
     m4_scale(&mtx2, (v3){pixel_scale, pixel_scale, 1});
     m4_apply(&mtx2, mtx);
 
-    OS_Gfx_Quad quad = {
+    *gfx_pass_quad(gfx, ui ? &gfx->pass_ui : &gfx->pass_3d) = (OS_Gfx_Quad){
         .x = {mtx2.x.x, mtx2.x.y, mtx2.x.z},
         .y = {mtx2.y.x, mtx2.y.y, mtx2.y.z},
         .z = {mtx2.z.x, mtx2.z.y, mtx2.z.z},
@@ -110,12 +126,6 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
         .uv_pos = {(f32)area->pos.x / OS_GFX_ATLAS_SIZE, (f32)area->pos.y / OS_GFX_ATLAS_SIZE},
         .uv_size = {(f32)img->size.x / OS_GFX_ATLAS_SIZE, (f32)img->size.y / OS_GFX_ATLAS_SIZE},
     };
-
-    if (ui) {
-        gfx->ui_quad_list[gfx->ui_quad_count++] = quad;
-    } else {
-        gfx->quad_list[gfx->quad_count++] = quad;
-    }
 }
 
 static void gfx_quad_ui(Gfx *gfx, m4 mtx, Image *img) {

@@ -31,7 +31,6 @@ static App *app_init(OS *os) {
     app->eng = engine_new(mem, os, "Quest For Nothing");
     app->game = game_new(&app->eng->rng);
     app->cursor = gen_cursor(mem);
-    // audio_play(app->eng->audio, 0, 1e9, rand_f32(&app->eng->rng));
     return app;
 }
 
@@ -171,7 +170,7 @@ static void os_main(OS *os) {
             break;
         }
 
-        OS_Gfx_Quad quad = {
+        *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (OS_Gfx_Quad){
             .x = {400, 0, 0},
             .y = {0, 400, 0},
             .z = {0, 0, 1},
@@ -179,7 +178,6 @@ static void os_main(OS *os) {
             .uv_pos = {0, 0},
             .uv_size = {1, 1},
         };
-        eng->gfx->ui_quad_list[eng->gfx->ui_quad_count++] = quad;
     }
 
     m4 mtx = m4_id();
