@@ -183,7 +183,7 @@ static void os_main(OS *os) {
     m4 mtx = m4_id();
     m4_translate_x(&mtx, -eng->input->window_size.x * .5 + 3 * 4);
     m4_translate_y(&mtx, eng->input->window_size.y * .5 - 3 * 4);
-    gfx_quad_ui(eng->gfx, mtx, eng->ui.image);
-    ui_text(&eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
+    // gfx_quad_ui(eng->gfx, mtx, eng->ui.image);
+    // ui_text(&eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
     engine_end(app->eng, pl->head_mtx);
 }
