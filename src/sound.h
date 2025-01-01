@@ -36,11 +36,16 @@ typedef struct {
     // Sources
     Sound_Source src_a;
     Sound_Source src_b;
+    Sound_Source src_c;
+    Sound_Source src_d;
 
     // Runtime
     f32 dt;
     f32 time;
     bool playing;
+    f32 filter0;
+    f32 filter1;
+    f32 feedback_value;
 } Sound;
 
 // Very simple envelope
@@ -69,13 +74,52 @@ static void sound_reset(Sound *sound) {
     sound->time = 0;
     sound->src_a.phase = 0;
     sound->src_b.phase = 0;
+    sound->src_c.phase = 0;
+    sound->src_d.phase = 0;
+    sound->filter0 = 0;
+    sound->filter1 = 0;
+    sound->feedback_value = 0;
     sound->playing = true;
+}
+
+typedef struct {
+    f32 low_pass;
+    f32 band_pass;
+    f32 high_pass;
+} Sound_Filter_Result;
+
+// Filter the incoming samples at a given cutoff frequency.
+static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sample) {
+    f32 rc = 1.0 / (cutoff_freq * PI2);
+    f32 f = sound->dt / (rc + sound->dt);
+
+    // f and fb calculation
+    f32 q = 0.9;
+    f32 fb = q + q / (1.0 - f);
+
+    // loop
+
+    // High Pass Filter
+    f32 hp = sample - sound->filter0;
+
+    // Band Pass Filter
+    f32 bp = sound->filter0 - sound->filter1;
+
+    sound->filter0 += f * (hp + fb * bp);
+    sound->filter1 += f * (sound->filter0 - sound->filter1);
+
+    // Low Pass Filter
+    f32 lp = sound->filter1;
+
+    return (Sound_Filter_Result){lp, bp, hp};
 }
 
 static f32 sound_sample(Sound *sound) {
     if (!sound->playing) return 0;
 
-    f32 v_b = sound_source(sound, &sound->src_b, 0);
+    f32 v_d = sound_source(sound, &sound->src_d, 0);
+    f32 v_c = sound_source(sound, &sound->src_c, v_d);
+    f32 v_b = sound_source(sound, &sound->src_b, v_c);
     f32 v_a = sound_source(sound, &sound->src_a, v_b);
     sound->time += sound->dt;
 
@@ -83,14 +127,8 @@ static f32 sound_sample(Sound *sound) {
         sound->playing = false;
     }
 
+    // v_a = sound_filter(sound, sound->freq*2, v_a).low_pass;
     return v_a;
-}
-
-static bool sound_is_done(Sound *sound) {
-    f32 relase_time = sound->time - sound->duration;
-    if (relase_time < sound->src_a.release_time) return false;
-    if (relase_time < sound->src_b.release_time) return false;
-    return true;
 }
 
 typedef struct {
@@ -172,39 +210,4 @@ static f32 sound_noise_freq(Sound_Vars *sound, f32 freq, f32 duty) {
     }
 
     return *value;
-}
-
-typedef struct {
-    f32 low_pass;
-    f32 band_pass;
-    f32 high_pass;
-} Sound_Filter_Result;
-
-// Filter the incoming samples at a given cutoff frequency.
-static Sound_Filter_Result sound_filter(Sound_Vars *sound, f32 cutoff_freq, f32 sample) {
-    f32 *buf0 = sound_var(sound);
-    f32 *buf1 = sound_var(sound);
-
-    f32 rc = 1.0 / (cutoff_freq * PI2);
-    f32 f = sound->dt / (rc + sound->dt);
-
-    // f and fb calculation
-    f32 q = 0.9;
-    f32 fb = q + q / (1.0 - f);
-
-    // loop
-
-    // High Pass Filter
-    f32 hp = sample - *buf0;
-
-    // Band Pass Filter
-    f32 bp = *buf0 - *buf1;
-
-    *buf0 += f * (hp + fb * bp);
-    *buf1 += f * (*buf0 - *buf1);
-
-    // Low Pass Filter
-    f32 lp = *buf1;
-
-    return (Sound_Filter_Result){lp, bp, hp};
 }
