@@ -35,6 +35,7 @@ typedef struct {
     Monster *monsters;
     Level level;
     Image *gun;
+    f32 screen_shake;
 } Game;
 
 static void gfx_draw_mtx(Engine *eng, m4 mtx) {
@@ -430,6 +431,12 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         m4_translate(&pl->mtx, pl->pos);
 
         pl->head_mtx = m4_id();
+        if (game->screen_shake > 0) {
+            f32 shake = game->screen_shake * game->screen_shake * game->screen_shake;
+            m4_rotate_y(&pl->head_mtx, f_sin2pi(shake * 7 * 10) * shake * 0.5);
+            m4_rotate_x(&pl->head_mtx, f_sin2pi(shake * 3 * 10) * shake * 0.5);
+            m4_rotate_x(&pl->head_mtx, f_sin2pi(shake * 5 * 10) * shake * 0.5);
+        }
         m4_apply(&pl->head_mtx, pl->mtx);
         m4_translate_y(&pl->head_mtx, .5);
     }
@@ -438,6 +445,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     pl->recoil_animation = animate(pl->recoil_animation, -eng->dt * 4);
     if (in.shoot && pl->recoil_animation == 0) {
         pl->recoil_animation = 1;
+        game->screen_shake = 0.5;
 
         {
             Sound snd = {};
@@ -553,7 +561,6 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
         }
 
         m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
-        // gfx_draw_mtx(eng, mtx);
         gfx_quad_3d(eng->gfx, mtx, img);
         if (key_down(eng->input, KEY_4)) gfx_draw_mtx(eng, mtx);
     }
@@ -562,7 +569,7 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
-    if (key_down(eng->input, KEY_4)) gfx_draw_mtx(eng, ent->mtx);
+    if (key_down(eng->input, KEY_4) && !ent->is_player) gfx_draw_mtx(eng, ent->mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {
@@ -573,6 +580,8 @@ static void game_update(Game *game, Engine *eng) {
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         cell_update(cell, game, eng);
     }
+
+    if (game->screen_shake > 0) game->screen_shake -= eng->dt;
 }
 
 static void game_free(Game *game) {
