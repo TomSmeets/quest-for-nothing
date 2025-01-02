@@ -243,7 +243,7 @@ static Hot *hot_init(OS *os) {
         os_exit(0);
     } else if (cli_action(cli, "upload", "", "Build release and upload to https://tsmeets.itch.io/quest-for-nothing and https://tsmeets.nl/qfn")) {
         embed_all_assets(tmp);
-        build_release(tmp, true);
+        if (!build_release(tmp, true)) os_exit(1);
         hot_system("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')");
         hot_system("butler push out/release tsmeets/quest-for-nothing:release-web --userversion $(date +'%F')");
         hot_system("rclone copy out/release fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/");
