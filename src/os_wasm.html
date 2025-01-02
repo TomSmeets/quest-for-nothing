@@ -300,7 +300,7 @@ function js_gfx_draw(projection, depth, quad_count, quad_list) {
 function js_gfx_end() {
 }
 
-fetch('main.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
+fetch('quest-for-nothing.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
     env: {
         js_time,
         js_write,

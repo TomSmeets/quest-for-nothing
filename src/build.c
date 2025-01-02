@@ -114,44 +114,32 @@ static void sdl2_download_dll(void) {
     // Download sdl2
     hot_system("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip");
 #if OS_IS_WINDOWS
-    hot_system("cd out && tar -xf SDL2.zip SDL2.dll");
+    hot_system("cd out/ && tar -xf SDL2.zip SDL2.dll");
 #else
-    hot_system("cd out && unzip SDL2.zip SDL2.dll");
+    hot_system("cd out/ && unzip SDL2.zip SDL2.dll");
 #endif
 }
 
-static bool build_linux(Memory *tmp, bool release) {
-    if (!build_single(tmp, "out/build", "src/build.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(tmp, "out/main", "src/main.c", Platform_Linux, release, false)) return 0;
+static bool build_debug(Memory *tmp) {
+    if (!build_single(tmp, "out/build", "src/build.c", Platform_Linux, false, false)) return 0;
+    if (!build_single(tmp, "out/main", "src/main.c", Platform_Linux, false, false)) return 0;
     return 1;
 }
 
-static bool build_windows(Memory *tmp, bool release) {
+static bool build_release(Memory *tmp, bool release) {
+    if (!hot_system("mkdir -p out/release")) return 0;
+    if (!build_single(tmp, "out/release/quest-for-nothing.elf", "src/main.c", Platform_Linux, release, false)) return 0;
+    if (!build_single(tmp, "out/release/quest-for-nothing.exe", "src/main.c", Platform_Windows, release, false)) return 0;
+    if (!build_single(tmp, "out/release/quest-for-nothing.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
+
     sdl2_download_dll();
-    if (!build_single(tmp, "out/build.exe", "src/build.c", Platform_Windows, release, false)) return 0;
-    if (!build_single(tmp, "out/main.exe", "src/main.c", Platform_Windows, release, false)) return 0;
-    return 1;
-}
-
-static bool build_web(Memory *tmp, bool release) {
-    if (!build_single(tmp, "out/main.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
-    if (!hot_system(
 #if OS_IS_WINDOWS
-            "COPY src\\os_wasm.html out\\index.html"
+    if (!hot_system("COPY src\\os_wasm.html out\\release\\index.html")) return 0;
+    if (!hot_system("COPY out\\SDL2.dll out\\release\\SDL2.dll")) return 0;
 #else
-            "cp src/os_wasm.html out/index.html"
+    if (!hot_system("cp src/os_wasm.html out/release/index.html")) return 0;
+    if (!hot_system("cp out/SDL2.dll out/release/SDL2.dll")) return 0;
 #endif
-        )) {
-        fmt_s(OS_FMT, "Failed to copy\n");
-        return 0;
-    }
-    return 1;
-}
-
-static bool build_all(Memory *tmp, bool release) {
-    if (!build_linux(tmp, release)) return 0;
-    if (!build_windows(tmp, release)) return 0;
-    if (!build_web(tmp, release)) return 0;
     return 1;
 }
 
@@ -241,33 +229,27 @@ static Hot *hot_init(OS *os) {
         hot->child_os = os_init(os->argc - 2, os->argv + 2);
     } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
-    } else if (cli_action(cli, "all", "", "Build all targets")) {
+    } else if (cli_action(cli, "build", "", "Build for only one target for quick Debugging")) {
         embed_all_assets(tmp);
-        build_all(tmp, false);
+        build_debug(tmp);
         os_exit(0);
-    } else if (cli_action(cli, "linux", "", "Build for linux")) {
+    } else if (cli_action(cli, "debug", "", "Build all targets in Debug mode")) {
         embed_all_assets(tmp);
-        build_linux(tmp, false);
+        build_release(tmp, false);
         os_exit(0);
-    } else if (cli_action(cli, "windows", "", "Build for windows")) {
+    } else if (cli_action(cli, "release", "", "Build all targets in Release mode")) {
         embed_all_assets(tmp);
-        build_windows(tmp, false);
+        build_release(tmp, true);
         os_exit(0);
-    } else if (cli_action(cli, "web", "", "Build for web")) {
+    } else if (cli_action(cli, "upload", "", "Build upload to my website using rclone. https://tsmeets.nl/qfn")) {
         embed_all_assets(tmp);
-        build_web(tmp, false);
-        os_exit(0);
-    } else if (cli_action(cli, "web-upload", "", "Build for web and upload to my website using rclone. https://tsmeets.nl/qfn")) {
-        embed_all_assets(tmp);
-        build_web(tmp, true);
-        hot_system("rclone copy out --include main.wasm --include index.html fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/");
+        build_release(tmp, true);
+        hot_system("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')");
+        hot_system("butler push out/release tsmeets/quest-for-nothing:release-web --userversion $(date +'%F')");
+        hot_system("rclone copy out/release fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/");
         os_exit(0);
     } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
         assert(hot_system("python -m http.server"), "Failed to start python http server. Is python installed?");
-        os_exit(0);
-    } else if (cli_action(cli, "release", "", "Build all targets in release mode")) {
-        embed_all_assets(tmp);
-        build_all(tmp, true);
         os_exit(0);
     } else if (cli_action(cli, "asset", "", "Build asset.h")) {
         embed_all_assets(tmp);
@@ -317,7 +299,7 @@ void os_main(OS *os) {
 
     if (hot->action_build && changed) {
         embed_all_assets(tmp);
-        build_all(tmp, false);
+        build_debug(tmp);
     }
     mem_free(tmp);
 }
