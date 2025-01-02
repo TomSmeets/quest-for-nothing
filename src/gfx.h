@@ -4,6 +4,9 @@
 #include "os_gfx.h"
 #include "texture_packer.h"
 
+#define GFX_PIXEL_SCALE_UI 4.0f
+#define GFX_PIXEL_SCALE_3D (1.0f / 32.0f)
+
 typedef struct Gfx_Pass Gfx_Pass;
 struct Gfx_Pass {
     u32 quad_count;
@@ -92,30 +95,30 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
 
     if (!area) {
         area = packer_get_new(gfx->pack, img);
-
         if (!area) {
             fmt_s(OS_FMT, "ERROR: Too many textures\n");
             return;
         }
-
         os_gfx_texture(gfx->os, area->pos, img);
     } else if (area->variation != img->variation) {
         area->variation = img->variation;
         os_gfx_texture(gfx->os, area->pos, img);
     }
 
-    // Scale to image size
-    // mtx.w.x -= (f32) img->origin.x - (f32) img->size.x*.5;
-    // mtx.w.y -= (f32) img->origin.y - (f32) img->size.y*.5;
-    // mtx.x *= img->size.x / 32.0f;
-    // mtx.y *= img->size.y / 32.0f;
-
-    f32 pixel_scale = ui ? 4.0f : 1.0f / 32.0f;
     m4 mtx2 = m4_id();
+
+    // Scale to image size, 1 unit = 1 pixel
     m4_scale(&mtx2, (v3){img->size.x, img->size.y, 1});
+
+    // Center at origin
     m4_translate_x(&mtx2, (f32)img->size.x / 2.0f - (f32)img->origin.x);
     m4_translate_y(&mtx2, (f32)img->origin.y - (f32)img->size.y / 2.0f);
+
+    // Scale sing GFX_PIXEL_SCALE
+    f32 pixel_scale = ui ? GFX_PIXEL_SCALE_UI : GFX_PIXEL_SCALE_3D;
     m4_scale(&mtx2, (v3){pixel_scale, pixel_scale, 1});
+
+    // Apply quad matrix
     m4_apply(&mtx2, mtx);
 
     *gfx_pass_quad(gfx, ui ? &gfx->pass_ui : &gfx->pass_3d) = (OS_Gfx_Quad){
