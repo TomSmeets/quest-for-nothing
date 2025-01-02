@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // entity.h - Generic object that exists in the game
 #pragma once
 #include "image.h"

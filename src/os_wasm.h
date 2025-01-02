@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_wasm.h - Platform implementation for wasm
 #pragma once
 #include "os_api.h"

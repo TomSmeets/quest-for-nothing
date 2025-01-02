@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // mat.h - Math for 4d matrices on homogeneous coordinates
 #pragma once
 #include "vec.h"

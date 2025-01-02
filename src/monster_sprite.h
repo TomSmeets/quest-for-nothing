@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // monster_sprite.h - Generate Sprites for Aliens
 #pragma once
 #include "color.h"

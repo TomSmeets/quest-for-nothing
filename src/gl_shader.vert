@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gl_shader.vert - A simple OpenGL vertex Shader
 #version 330 core
 

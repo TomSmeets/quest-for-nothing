@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// ui.h - Immediate mode UI
 #pragma once
 
 #include "audio.h"

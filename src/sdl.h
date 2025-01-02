@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sdl.h - SDL2 wrapper for a single window with both audio and OpenGL
 #pragma once
 #include "fmt.h"

@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // audio.h - Immediate mode audio synthesis and digital filters
 #pragma once
 #include "id.h"

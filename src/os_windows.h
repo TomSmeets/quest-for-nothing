@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_windows.h - Windows API wrapper and platform implementation
 #pragma once
 #include "os_api.h"

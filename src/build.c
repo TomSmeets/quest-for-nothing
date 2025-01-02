@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // build.c - Dynamically compile and reload interactive programs
 #include "cli.h"
 #include "embed.h"

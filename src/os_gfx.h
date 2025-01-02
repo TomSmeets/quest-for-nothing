@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_gfx.h - Graphics, Audio, and Input handling abstraction api definition
 #pragma once
 #include "asset.h"

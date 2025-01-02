@@ -1,4 +1,4 @@
-// Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx.h - Graphics, Audio, and Input handling abstraction implementation
 #pragma once
 #include "os_gfx.h"
