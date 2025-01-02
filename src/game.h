@@ -31,13 +31,16 @@ Game Design V1.0
 
 typedef struct {
     // If not 0, follow this entity
-    Entity *anchor;
+    Entity *entity;
 
     // Otherwise use freecam
     v3 pos;
     v3 rot;
 
     f32 screen_shake;
+
+    // Final Camera Matrix
+    m4 mtx;
 } Camera;
 
 typedef struct {
@@ -161,11 +164,13 @@ static Game *game_new(Random *rng) {
     v3i spawn = {level_size / 2, 0, level_size / 2};
     spawn.x = 0;
     spawn.z = 0;
-    // game->player = gen_player(mem, spawn);
     game->gun = gen_gun(mem, rng);
 
     // Generate Monsters
     game_gen_monsters(game, rng, spawn);
+
+    // Attach camera to player
+    game->camera.entity = game->player;
     return game;
 }
 
@@ -585,6 +590,7 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
 
 static void camera_update(Game *game, Engine *eng, Camera *cam) {
     if (cam->screen_shake > 0) cam->screen_shake -= eng->dt;
+    cam->mtx = cam->entity->head_mtx;
 }
 
 static void game_update(Game *game, Engine *eng) {
@@ -595,6 +601,8 @@ static void game_update(Game *game, Engine *eng) {
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         cell_update(cell, game, eng);
     }
+
+    camera_update(game, eng, &game->camera);
 }
 
 static void game_free(Game *game) {
