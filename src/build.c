@@ -241,7 +241,7 @@ static Hot *hot_init(OS *os) {
         embed_all_assets(tmp);
         build_release(tmp, true);
         os_exit(0);
-    } else if (cli_action(cli, "upload", "", "Build upload to my website using rclone. https://tsmeets.nl/qfn")) {
+    } else if (cli_action(cli, "upload", "", "Build release and upload to https://tsmeets.itch.io/quest-for-nothing and https://tsmeets.nl/qfn")) {
         embed_all_assets(tmp);
         build_release(tmp, true);
         hot_system("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')");
