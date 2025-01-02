@@ -446,14 +446,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         m4_rotate_y(&pl->mtx, pl->rot.y);
         m4_translate(&pl->mtx, pl->pos);
 
-        pl->head_mtx = m4_id();
-        if (game->camera.screen_shake > 0) {
-            f32 shake = game->camera.screen_shake * game->camera.screen_shake * game->camera.screen_shake;
-            m4_rotate_y(&pl->head_mtx, f_sin2pi(shake * 7 * 10) * shake * 0.5);
-            m4_rotate_x(&pl->head_mtx, f_sin2pi(shake * 3 * 10) * shake * 0.5);
-            m4_rotate_x(&pl->head_mtx, f_sin2pi(shake * 5 * 10) * shake * 0.5);
-        }
-        m4_apply(&pl->head_mtx, pl->mtx);
+        pl->head_mtx = pl->mtx;
         m4_translate_y(&pl->head_mtx, .5);
     }
 
@@ -590,7 +583,17 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
 
 static void camera_update(Game *game, Engine *eng, Camera *cam) {
     if (cam->screen_shake > 0) cam->screen_shake -= eng->dt;
-    cam->mtx = cam->entity->head_mtx;
+
+    m4 mtx = m4_id();
+    if (cam->screen_shake > 0) {
+        f32 shake = cam->screen_shake * cam->screen_shake * cam->screen_shake;
+        m4_rotate_y(&mtx, f_sin2pi(shake * 7 * 10) * shake * 0.5);
+        m4_rotate_x(&mtx, f_sin2pi(shake * 3 * 10) * shake * 0.5);
+        m4_rotate_x(&mtx, f_sin2pi(shake * 5 * 10) * shake * 0.5);
+    }
+    m4_apply(&mtx, cam->entity->mtx);
+    m4_translate_y(&mtx, .5);
+    cam->mtx = mtx;
 }
 
 static void game_update(Game *game, Engine *eng) {
