@@ -30,12 +30,23 @@ Game Design V1.0
 #define MONSTER_OFFSET 0.02
 
 typedef struct {
+    // If not 0, follow this entity
+    Entity *anchor;
+
+    // Otherwise use freecam
+    v3 pos;
+    v3 rot;
+
+    f32 screen_shake;
+} Camera;
+
+typedef struct {
     Memory *mem;
     Player *player;
     Monster *monsters;
     Level level;
     Image *gun;
-    f32 screen_shake;
+    Camera camera;
 } Game;
 
 static void gfx_draw_mtx(Engine *eng, m4 mtx) {
@@ -431,8 +442,8 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
         m4_translate(&pl->mtx, pl->pos);
 
         pl->head_mtx = m4_id();
-        if (game->screen_shake > 0) {
-            f32 shake = game->screen_shake * game->screen_shake * game->screen_shake;
+        if (game->camera.screen_shake > 0) {
+            f32 shake = game->camera.screen_shake * game->camera.screen_shake * game->camera.screen_shake;
             m4_rotate_y(&pl->head_mtx, f_sin2pi(shake * 7 * 10) * shake * 0.5);
             m4_rotate_x(&pl->head_mtx, f_sin2pi(shake * 3 * 10) * shake * 0.5);
             m4_rotate_x(&pl->head_mtx, f_sin2pi(shake * 5 * 10) * shake * 0.5);
@@ -445,7 +456,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     pl->recoil_animation = animate(pl->recoil_animation, -eng->dt * 4);
     if (in.shoot && pl->recoil_animation == 0) {
         pl->recoil_animation = 1;
-        game->screen_shake = 0.5;
+        game->camera.screen_shake = 0.5;
 
         {
             Sound snd = {};
@@ -572,6 +583,10 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (key_down(eng->input, KEY_4) && !ent->is_player) gfx_draw_mtx(eng, ent->mtx);
 }
 
+static void camera_update(Game *game, Engine *eng, Camera *cam) {
+    if (cam->screen_shake > 0) cam->screen_shake -= eng->dt;
+}
+
 static void game_update(Game *game, Engine *eng) {
     for (Entity *ent = game->monsters; ent; ent = ent->next) {
         entity_update(eng, game, ent);
@@ -580,8 +595,6 @@ static void game_update(Game *game, Engine *eng) {
     for (Cell *cell = game->level.cells; cell; cell = cell->next) {
         cell_update(cell, game, eng);
     }
-
-    if (game->screen_shake > 0) game->screen_shake -= eng->dt;
 }
 
 static void game_free(Game *game) {
