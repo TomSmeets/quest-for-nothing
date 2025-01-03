@@ -31,7 +31,6 @@ typedef struct {
 typedef struct {
     // Paramters
     f32 freq;
-    f32 duration;
 
     // Sources
     Sound_Source src_a;
@@ -49,9 +48,9 @@ typedef struct {
 } Sound;
 
 // Very simple envelope
-static f32 sound_envelope(f32 time, f32 duration, f32 attack_time, f32 release_time) {
+static f32 sound_envelope(f32 time, f32 attack_time, f32 release_time) {
     f32 v_attack = f_step_duration(time, attack_time);
-    f32 v_release = 1 - f_step_duration(time - duration, release_time);
+    f32 v_release = 1 - f_step_duration(time - attack_time, release_time);
     return f_min(v_attack, v_release);
 }
 
@@ -64,7 +63,7 @@ static f32 sound_phase(f32 *phase, f32 dt) {
 }
 
 static f32 sound_source(Sound *sound, Sound_Source *source, f32 input) {
-    f32 envelope = sound_envelope(sound->time, sound->duration, source->attack_time, source->release_time);
+    f32 envelope = sound_envelope(sound->time, source->attack_time, source->release_time);
     f32 phase = sound_phase(&source->phase, sound->dt * sound->freq * source->freq * (1 + input));
     return f_sin2pi(phase) * envelope * source->volume;
 }
@@ -123,7 +122,7 @@ static f32 sound_sample(Sound *sound) {
     f32 v_a = sound_source(sound, &sound->src_a, v_b);
     sound->time += sound->dt;
 
-    if (sound->time > sound->duration + sound->src_a.release_time) {
+    if (sound->time > sound->src_a.attack_time + sound->src_a.release_time) {
         sound->playing = false;
     }
 
