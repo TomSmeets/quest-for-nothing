@@ -58,7 +58,6 @@ struct OS_Gfx {
 
     // Vertex Array Object, Stores bound vertex and index buffers
     GLuint vao;
-    GLuint vertex_buffer;
     GLuint instance_buffer;
 
     // Shader Program
@@ -161,7 +160,6 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     gl->glGenVertexArrays(1, &gfx->vao);
     gl->glBindVertexArray(gfx->vao);
 
-    gl->glGenBuffers(1, &gfx->vertex_buffer);
     gl->glGenBuffers(1, &gfx->instance_buffer);
 
     // Compile Shader
@@ -169,39 +167,21 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     gfx->uniform_proj = gl->glGetUniformLocation(gfx->shader, "proj");
     gl->glUseProgram(gfx->shader);
 
-    // Setup Vertex Buffer
-    v2 verts[] = {
-        // Top Left
-        {-0.5, -0.5},
-        {0.5, 0.5},
-        {-0.5, 0.5},
-        // Bottom Right
-        {0.5, 0.5},
-        {-0.5, -0.5},
-        {0.5, -0.5},
-    };
-
-    gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->vertex_buffer);
-    gl->glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STREAM_DRAW);
-
-    gl->glEnableVertexAttribArray(0);
-    gl->glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(v2), (void *)0);
-
     // Setup Instances
     gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
 
     OS_Gfx_Quad *q0 = 0;
-    for (u32 i = 1; i <= 6; ++i) {
+    for (u32 i = 0; i <= 5; ++i) {
         gl->glEnableVertexAttribArray(i);
         gl->glVertexAttribDivisor(i, 1);
     }
 
-    gl->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->x[0]);
-    gl->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->y[0]);
-    gl->glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->z[0]);
-    gl->glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->w[0]);
-    gl->glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->uv_pos[0]);
-    gl->glVertexAttribPointer(6, 2, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->uv_size[0]);
+    gl->glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->x[0]);
+    gl->glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->y[0]);
+    gl->glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->z[0]);
+    gl->glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->w[0]);
+    gl->glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->uv_pos[0]);
+    gl->glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(*q0), (void *)&q0->uv_size[0]);
 
     // Texture atlas
     gl->glActiveTexture(GL_TEXTURE0);
