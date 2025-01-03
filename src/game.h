@@ -262,7 +262,7 @@ static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
     v3 move = m4_mul_dir(yaw_mtx, in->move);
     move.xz = v2_limit(move.xz, 0, 1);
     move.y = in->move.y * ent->is_flying;
-    ent->pos += move * 1.4 * eng->dt;
+    ent->pos += move * 2.0 * eng->dt;
 }
 
 static void entity_update_movement(Monster *mon, Engine *eng) {
