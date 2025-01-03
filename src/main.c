@@ -139,7 +139,7 @@ static void os_main(OS *os) {
         audio_play(eng->audio, snd);
     }
 
-    if (app->game->camera.debug) {
+    if (app->game->debug) {
         for (Monster *m = app->game->monsters; m; m = m->next) {
             if (!m->is_monster) continue;
             if (m->health <= 0) continue;

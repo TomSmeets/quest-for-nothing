@@ -7,10 +7,6 @@
 #include "player.h"
 
 typedef struct {
-    bool free;
-    bool debug;
-
-    // Otherwise use freecam
     v3 pos;
     v3 rot;
     Entity *target;

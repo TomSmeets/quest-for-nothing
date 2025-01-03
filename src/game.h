@@ -37,6 +37,7 @@ typedef struct {
     Level level;
     Image *gun;
     Camera camera;
+    bool debug;
 } Game;
 
 static void gfx_draw_mtx(Engine *eng, m4 mtx) {
@@ -551,14 +552,14 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
 
         m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
         gfx_quad_3d(eng->gfx, mtx, img);
-        if (game->camera.debug) gfx_draw_mtx(eng, mtx);
+        if (game->debug) gfx_draw_mtx(eng, mtx);
     }
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
-    if (game->camera.debug) gfx_draw_mtx(eng, ent->mtx);
+    if (game->debug) gfx_draw_mtx(eng, ent->mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {
@@ -567,6 +568,10 @@ static void game_update(Game *game, Engine *eng) {
     // Target player with '3'
     if (key_click(eng->input, KEY_3)) {
         game->camera.target = game->camera.target ? 0 : game->player;
+    }
+
+    if (key_click(eng->input, KEY_4)) {
+        game->debug = !game->debug;
     }
 
     camera_input(&game->camera, &input, eng->dt);
