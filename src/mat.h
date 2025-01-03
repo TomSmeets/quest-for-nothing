@@ -184,10 +184,11 @@ static m4 m4_invert_tr(m4 m) {
     return inv_r;
 }
 
-static void m4_euler(m4 *mtx, f32 yaw, f32 pitch, f32 roll) {
-    m4_rotate_z(mtx, roll);
-    m4_rotate_x(mtx, pitch);
-    m4_rotate_y(mtx, yaw);
+// Rotate matrix by Yaw, Pitch and Roll
+static void m4_rotate(m4 *mtx, v3 rot) {
+    m4_rotate_z(mtx, rot.z);
+    m4_rotate_x(mtx, rot.x);
+    m4_rotate_y(mtx, rot.y);
 }
 
 // Render a flat upright sprite facing the camera

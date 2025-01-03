@@ -10,8 +10,13 @@
 typedef Entity Player;
 
 typedef struct {
+    // WASD, Left Stick
     v3 move;
+
+    // Mouse, Right Stick
     v3 look;
+
+    // Space
     bool jump;
     bool fly;
     bool shoot;

@@ -2,6 +2,7 @@
 // game.h - Game data structures and implementation
 #pragma once
 #include "audio.h"
+#include "camera.h"
 #include "engine.h"
 #include "id.h"
 #include "image.h"
@@ -28,20 +29,6 @@ Game Design V1.0
 
 #define SHADOW_OFFSET 0.01
 #define MONSTER_OFFSET 0.02
-
-typedef struct {
-    bool free;
-    bool debug;
-
-    // Otherwise use freecam
-    v3 pos;
-    v3 rot;
-
-    f32 screen_shake;
-
-    // Final Camera Matrix
-    m4 mtx;
-} Camera;
 
 typedef struct {
     Memory *mem;
@@ -139,16 +126,6 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
     game->monsters = first;
 }
 
-static Player *gen_player(Memory *mem, v3i pos) {
-    Player *player = mem_struct(mem, Player);
-    player->pos = v3i_to_v3(pos);
-    player->pos_old = player->pos;
-    player->size = (v2){0.5, 0.5};
-    player->shadow = monster_gen_shadow(mem, 0.5 * 32 * 0.8);
-    player->health = 100;
-    return player;
-}
-
 // Create a new game
 static Game *game_new(Random *rng) {
     u32 level_size = 8;
@@ -168,6 +145,7 @@ static Game *game_new(Random *rng) {
 
     // Generate Monsters
     game_gen_monsters(game, rng, spawn);
+    game->camera.target = game->player;
     return game;
 }
 
@@ -432,7 +410,7 @@ static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_d
 // Player update function
 static void player_update(Player *pl, Game *game, Engine *eng) {
     Player_Input in = {};
-    if (!game->camera.free) {
+    if (game->camera.target == pl) {
         in = player_parse_input(eng->input);
     }
     entity_update_movement(pl, eng);
@@ -441,12 +419,14 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // Update matricies
     {
         pl->mtx = m4_id();
-        m4_rotate_z(&pl->mtx, pl->rot.z);
-        m4_rotate_x(&pl->mtx, pl->rot.x);
         m4_rotate_y(&pl->mtx, pl->rot.y);
         m4_translate(&pl->mtx, pl->pos);
 
-        pl->head_mtx = pl->mtx;
+        pl->head_mtx = m4_id();
+        m4_rotate_z(&pl->head_mtx, pl->rot.z);
+        m4_rotate_x(&pl->head_mtx, pl->rot.x);
+        m4_rotate_y(&pl->head_mtx, pl->rot.y);
+        m4_translate(&pl->head_mtx, pl->pos);
         m4_translate_y(&pl->head_mtx, .5);
     }
 
@@ -538,6 +518,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     }
 
     if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
+    if (pl->image) gfx_quad_3d(eng->gfx, pl->mtx, pl->image);
     // gfx_draw_mtx(eng, pl->head_mtx);
 }
 
@@ -580,53 +561,15 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (game->camera.debug) gfx_draw_mtx(eng, ent->mtx);
 }
 
-static void camera_input(Game *game, Engine *eng, Camera *cam) {
-    if (key_click(eng->input, KEY_3)) cam->free = !cam->free;
-    if (key_click(eng->input, KEY_4)) cam->debug = !cam->debug;
-
-    if (cam->free) {
-        Player_Input in = player_parse_input(eng->input);
-        cam->rot.xy += in.look.xy;
-        cam->rot.x = f_clamp(cam->rot.x, -0.5 * PI, 0.5 * PI);
-        cam->rot.y = f_wrap(cam->rot.y, -PI, PI);
-
-        // Apply movement input
-        m4 yaw_mtx = m4_id();
-        m4_rotate_y(&yaw_mtx, cam->rot.y); // Yaw
-
-        v3 move = m4_mul_dir(yaw_mtx, in.move);
-        move = v3_limit(move, 0, 1);
-        move.y += in.jump;
-        cam->pos += move * 1.4 * eng->dt;
-    }
-}
-
-static void camera_update(Game *game, Engine *eng, Camera *cam) {
-    if (cam->screen_shake > 0) cam->screen_shake -= eng->dt;
-
-    m4 mtx = m4_id();
-    if (cam->screen_shake > 0) {
-        f32 shake = cam->screen_shake * cam->screen_shake * cam->screen_shake;
-        m4_rotate_y(&mtx, f_sin2pi(shake * 7 * 10) * shake * 0.5);
-        m4_rotate_x(&mtx, f_sin2pi(shake * 3 * 10) * shake * 0.5);
-        m4_rotate_x(&mtx, f_sin2pi(shake * 5 * 10) * shake * 0.5);
-    }
-    if (cam->free) {
-        m4_rotate_z(&mtx, cam->rot.z);
-        m4_rotate_x(&mtx, cam->rot.x);
-        m4_rotate_y(&mtx, cam->rot.y);
-        m4_translate(&mtx, cam->pos);
-    } else {
-        m4_apply(&mtx, game->player->mtx);
-        m4_translate_y(&mtx, .5);
-        cam->pos = mtx.w;
-        cam->rot = game->player->rot;
-    }
-    cam->mtx = mtx;
-}
-
 static void game_update(Game *game, Engine *eng) {
-    camera_input(game, eng, &game->camera);
+    Player_Input input = player_parse_input(eng->input);
+
+    // Target player with '3'
+    if (key_click(eng->input, KEY_3)) {
+        game->camera.target = game->camera.target ? 0 : game->player;
+    }
+
+    camera_input(&game->camera, &input, eng->dt);
 
     for (Entity *ent = game->monsters; ent; ent = ent->next) {
         entity_update(eng, game, ent);
@@ -636,7 +579,7 @@ static void game_update(Game *game, Engine *eng) {
         cell_update(cell, game, eng);
     }
 
-    camera_update(game, eng, &game->camera);
+    camera_update(&game->camera, eng->dt);
 }
 
 static void game_free(Game *game) {
