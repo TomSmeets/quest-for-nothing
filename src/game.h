@@ -360,7 +360,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     }
 
     if (mon->image) gfx_quad_3d(eng->gfx, mon->mtx, mon->image);
-    if (mon->shadow) draw_shadow(eng, mon->mtx.w, mon->shadow);
+    if (mon->shadow && is_alive) draw_shadow(eng, mon->mtx.w, mon->shadow);
 
     // Draw Gun
     {
