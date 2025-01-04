@@ -145,21 +145,13 @@ static void os_main(OS *os) {
     }
 
     if (app->game->debug) {
-        for (Monster *m = app->game->monsters; m; m = m->next) {
-            if (!m->is_monster) continue;
-            if (m->health <= 0) continue;
-            m4 mtx = m4_id();
-            gfx_quad_ui(eng->gfx, mtx, m->image);
-            break;
-        }
-
         *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (OS_Gfx_Quad){
             .x = {400, 0, 0},
             .y = {0, 400, 0},
             .z = {0, 0, 1},
             .w = {0, 0, 0},
             .uv_pos = {0, 0},
-            .uv_size = {1, 1},
+            .uv_size = {.0625, .0625},
         };
     }
 

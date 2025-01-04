@@ -18,6 +18,10 @@
 
 // ==== Simple operations ====
 
+// Blend between two values
+// a=0 => x, a=1 => y
+#define BLEND(x, y, a) ((x) + ((y) - (x)) * (a))
+
 // clang-format off
 
 // Absolute value of x

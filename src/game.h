@@ -391,8 +391,6 @@ static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_d
     };
 }
 
-#define blend(x, y, a) ((x) + ((y) - (x)) * (a))
-
 // Player update function
 static void player_update(Player *pl, Game *game, Engine *eng) {
     Player_Input in = {};
@@ -471,7 +469,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
                     for (u32 y = 0; y < img->size.y; ++y) {
                         for (u32 x = 0; x < img->size.x; ++x) {
                             v4 *px = img->pixels + y * img->size.x + x;
-                            px->xyz = color_blend(px->xyz, GRAY, 0.5f);
+                            px->xyz = BLEND(px->xyz, GRAY, 0.5f);
                         }
                     }
                 }
@@ -489,7 +487,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
                 v4 *px = image_get(img, (v2i){x, y});
                 if (!px) continue;
 
-                px->xyz = color_blend(px->xyz, best_monster->sprite.blood_color, 0.6);
+                px->xyz = BLEND(px->xyz, best_monster->sprite.blood_color, 0.6);
             }
 
             img->variation++;
@@ -500,10 +498,10 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     {
         m4 mtx = m4_id();
         m4_rotate_y(&mtx, R1);
-        m4_rotate_x(&mtx, blend(0, -R1 * .2, pl->recoil_animation));
+        m4_rotate_x(&mtx, BLEND(0, -R1 * .2, pl->recoil_animation));
         m4_translate_x(&mtx, -0.2);
         m4_translate_y(&mtx, -0.15);
-        m4_translate_z(&mtx, blend(0.3, 0.1, pl->recoil_animation));
+        m4_translate_z(&mtx, BLEND(0.3, 0.1, pl->recoil_animation));
         m4_apply(&mtx, pl->head_mtx);
         gfx_quad_3d(eng->gfx, mtx, game->gun);
     }
