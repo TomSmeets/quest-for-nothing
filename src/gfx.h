@@ -90,7 +90,7 @@ static OS_Gfx_Quad *gfx_pass_quad(Gfx *gfx, Gfx_Pass_List *pass_list) {
     return pass->quad_list + i;
 }
 
-static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
+static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, Gfx_Pass_List *pass) {
     Packer_Area *area = packer_get_cache(gfx->pack, img);
 
     if (!area) {
@@ -115,13 +115,13 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
     m4_translate_y(&mtx2, (f32)img->origin.y - (f32)img->size.y / 2.0f);
 
     // Scale sing GFX_PIXEL_SCALE
-    f32 pixel_scale = ui ? GFX_PIXEL_SCALE_UI : GFX_PIXEL_SCALE_3D;
+    f32 pixel_scale = (pass == &gfx->pass_ui) ? GFX_PIXEL_SCALE_UI : GFX_PIXEL_SCALE_3D;
     m4_scale(&mtx2, (v3){pixel_scale, pixel_scale, 1});
 
     // Apply quad matrix
     m4_apply(&mtx2, mtx);
 
-    *gfx_pass_quad(gfx, ui ? &gfx->pass_ui : &gfx->pass_3d) = (OS_Gfx_Quad){
+    *gfx_pass_quad(gfx, pass) = (OS_Gfx_Quad){
         .x = {mtx2.x.x, mtx2.x.y, mtx2.x.z},
         .y = {mtx2.y.x, mtx2.y.y, mtx2.y.z},
         .z = {mtx2.z.x, mtx2.z.y, mtx2.z.z},
@@ -132,11 +132,11 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, bool ui) {
 }
 
 static void gfx_quad_ui(Gfx *gfx, m4 mtx, Image *img) {
-    gfx_quad(gfx, mtx, img, true);
+    gfx_quad(gfx, mtx, img, &gfx->pass_ui);
 }
 
 static void gfx_quad_3d(Gfx *gfx, m4 mtx, Image *img) {
-    gfx_quad(gfx, mtx, img, false);
+    gfx_quad(gfx, mtx, img, &gfx->pass_3d);
 }
 
 static void gfx_set_grab(Gfx *gfx, bool grab) {

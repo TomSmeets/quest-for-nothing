@@ -24,7 +24,7 @@ typedef struct {
     f32 uv_size[2];
 } OS_Gfx_Quad;
 
-static_assert(sizeof(OS_Gfx_Quad) == 64);
+static_assert(sizeof(OS_Gfx_Quad) == 4*16);
 
 // Initialize Graphics stack
 static OS_Gfx *os_gfx_init(Memory *mem, char *title);
