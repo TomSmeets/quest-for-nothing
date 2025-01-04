@@ -32,18 +32,14 @@ static void camera_follow(Camera *cam, Entity *target) {
     cam->target = target;
 }
 
-static void input_rotate(v3 *rot, v3 look) {
-}
-
-static void input_move(v3 *pos, v3 rot, v3 move) {
-    m4 mtx = m4_id();
-    m4_rotate_y(&mtx, rot.y);
+// Set camera head bob amount
+static void camera_bob(Camera *cam, f32 amount) {
+    cam->bob_amount = amount;
 }
 
 // Apply input
 static void camera_input(Camera *cam, Player_Input *input, f32 dt) {
     if (cam->target) {
-        cam->bob_amount = v3_length(input->move);
     } else {
         // Rotate
         cam->rot.x = f_clamp(cam->rot.x + input->look.x, -0.5 * PI, 0.5 * PI);
@@ -78,7 +74,7 @@ static void camera_update(Camera *cam, f32 dt) {
 
     if (cam->bob_amount > 0) {
         m4_translate_y(&mtx, f_sin2pi(cam->bob_phase) * cam->bob_amount * 0.01);
-        cam->bob_phase += dt * cam->bob_amount * 1.4 * 2;
+        cam->bob_phase += dt * cam->bob_amount * 1.5;
         cam->bob_phase -= (i32)cam->bob_phase;
     }
 

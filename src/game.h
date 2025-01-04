@@ -396,11 +396,16 @@ static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_d
 // Player update function
 static void player_update(Player *pl, Game *game, Engine *eng) {
     Player_Input in = {};
-    if (game->camera.target == pl) {
+    Camera *camera = &game->camera;
+    if (camera->target == pl) {
         in = player_parse_input(eng->input);
     }
     entity_update_movement(pl, eng);
     player_apply_input(eng, pl, &in);
+
+    if (camera->target == pl) {
+        camera_bob(camera, v2_length(pl->vel.xz));
+    }
 
     // Update matricies
     {
@@ -420,7 +425,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     pl->recoil_animation = animate(pl->recoil_animation, -eng->dt * 4);
     if (in.shoot && pl->recoil_animation == 0) {
         pl->recoil_animation = 1;
-        game->camera.screen_shake = 0.5;
+        camera_shake(&game->camera, 0.5);
 
         {
             Sound snd = {};
@@ -550,11 +555,12 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
 
-    // Target player with '3'
+    // Toggle freecam
     if (key_click(eng->input, KEY_3)) {
-        game->camera.target = game->camera.target ? 0 : game->player;
+        camera_follow(&game->camera, game->camera.target ? 0 : game->player);
     }
 
+    // Toggle debug drawing
     if (key_click(eng->input, KEY_4)) {
         game->debug = !game->debug;
     }
