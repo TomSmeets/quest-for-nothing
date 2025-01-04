@@ -190,8 +190,8 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
 
     gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // These parameters have to be set for the texture.
     // Otherwise we won't see the textures.
@@ -208,6 +208,13 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     gl->glEnable(GL_CULL_FACE);
     gl->glCullFace(GL_BACK);
     gl->glClearColor(0.02f, 0.02f, 0.02f, 1);
+    gl->glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
+    gl->glEnable(GL_SAMPLE_SHADING);
+    gl->glMinSampleShading(1);
+
+    GLint maxSamples;
+    gl->glGetIntegerv(GL_MAX_SAMPLES, &maxSamples);
+    fmt_si(OS_FMT, "OGL: Maximum supported multisample samples: ", maxSamples, "\n");
     return gfx;
 }
 

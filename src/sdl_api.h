@@ -325,6 +325,7 @@ typedef struct {
     int (*SDL_Init)(u32 flags);
     int (*SDL_PollEvent)(SDL_Event *event);
     void (*SDL_Quit)(void);
+    const char * (*SDL_GetError)(void);
 
     // Window
     SDL_Window *(*SDL_CreateWindow)(const char *title, int x, int y, int w, int h, u32 flags);
@@ -353,6 +354,7 @@ static void sdl_api_load(Sdl_Api *api, File *handle) {
     api->SDL_Init = os_dlsym(handle, "SDL_Init");
     api->SDL_PollEvent = os_dlsym(handle, "SDL_PollEvent");
     api->SDL_Quit = os_dlsym(handle, "SDL_Quit");
+    api->SDL_GetError = os_dlsym(handle, "SDL_GetError");
 
     // Window
     api->SDL_CreateWindow = os_dlsym(handle, "SDL_CreateWindow");

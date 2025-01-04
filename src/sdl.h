@@ -44,12 +44,13 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
     api->SDL_Init(SDL_INIT_EVERYTHING);
 
     // GL attrs must be set before creating the window
-    api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-    api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    api->SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-    api->SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4);
+    assert(api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3) == 0, "");
+    assert(api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3) == 0, "");
+    assert(api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG) == 0, "");
+    assert(api->SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE) == 0, "");
+    assert(api->SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1) == 0, "");
+    assert(api->SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1) == 0, "");
+    assert(api->SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4) == 0, "");
 
     // Create window
     sdl->win = api->SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
@@ -58,7 +59,6 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
     // Load OpenGL context
     sdl->ctx = api->SDL_GL_CreateContext(sdl->win);
     assert(sdl->ctx, "Failed to create OpenGL 3.3 Context");
-    // gl_load(&sdl->gl, api->SDL_GL_GetProcAddress);
 
     // Disable vsync
     assert(api->SDL_GL_SetSwapInterval(0) == 0, "Could not disable VSync");
