@@ -22,7 +22,8 @@ typedef struct {
     Image *chars[256];
 } UI;
 
-static void ui_init(UI *ui, Memory *mem, Audio *audio, Input *input, Gfx *gfx) {
+static UI *ui_new(Memory *mem, Audio *audio, Input *input, Gfx *gfx) {
+    UI *ui = mem_struct(mem, UI);
     ui->audio = audio;
     ui->input = input;
     ui->gfx = gfx;
@@ -30,6 +31,7 @@ static void ui_init(UI *ui, Memory *mem, Audio *audio, Input *input, Gfx *gfx) {
 
     ui->image = image_new(mem, (v2u){16, 16});
     image_grid(ui->image, (v4){1, 0, 1, 1}, (v4){0, 0, 0, 1});
+    return ui;
 }
 
 static void ui_begin(UI *ui) {

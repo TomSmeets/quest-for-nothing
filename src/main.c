@@ -24,11 +24,13 @@ typedef struct {
 } App;
 
 static App *app_init(OS *os) {
+    Random rng = rand_new(os_rand());
+
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
 
     app->mem = mem;
-    app->eng = engine_new(mem, os, "Quest For Nothing");
+    app->eng = engine_new(mem, os, rng, "Quest For Nothing");
     app->game = game_new(&app->eng->rng);
     app->cursor = gen_cursor(mem);
     return app;
@@ -93,7 +95,6 @@ static void handle_basic_input(App *app, Input *input, Engine *eng) {
         mem_free(app->game->mem);
         app->game = game_new(&eng->rng);
     }
-
 }
 
 static void draw_cursor(App *app) {

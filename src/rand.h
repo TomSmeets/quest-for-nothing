@@ -8,6 +8,10 @@ typedef struct {
     u64 seed;
 } Random;
 
+static Random rand_new(u64 seed) {
+    return (Random){seed};
+}
+
 static u32 rand_xorshift(Random *rand) {
     rand->seed ^= (rand->seed << 21);
     rand->seed ^= (rand->seed >> 35);

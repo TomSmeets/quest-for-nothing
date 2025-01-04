@@ -4,10 +4,8 @@
 #include "audio.h"
 #include "camera.h"
 #include "engine.h"
-#include "id.h"
 #include "image.h"
 #include "level.h"
-#include "level_sprite.h"
 #include "mem.h"
 #include "monster.h"
 #include "player.h"
@@ -39,19 +37,6 @@ typedef struct {
     Camera camera;
     bool debug;
 } Game;
-
-static void gfx_draw_mtx(Engine *eng, m4 mtx) {
-    for (u32 j = 0; j < 3; ++j) {
-        for (u32 i = 0; i < 4; ++i) {
-            m4 res = m4_id();
-            m4_rotate_x(&res, R1 * i);
-            if (j == 1) m4_rotate_z(&res, R1);
-            if (j == 2) m4_rotate_y(&res, -R1);
-            m4_apply(&res, mtx);
-            gfx_quad_3d(eng->gfx, res, eng->image_arrow[j]);
-        }
-    }
-}
 
 static Image *gen_gun(Memory *mem, Random *rng) {
     u32 length = 8;
@@ -552,14 +537,14 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
 
         m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
         gfx_quad_3d(eng->gfx, mtx, img);
-        if (game->debug) gfx_draw_mtx(eng, mtx);
+        if (game->debug) gfx_debug_mtx(eng->gfx_dbg, mtx);
     }
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
-    if (game->debug) gfx_draw_mtx(eng, ent->mtx);
+    if (game->debug) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {
