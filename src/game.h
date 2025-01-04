@@ -214,6 +214,25 @@ static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
     if (in->jump && ent->on_ground && ent->health > 0) {
         ent->pos_old.y = ent->pos.y;
         ent->pos.y += 4 * eng->dt;
+
+        // Play Jump sound
+        Sound snd = {};
+        snd.freq = sound_note_to_freq(-12 * 3.5 + rand_u32_range(&eng->rng, 0, 6));
+        snd.src_a.freq = 1;
+        snd.src_a.volume = 1;
+        snd.src_a.attack_time = 0.0;
+        snd.src_a.release_time = 1.0;
+
+        snd.src_b.freq = 10;
+        snd.src_b.volume = 10;
+        snd.src_b.attack_time = 0.0;
+        snd.src_b.release_time = 2.0;
+
+        snd.src_c.freq = 1;
+        snd.src_c.volume = .5;
+        snd.src_c.attack_time = 0.1;
+        snd.src_c.release_time = 2.0;
+        audio_play(eng->audio, snd);
     }
 
     // Flying
