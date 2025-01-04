@@ -68,6 +68,7 @@ function js_loop() {
 }
 
 function js_gfx_init() {
+    const multisample_scaling = 2
     ctx.canvas = document.getElementById('canvas')
 
     document.addEventListener("keydown",   (ev) => { ctx.exports.js_gfx_key_down(ev.keyCode, true) }, true)
@@ -76,15 +77,15 @@ function js_gfx_init() {
     document.addEventListener("mousedown", (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
     document.addEventListener("mouseup",   (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        ctx.exports.js_gfx_resize(canvas.width, canvas.height);
+        canvas.width = window.innerWidth*multisample_scaling;
+        canvas.height = window.innerHeight*multisample_scaling;
+        ctx.exports.js_gfx_resize(window.innerWidth, window.innerHeight);
     }, false);
 
     // Send initial size to wasm
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    ctx.exports.js_gfx_resize(canvas.width, canvas.height);
+    canvas.width = window.innerWidth*multisample_scaling;
+    canvas.height = window.innerHeight*multisample_scaling;
+    ctx.exports.js_gfx_resize(window.innerWidth, window.innerHeight);
 
     // # Load Opengl
     const texture_size = 4096;
@@ -112,7 +113,7 @@ function js_gfx_init() {
         
         out vec2 frag_uv;
         out vec3 frag_normal;
-        out float frag_z;
+        out vec3 frag_pos;
         
         uniform mat4 proj;
 
@@ -135,36 +136,37 @@ function js_gfx_init() {
             frag_normal = quad_z;
             vec3 pos = quad_w + vert_pos.x * quad_x + vert_pos.y * quad_y;
             gl_Position = proj * vec4(pos, 1.0);
-            frag_z = gl_Position.z;
+            frag_pos = gl_Position.xyz;
         }`;
 
     const  shader_frag_code =
-        `#version 300 es
+       `#version 300 es
 
-         precision mediump float;
+        precision mediump float;
 
-         in vec2 frag_uv;
-         in vec3 frag_normal;
-         in float frag_z;
+        in vec2 frag_uv;
+        in vec3 frag_normal;
+        in vec3 frag_pos;
 
-         out vec4 out_color;
+        out vec4 out_color;
 
-         uniform sampler2D img;
+        uniform sampler2D img;
 
-         void main() {
-             vec2 texture_size = vec2(2048.0 * 2.0);
-             vec2 box_size = min(fwidth(frag_uv) * texture_size, 1.0);
-             vec2 tx = frag_uv * texture_size - 0.5 * box_size;
-             vec2 tx_offset = smoothstep(vec2(1.0) - box_size, vec2(1.0), fract(tx));
-             vec2 uv = (floor(tx) + 0.5 + tx_offset) / texture_size;
+        void main() {
+            // Texture
+            out_color = texture(img, frag_uv);
 
-             out_color = textureGrad(img, uv, dFdx(frag_uv), dFdy(frag_uv));
-             float z_near = 0.1;
-             float z_far = 15.0;
-             out_color.rgb = mix(out_color.rgb, vec3(0.02), min((frag_z - z_near) / (z_far - z_near), 1.0));
-             if (out_color.a < 0.5) discard;
-             out_color.rgb = pow(out_color.rgb, vec3(1.0f / 2.2f));
-         }`;
+            // Distance fog
+            float z_near = 0.1;
+            float z_far = 15.0;
+            float z_rel = (frag_pos.z - z_near) / (z_far - z_near);
+            out_color.rgb = mix(out_color.rgb, vec3(0.02f), clamp(z_rel, 0.0f, 1.0f));
+            out_color.rgb *= out_color.a;
+            if (out_color.a < 0.5) discard;
+
+            // Gamma correction
+            out_color.rgb = pow(out_color.rgb, vec3(1.0f / 2.2f));
+        }`;
 
     const vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -210,8 +212,8 @@ function js_gfx_init() {
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     // These parameters have to be set for the texture.
     // Otherwise, we won't see the textures.
@@ -220,12 +222,12 @@ function js_gfx_init() {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
     
     // NOTE: Linear color space
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, 4096, 4096, 0, gl.RGBA, gl.FLOAT, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, texture_size, texture_size, 0, gl.RGBA, gl.FLOAT, null);
 
     // Set WebGL Settings
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
-    gl.clearColor(0.02, 0.02, 0.02, 1);
+    gl.clearColor(0.1689, 0.1689, 0.1689, 1);
 
     ctx.instance_buffer = instance_buffer;
     ctx.uniform_proj = shader_uniform_proj;

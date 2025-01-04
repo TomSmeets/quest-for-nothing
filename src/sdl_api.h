@@ -325,7 +325,7 @@ typedef struct {
     int (*SDL_Init)(u32 flags);
     int (*SDL_PollEvent)(SDL_Event *event);
     void (*SDL_Quit)(void);
-    const char * (*SDL_GetError)(void);
+    const char *(*SDL_GetError)(void);
 
     // Window
     SDL_Window *(*SDL_CreateWindow)(const char *title, int x, int y, int w, int h, u32 flags);
