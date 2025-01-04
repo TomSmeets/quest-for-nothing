@@ -62,32 +62,51 @@ static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
     }
 }
 
-static void handle_basic_input(Input *input, Engine *eng) {
+static void handle_basic_input(App *app, Input *input, Engine *eng) {
     // Quit
     if (input->quit || (key_down(input, KEY_SHIFT) && key_down(input, KEY_Q))) {
         os_exit(0);
     }
 
+    // Capture Mouse
     if (key_click(input, KEY_MOUSE_LEFT)) {
-        // TODO: gfx -> input
         gfx_set_grab(eng->gfx, true);
     }
 
     // Release Grab on focus lost or Esc
     if ((input->focus_lost || key_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
-        fmt_s(OS_FMT, "RELEASE\n");
         gfx_set_grab(eng->gfx, false);
     }
 
     // Grab with G
     if (key_click(input, KEY_G)) {
-        fmt_s(OS_FMT, "Grab!\n");
         gfx_set_grab(eng->gfx, !input->mouse_is_grabbed);
     }
 
+    // Toggle fullscreen
     if (key_click(input, KEY_F)) {
         gfx_set_fullscreen(eng->gfx, !input->is_fullscreen);
     }
+
+    // Reload level with 'R'
+    if (key_click(input, KEY_R)) {
+        mem_free(app->game->mem);
+        app->game = game_new(&eng->rng);
+    }
+
+}
+
+static void draw_cursor(App *app) {
+    Engine *eng = app->eng;
+    Image *cursor = app->cursor;
+    Input *input = eng->input;
+    Gfx *gfx = eng->gfx;
+
+    m4 mtx = m4_id();
+    if (!input->mouse_is_grabbed) {
+        m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
+    }
+    gfx_quad_ui(gfx, mtx, cursor);
 }
 
 static void os_main(OS *os) {
@@ -100,26 +119,11 @@ static void os_main(OS *os) {
 
     engine_begin(eng);
 
-    // Reload level with 'R'
-    if (key_click(eng->input, KEY_R)) {
-        mem_free(app->game->mem);
-        app->game = game_new(&eng->rng);
-    }
-
-    // Handle System keys (Quittng, Mouse grab, etc...)
-    handle_basic_input(eng->input, eng);
-
-    // Player update
-    Player *pl = app->game->player;
-    {
-        m4 mtx = m4_id();
-        if (!eng->input->mouse_is_grabbed) m4_translate(&mtx, (v3){eng->input->mouse_pos.x, eng->input->mouse_pos.y, 0});
-        gfx_quad_ui(eng->gfx, mtx, app->cursor);
-    }
-
+    handle_basic_input(app, eng->input, eng);
+    draw_cursor(app);
     game_update(app->game, eng);
 
-    if (key_click(eng->input, KEY_SPACE)) {
+    if (key_click(eng->input, KEY_SPACE) && app->game->player->on_ground) {
         Sound snd = {};
         snd.freq = sound_note_to_freq(-12 * 3.5 + rand_u32_range(&app->eng->rng, 0, 6));
         snd.src_a.freq = 1;
