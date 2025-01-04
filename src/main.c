@@ -123,7 +123,7 @@ static void os_main(OS *os) {
     draw_cursor(app);
     game_update(app->game, eng);
 
-    if (key_click(eng->input, KEY_SPACE) && app->game->player->on_ground) {
+    if (key_down(eng->input, KEY_SPACE) && app->game->player->on_ground) {
         Sound snd = {};
         snd.freq = sound_note_to_freq(-12 * 3.5 + rand_u32_range(&app->eng->rng, 0, 6));
         snd.src_a.freq = 1;
