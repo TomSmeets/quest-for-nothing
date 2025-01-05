@@ -3,23 +3,11 @@
 #include "engine.h"
 #include "game.h"
 #include "gfx.h"
+#include "gfx_impl.h"
 #include "input.h"
 #include "math.h"
 #include "os.h"
-#include "ui.h"
-
-#if OS_IS_LINUX
-#include "gfx_desktop.h"
-#include "os_linux.h"
-#elif OS_IS_WINDOWS
-#include "gfx_desktop.h"
-#include "os_windows.h"
-#elif OS_IS_WASM
-#include "gfx_wasm.h"
-#include "os_wasm.h"
-#else
-#error Unsupported platform
-#endif
+#include "os_impl.h"
 
 typedef struct {
     Memory *mem;
@@ -143,12 +131,14 @@ static void os_main(OS *os) {
             .uv_pos = {0, 0},
             .uv_size = {.0625, .0625},
         };
+
+        // Text
+        m4 mtx = m4_id();
+        m4_translate_x(&mtx, -eng->input->window_size.x * .5 + 3 * 4);
+        m4_translate_y(&mtx, eng->input->window_size.y * .5 - 3 * 4);
+        gfx_quad_ui(eng->gfx, mtx, eng->ui->image);
+        ui_text(eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
     }
 
-    m4 mtx = m4_id();
-    m4_translate_x(&mtx, -eng->input->window_size.x * .5 + 3 * 4);
-    m4_translate_y(&mtx, eng->input->window_size.y * .5 - 3 * 4);
-    // gfx_quad_ui(eng->gfx, mtx, eng->ui.image);
-    // ui_text(&eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
     engine_end(app->eng, app->game->camera.mtx);
 }

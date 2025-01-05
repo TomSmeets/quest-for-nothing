@@ -72,7 +72,7 @@ static void camera_update(Camera *cam, f32 dt) {
         cam->screen_shake -= dt;
     }
 
-    if (cam->bob_amount > 0) {
+    if (cam->target && cam->bob_amount > 0) {
         m4_translate_y(&mtx, f_sin2pi(cam->bob_phase) * cam->bob_amount * 0.01);
         cam->bob_phase += dt * cam->bob_amount * 1.5;
         cam->bob_phase -= (i32)cam->bob_phase;

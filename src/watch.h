@@ -4,9 +4,10 @@
 #include "fmt.h"
 #include "types.h"
 
-#if OS_IS_LINUX
-#include "os_linux.h"
+// Include implementation code becase we depend on platform spesific code
+#include "os_impl.h"
 
+#if OS_IS_LINUX
 typedef struct {
     int fd;
 } Watch;
@@ -66,8 +67,6 @@ static bool watch_changed(Watch *watch) {
     return false;
 }
 #elif OS_IS_WINDOWS
-#include "os_windows.h"
-
 typedef struct {
     HANDLE handle;
 } Watch;
