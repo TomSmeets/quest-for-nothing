@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound.h - Immediate mode sound synthesis and digital filters
 #pragma once
+#include "gfx.h"
 #include "id.h"
 #include "math.h"
-#include "os_gfx.h"
 #include "rand.h"
 #include "std.h"
 #include "types.h"

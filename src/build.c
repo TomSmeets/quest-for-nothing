@@ -259,7 +259,6 @@ static void include_graph(void) {
         }
 
         u32 line_count = 0;
-        u32 dep_count = 0;
         for (;;) {
             char buffer[1024];
             char *line = fgets(buffer, sizeof(buffer), fd);

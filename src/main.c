@@ -9,10 +9,13 @@
 #include "ui.h"
 
 #if OS_IS_LINUX
+#include "gfx_desktop.h"
 #include "os_linux.h"
 #elif OS_IS_WINDOWS
+#include "gfx_desktop.h"
 #include "os_windows.h"
 #elif OS_IS_WASM
+#include "gfx_wasm.h"
 #include "os_wasm.h"
 #else
 #error Unsupported platform

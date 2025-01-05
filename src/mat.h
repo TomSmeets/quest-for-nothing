@@ -82,9 +82,11 @@ static void m4_translate(m4 *m, v3 t) {
 static void m4_translate_x(m4 *m, f32 x) {
     m->w.x += x;
 }
+
 static void m4_translate_y(m4 *m, f32 y) {
     m->w.y += y;
 }
+
 static void m4_translate_z(m4 *m, f32 z) {
     m->w.z += z;
 }
