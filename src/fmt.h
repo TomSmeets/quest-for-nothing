@@ -277,6 +277,13 @@ static void fmt_siii(Fmt *fmt, char *a0, i32 a1, char *a2, i32 a3, char *a4, i32
     fmt_i(fmt, a5);
     fmt_s(fmt, a6);
 }
+static void fmt_sff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4) {
+    fmt_s(fmt, a0);
+    fmt_f(fmt, a1);
+    fmt_s(fmt, a2);
+    fmt_f(fmt, a3);
+    fmt_s(fmt, a4);
+}
 
 static void fmt_sfff(Fmt *fmt, char *a0, f32 a1, char *a2, f32 a3, char *a4, f32 a5, char *a6) {
     fmt_s(fmt, a0);

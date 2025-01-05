@@ -1,6 +1,4 @@
 #pragma once
-#include "types.h"
-
 #if 0
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -69,29 +67,15 @@ extern int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds,
 
 struct inotify_event {
     int wd;
-    u32 mask;
-    u32 cookie;
-    u32 len;
+    unsigned int mask;
+    unsigned int cookie;
+    unsigned int len;
     char name[];
 };
 
 extern int inotify_init(void);
-extern int inotify_add_watch(int fd, const char *name, u32 mask);
+extern int inotify_add_watch(int fd, const char *name, unsigned int mask);
 #define IN_DELETE 0x00000200
 #define IN_CREATE 0x00000100
 #define IN_MODIFY 0x00000002
 #endif
-
-static u64 linux_time_to_us(struct timespec *t) {
-    return t->tv_sec * 1000 * 1000 + t->tv_nsec / 1000;
-}
-
-static struct timespec linux_us_to_time(u64 time) {
-    u64 sec = time / (1000 * 1000);
-    u64 nsec = (time - sec * 1000 * 1000) * 1000;
-
-    struct timespec ts;
-    ts.tv_sec = sec;
-    ts.tv_nsec = nsec;
-    return ts;
-}

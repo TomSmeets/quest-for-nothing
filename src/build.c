@@ -252,11 +252,12 @@ static void include_graph(void) {
             input[str_len(input) - 2] = 0;
         }
 
-        fmt_ss(out, "  ", input, ";\n");
+        u32 line_count = 0;
         for (;;) {
             char buffer[1024];
             char *line = fgets(buffer, sizeof(buffer), fd);
             if (!line) break;
+            line_count++;
 
             char *prefix = "#include \"";
             char *suffix = "\"\n";
@@ -277,13 +278,17 @@ static void include_graph(void) {
 
             fmt_sss(out, "  ", input, " -> ", line, ";\n");
         }
+        fmt_ss(out, "  ", input, "");
+        f32 size = (f32)f_sqrt(line_count) * 0.1;
+        if (size < 1) size = 1;
+        fmt_sf(out, "[fontsize=", size * 20, "];\n");
 
         fclose(fd);
     }
     fmt_s(out, "}\n");
     fmt_close(out);
     mem_free(mem);
-    hot_system("tred out/include-graph.dot | dot -Tpng > out/include-graph.png");
+    hot_system("tred out/include-graph.dot > out/include-graph-reduced.dot");
 }
 #else
 static void include_graph(void) {

@@ -6,6 +6,20 @@
 #include "os.h"
 #include "str.h"
 
+static u64 linux_time_to_us(struct timespec *t) {
+    return t->tv_sec * 1000 * 1000 + t->tv_nsec / 1000;
+}
+
+static struct timespec linux_us_to_time(u64 time) {
+    u64 sec = time / (1000 * 1000);
+    u64 nsec = (time - sec * 1000 * 1000) * 1000;
+
+    struct timespec ts;
+    ts.tv_sec = sec;
+    ts.tv_nsec = nsec;
+    return ts;
+}
+
 static int file_to_fd(File *f) {
     return (int)((u64)f - 1);
 }
