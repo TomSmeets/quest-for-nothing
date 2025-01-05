@@ -241,6 +241,9 @@ static void include_graph(void) {
         if (ent->d_name[0] == '.') continue;
         if (!(str_ends_with(ent->d_name, ".h") || str_ends_with(ent->d_name, ".c"))) continue;
 
+        // Don't scan opengl api, it is quite big.
+        if (str_eq(ent->d_name, "ogl_api.h")) continue;
+
         // Full Path
         Fmt *full_path_fmt = fmt_memory(mem);
         fmt_ss(full_path_fmt, "src/", ent->d_name, "");

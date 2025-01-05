@@ -52,5 +52,4 @@ static void os_gfx_end(OS_Gfx *gfx);
 #include "gfx_desktop.h"
 #elif OS_IS_WASM
 #include "gfx_wasm.h"
-#include "os_wasm.h"
 #endif
