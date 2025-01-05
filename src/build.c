@@ -221,6 +221,76 @@ static void exit_with_help(Cli *cli) {
     os_exit(1);
 }
 
+#if OS_IS_LINUX
+#include <dirent.h>
+#include <stdio.h>
+static void include_graph(void) {
+    DIR *dir = opendir("src");
+
+    Memory *mem = mem_new();
+    Fmt *out = fmt_open(mem, "out/include-graph.dot");
+    fmt_s(out, "digraph {\n");
+    for (;;) {
+        struct dirent *ent = readdir(dir);
+        if (!ent) break;
+
+        // Skip '.', '..', and hidden files
+        if (ent->d_name[0] == '.') continue;
+        if (!(str_ends_with(ent->d_name, ".h") || str_ends_with(ent->d_name, ".c"))) continue;
+
+        // Full Path
+        Fmt *full_path_fmt = fmt_memory(mem);
+        fmt_ss(full_path_fmt, "src/", ent->d_name, "");
+        char *full_path = fmt_close(full_path_fmt);
+
+        // Read file
+        FILE *fd = fopen(full_path, "r");
+
+        // Remove .h
+        char *input = ent->d_name;
+        if (str_ends_with(input, ".h") || str_ends_with(input, ".c")) {
+            input[str_len(input) - 2] = 0;
+        }
+
+        fmt_ss(out, "  ", input, ";\n");
+        for (;;) {
+            char buffer[1024];
+            char *line = fgets(buffer, sizeof(buffer), fd);
+            if (!line) break;
+
+            char *prefix = "#include \"";
+            char *suffix = "\"\n";
+            if (!str_starts_with(line, prefix)) continue;
+            if (!str_ends_with(line, suffix)) continue;
+
+            u32 len = str_len(line);
+            line[len - str_len(suffix)] = 0;
+            line += str_len(prefix);
+
+            // Ignore '../' paths
+            if (line[0] == '.') continue;
+
+            // Remove '.c' and '.h'
+            if (str_ends_with(line, ".h") || str_ends_with(line, ".c")) {
+                line[str_len(line) - 2] = 0;
+            }
+
+            fmt_sss(out, "  ", input, " -> ", line, ";\n");
+        }
+
+        fclose(fd);
+    }
+    fmt_s(out, "}\n");
+    fmt_close(out);
+    mem_free(mem);
+    hot_system("tred out/include-graph.dot | dot -Tpng > out/include-graph.png");
+}
+#else
+static void include_graph(void) {
+    os_fail("Not supported on this plaform");
+}
+#endif
+
 static Hot *hot_init(OS *os) {
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
@@ -270,6 +340,9 @@ static Hot *hot_init(OS *os) {
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
         assert(hot_system("clang-format --verbose -i src/*"), "Format failed!");
+        os_exit(0);
+    } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
+        include_graph();
         os_exit(0);
     } else {
         exit_with_help(cli);
