@@ -230,6 +230,9 @@ static void include_graph(void) {
     Memory *mem = mem_new();
     Fmt *out = fmt_open(mem, "out/include-graph.dot");
     fmt_s(out, "digraph {\n");
+    // fmt_s(out, "  rankdir=LR;\n");
+    // fmt_s(out, "  splines=false;\n");
+    // fmt_s(out, "  node[shape=box];\n");
     for (;;) {
         struct dirent *ent = readdir(dir);
         if (!ent) break;
@@ -253,6 +256,7 @@ static void include_graph(void) {
         }
 
         u32 line_count = 0;
+        u32 dep_count = 0;
         for (;;) {
             char buffer[1024];
             char *line = fgets(buffer, sizeof(buffer), fd);
@@ -278,11 +282,11 @@ static void include_graph(void) {
 
             fmt_sss(out, "  ", input, " -> ", line, ";\n");
         }
-        fmt_ss(out, "  ", input, "");
-        f32 size = (f32)f_sqrt(line_count) * 0.1;
-        if (size < 1) size = 1;
-        fmt_sf(out, "[fontsize=", size * 20, "];\n");
-
+        fmt_ss(out, "  ", input, "[");
+        f32 size = (f32)f_sqrt(line_count) * 2;
+        if (size < 11) size = 11;
+        fmt_sf(out, "fontsize=", size, ",");
+        fmt_s(out, "];\n");
         fclose(fd);
     }
     fmt_s(out, "}\n");
