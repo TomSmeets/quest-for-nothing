@@ -4,7 +4,6 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
-#include "os_api.h"
 #include "rand.h"
 #include "types.h"
 

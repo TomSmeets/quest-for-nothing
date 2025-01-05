@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // std.h - Memory copy and zero functions
 #pragma once
-#include "os_api.h"
+#include "os.h"
 
 // Append an element to a singly linked list with first and last pointers
 #define LIST_APPEND(first, last, el)                                                                                                                 \

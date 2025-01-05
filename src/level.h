@@ -15,6 +15,12 @@
 //   Pure white noise is boring, but by layering at different scales sometihng interesting is created.
 // Referneces
 
+typedef struct Wall {
+    m4 mtx;
+    Image *image;
+    struct Wall *next;
+} Wall;
+
 typedef struct Cell Cell;
 struct Cell {
     v3i pos;

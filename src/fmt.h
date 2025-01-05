@@ -4,7 +4,7 @@
 
 // This formatter has very little dependiecies
 #include "mem.h"
-#include "os_api.h"
+#include "os.h"
 #include "std.h"
 
 // Should be initialized by os_init

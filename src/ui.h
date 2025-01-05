@@ -4,6 +4,7 @@
 
 #include "audio.h"
 #include "gfx.h"
+#include "str.h"
 #include "vec.h"
 
 typedef struct {

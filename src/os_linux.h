@@ -3,15 +3,8 @@
 #pragma once
 #include "fmt.h"
 #include "linux_api.h"
-#include "os_api.h"
-#include "std.h"
+#include "os.h"
 #include "str.h"
-
-// Export main, allowing us to dynamically call it
-void os_main_dynamic(OS *os) {
-    OS_GLOBAL = os;
-    os_main(os);
-}
 
 static int file_to_fd(File *f) {
     return (int)((u64)f - 1);
@@ -21,12 +14,19 @@ static File *fd_to_file(int fd) {
     return (File *)((u64)fd + 1);
 }
 
-static File *os_stdout(void) {
-    return fd_to_file(1);
+// Export main, allowing us to dynamically call it
+void os_main_dynamic(OS *os) {
+    OS_GLOBAL = os;
+    os_main(os);
 }
 
 int main(int argc, char **argv) {
-    OS *os = os_init(argc, argv);
+    Memory *mem = mem_new();
+    OS *os = mem_struct(mem, OS);
+    os->argc = argc;
+    os->argv = argv;
+    os->fmt = fmt_new(mem, fd_to_file(1));
+    OS_GLOBAL = os;
     for (;;) {
         os_main(os);
         os_sleep(os->sleep_time);

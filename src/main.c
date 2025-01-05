@@ -11,6 +11,16 @@
 #include "time.h"
 #include "ui.h"
 
+#if OS_IS_LINUX
+#include "os_linux.h"
+#elif OS_IS_WINDOWS
+#include "os_windows.h"
+#elif OS_IS_WASM
+#include "os_wasm.h"
+#else
+#error Unsupported platform
+#endif
+
 typedef struct {
     Memory *mem;
 

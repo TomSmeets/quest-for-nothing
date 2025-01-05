@@ -564,3 +564,6 @@ static void game_update(Game *game, Engine *eng) {
 static void game_free(Game *game) {
     mem_free(game->mem);
 }
+
+// static v3 collide_wall(Cell *wall, v3 old, v3 pos) {
+// }

@@ -24,7 +24,7 @@ typedef struct {
     f32 uv_size[2];
 } OS_Gfx_Quad;
 
-static_assert(sizeof(OS_Gfx_Quad) == 4*16);
+static_assert(sizeof(OS_Gfx_Quad) == 4 * 16);
 
 // Initialize Graphics stack
 static OS_Gfx *os_gfx_init(Memory *mem, char *title);
@@ -265,6 +265,8 @@ static void os_gfx_end(OS_Gfx *gfx) {
     sdl_swap_window(gfx->sdl);
 }
 #elif OS_IS_WASM
+#include "os_wasm.h"
+
 WASM_IMPORT(js_gfx_grab) void js_gfx_grab(bool grab);
 WASM_IMPORT(js_gfx_fullscreen) void js_gfx_fullscreen(bool fullscreen);
 WASM_IMPORT(js_gfx_begin) void js_gfx_begin(void);

@@ -2,11 +2,11 @@
 // watch.h - Simple linux inotify wrapper
 #pragma once
 #include "fmt.h"
-#include "os.h"
-#include "os_api.h"
 #include "types.h"
 
 #if OS_IS_LINUX
+#include "os_linux.h"
+
 typedef struct {
     int fd;
 } Watch;
@@ -45,7 +45,7 @@ static bool watch_changed(Watch *watch) {
 
         ssize_t length = read(watch->fd, buffer, sizeof(buffer));
         if (length < 0) {
-            os_print("Failed to read data from watch\n");
+            fmt_s(OS_FMT, "Failed to read data from watch\n");
             break;
         }
 
@@ -66,6 +66,8 @@ static bool watch_changed(Watch *watch) {
     return false;
 }
 #elif OS_IS_WINDOWS
+#include "os_windows.h"
+
 typedef struct {
     HANDLE handle;
 } Watch;

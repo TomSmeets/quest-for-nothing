@@ -1,8 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_wasm.h - Platform implementation for wasm
 #pragma once
-#include "os_api.h"
-#include "os_impl_no_desktop.h"
+#include "fmt.h"
+#include "mem.h"
+#include "os.h"
 #include "std.h"
 #include "str.h"
 
@@ -12,7 +13,12 @@ WASM_IMPORT(js_time) u64 js_time(void);
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 
 u64 js_main(void) {
-    if (!OS_GLOBAL) os_init(0, 0);
+    if (!OS_GLOBAL) {
+        Memory *mem = mem_new();
+        OS *os = mem_struct(mem, OS);
+        os->fmt = fmt_new(mem, (void *)1);
+        OS_GLOBAL = os;
+    }
     os_main(OS_GLOBAL);
     return OS_GLOBAL->sleep_time;
 }
@@ -47,7 +53,6 @@ static void os_fail(char *message) {
 static void *os_alloc_raw(u32 size) {
     u64 addr = __builtin_wasm_memory_size(0) * WASM_PAGE_SIZE;
     __builtin_wasm_memory_grow(0, size / WASM_PAGE_SIZE);
-    os_print("Memory Alloc!\n");
     return (void *)addr;
 }
 
@@ -66,3 +71,28 @@ void *memset(void *restrict dst, u8 value, u32 size) {
     return dst;
 }
 #endif
+
+static File *os_open(char *path, OS_Open_Type type) {
+    os_fail("Platform is not a desktop");
+    return 0;
+}
+static void os_close(File *file) {
+    os_fail("Platform is not a desktop");
+}
+
+static u32 os_read(File *file, u8 *data, u32 len) {
+    os_fail("Platform is not a desktop");
+    return 0;
+}
+static void os_sleep(u64 time) {
+    os_fail("Platform is not a desktop");
+}
+
+static File *os_dlopen(char *path) {
+    os_fail("Platform is not a desktop");
+    return 0;
+}
+static void *os_dlsym(File *handle, char *name) {
+    os_fail("Platform is not a desktop");
+    return 0;
+}

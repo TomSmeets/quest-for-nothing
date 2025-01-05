@@ -5,10 +5,19 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
-#include "os_api.h"
 #include "rand.h"
 #include "types.h"
 #include "watch.h"
+
+#if OS_IS_LINUX
+#include "os_linux.h"
+#elif OS_IS_WINDOWS
+#include "os_windows.h"
+#elif OS_IS_WASM
+#include "os_wasm.h"
+#else
+#error Unsupported platform
+#endif
 
 // Target platform
 typedef enum {
@@ -226,7 +235,12 @@ static Hot *hot_init(OS *os) {
 
         hot->action_run = true;
         hot->main_path = os->argv[2];
-        hot->child_os = os_init(os->argc - 2, os->argv + 2);
+
+        OS *child_os = mem_struct(mem, OS);
+        child_os->argc = os->argc - 2;
+        child_os->argv = os->argv + 2;
+        child_os->fmt = os->fmt;
+        hot->child_os = child_os;
     } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
     } else if (cli_action(cli, "build", "", "Build for only one target for quick Debugging")) {
@@ -290,6 +304,7 @@ void os_main(OS *os) {
 
         if (hot->update) {
             hot->update(hot->child_os);
+            OS_GLOBAL = os;
 
             // inherit child update rate
             os->sleep_time = hot->child_os->sleep_time;

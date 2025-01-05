@@ -1,7 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_windows.h - Windows API wrapper and platform implementation
 #pragma once
-#include "os_api.h"
+#include "fmt.h"
+#include "mem.h"
+#include "os.h"
 #include "std.h"
 #include "str.h"
 #include <windows.h>
@@ -13,7 +15,12 @@ __declspec(dllexport) void os_main_dynamic(OS *os) {
 }
 
 int main(int argc, char **argv) {
-    OS *os = os_init(argc, argv);
+    Memory *mem = mem_new();
+    OS *os = mem_struct(mem, OS);
+    os->argc = argc;
+    os->argv = argv;
+    os->fmt = fmt_new(mem, GetStdHandle(STD_OUTPUT_HANDLE));
+    OS_GLOBAL = os;
     for (;;) {
         os_main(os);
         os_sleep(os->sleep_time);
@@ -36,10 +43,6 @@ static u64 os_rand(void) {
     return os_time();
 }
 
-static File *os_stdout(void) {
-    return GetStdHandle(STD_OUTPUT_HANDLE);
-}
-
 static void os_write(File *file, u8 *data, u32 len) {
     WriteFile(file, data, len, 0, 0);
 }
@@ -49,14 +52,14 @@ static void os_exit(i32 code) {
 }
 
 static void os_fail(char *message) {
-    os_print(message);
+    fmt_ss(OS_FMT, "", message, "\n");
 
     // check windows error
     DWORD last_error = GetLastError();
     char *last_error_msg = 0;
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0, (LPTSTR)&last_error_msg, 0, 0);
-    os_print("Windows Error Code: ");
-    os_print(last_error_msg);
+
+    fmt_ss(OS_FMT, "Windows Error Code: ", last_error_msg, "\n");
 
     // Exit
     os_exit(1);
