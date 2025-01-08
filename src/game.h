@@ -33,7 +33,6 @@ typedef struct {
     Memory *mem;
     Player *player;
     Monster *monsters;
-    Level level;
     Image *gun;
     Camera camera;
     bool debug;
@@ -84,54 +83,56 @@ static Image *gen_cursor(Memory *mem) {
 }
 
 static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
-    Monster *first = 0;
-    Monster *last = 0;
-
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
 
     // Player
-    {
-        Sprite_Properties s = sprite_new(rng);
-        Monster *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
-        player->is_monster = false;
-        player->is_player = true;
-        LIST_APPEND(first, last, player);
-        game->player = player;
-    }
+    Sprite_Properties s = sprite_new(rng);
+    Monster *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
+    player->is_monster = false;
+    player->is_player = true;
 
-    for (Cell *cell = game->level.cells; cell; cell = cell->next) {
-        if (!cell->y_neg) continue;
-        if (v3i_eq(cell->pos, spawn)) continue;
+    // Insert
+    player->next = game->monsters;
+    game->monsters = player;
+    game->player = player;
 
+    for (Entity *wall = game->monsters; wall; wall = wall->next) {
+        // Only consider walls
+        if (!wall->is_wall) continue;
+
+        // Don't generate them too close
+        f32 spawn_area = 4;
+        if (v3_distance_sq(wall->pos, player->pos) < spawn_area * spawn_area) continue;
+
+        // Choose random sprite props
         Sprite_Properties prop = s1;
         if (rand_f32(rng) > 0.5) prop = s2;
 
-        Monster *mon = monster_new(game->mem, rng, v3i_to_v3(cell->pos * 4), prop);
-        LIST_APPEND(first, last, mon);
+        Monster *mon = monster_new(game->mem, rng, wall->pos, prop);
+        // Insert
+        mon->next = game->monsters;
+        game->monsters = mon;
     }
-    game->monsters = first;
 }
 
 // Create a new game
 static Game *game_new(Random *rng) {
-    u32 level_size = 8;
+    v2i level_size = {8, 8};
+    v2i spawn = level_size / 2;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
     game->mem = mem;
 
     // Create Level
-    level_gen_outline(&game->level, rng, mem, level_size);
+    level_generate(&game->monsters, mem, rng, level_size);
 
     // Generate player
-    v3i spawn = {level_size / 2, 0, level_size / 2};
-    spawn.x = 0;
-    spawn.z = 0;
     game->gun = gen_gun(mem, rng);
 
     // Generate Monsters
-    game_gen_monsters(game, rng, spawn);
+    game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
     game->camera.target = game->player;
     return game;
 }
@@ -495,7 +496,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     if (pl->image) gfx_quad_3d(eng->gfx, pl->mtx, pl->image);
     // gfx_draw_mtx(eng, pl->head_mtx);
 }
-
+#if 0
 static void cell_update(Cell *cell, Game *game, Engine *eng) {
     f32 scale = 4;
 
@@ -528,10 +529,16 @@ static void cell_update(Cell *cell, Game *game, Engine *eng) {
         if (game->debug) gfx_debug_mtx(eng->gfx_dbg, mtx);
     }
 }
+#endif
+
+static void wall_update(Engine *eng, Entity *ent) {
+    gfx_quad_3d(eng->gfx, ent->mtx, ent->image);
+}
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
+    if (ent->is_wall) wall_update(eng, ent);
     if (game->debug) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
 }
 
@@ -554,9 +561,9 @@ static void game_update(Game *game, Engine *eng) {
         entity_update(eng, game, ent);
     }
 
-    for (Cell *cell = game->level.cells; cell; cell = cell->next) {
-        cell_update(cell, game, eng);
-    }
+    fmt_s(OS_FMT, "Player: ");
+    fmt_v3(OS_FMT, game->player->pos);
+    fmt_s(OS_FMT, "\n");
 
     camera_update(&game->camera, eng->dt);
 }
@@ -564,6 +571,3 @@ static void game_update(Game *game, Engine *eng) {
 static void game_free(Game *game) {
     mem_free(game->mem);
 }
-
-// static v3 collide_wall(Cell *wall, v3 old, v3 pos) {
-// }

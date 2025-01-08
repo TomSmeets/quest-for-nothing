@@ -129,7 +129,7 @@ static void os_main(OS *os) {
             .z = {0, 0, 1},
             .w = {0, 0, 0},
             .uv_pos = {0, 0},
-            .uv_size = {.0625, .0625},
+            .uv_size = {1, 1},
         };
 
         // Text

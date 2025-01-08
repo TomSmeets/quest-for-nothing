@@ -24,6 +24,16 @@ static Image *image_new(Memory *mem, v2u size) {
     return img;
 }
 
+static Image *image_copy(Memory *mem, Image *img) {
+    Image *copy = mem_struct(mem, Image);
+    copy->id = id_next();
+    copy->size = img->size;
+    copy->origin = img->origin;
+    copy->pixels = mem_array_uninit(mem, v4, img->size.x * img->size.y);
+    std_memcpy(copy->pixels, img->pixels, img->size.x * img->size.y * sizeof(v4));
+    return copy;
+}
+
 static void image_fill(Image *img, v4 color) {
     for (u32 i = 0; i < img->size.x * img->size.y; ++i) {
         img->pixels[i] = color;
