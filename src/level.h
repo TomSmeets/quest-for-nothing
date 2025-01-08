@@ -3,6 +3,7 @@
 #pragma once
 #include "image.h"
 #include "level_sprite.h"
+#include "maze.h"
 #include "mem.h"
 #include "monster.h"
 #include "player.h"
