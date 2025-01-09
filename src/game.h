@@ -101,6 +101,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
     for (Entity *wall = game->monsters; wall; wall = wall->next) {
         // Only consider walls
         if (!wall->is_wall) continue;
+        if (wall->mtx.z.y < 0.5) continue;
 
         // Don't generate them too close
         f32 spawn_area = 4;
