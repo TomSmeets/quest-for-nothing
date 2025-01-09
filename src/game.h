@@ -11,6 +11,7 @@
 #include "monster.h"
 #include "player.h"
 #include "rand.h"
+#include "sparse.h"
 #include "types.h"
 #include "vec.h"
 
