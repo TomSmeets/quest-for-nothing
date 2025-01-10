@@ -1,18 +1,17 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sparse.h - Incremental BVH
 #pragma once
-#include "mem.h"
 #include "box.h"
+#include "mem.h"
 
 typedef struct Sparse Sparse;
 typedef struct Sparse_Node Sparse_Node;
-
-static Sparse *sparse_new(Memory *mem);
-static void sparse_add(Sparse *sparse, Box box, void *user);
-
 typedef struct {
     Sparse_Node *node;
 } Sparse_Collision;
+
+static Sparse *sparse_new(Memory *mem);
+static void sparse_add(Sparse *sparse, Box box, void *user);
 
 static void *sparse_check(Sparse *sparse, Box box, Sparse_Collision *result);
 
@@ -45,6 +44,7 @@ static void sparse_add(Sparse *sparse, Box box, void *user) {
 
 static void *sparse_check(Sparse *sparse, Box box, Sparse_Collision *iter) {
     Sparse_Node *node = sparse->nodes;
+
     // Continue if called multiple times
     if (iter->node) node = iter->node->next;
 
@@ -52,20 +52,13 @@ static void *sparse_check(Sparse *sparse, Box box, Sparse_Collision *iter) {
         // No more found
         if (!node) return 0;
 
-        // Does not intersect
-        if (!box_intersect(node->box, box)) continue;
-        iter->node = node;
-        return node->user;
-    }
-}
+        // Found intersecting node
+        if (box_intersect(node->box, box)) {
+            iter->node = node;
+            return node->user;
+        }
 
-static void sparse_finish(Sparse *sparse) {
-    // Inner: box around center points
-    // Outer: Box around boxes
-    Box inner = sparse->nodes->box;
-    for(Sparse_Node *node = sparse->nodes; node; node = node->next) {
-        // Grow root box
-        root = box_union(root, node->box);
+        node = node->next;
     }
 }
 

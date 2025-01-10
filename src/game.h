@@ -37,6 +37,9 @@ typedef struct {
     Image *gun;
     Camera camera;
     bool debug;
+
+    Sparse *bvh;
+    Sparse *bvh_next;
 } Game;
 
 static Image *gen_gun(Memory *mem, Random *rng) {
@@ -293,12 +296,23 @@ static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
     gfx_quad_3d(eng->gfx, shadow_mtx, image);
 }
 
+static Box entity_box(Entity *ent) {
+    f32 h = ent->size.y;
+    f32 r = ent->size.x / 2;
+    Box box = {
+        .min = ent->pos - (v3){r, 0, r},
+        .max = ent->pos + (v3){r, h, r},
+    };
+    return box;
+}
+
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
 
     bool is_alive = mon->health > 0;
 
     entity_update_movement(mon, eng);
+    sparse_add(game->bvh_next, entity_box(mon), mon);
 
     if (is_alive) {
         monster_update_eyes(mon, eng);
@@ -498,54 +512,33 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     if (pl->image) gfx_quad_3d(eng->gfx, pl->mtx, pl->image);
     // gfx_draw_mtx(eng, pl->head_mtx);
 }
-#if 0
-static void cell_update(Cell *cell, Game *game, Engine *eng) {
-    f32 scale = 4;
 
-    Image *img_list[6] = {
-        cell->z_neg, cell->x_neg, cell->z_pos, cell->x_pos, cell->y_neg, cell->y_pos,
-    };
-
-    for (u32 i = 0; i < 6; ++i) {
-        Image *img = img_list[i];
-        if (!img) continue;
-
-        m4 mtx = m4_id();
-        if (i < 4) {
-            m4_translate_z(&mtx, -scale / 2);
-            m4_translate_y(&mtx, scale / 2);
-            m4_rotate_y(&mtx, R1 * i);
-        }
-
-        if (i == 4) {
-            m4_rotate_x(&mtx, -R1);
-        }
-
-        if (i == 5) {
-            m4_rotate_x(&mtx, R1);
-            m4_translate_y(&mtx, scale);
-        }
-
-        m4_translate(&mtx, v3i_to_v3(cell->pos) * scale);
-        gfx_quad_3d(eng->gfx, mtx, img);
-        if (game->debug) gfx_debug_mtx(eng->gfx_dbg, mtx);
-    }
-}
-#endif
-
-static void wall_update(Engine *eng, Entity *ent) {
+static void wall_update(Game *game, Engine *eng, Entity *ent) {
+    v2 size = v2u_to_v2(ent->image->size) / 32.0f;
     gfx_quad_3d(eng->gfx, ent->mtx, ent->image);
+
+    v3 p0 = m4_mul_pos(ent->mtx, (v3){-0.5 * size.x, -0.5 * size.y, 0});
+    v3 p1 = m4_mul_pos(ent->mtx, (v3){0.5 * size.x, -0.5 * size.y, 0});
+    v3 p2 = m4_mul_pos(ent->mtx, (v3){-0.5 * size.x, 0.5 * size.y, 0});
+    v3 p3 = m4_mul_pos(ent->mtx, (v3){0.5 * size.x, 0.5 * size.y, 0});
+    Box box = {p0, p0};
+    box = box_union_point(box, p1);
+    box = box_union_point(box, p2);
+    box = box_union_point(box, p3);
+    sparse_add(game->bvh, box, ent);
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
-    if (ent->is_wall) wall_update(eng, ent);
+    if (ent->is_wall) wall_update(game, eng, ent);
     if (game->debug) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
+    if (!game->bvh) game->bvh = sparse_new(mem_new());
+    game->bvh_next = sparse_new(mem_new());
 
     // Toggle freecam
     if (key_click(eng->input, KEY_3)) {
@@ -567,7 +560,29 @@ static void game_update(Game *game, Engine *eng) {
     fmt_v3(OS_FMT, game->player->pos);
     fmt_s(OS_FMT, "\n");
 
+    Sparse_Collision iter = {};
+    Box box = entity_box(game->player);
+    for (;;) {
+        Entity *ent = sparse_check(game->bvh, box, &iter);
+        if (!ent) break;
+        gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
+
+        if (ent->is_wall) {
+            v3 fwd = ent->mtx.z;
+            f32 d = v3_dot(fwd, game->player->pos - ent->mtx.w);
+            f32 pen = (box.max.x - box.min.x) * .5;
+            if (d > 0 && d < pen) {
+                game->player->pos += fwd * (pen - d) * .5;
+                fmt_sf(OS_FMT, "D: ", d, "\n");
+            }
+        }
+    }
+
     camera_update(&game->camera, eng->dt);
+
+    // Update bvh
+    mem_free(game->bvh->mem);
+    game->bvh = game->bvh_next;
 }
 
 static void game_free(Game *game) {

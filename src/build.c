@@ -304,11 +304,41 @@ static void include_graph(void) {
 }
 #endif
 
+typedef struct {
+    u32 argc;
+    char **argv;
+} Arg;
+
+static char *arg_next(Arg *arg) {
+    if (arg->argc == 0) return 0;
+    return arg->argc--, *arg->argv++;
+}
+
 static Hot *hot_init(OS *os) {
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
     Hot *hot = mem_struct(mem, Hot);
     Cli *cli = cli_new(tmp, os);
+
+    // bool watch = false;
+    // bool build_linux   = false;
+    // bool build_windows = false;
+    // bool build_wasm    = false;
+
+    // // build run src/main.c ...
+    // // build linux windows wasm
+    // // build watch all
+
+    // Arg arg = { os->argc, os->argv };
+    // char *main_name = arg_next(&arg);
+    // for(;;) {
+    //     char *cmd = arg_next(&arg);
+
+    // }
+
+    // for(u32 i = 0; i < os->argc; ++i) {
+    //     char *arg = os->argv[i];
+    // }
 
     if (cli_action(cli, "run", "<main> [args]...", "Build and run with hot reloading")) {
         if (os->argc < 3) {
