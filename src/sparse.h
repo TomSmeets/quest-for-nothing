@@ -1,19 +1,33 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// sparse.h - Sparse storage
+// sparse.h - Incremental BVH
 #pragma once
 #include "mem.h"
-#include "vec.h"
+#include "box.h"
 
-typedef struct Sparse_Node {
-    struct Sparse_Node *next;
-    v3i pos;
-    void *data;
-} Sparse_Node;
+typedef struct Sparse Sparse;
+typedef struct Sparse_Node Sparse_Node;
+
+static Sparse *sparse_new(Memory *mem);
+static void sparse_add(Sparse *sparse, Box box, void *user);
 
 typedef struct {
+    Sparse_Node *node;
+} Sparse_Collision;
+
+static void *sparse_check(Sparse *sparse, Box box, Sparse_Collision *result);
+
+// ============================================================
+
+struct Sparse_Node {
+    Box box;
+    void *user;
+    Sparse_Node *next;
+};
+
+struct Sparse {
     Memory *mem;
-    Sparse_Node *nodes[32 * 32];
-} Sparse;
+    Sparse_Node *nodes;
+};
 
 static Sparse *sparse_new(Memory *mem) {
     Sparse *sparse = mem_struct(mem, Sparse);
@@ -21,6 +35,41 @@ static Sparse *sparse_new(Memory *mem) {
     return sparse;
 }
 
+static void sparse_add(Sparse *sparse, Box box, void *user) {
+    Sparse_Node *node = mem_struct(sparse->mem, Sparse_Node);
+    node->box = box;
+    node->user = user;
+    node->next = sparse->nodes;
+    sparse->nodes = node;
+}
+
+static void *sparse_check(Sparse *sparse, Box box, Sparse_Collision *iter) {
+    Sparse_Node *node = sparse->nodes;
+    // Continue if called multiple times
+    if (iter->node) node = iter->node->next;
+
+    for (;;) {
+        // No more found
+        if (!node) return 0;
+
+        // Does not intersect
+        if (!box_intersect(node->box, box)) continue;
+        iter->node = node;
+        return node->user;
+    }
+}
+
+static void sparse_finish(Sparse *sparse) {
+    // Inner: box around center points
+    // Outer: Box around boxes
+    Box inner = sparse->nodes->box;
+    for(Sparse_Node *node = sparse->nodes; node; node = node->next) {
+        // Grow root box
+        root = box_union(root, node->box);
+    }
+}
+
+#if 0
 static u32 sparse_hash(v3i pos) {
     return (u32)(pos.x % 32) + (u32)(pos.z % 32) * 32;
 }
@@ -55,3 +104,4 @@ static Sparse_Node *sparse_find(Sparse *sparse, Sparse_Node *node, v3i pos) {
     }
     return node;
 }
+#endif
