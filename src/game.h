@@ -420,6 +420,44 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     entity_update_movement(pl, eng);
     player_apply_input(eng, pl, &in);
 
+    fmt_s(OS_FMT, "Player: ");
+    fmt_v3(OS_FMT, pl->pos);
+    fmt_s(OS_FMT, "\n");
+
+    Sparse_Collision iter = {};
+    Box box = entity_box(pl);
+    for (;;) {
+        Entity *ent = sparse_check(game->bvh, box, &iter);
+        if (!ent) break;
+        if (ent == pl) continue;
+
+        if (ent->is_wall) {
+            m4 wall_inv = m4_invert_tr(ent->mtx);
+            v3 p_local = m4_mul_pos(wall_inv, pl->pos);
+            f32 rx = ent->size.x * .5;
+            f32 ry = ent->size.y * .5;
+            if (p_local.x < -rx) p_local.x = -rx;
+            if (p_local.y < -ry) p_local.y = -ry;
+            if (p_local.x > rx) p_local.x = rx;
+            if (p_local.y > ry) p_local.y = ry;
+            p_local.z = 0;
+
+            v3 p_global = m4_mul_pos(ent->mtx, p_local);
+            v3 dir = p_global - pl->pos;
+            f32 dist = v3_length(dir);
+            f32 pen = (box.max.x - box.min.x) * .5;
+            fmt_sf(OS_FMT, "D: ", dist, "\n");
+            if (dist < pen) {
+                pl->pos -= dir / dist * (pen - dist);
+
+                m4 hit = m4_id();
+                m4_translate(&hit, p_global);
+                gfx_debug_mtx(eng->gfx_dbg, hit);
+            }
+        }
+    }
+    sparse_add(game->bvh_next, box, pl);
+
     if (camera->target == pl) {
         camera_bob(camera, v2_length(pl->vel.xz));
     }
@@ -525,7 +563,7 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
     box = box_union_point(box, p1);
     box = box_union_point(box, p2);
     box = box_union_point(box, p3);
-    sparse_add(game->bvh, box, ent);
+    sparse_add(game->bvh_next, box, ent);
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
@@ -554,28 +592,6 @@ static void game_update(Game *game, Engine *eng) {
 
     for (Entity *ent = game->monsters; ent; ent = ent->next) {
         entity_update(eng, game, ent);
-    }
-
-    fmt_s(OS_FMT, "Player: ");
-    fmt_v3(OS_FMT, game->player->pos);
-    fmt_s(OS_FMT, "\n");
-
-    Sparse_Collision iter = {};
-    Box box = entity_box(game->player);
-    for (;;) {
-        Entity *ent = sparse_check(game->bvh, box, &iter);
-        if (!ent) break;
-        gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
-
-        if (ent->is_wall) {
-            v3 fwd = ent->mtx.z;
-            f32 d = v3_dot(fwd, game->player->pos - ent->mtx.w);
-            f32 pen = (box.max.x - box.min.x) * .5;
-            if (d > 0 && d < pen) {
-                game->player->pos += fwd * (pen - d) * .5;
-                fmt_sf(OS_FMT, "D: ", d, "\n");
-            }
-        }
     }
 
     camera_update(&game->camera, eng->dt);
