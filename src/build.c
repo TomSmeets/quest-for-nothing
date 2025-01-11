@@ -340,6 +340,9 @@ static Hot *hot_init(OS *os) {
     //     char *arg = os->argv[i];
     // }
 
+    for(;;) {
+        if(!cli_begin(cli)) break;
+
     if (cli_action(cli, "run", "<main> [args]...", "Build and run with hot reloading")) {
         if (os->argc < 3) {
             fmt_s(OS_FMT, "Not enogh arguments\n");
@@ -354,9 +357,14 @@ static Hot *hot_init(OS *os) {
         child_os->argv = os->argv + 2;
         child_os->fmt = os->fmt;
         hot->child_os = child_os;
-    } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
+    }
+
+    if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
-    } else if (cli_action(cli, "build", "", "Build for only one target for quick Debugging")) {
+    }
+
+
+    if (cli_action(cli, "build", "", "Build for only one target for quick Debugging")) {
         embed_all_assets(tmp);
         build_debug(tmp);
         os_exit(0);
