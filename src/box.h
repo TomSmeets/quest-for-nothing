@@ -35,3 +35,15 @@ static Box box_union_point(Box a, v3 p) {
     if (a.max.z < p.z) a.max.z = p.z;
     return a;
 }
+
+static v3 box_center(Box b) {
+    return b.max * .5 + b.min * .5;
+}
+
+static v3 box_size(Box b) {
+    return b.max - b.min;
+}
+
+static v3 box_radius(Box b) {
+    return b.max * .5 - b.min * .5;
+}
