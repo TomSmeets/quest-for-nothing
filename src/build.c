@@ -10,6 +10,50 @@
 #include "types.h"
 #include "watch.h"
 
+#if 0
+static void build_linux(bool release) {}
+static void build_windows(bool release) {}
+
+static void run() {
+    void *cli = 0;
+
+    bool release = false;
+    bool watch = false;
+
+    bool run = false;
+    u32 run_argc = 0;
+    char **run_argv = 0;
+    for (;;) {
+        if (cli_check(cli, "clean", 0, "Clean build directory")) {
+            //
+        }
+
+        if (cli_check(cli, "linux", 0, "Build Linux")) {
+            build_linux(release);
+        }
+
+        if (cli_check(cli, "windows", 0, "Build Windows")) {
+            build_windows(release);
+        }
+
+        if (cli_check(cli, "all", 0, "Build Everything")) {
+            build_linux(release);
+            build_windows(release);
+        }
+
+        if (cli_check(cli, "release", 0, "Build with optimisations")) release = true;
+        if (cli_check(cli, "debug", 0, "Build without optimisations")) release = false;
+        if (cli_check(cli, "watch", 0, "Watch for changes and build again")) watch = true;
+
+        if (cli_check(cli, "run", "<main.c> [args]", "Run with hot reloading")) {
+            run = true;
+            run_argc = cli.argc;
+            run_argc = cli.argv;
+        }
+    }
+}
+#endif
+
 // Target platform
 typedef enum {
     Platform_Linux,
