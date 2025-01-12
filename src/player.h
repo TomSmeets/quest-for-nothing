@@ -30,6 +30,12 @@ static Player_Input player_parse_input(Input *input) {
     if (key_down(input, KEY_S)) in.move.z -= 1;
     if (key_down(input, KEY_A)) in.move.x += 1;
     if (key_down(input, KEY_D)) in.move.x -= 1;
+
+    if (key_down(input, KEY_I)) in.look.x -= 0.015;
+    if (key_down(input, KEY_K)) in.look.x += 0.015;
+    if (key_down(input, KEY_J)) in.look.y += 0.015;
+    if (key_down(input, KEY_L)) in.look.y -= 0.015;
+
     if (key_down(input, KEY_1)) in.look.z += 1.0f / 8;
     if (key_down(input, KEY_2)) in.look.z -= 1.0f / 8;
     if (key_down(input, KEY_SPACE)) in.jump = 1;

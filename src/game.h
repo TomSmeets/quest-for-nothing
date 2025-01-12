@@ -306,6 +306,39 @@ static Box entity_box(Entity *ent) {
     return box;
 }
 
+static void entity_collide(Engine *eng, Game *game, Entity *mon) {
+    Box box = entity_box(mon);
+    for (Sparse_Collision *col = sparse_check(game->bvh, box); col; col = col->next) {
+        Entity *ent = col->node->user;
+        if (ent == mon) continue;
+        // gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
+        if (ent->is_wall) {
+            m4 wall_inv = m4_invert_tr(ent->mtx);
+            v3 p_local = m4_mul_pos(wall_inv, mon->pos);
+            f32 rx = ent->size.x * .5;
+            f32 ry = ent->size.y * .5;
+            if (p_local.x < -rx) p_local.x = -rx;
+            if (p_local.y < -ry) p_local.y = -ry;
+            if (p_local.x > rx) p_local.x = rx;
+            if (p_local.y > ry) p_local.y = ry;
+            p_local.z = 0;
+
+            v3 p_global = m4_mul_pos(ent->mtx, p_local);
+            v3 dir = p_global - mon->pos;
+            f32 dist = v3_length(dir);
+            f32 pen = (box.max.x - box.min.x) * .5;
+            // fmt_sf(OS_FMT, "D: ", dist, "\n");
+            if (dist < pen) {
+                mon->pos -= dir / dist * (pen - dist);
+                // m4 hit = m4_id();
+                // m4_translate(&hit, p_global);
+                // gfx_debug_mtx(eng->gfx_dbg, hit);
+            }
+        }
+    }
+    sparse_add(game->bvh_next, box, mon);
+}
+
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
     Player *player = game->player;
 
@@ -318,6 +351,8 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         monster_update_eyes(mon, eng);
         monster_update_ai(mon, game, eng);
         monster_collide_with(mon, game->player);
+        entity_collide(eng, game, mon);
+
         monster_wiggle(mon, eng);
         v3 dir = player->pos - mon->pos;
         mon->rot.y = f_atan2(dir.x, dir.z);
@@ -420,42 +455,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     entity_update_movement(pl, eng);
     player_apply_input(eng, pl, &in);
 
-    fmt_s(OS_FMT, "Player: ");
-    fmt_v3(OS_FMT, pl->pos);
-    fmt_s(OS_FMT, "\n");
-
-    Box box = entity_box(pl);
-    for (Sparse_Collision *col = sparse_check(game->bvh, box); col; col = col->next) {
-        Entity *ent = col->node->user;
-        if (ent == pl) continue;
-        gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
-        if (ent->is_wall) {
-            m4 wall_inv = m4_invert_tr(ent->mtx);
-            v3 p_local = m4_mul_pos(wall_inv, pl->pos);
-            f32 rx = ent->size.x * .5;
-            f32 ry = ent->size.y * .5;
-            if (p_local.x < -rx) p_local.x = -rx;
-            if (p_local.y < -ry) p_local.y = -ry;
-            if (p_local.x > rx) p_local.x = rx;
-            if (p_local.y > ry) p_local.y = ry;
-            p_local.z = 0;
-
-            v3 p_global = m4_mul_pos(ent->mtx, p_local);
-            v3 dir = p_global - pl->pos;
-            f32 dist = v3_length(dir);
-            f32 pen = (box.max.x - box.min.x) * .5;
-            fmt_sf(OS_FMT, "D: ", dist, "\n");
-            if (dist < pen) {
-                pl->pos -= dir / dist * (pen - dist);
-
-                m4 hit = m4_id();
-                m4_translate(&hit, p_global);
-                gfx_debug_mtx(eng->gfx_dbg, hit);
-            }
-        }
-    }
-    sparse_add(game->bvh_next, box, pl);
-
+    entity_collide(eng, game, pl);
     if (camera->target == pl) {
         camera_bob(camera, v2_length(pl->vel.xz));
     }
