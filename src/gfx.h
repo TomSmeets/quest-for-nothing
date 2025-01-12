@@ -10,9 +10,6 @@
 #include "texture_packer.h"
 #include "vec.h"
 
-#define GFX_PIXEL_SCALE_UI 4.0f
-#define GFX_PIXEL_SCALE_3D (1.0f / 32.0f)
-
 #define OS_GFX_ATLAS_SIZE 4096
 #define AUDIO_SAMPLE_RATE 48000
 
@@ -150,27 +147,11 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, Gfx_Pass_List *pass) {
         os_gfx_texture(gfx->os, area->pos, img);
     }
 
-    m4 mtx2 = m4_id();
-
-    // Scale to image size, 1 unit = 1 pixel
-    m4_scale(&mtx2, (v3){img->size.x, img->size.y, 1});
-
-    // Center at origin
-    m4_translate_x(&mtx2, (f32)img->size.x / 2.0f - (f32)img->origin.x);
-    m4_translate_y(&mtx2, (f32)img->origin.y - (f32)img->size.y / 2.0f);
-
-    // Scale sing GFX_PIXEL_SCALE
-    f32 pixel_scale = (pass == &gfx->pass_ui) ? GFX_PIXEL_SCALE_UI : GFX_PIXEL_SCALE_3D;
-    m4_scale(&mtx2, (v3){pixel_scale, pixel_scale, 1});
-
-    // Apply quad matrix
-    m4_apply(&mtx2, mtx);
-
     *gfx_pass_quad(gfx, pass) = (OS_Gfx_Quad){
-        .x = {mtx2.x.x, mtx2.x.y, mtx2.x.z},
-        .y = {mtx2.y.x, mtx2.y.y, mtx2.y.z},
-        .z = {mtx2.z.x, mtx2.z.y, mtx2.z.z},
-        .w = {mtx2.w.x, mtx2.w.y, mtx2.w.z},
+        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
+        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
+        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
+        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
         .uv_pos = {(f32)area->pos.x / OS_GFX_ATLAS_SIZE, (f32)area->pos.y / OS_GFX_ATLAS_SIZE},
         .uv_size = {(f32)img->size.x / OS_GFX_ATLAS_SIZE, (f32)img->size.y / OS_GFX_ATLAS_SIZE},
     };

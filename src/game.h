@@ -27,6 +27,31 @@ Game Design V1.0
 - walls can be painted
 */
 
+#define GFX_PIXEL_SCALE_UI 4.0f
+#define GFX_PIXEL_SCALE_3D (1.0f / 32.0f)
+
+static void m4_image_at_scale(m4 *mtx, Image *img, f32 scale) {
+    v2 size = { img->size.x, img->size.y };
+    v2 origin = { img->origin.x, img->origin.y };
+    size   *= scale;
+    origin *= scale;
+
+    // Scale to image size, 1 unit = 1 pixel
+    m4_scale(mtx, (v3){size.x,size.y, 1});
+
+    // Center at origin
+    m4_translate_x(mtx, 0.5*size.x - origin.x);
+    m4_translate_y(mtx, origin.y - 0.5*size.y);
+}
+
+static void m4_image_3d(m4 *mtx, Image *img) {
+    m4_image_at_scale(mtx, img, GFX_PIXEL_SCALE_3D);
+}
+
+static void m4_image_ui(m4 *mtx, Image *img) {
+    m4_image_at_scale(mtx, img, GFX_PIXEL_SCALE_UI);
+}
+
 #define SHADOW_OFFSET 0.01
 #define MONSTER_OFFSET 0.02
 
@@ -291,6 +316,7 @@ static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
     shadow_pos.y = SHADOW_OFFSET;
 
     m4 shadow_mtx = m4_id();
+    m4_image_3d(&shadow_mtx, image);
     m4_rotate_x(&shadow_mtx, -R1);
     m4_translate(&shadow_mtx, shadow_pos);
     gfx_quad_3d(eng->gfx, shadow_mtx, image);
@@ -368,7 +394,6 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         m4_rotate_z(&mon->mtx, mon->rot.z);
         m4_rotate_x(&mon->mtx, mon->rot.x);
         m4_rotate_y(&mon->mtx, mon->rot.y);
-        m4_translate_y(&mon->mtx, MONSTER_OFFSET);
         m4_translate(&mon->mtx, mon->pos);
 
         mon->head_mtx = m4_id();
@@ -377,13 +402,23 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
         // gfx_draw_mtx(eng, mon->head_mtx);
     }
 
-    if (mon->image) gfx_quad_3d(eng->gfx, mon->mtx, mon->image);
-    if (mon->shadow && is_alive) draw_shadow(eng, mon->mtx.w, mon->shadow);
+    if (mon->image) {
+        m4 mtx = m4_id();
+        m4_image_3d(&mtx, mon->image);
+        m4_apply(&mtx, mon->mtx);
+        m4_translate_y(&mtx, MONSTER_OFFSET);
+        gfx_quad_3d(eng->gfx, mtx, mon->image);
+    }
+
+    if (mon->shadow && is_alive) {
+        draw_shadow(eng, mon->mtx.w, mon->shadow);
+    }
 
     // Draw Gun
     {
         f32 aliveness = 1.0 - mon->death_animation;
         m4 mtx = m4_id();
+        m4_image_3d(&mtx, game->gun);
         m4_translate_x(&mtx, -0.1 - 0.1 * mon->death_animation);
         m4_rotate_z(&mtx, -R1 * mon->death_animation * 0.2);
         m4_rotate_y(&mtx, R1 * .8 * aliveness);
@@ -535,6 +570,7 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // Draw Gun
     {
         m4 mtx = m4_id();
+        m4_image_3d(&mtx, game->gun);
         m4_rotate_y(&mtx, R1);
         m4_rotate_x(&mtx, BLEND(0, -R1 * .2, pl->recoil_animation));
         m4_translate_x(&mtx, -0.2);
@@ -545,7 +581,9 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     }
 
     if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
-    if (pl->image) gfx_quad_3d(eng->gfx, pl->mtx, pl->image);
+    if (pl->image) {
+        gfx_quad_3d(eng->gfx, pl->mtx, pl->image);
+    }
     // gfx_draw_mtx(eng, pl->head_mtx);
 }
 
