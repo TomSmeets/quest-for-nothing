@@ -424,13 +424,11 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     fmt_v3(OS_FMT, pl->pos);
     fmt_s(OS_FMT, "\n");
 
-    Sparse_Collision iter = {};
     Box box = entity_box(pl);
-    for (;;) {
-        Entity *ent = sparse_check(game->bvh, box, &iter);
-        if (!ent) break;
+    for (Sparse_Collision *col = sparse_check(game->bvh, box); col; col = col->next) {
+        Entity *ent = col->node->user;
         if (ent == pl) continue;
-
+        gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
         if (ent->is_wall) {
             m4 wall_inv = m4_invert_tr(ent->mtx);
             v3 p_local = m4_mul_pos(wall_inv, pl->pos);
