@@ -100,7 +100,10 @@ static void fmt_sv3(Fmt *fmt, char *a0, v3 a1, char *a2) {
     fmt_s(fmt, a2);
 }
 
-// Cross product
+// 3d Vecotro Cross product
+// cross(x,y) = z
+// cross(y,z) = x
+// cross(z,x) = y
 static v3 v3_cross(v3 a, v3 b) {
     v3 res;
     res.x = a.y*b.z - a.z*b.y;
