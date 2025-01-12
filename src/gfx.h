@@ -126,7 +126,8 @@ static OS_Gfx_Quad *gfx_pass_quad(Gfx *gfx, Gfx_Pass_List *pass_list) {
 
     // If the pass is full or not exiting, creat a new one
     if (!pass || pass->quad_count == array_count(pass->quad_list)) {
-        pass = mem_struct(gfx->tmp, Gfx_Pass);
+        pass = mem_array_uninit(gfx->tmp, Gfx_Pass, 1);
+        pass->quad_count = 0;
         LIST_APPEND(pass_list->first, pass_list->last, pass);
     }
 
