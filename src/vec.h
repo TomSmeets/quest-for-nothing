@@ -99,3 +99,12 @@ static void fmt_sv3(Fmt *fmt, char *a0, v3 a1, char *a2) {
     fmt_v3(fmt, a1);
     fmt_s(fmt, a2);
 }
+
+// Cross product
+static v3 v3_cross(v3 a, v3 b) {
+    v3 res;
+    res.x = a.y*b.z - a.z*b.y;
+    res.y = a.z*b.x - a.x*b.z;
+    res.z = a.x*b.y - a.y*b.x;
+    return res;
+}
