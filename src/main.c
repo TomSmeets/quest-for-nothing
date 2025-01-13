@@ -122,7 +122,7 @@ static void os_main(OS *os) {
     draw_cursor(app);
     game_update(app->game, eng);
 
-    if (app->game->debug) {
+    if (app->game->debug == DBG_Texture) {
         *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (OS_Gfx_Quad){
             .x = {400, 0, 0},
             .y = {0, 400, 0},

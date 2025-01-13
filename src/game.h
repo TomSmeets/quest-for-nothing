@@ -31,17 +31,17 @@ Game Design V1.0
 #define GFX_PIXEL_SCALE_3D (1.0f / 32.0f)
 
 static void m4_image_at_scale(m4 *mtx, Image *img, f32 scale) {
-    v2 size = { img->size.x, img->size.y };
-    v2 origin = { img->origin.x, img->origin.y };
-    size   *= scale;
+    v2 size = {img->size.x, img->size.y};
+    v2 origin = {img->origin.x, img->origin.y};
+    size *= scale;
     origin *= scale;
 
     // Scale to image size, 1 unit = 1 pixel
-    m4_scale(mtx, (v3){size.x,size.y, 1});
+    m4_scale(mtx, (v3){size.x, size.y, 1});
 
     // Center at origin
-    m4_translate_x(mtx, 0.5*size.x - origin.x);
-    m4_translate_y(mtx, origin.y - 0.5*size.y);
+    m4_translate_x(mtx, 0.5 * size.x - origin.x);
+    m4_translate_y(mtx, origin.y - 0.5 * size.y);
 }
 
 static void m4_image_3d(m4 *mtx, Image *img) {
@@ -55,13 +55,21 @@ static void m4_image_ui(m4 *mtx, Image *img) {
 #define SHADOW_OFFSET 0.01
 #define MONSTER_OFFSET 0.02
 
+typedef enum {
+    DBG_None,
+    DBG_Entity,
+    DBG_Texture,
+    DBG_Collision,
+    DBG_COUNT,
+} Game_Debug;
+
 typedef struct {
     Memory *mem;
     Player *player;
     Monster *monsters;
     Image *gun;
     Camera camera;
-    bool debug;
+    u32 debug;
 
     Sparse *bvh;
     Sparse *bvh_next;
@@ -337,6 +345,7 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
     for (Sparse_Collision *col = sparse_check(game->bvh, box); col; col = col->next) {
         Entity *ent = col->node->user;
         if (ent == mon) continue;
+        // gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
         // gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
         if (ent->is_wall) {
             m4 wall_inv = m4_invert_tr(ent->mtx);
@@ -363,6 +372,7 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
         }
     }
     sparse_add(game->bvh_next, box, mon);
+    // gfx_debug_box(eng->gfx_dbg, box, 0);
 }
 
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
@@ -371,7 +381,6 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     bool is_alive = mon->health > 0;
 
     entity_update_movement(mon, eng);
-    sparse_add(game->bvh_next, entity_box(mon), mon);
 
     if (is_alive) {
         monster_update_eyes(mon, eng);
@@ -589,7 +598,10 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
 
 static void wall_update(Game *game, Engine *eng, Entity *ent) {
     v2 size = v2u_to_v2(ent->image->size) / 32.0f;
-    gfx_quad_3d(eng->gfx, ent->mtx, ent->image);
+    m4 mtx = m4_id();
+    m4_image_3d(&mtx, ent->image);
+    m4_apply(&mtx, ent->mtx);
+    gfx_quad_3d(eng->gfx, mtx, ent->image);
 
     v3 p0 = m4_mul_pos(ent->mtx, (v3){-0.5 * size.x, -0.5 * size.y, 0});
     v3 p1 = m4_mul_pos(ent->mtx, (v3){0.5 * size.x, -0.5 * size.y, 0});
@@ -606,13 +618,28 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game, eng);
     if (ent->is_player) player_update(ent, game, eng);
     if (ent->is_wall) wall_update(game, eng, ent);
-    if (game->debug) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
+    if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
     if (!game->bvh) game->bvh = sparse_new(mem_new());
     game->bvh_next = sparse_new(mem_new());
+
+    if (game->debug == DBG_Collision) {
+        for (Sparse_Cell *cell = game->bvh->cells; cell; cell = cell->next) {
+            for (Sparse_Node *node = cell->nodes; node; node = node->next) {
+                if (node->user == game->player) {
+                    gfx_debug_box(eng->gfx_dbg, cell->box, 0);
+                    for (Sparse_Node *node = cell->nodes; node; node = node->next) {
+                        gfx_debug_box(eng->gfx_dbg, node->box, 1);
+                        v3 p = v3i_to_v3(cell->pos) * SPARSE_BOX_SIZE;
+                        gfx_debug_line(eng->gfx_dbg, p, box_center(node->box), 2);
+                    }
+                }
+            }
+        }
+    }
 
     // Toggle freecam
     if (key_click(eng->input, KEY_3)) {
@@ -621,7 +648,7 @@ static void game_update(Game *game, Engine *eng) {
 
     // Toggle debug drawing
     if (key_click(eng->input, KEY_4)) {
-        game->debug = !game->debug;
+        game->debug = (game->debug + 1) % DBG_COUNT;
     }
 
     camera_input(&game->camera, &input, eng->dt);

@@ -46,7 +46,8 @@ static Sparse *sparse_new(Memory *mem) {
 }
 
 static void sparse_add(Sparse *sparse, Box box, void *user) {
-    v3i pos = v3_to_v3i(box_center(box) / SPARSE_BOX_SIZE);
+    v3i pos = v3_to_v3i(box_center(box) * 1.0f / SPARSE_BOX_SIZE + (v3){0.5, 0.0, 0.5});
+    pos.y = 0;
 
     // Find Cell at pos
     Sparse_Cell *cell = sparse->cells;
