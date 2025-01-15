@@ -102,6 +102,7 @@ static void draw_cursor(App *app) {
     Gfx *gfx = eng->gfx;
 
     m4 mtx = m4_id();
+    m4_image_ui(&mtx, cursor);
     if (!input->mouse_is_grabbed) {
         m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
     }
