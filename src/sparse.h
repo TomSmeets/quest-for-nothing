@@ -36,8 +36,12 @@ struct Sparse_Cell {
 
 struct Sparse {
     Memory *mem;
-    Sparse_Cell *cells;
+    Sparse_Cell *cells[32 * 32];
 };
+
+static u32 _sparse_hash(v3i pos) {
+    return (pos.x % 32) + (pos.z % 32) * 32;
+}
 
 static Sparse *sparse_new(Memory *mem) {
     Sparse *sparse = mem_struct(mem, Sparse);
@@ -49,8 +53,10 @@ static void sparse_add(Sparse *sparse, Box box, void *user) {
     v3i pos = v3_to_v3i(box_center(box) * 1.0f / SPARSE_BOX_SIZE + (v3){0.5, 0.0, 0.5});
     pos.y = 0;
 
+    Sparse_Cell **cell_list = sparse->cells + _sparse_hash(pos);
+
     // Find Cell at pos
-    Sparse_Cell *cell = sparse->cells;
+    Sparse_Cell *cell = *cell_list;
     for (;;) {
         if (!cell) break;
         if (v3i_eq(cell->pos, pos)) break;
@@ -62,8 +68,8 @@ static void sparse_add(Sparse *sparse, Box box, void *user) {
         cell = mem_struct(sparse->mem, Sparse_Cell);
         cell->pos = pos;
         cell->box = box;
-        cell->next = sparse->cells;
-        sparse->cells = cell;
+        cell->next = *cell_list;
+        *cell_list = cell;
     } else {
         // Cell exists, grow box
         cell->box = box_union(cell->box, box);
@@ -79,14 +85,16 @@ static void sparse_add(Sparse *sparse, Box box, void *user) {
 
 static Sparse_Collision *sparse_check(Sparse *sparse, Box box) {
     Sparse_Collision *col_list = 0;
-    for (Sparse_Cell *cell = sparse->cells; cell; cell = cell->next) {
-        if (!box_intersect(cell->box, box)) continue;
-        for (Sparse_Node *node = cell->nodes; node; node = node->next) {
-            if (!box_intersect(node->box, box)) continue;
-            Sparse_Collision *col = mem_struct(sparse->mem, Sparse_Collision);
-            col->next = col_list;
-            col->node = node;
-            col_list = col;
+    for (u32 i = 0; i < array_count(sparse->cells); ++i) {
+        for (Sparse_Cell *cell = sparse->cells[i]; cell; cell = cell->next) {
+            if (!box_intersect(cell->box, box)) continue;
+            for (Sparse_Node *node = cell->nodes; node; node = node->next) {
+                if (!box_intersect(node->box, box)) continue;
+                Sparse_Collision *col = mem_struct(sparse->mem, Sparse_Collision);
+                col->next = col_list;
+                col->node = node;
+                col_list = col;
+            }
         }
     }
     return col_list;
