@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // build.c - Dynamically compile and reload interactive programs
 #include "cli.h"
-#include "embed.h"
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
@@ -192,7 +191,6 @@ typedef void os_main_t(OS *os);
 
 static os_main_t *build_and_load(Memory *tmp, char *main_path, u64 counter) {
     // Generate 'asset.h'
-    embed_all_assets(tmp);
 
 #if OS_IS_WINDOWS
     sdl2_download_dll();
@@ -401,19 +399,15 @@ static Hot *hot_init(OS *os) {
     } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
     } else if (cli_action(cli, "build", "", "Build for only one target for quick Debugging")) {
-        embed_all_assets(tmp);
         build_debug(tmp);
         os_exit(0);
     } else if (cli_action(cli, "debug", "", "Build all targets in Debug mode")) {
-        embed_all_assets(tmp);
         build_release(tmp, false);
         os_exit(0);
     } else if (cli_action(cli, "release", "", "Build all targets in Release mode")) {
-        embed_all_assets(tmp);
         build_release(tmp, true);
         os_exit(0);
     } else if (cli_action(cli, "upload", "", "Build release and upload to https://tsmeets.itch.io/quest-for-nothing and https://tsmeets.nl/qfn")) {
-        embed_all_assets(tmp);
         if (!build_release(tmp, true)) os_exit(1);
         hot_system("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')");
         hot_system("butler push out/release tsmeets/quest-for-nothing:release-web --userversion $(date +'%F')");
@@ -423,7 +417,6 @@ static Hot *hot_init(OS *os) {
         assert(hot_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
     } else if (cli_action(cli, "asset", "", "Build asset.h")) {
-        embed_all_assets(tmp);
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
         assert(hot_system("clang-format --verbose -i src/*"), "Format failed!");
@@ -473,7 +466,6 @@ void os_main(OS *os) {
     }
 
     if (hot->action_build && changed) {
-        embed_all_assets(tmp);
         build_debug(tmp);
     }
     mem_free(tmp);

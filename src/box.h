@@ -2,7 +2,6 @@
 // box.h - AABB
 #pragma once
 #include "vec.h"
-#include <math.h>
 
 typedef struct {
     v3 min;
