@@ -161,7 +161,7 @@ static m4 m4_invert_tr(m4 m) {
     f32 l2 = v3_length_sq(m.y);
     f32 l3 = v3_length_sq(m.z);
 
-    if (1) {
+    if (0) {
         assert(l1 <= 1.0f + 0.01 && l1 >= 1.0f - 0.01, "Matrix has scaling in x");
         assert(l2 <= 1.0f + 0.01 && l2 >= 1.0f - 0.01, "Matrix has scaling in y");
         assert(l3 <= 1.0f + 0.01 && l3 >= 1.0f - 0.01, "Matrix has scaling in z");

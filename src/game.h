@@ -194,33 +194,37 @@ typedef struct {
     f32 distance;
 } Collide_Result;
 
-static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_dir) {
-    Collide_Result result = {0};
-    m4 quad_inv = m4_invert_tr(quad);
-    v3 ray_pos_local = m4_mul_pos(quad_inv, ray_pos);
-    v3 ray_dir_local = m4_mul_dir(quad_inv, ray_dir);
+static Collide_Result collide_quad_ray(m4 quad_mtx, Image *img, v3 ray_pos, v3 ray_dir) {
+    Collide_Result result = {};
+
+    Quad quad = {quad_mtx, v2u_to_v2(img->size) * 0.5f * GFX_PIXEL_SCALE_3D};
+
+    // Matrix inverse, can calculate points from Global to Local
+    m4 mtx_inv = m4_invert_tr(quad.mtx);
+
+    // Compute Ray position and direction in quad local space
+    v3 ray_pos_local = m4_mul_pos(mtx_inv, ray_pos);
+    v3 ray_dir_local = m4_mul_dir(mtx_inv, ray_dir);
+
+    // Total distance to the plane along the ray
     f32 distance = ray_pos_local.z / -ray_dir_local.z;
+
+    // Ray moves away from plane
     if (distance < 0) return result;
 
+    // Compute ray hit position
     v3 hit_local = ray_pos_local + ray_dir_local * distance;
     v3 hit_global = ray_pos + ray_dir * distance;
 
-    f32 image_scale = 1.0f / 32.0f;
-    v2 min = {0, 0};
-    v2 max = {img->size.x * image_scale, img->size.y * image_scale};
-
-    v2 origin = v2u_to_v2(img->origin);
-    origin.y = img->size.y - origin.y - 1;
-
-    min -= origin * image_scale;
-    max -= origin * image_scale;
+    v2 min = -quad.radius;
+    v2 max = quad.radius;
 
     if (hit_local.x > max.x) return result;
     if (hit_local.x < min.x) return result;
     if (hit_local.y > max.y) return result;
     if (hit_local.y < min.y) return result;
 
-    v2 pixel = (hit_local.xy - min) / image_scale;
+    v2 pixel = (hit_local.xy - min) / GFX_PIXEL_SCALE_3D;
     pixel.y = img->size.y - pixel.y - 1;
 
     v4 *px = image_get(img, (v2i){pixel.x, pixel.y});
@@ -279,7 +283,7 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
         Monster *best_monster = 0;
         for (Monster *mon = game->monsters; mon; mon = mon->next) {
             if (mon == pl) continue;
-            Collide_Result result = collide_quad_ray(mon->mtx, mon->image, ray_pos, ray_dir);
+            Collide_Result result = collide_quad_ray(mon->image_mtx, mon->image, ray_pos, ray_dir);
             if (!result.hit) continue;
             if (best_result.hit && result.distance > best_result.distance) continue;
             best_monster = mon;
@@ -349,6 +353,7 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
     m4_image_3d(&mtx, ent->image);
     m4_apply(&mtx, ent->mtx);
     gfx_quad_3d(eng->gfx, mtx, ent->image);
+    ent->image_mtx = mtx;
 
     Box box = box_from_quad((Quad){ent->mtx, size * .5});
     sparse_set_add(game->sparse, box, ent);

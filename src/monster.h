@@ -234,6 +234,7 @@ static void monster_update(Monster *mon, Entity *player, Image *gun, Sparse_Set 
         m4_apply(&mtx, mon->mtx);
         m4_translate_y(&mtx, MONSTER_OFFSET);
         gfx_quad_3d(eng->gfx, mtx, mon->image);
+        mon->image_mtx = mtx;
     }
 
     if (mon->shadow && is_alive) {

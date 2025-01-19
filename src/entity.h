@@ -28,6 +28,7 @@ struct Entity {
     // Used for collision and rendering
     m4 mtx;
 
+    m4 image_mtx;
     // Entity Head Orientation. (TR Matrix)
     // - Gun direction
     // - Camera direction
