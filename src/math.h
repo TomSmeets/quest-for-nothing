@@ -200,3 +200,31 @@ static f32 f_remap(f32 x, f32 xl, f32 xh, f32 yl, f32 yh) {
     f32 y = (x - xl) / (xh - xl);
     return y * (yh - yl) + yl;
 }
+
+// Animate (TODO: fix)
+static f32 animate(f32 x, f32 dt) {
+    x += dt;
+    return f_clamp(x, 0, 1);
+}
+
+static bool animate2(f32 *x, f32 dt) {
+    *x -= dt;
+    return *x <= 0;
+}
+
+static void animate_exp(f32 *value, f32 target, f32 dt) {
+    *value += (target - *value) * dt;
+}
+
+static bool animate_lin(f32 *value, f32 target, f32 dt) {
+    if (*value > target + dt) {
+        *value -= dt;
+        return false;
+    } else if (*value < target - dt) {
+        *value += dt;
+        return false;
+    } else {
+        *value = target;
+        return true;
+    }
+}

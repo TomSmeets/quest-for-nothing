@@ -29,34 +29,6 @@ Game Design V1.0
 - walls can be painted
 */
 
-#define GFX_PIXEL_SCALE_UI 4.0f
-#define GFX_PIXEL_SCALE_3D (1.0f / 32.0f)
-
-static void m4_image_at_scale(m4 *mtx, Image *img, f32 scale) {
-    v2 size = {img->size.x, img->size.y};
-    v2 origin = {img->origin.x, img->origin.y};
-    size *= scale;
-    origin *= scale;
-
-    // Scale to image size, 1 unit = 1 pixel
-    m4_scale(mtx, (v3){size.x, size.y, 1});
-
-    // Center at origin
-    m4_translate_x(mtx, 0.5 * size.x - origin.x);
-    m4_translate_y(mtx, origin.y - 0.5 * size.y);
-}
-
-static void m4_image_3d(m4 *mtx, Image *img) {
-    m4_image_at_scale(mtx, img, GFX_PIXEL_SCALE_3D);
-}
-
-static void m4_image_ui(m4 *mtx, Image *img) {
-    m4_image_at_scale(mtx, img, GFX_PIXEL_SCALE_UI);
-}
-
-#define SHADOW_OFFSET 0.01
-#define MONSTER_OFFSET 0.02
-
 typedef enum {
     DBG_None,
     DBG_Entity,
@@ -178,65 +150,6 @@ static Game *game_new(Random *rng) {
     return game;
 }
 
-static f32 animate(f32 x, f32 dt) {
-    x += dt;
-    return f_clamp(x, 0, 1);
-}
-
-static bool animate2(f32 *x, f32 dt) {
-    *x -= dt;
-    return *x <= 0;
-}
-
-static void animate_exp(f32 *value, f32 target, f32 dt) {
-    *value += (target - *value) * dt;
-}
-
-static bool animate_lin(f32 *value, f32 target, f32 dt) {
-    if (*value > target + dt) {
-        *value -= dt;
-        return false;
-    } else if (*value < target - dt) {
-        *value += dt;
-        return false;
-    } else {
-        *value = target;
-        return true;
-    }
-}
-
-static void monster_update_eyes(Entity *mon, Engine *eng) {
-    if (animate2(&mon->look_around_timer, eng->dt)) {
-        mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
-        monster_sprite_update_eyes(&mon->sprite, &eng->rng);
-    }
-}
-
-static void monster_update_ai(Entity *mon, Game *game, Engine *eng) {
-    // Apply movement
-    mon->pos.xz += mon->move_dir.xy * eng->dt;
-
-    // AI movement
-    if (animate2(&mon->move_time, eng->dt)) {
-        mon->move_time = rand_f32_range(&eng->rng, 2, 10);
-
-        // AI Movement mode
-        u32 mode = rand_u32_range(&eng->rng, 0, 2);
-
-        // Stand still
-        if (mode == 0) mon->move_dir = 0;
-
-        // To player
-        if (mode == 1) mon->move_dir = v2_normalize(game->player->pos.xz - mon->pos.xz) * 0.1;
-
-        // Random direction
-        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
-    }
-
-    // Look direction
-    mon->look_dir = v3_normalize((game->player->pos - mon->pos) * (v3){1, 0, 1});
-}
-
 static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
     // Update player head rotation
     // x -> pitch
@@ -271,180 +184,6 @@ static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
     move.xz = v2_limit(move.xz, 0, 1);
     move.y = in->move.y * ent->is_flying;
     ent->pos += move * 2.0 * eng->dt;
-}
-
-static void entity_update_movement(Monster *mon, Engine *eng) {
-    bool do_gravity = !mon->is_flying;
-    bool do_ground_collision = !mon->is_flying;
-
-    // Reset state
-    mon->on_ground = false;
-
-    // Physics
-    v3 vel_dt = mon->pos - mon->pos_old;
-    mon->vel = vel_dt / eng->dt;
-    mon->pos_old = mon->pos;
-
-    if (do_gravity) {
-        mon->pos.y -= 9.81 * eng->dt * eng->dt;
-        mon->pos.y += vel_dt.y;
-    }
-
-    if (do_ground_collision && mon->pos.y < 0) {
-        mon->pos.y = 0;
-        mon->on_ground = true;
-    }
-}
-
-static void monster_collide_with(Monster *mon, Entity *player) {
-    // Collision (with player)
-    v2 player_dir = player->pos.xz - mon->pos.xz;
-    f32 player_distance = v2_length(player_dir);
-    f32 penetration = mon->size.x * 0.5 + player->size.x * .5 - player_distance;
-
-    bool collide_y = player->pos.y < mon->pos.y + mon->size.y && player->pos.y + player->size.y > mon->pos.y;
-    bool collide_x = penetration > 0;
-
-    if (collide_y && collide_x) {
-        mon->pos.xz -= player_dir * penetration / player_distance;
-    }
-}
-
-static void monster_wiggle(Monster *mon, Engine *eng) {
-    // ==== Animation ====
-    f32 speed = f_min(v3_length(mon->vel), 0.6);
-    animate_exp(&mon->wiggle_amp, speed, eng->dt * 4);
-    mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp * 0.08);
-}
-
-static void monster_die(Monster *mon, Engine *eng) {
-    mon->wiggle_amp = 0;
-    mon->wiggle_phase = 0;
-    animate_lin(&mon->death_animation, 1, eng->dt * 4);
-}
-
-static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
-    shadow_pos.y = SHADOW_OFFSET;
-
-    m4 shadow_mtx = m4_id();
-    m4_image_3d(&shadow_mtx, image);
-    m4_rotate_x(&shadow_mtx, -R1);
-    m4_translate(&shadow_mtx, shadow_pos);
-    gfx_quad_3d(eng->gfx, shadow_mtx, image);
-}
-
-static void entity_collide(Engine *eng, Game *game, Entity *mon) {
-    // Construct a bounding box around the monster
-    Shape shape = monster_shape(mon);
-    Box box = box_from_shape(shape);
-
-    // Add entity to the BVH
-    sparse_set_add(game->sparse, box, mon);
-
-    // Check all colliding bounding boxes
-    for (Sparse_Collision *col = sparse_set_check(game->sparse, box); col; col = col->next) {
-        Entity *ent = col->node->user;
-
-        // Skip collisions with myself
-        if (ent == mon) continue;
-
-        if (ent->is_monster) {
-            Shape other = monster_shape(ent);
-            Collision_Result res = collide_shape(shape, other);
-            if (!res.collision) break;
-            collide_push(res, &mon->pos, &ent->pos);
-        }
-
-        // Draw colliding box
-        gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
-        if (ent->is_wall) {
-            m4 wall_inv = m4_invert_tr(ent->mtx);
-            v3 p_local = m4_mul_pos(wall_inv, mon->pos);
-            f32 rx = ent->size.x * .5;
-            f32 ry = ent->size.y * .5;
-            if (p_local.x < -rx) p_local.x = -rx;
-            if (p_local.y < -ry) p_local.y = -ry;
-            if (p_local.x > rx) p_local.x = rx;
-            if (p_local.y > ry) p_local.y = ry;
-            p_local.z = 0;
-
-            v3 p_global = m4_mul_pos(ent->mtx, p_local);
-            v3 dir = p_global - mon->pos;
-            f32 dist = v3_length(dir);
-            f32 pen = (box.max.x - box.min.x) * .5;
-            // fmt_sf(OS_FMT, "D: ", dist, "\n");
-            if (dist < pen) {
-                mon->pos -= dir / dist * (pen - dist);
-                // m4 hit = m4_id();
-                // m4_translate(&hit, p_global);
-                // gfx_debug_mtx(eng->gfx_dbg, hit);
-            }
-        }
-    }
-}
-
-static void monster_update(Monster *mon, Game *game, Engine *eng) {
-    Entity *player = game->player;
-
-    bool is_alive = mon->health > 0;
-
-    entity_update_movement(mon, eng);
-
-    if (is_alive) {
-        monster_update_eyes(mon, eng);
-        monster_update_ai(mon, game, eng);
-        // monster_collide_with(mon, game->player);
-        entity_collide(eng, game, mon);
-
-        monster_wiggle(mon, eng);
-        v3 dir = player->pos - mon->pos;
-        mon->rot.y = f_atan2(dir.x, dir.z);
-        mon->rot.z = R1 * f_sin2pi(mon->wiggle_phase) * mon->wiggle_amp * 0.25;
-    } else {
-        monster_die(mon, eng);
-        mon->rot.x = -mon->death_animation * R1;
-    }
-
-    // Update matricies
-    if (mon->is_monster || mon->is_player) {
-        mon->mtx = m4_id();
-        m4_rotate_z(&mon->mtx, mon->rot.z);
-        m4_rotate_x(&mon->mtx, mon->rot.x);
-        m4_rotate_y(&mon->mtx, mon->rot.y);
-        m4_translate(&mon->mtx, mon->pos);
-
-        mon->head_mtx = m4_id();
-        m4_translate_y(&mon->head_mtx, mon->size.y * .7);
-        m4_apply(&mon->head_mtx, mon->mtx);
-        // gfx_draw_mtx(eng, mon->head_mtx);
-    }
-
-    if (mon->image) {
-        m4 mtx = m4_id();
-        m4_image_3d(&mtx, mon->image);
-        m4_apply(&mtx, mon->mtx);
-        m4_translate_y(&mtx, MONSTER_OFFSET);
-        gfx_quad_3d(eng->gfx, mtx, mon->image);
-    }
-
-    if (mon->shadow && is_alive) {
-        draw_shadow(eng, mon->mtx.w, mon->shadow);
-    }
-
-    // Draw Gun
-    {
-        f32 aliveness = 1.0 - mon->death_animation;
-        m4 mtx = m4_id();
-        m4_image_3d(&mtx, game->gun);
-        m4_translate_x(&mtx, -0.1 - 0.1 * mon->death_animation);
-        m4_rotate_z(&mtx, -R1 * mon->death_animation * 0.2);
-        m4_rotate_y(&mtx, R1 * .8 * aliveness);
-        m4_translate_y(&mtx, (f32)(mon->sprite.image->size.y - mon->sprite.hand[0].y) / 32.0);
-        m4_translate_x(&mtx, -(f32)mon->sprite.hand[0].x / 32.0 * 0.5f * 0.9);
-        m4_apply(&mtx, mon->mtx);
-        // gfx_draw_mtx(eng, mtx);
-        gfx_quad_3d(eng->gfx, mtx, game->gun);
-    }
 }
 
 typedef struct {
@@ -507,7 +246,7 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
     entity_update_movement(pl, eng);
     player_apply_input(eng, pl, &in);
 
-    entity_collide(eng, game, pl);
+    entity_collide(eng, game->sparse, pl);
     if (camera->target == pl) {
         camera_bob(camera, v2_length(pl->vel.xz));
     }
@@ -616,7 +355,7 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
-    if (ent->is_monster) monster_update(ent, game, eng);
+    if (ent->is_monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
     if (ent->is_player) player_update(ent, game, eng);
     if (ent->is_wall) wall_update(game, eng, ent);
     if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
