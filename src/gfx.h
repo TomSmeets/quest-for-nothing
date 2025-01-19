@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx.h - Graphics, Audio, and Input handling abstraction implementation
 #pragma once
-#include "asset.h"
 #include "image.h"
 #include "input.h"
 #include "mat.h"
