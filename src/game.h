@@ -11,7 +11,7 @@
 #include "monster.h"
 #include "player.h"
 #include "rand.h"
-#include "sparse.h"
+#include "sparse_set.h"
 #include "types.h"
 #include "vec.h"
 
@@ -71,8 +71,7 @@ typedef struct {
     Camera camera;
     u32 debug;
 
-    Sparse *bvh;
-    Sparse *bvh_next;
+    Sparse_Set *sparse;
 } Game;
 
 static Image *gen_gun(Memory *mem, Random *rng) {
@@ -172,6 +171,8 @@ static Game *game_new(Random *rng) {
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
     game->camera.target = game->player;
+
+    game->sparse = sparse_set_new(mem);
     return game;
 }
 
@@ -342,7 +343,7 @@ static Box entity_box(Entity *ent) {
 
 static void entity_collide(Engine *eng, Game *game, Entity *mon) {
     Box box = entity_box(mon);
-    for (Sparse_Collision *col = sparse_check(game->bvh, box); col; col = col->next) {
+    for (Sparse_Collision *col = sparse_set_check(game->sparse, box); col; col = col->next) {
         Entity *ent = col->node->user;
         if (ent == mon) continue;
         // gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
@@ -371,7 +372,7 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
             }
         }
     }
-    sparse_add(game->bvh_next, box, mon);
+    sparse_set_add(game->sparse, box, mon);
     // gfx_debug_box(eng->gfx_dbg, box, 0);
 }
 
@@ -596,6 +597,19 @@ static void player_update(Player *pl, Game *game, Engine *eng) {
     // gfx_draw_mtx(eng, pl->head_mtx);
 }
 
+static Box m4_to_box(m4 mtx) {
+    Box box = {.min = mtx.w, .max = mtx.w};
+    for (u32 dz = 0; dz < 2; ++dz) {
+        for (u32 dy = 0; dy < 2; ++dy) {
+            for (u32 dx = 0; dx < 2; ++dx) {
+                v3 p = mtx.w + dx * mtx.x + dy * mtx.y + dz * mtx.z;
+                box_union_point(box, p);
+            }
+        }
+    }
+    return box;
+}
+
 static void wall_update(Game *game, Engine *eng, Entity *ent) {
     v2 size = v2u_to_v2(ent->image->size) / 32.0f;
     m4 mtx = m4_id();
@@ -611,7 +625,7 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
     box = box_union_point(box, p1);
     box = box_union_point(box, p2);
     box = box_union_point(box, p3);
-    sparse_add(game->bvh_next, box, ent);
+    sparse_set_add(game->sparse, box, ent);
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
@@ -623,12 +637,10 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
 
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
-    if (!game->bvh) game->bvh = sparse_new(mem_new());
-    game->bvh_next = sparse_new(mem_new());
 
     if (game->debug == DBG_Collision) {
-        for (u32 i = 0; i < array_count(game->bvh->cells); ++i) {
-            for (Sparse_Cell *cell = game->bvh->cells[i]; cell; cell = cell->next) {
+        for (u32 i = 0; i < array_count(game->sparse->old->cells); ++i) {
+            for (Sparse_Cell *cell = game->sparse->old->cells[i]; cell; cell = cell->next) {
                 for (Sparse_Node *node = cell->nodes; node; node = node->next) {
                     if (node->user == game->player) {
                         gfx_debug_box(eng->gfx_dbg, cell->box, 0);
@@ -662,8 +674,7 @@ static void game_update(Game *game, Engine *eng) {
     camera_update(&game->camera, eng->dt);
 
     // Update bvh
-    mem_free(game->bvh->mem);
-    game->bvh = game->bvh_next;
+    sparse_set_swap(game->sparse);
 }
 
 static void game_free(Game *game) {
