@@ -2,11 +2,19 @@
 // box.h - AABB
 #pragma once
 #include "vec.h"
+#include <math.h>
 
 typedef struct {
     v3 min;
     v3 max;
 } Box;
+
+// Empty box, only valid after calling box_union
+// > union(box_empty, X) = X
+static Box box_empty(void) {
+    f32 inf = __builtin_inff();
+    return (Box){{inf, inf, inf}, {-inf, -inf, -inf}};
+}
 
 static bool box_intersect(Box a, Box b) {
     return (a.min.x < b.max.x && a.max.x > b.min.x) && //

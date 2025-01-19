@@ -3,8 +3,10 @@
 #pragma once
 #include "audio.h"
 #include "camera.h"
+#include "collision.h"
 #include "engine.h"
 #include "game_audio.h"
+#include "game_debug.h"
 #include "image.h"
 #include "level.h"
 #include "mem.h"
@@ -331,22 +333,18 @@ static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
     gfx_quad_3d(eng->gfx, shadow_mtx, image);
 }
 
-static Box entity_box(Entity *ent) {
-    f32 h = ent->size.y;
-    f32 r = ent->size.x / 2;
-    Box box = {
-        .min = ent->pos - (v3){r, 0, r},
-        .max = ent->pos + (v3){r, h, r},
-    };
-    return box;
-}
-
 static void entity_collide(Engine *eng, Game *game, Entity *mon) {
-    Box box = entity_box(mon);
+    // Construct a bounding box around the monster
+    Box box = box_from_cylinder(mon->pos, mon->size);
+
+    // Add entity to the BVH
+    sparse_set_add(game->sparse, box, mon);
+
+    // Check all colliding bounding boxes
     for (Sparse_Collision *col = sparse_set_check(game->sparse, box); col; col = col->next) {
         Entity *ent = col->node->user;
         if (ent == mon) continue;
-        // gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
+        gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
         // gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
         if (ent->is_wall) {
             m4 wall_inv = m4_invert_tr(ent->mtx);
@@ -372,7 +370,6 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
             }
         }
     }
-    sparse_set_add(game->sparse, box, mon);
     // gfx_debug_box(eng->gfx_dbg, box, 0);
 }
 
@@ -597,19 +594,6 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
     // gfx_draw_mtx(eng, pl->head_mtx);
 }
 
-static Box m4_to_box(m4 mtx) {
-    Box box = {.min = mtx.w, .max = mtx.w};
-    for (u32 dz = 0; dz < 2; ++dz) {
-        for (u32 dy = 0; dy < 2; ++dy) {
-            for (u32 dx = 0; dx < 2; ++dx) {
-                v3 p = mtx.w + dx * mtx.x + dy * mtx.y + dz * mtx.z;
-                box_union_point(box, p);
-            }
-        }
-    }
-    return box;
-}
-
 static void wall_update(Game *game, Engine *eng, Entity *ent) {
     v2 size = v2u_to_v2(ent->image->size) / 32.0f;
     m4 mtx = m4_id();
@@ -617,14 +601,7 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
     m4_apply(&mtx, ent->mtx);
     gfx_quad_3d(eng->gfx, mtx, ent->image);
 
-    v3 p0 = m4_mul_pos(ent->mtx, (v3){-0.5 * size.x, -0.5 * size.y, 0});
-    v3 p1 = m4_mul_pos(ent->mtx, (v3){0.5 * size.x, -0.5 * size.y, 0});
-    v3 p2 = m4_mul_pos(ent->mtx, (v3){-0.5 * size.x, 0.5 * size.y, 0});
-    v3 p3 = m4_mul_pos(ent->mtx, (v3){0.5 * size.x, 0.5 * size.y, 0});
-    Box box = {p0, p0};
-    box = box_union_point(box, p1);
-    box = box_union_point(box, p2);
-    box = box_union_point(box, p3);
+    Box box = box_from_quad(ent->mtx, size);
     sparse_set_add(game->sparse, box, ent);
 }
 
@@ -633,24 +610,6 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_player) player_update(ent, game, eng);
     if (ent->is_wall) wall_update(game, eng, ent);
     if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
-}
-
-static void sparse_debug_draw(Engine *eng, Sparse_Set *set, Entity *ent) {
-    Sparse *sparse = set->old;
-    for (u32 i = 0; i < array_count(sparse->cells); ++i) {
-        for (Sparse_Cell *cell = sparse->cells[i]; cell; cell = cell->next) {
-            for (Sparse_Node *node = cell->nodes; node; node = node->next) {
-                if (node->user == ent) {
-                    gfx_debug_box(eng->gfx_dbg, cell->box, 0);
-                    for (Sparse_Node *node = cell->nodes; node; node = node->next) {
-                        gfx_debug_box(eng->gfx_dbg, node->box, 1);
-                        v3 p = v3i_to_v3(cell->pos) * SPARSE_BOX_SIZE;
-                        gfx_debug_line(eng->gfx_dbg, p, box_center(node->box), 2);
-                    }
-                }
-            }
-        }
-    }
 }
 
 static void game_update(Game *game, Engine *eng) {
