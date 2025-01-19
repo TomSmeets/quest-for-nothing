@@ -65,7 +65,7 @@ typedef enum {
 
 typedef struct {
     Memory *mem;
-    Player *player;
+    Entity *player;
     Monster *monsters;
     Image *gun;
     Camera camera;
@@ -294,7 +294,7 @@ static void entity_update_movement(Monster *mon, Engine *eng) {
     }
 }
 
-static void monster_collide_with(Monster *mon, Player *player) {
+static void monster_collide_with(Monster *mon, Entity *player) {
     // Collision (with player)
     v2 player_dir = player->pos.xz - mon->pos.xz;
     f32 player_distance = v2_length(player_dir);
@@ -377,7 +377,7 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
 }
 
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
-    Player *player = game->player;
+    Entity *player = game->player;
 
     bool is_alive = mon->health > 0;
 
@@ -491,7 +491,7 @@ static Collide_Result collide_quad_ray(m4 quad, Image *img, v3 ray_pos, v3 ray_d
 }
 
 // Player update function
-static void player_update(Player *pl, Game *game, Engine *eng) {
+static void player_update(Entity *pl, Game *game, Engine *eng) {
     Player_Input in = {};
     Camera *camera = &game->camera;
     if (camera->target == pl) {
@@ -635,24 +635,30 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
 }
 
-static void game_update(Game *game, Engine *eng) {
-    Player_Input input = player_parse_input(eng->input);
-
-    if (game->debug == DBG_Collision) {
-        for (u32 i = 0; i < array_count(game->sparse->old->cells); ++i) {
-            for (Sparse_Cell *cell = game->sparse->old->cells[i]; cell; cell = cell->next) {
-                for (Sparse_Node *node = cell->nodes; node; node = node->next) {
-                    if (node->user == game->player) {
-                        gfx_debug_box(eng->gfx_dbg, cell->box, 0);
-                        for (Sparse_Node *node = cell->nodes; node; node = node->next) {
-                            gfx_debug_box(eng->gfx_dbg, node->box, 1);
-                            v3 p = v3i_to_v3(cell->pos) * SPARSE_BOX_SIZE;
-                            gfx_debug_line(eng->gfx_dbg, p, box_center(node->box), 2);
-                        }
+static void sparse_debug_draw(Engine *eng, Sparse_Set *set, Entity *ent) {
+    Sparse *sparse = set->old;
+    for (u32 i = 0; i < array_count(sparse->cells); ++i) {
+        for (Sparse_Cell *cell = sparse->cells[i]; cell; cell = cell->next) {
+            for (Sparse_Node *node = cell->nodes; node; node = node->next) {
+                if (node->user == ent) {
+                    gfx_debug_box(eng->gfx_dbg, cell->box, 0);
+                    for (Sparse_Node *node = cell->nodes; node; node = node->next) {
+                        gfx_debug_box(eng->gfx_dbg, node->box, 1);
+                        v3 p = v3i_to_v3(cell->pos) * SPARSE_BOX_SIZE;
+                        gfx_debug_line(eng->gfx_dbg, p, box_center(node->box), 2);
                     }
                 }
             }
         }
+    }
+}
+
+static void game_update(Game *game, Engine *eng) {
+    Player_Input input = player_parse_input(eng->input);
+
+    // Debug draw sparse data
+    if (game->debug == DBG_Collision) {
+        sparse_debug_draw(eng, game->sparse, game->player);
     }
 
     // Toggle freecam

@@ -1,22 +1,14 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // player.h - The player character
 #pragma once
-
 #include "entity.h"
 #include "input.h"
-#include "mat.h"
-#include "math.h"
-
-typedef Entity Player;
+#include "vec.h"
 
 typedef struct {
-    // WASD, Left Stick
     v3 move;
-
-    // Mouse, Right Stick
     v3 look;
 
-    // Space
     bool jump;
     bool fly;
     bool shoot;
