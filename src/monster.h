@@ -42,8 +42,6 @@ static void m4_image_ui(m4 *mtx, Image *img) {
 #define SHADOW_OFFSET 0.01
 #define MONSTER_OFFSET 0.02
 
-typedef Entity Monster;
-
 static Entity *monster_new(Memory *mem, Random *rng, v3 pos, Sprite_Properties prop) {
     Entity *mon = mem_struct(mem, Entity);
     mon->mtx = m4_id();
@@ -66,14 +64,14 @@ static Shape monster_shape(Entity *mon) {
     return (Shape){.type = Shape_Cylinder, .cylinder = {mon->pos + (v3){0, mon->size.y * .5, 0}, mon->size * .5}};
 }
 
-static void monster_wiggle(Monster *mon, Engine *eng) {
+static void monster_wiggle(Entity *mon, Engine *eng) {
     // ==== Animation ====
     f32 speed = f_min(v3_length(mon->vel), 0.6);
     animate_exp(&mon->wiggle_amp, speed, eng->dt * 4);
     mon->wiggle_phase = f_fract(mon->wiggle_phase + mon->wiggle_amp * 0.08);
 }
 
-static void monster_die(Monster *mon, Engine *eng) {
+static void monster_die(Entity *mon, Engine *eng) {
     mon->wiggle_amp = 0;
     mon->wiggle_phase = 0;
     animate_lin(&mon->death_animation, 1, eng->dt * 4);
@@ -111,7 +109,7 @@ static void monster_update_ai(Entity *mon, Entity *player, Engine *eng) {
     mon->look_dir = v3_normalize((player->pos - mon->pos) * (v3){1, 0, 1});
 }
 
-static void entity_update_movement(Monster *mon, Engine *eng) {
+static void entity_update_movement(Entity *mon, Engine *eng) {
     bool do_gravity = !mon->is_flying;
     bool do_ground_collision = !mon->is_flying;
 
@@ -194,7 +192,7 @@ static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
     gfx_quad_3d(eng->gfx, shadow_mtx, image);
 }
 
-static void monster_update(Monster *mon, Entity *player, Image *gun, Sparse_Set *sparse, Engine *eng) {
+static void monster_update(Entity *mon, Entity *player, Image *gun, Sparse_Set *sparse, Engine *eng) {
     bool is_alive = mon->health > 0;
 
     entity_update_movement(mon, eng);

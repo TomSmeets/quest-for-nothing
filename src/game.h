@@ -40,7 +40,7 @@ typedef enum {
 typedef struct {
     Memory *mem;
     Entity *player;
-    Monster *monsters;
+    Entity *monsters;
     Image *gun;
     Camera camera;
     u32 debug;
@@ -98,7 +98,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
 
     // Player
     Sprite_Properties s = sprite_new(rng);
-    Monster *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
+    Entity *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
     player->is_monster = false;
     player->is_player = true;
 
@@ -120,7 +120,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
         Sprite_Properties prop = s1;
         if (rand_f32(rng) > 0.5) prop = s2;
 
-        Monster *mon = monster_new(game->mem, rng, wall->pos, prop);
+        Entity *mon = monster_new(game->mem, rng, wall->pos, prop);
         // Insert
         mon->next = game->monsters;
         game->monsters = mon;
@@ -280,8 +280,8 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
         v3 ray_dir = pl->head_mtx.z;
 
         Collide_Result best_result = {0};
-        Monster *best_monster = 0;
-        for (Monster *mon = game->monsters; mon; mon = mon->next) {
+        Entity *best_monster = 0;
+        for (Entity *mon = game->monsters; mon; mon = mon->next) {
             if (mon == pl) continue;
             Collide_Result result = collide_quad_ray(mon->image_mtx, mon->image, ray_pos, ray_dir);
             if (!result.hit) continue;

@@ -76,13 +76,13 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
-- Player and monster are the same, except for AI logic and Input
-- Make Wall an Entity (?)
+- M4 is always scaled and centered. Always TRS
+  - Shapes are m4
+  - Quad is m4
 - Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
 - Create a UI system
 - Aliens can attack
 - Player can Die
-- Wall Collision
 - Level Generation
 - Music
 - Write a good description
