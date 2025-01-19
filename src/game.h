@@ -335,7 +335,8 @@ static void draw_shadow(Engine *eng, v3 shadow_pos, Image *image) {
 
 static void entity_collide(Engine *eng, Game *game, Entity *mon) {
     // Construct a bounding box around the monster
-    Box box = box_from_cylinder(mon->pos, mon->size);
+    Shape shape = monster_shape(mon);
+    Box box = box_from_shape(shape);
 
     // Add entity to the BVH
     sparse_set_add(game->sparse, box, mon);
@@ -343,9 +344,19 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
     // Check all colliding bounding boxes
     for (Sparse_Collision *col = sparse_set_check(game->sparse, box); col; col = col->next) {
         Entity *ent = col->node->user;
+
+        // Skip collisions with myself
         if (ent == mon) continue;
+
+        if (ent->is_monster) {
+            Shape other = monster_shape(ent);
+            Collision_Result res = collide_shape(shape, other);
+            if (!res.collision) break;
+            collide_push(res, &mon->pos, &ent->pos);
+        }
+
+        // Draw colliding box
         gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
-        // gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
         if (ent->is_wall) {
             m4 wall_inv = m4_invert_tr(ent->mtx);
             v3 p_local = m4_mul_pos(wall_inv, mon->pos);
@@ -370,7 +381,6 @@ static void entity_collide(Engine *eng, Game *game, Entity *mon) {
             }
         }
     }
-    // gfx_debug_box(eng->gfx_dbg, box, 0);
 }
 
 static void monster_update(Monster *mon, Game *game, Engine *eng) {
@@ -383,7 +393,7 @@ static void monster_update(Monster *mon, Game *game, Engine *eng) {
     if (is_alive) {
         monster_update_eyes(mon, eng);
         monster_update_ai(mon, game, eng);
-        monster_collide_with(mon, game->player);
+        // monster_collide_with(mon, game->player);
         entity_collide(eng, game, mon);
 
         monster_wiggle(mon, eng);
@@ -601,7 +611,7 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
     m4_apply(&mtx, ent->mtx);
     gfx_quad_3d(eng->gfx, mtx, ent->image);
 
-    Box box = box_from_quad(ent->mtx, size);
+    Box box = box_from_quad((Quad){ent->mtx, size * .5});
     sparse_set_add(game->sparse, box, ent);
 }
 

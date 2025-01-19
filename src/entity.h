@@ -1,6 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // entity.h - Generic object that exists in the game
 #pragma once
+#include "collision.h"
 #include "image.h"
 #include "mat.h"
 #include "monster_sprite.h"
@@ -45,6 +46,7 @@ struct Entity {
     bool is_monster;
     bool is_wall;
     bool is_flying;
+    bool is_alive;
 
     v3 pos;
     v3 pos_old;

@@ -1,6 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // monster.h - Monster logic and AI
 #pragma once
+#include "collision.h"
 #include "color.h"
 #include "engine.h"
 #include "entity.h"
@@ -28,4 +29,12 @@ static Entity *monster_new(Memory *mem, Random *rng, v3 pos, Sprite_Properties p
     mon->health = 1 + mon->size.x * mon->size.y * 4;
     mon->shadow = monster_gen_shadow(mem, mon->image->size.x * .8);
     return mon;
+}
+
+// Get collision shape
+static Shape monster_shape(Entity *mon) {
+    return (Shape){.type = Shape_Cylinder, .cylinder = {mon->pos + (v3){0, mon->size.y * .5, 0}, mon->size * .5}};
+}
+
+static void monster_update2(Entity *mon) {
 }
