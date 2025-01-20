@@ -36,6 +36,11 @@ typedef struct {
     };
 } Shape;
 
+// Supported shapes
+// Box
+// Capsule (y=up)
+// Quad
+
 // Construct a bounding box around a quad
 static Box box_from_quad(Quad quad) {
     v3 p0 = m4_mul_pos(quad.mtx, (v3){-quad.radius.x, -quad.radius.y, 0});
