@@ -96,9 +96,9 @@ static void gfx_debug_arrow(Gfx_Debug *dbg, v3 pos, v3 dir, u32 color) {
 
 // Draw matrix
 static void gfx_debug_mtx(Gfx_Debug *dbg, m4 mtx) {
-    gfx_debug_line_ex(dbg, mtx.w, mtx.x, 0, true);
-    gfx_debug_line_ex(dbg, mtx.w, mtx.y, 1, true);
-    gfx_debug_line_ex(dbg, mtx.w, mtx.z, 2, true);
+    gfx_debug_line_ex(dbg, mtx.w, mtx.x * .5f, 0, true);
+    gfx_debug_line_ex(dbg, mtx.w, mtx.y * .5f, 1, true);
+    gfx_debug_line_ex(dbg, mtx.w, mtx.z * .5f, 2, true);
 }
 
 static void gfx_debug_box(Gfx_Debug *dbg, Box box, u32 color) {

@@ -363,7 +363,7 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->is_monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
     if (ent->is_player) player_update(ent, game, eng);
     if (ent->is_wall) wall_update(game, eng, ent);
-    if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->mtx);
+    if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->image_mtx);
 }
 
 static void game_update(Game *game, Engine *eng) {
