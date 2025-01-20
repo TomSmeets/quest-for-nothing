@@ -3,6 +3,7 @@
 #pragma once
 #include "audio.h"
 #include "camera.h"
+#include "wall.h"
 #include "collision.h"
 #include "engine.h"
 #include "game_audio.h"

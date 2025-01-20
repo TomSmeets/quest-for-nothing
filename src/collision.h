@@ -55,6 +55,19 @@ static Box box_from_quad(Quad quad) {
     return box;
 }
 
+static Box box_from_quad2(m4 mtx) {
+    v3 p0 = m4_mul_pos(mtx, (v3){-0.5, -0.5, 0});
+    v3 p1 = m4_mul_pos(mtx, (v3){+0.5, -0.5, 0});
+    v3 p2 = m4_mul_pos(mtx, (v3){-0.5, +0.5, 0});
+    v3 p3 = m4_mul_pos(mtx, (v3){+0.5, +0.5, 0});
+
+    Box box = {p0, p0};
+    box = box_union_point(box, p1);
+    box = box_union_point(box, p2);
+    box = box_union_point(box, p3);
+    return box;
+}
+
 // Create a bounding box around a y-aligned cylinder
 // pos is the bottom center of the cylinder.
 // size is { diameter, height}
