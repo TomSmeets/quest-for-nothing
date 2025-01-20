@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // wall.h - A Quad in 3d space
 #pragma once
-#include "mat.h"
 #include "collision.h"
 #include "engine.h"
 #include "image.h"
+#include "mat.h"
 #include "sparse_set.h"
 
 typedef struct Wall Wall;
@@ -16,6 +16,7 @@ struct Wall {
 };
 
 static Wall *wall2_new(Memory *mem) {
+    return 0;
 }
 
 static void wall2_update(Engine *eng, Sparse_Set *sparse, Wall *wall) {

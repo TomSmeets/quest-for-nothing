@@ -3,7 +3,6 @@
 #pragma once
 #include "audio.h"
 #include "camera.h"
-#include "wall.h"
 #include "collision.h"
 #include "engine.h"
 #include "game_audio.h"
@@ -17,6 +16,7 @@
 #include "sparse_set.h"
 #include "types.h"
 #include "vec.h"
+#include "wall.h"
 
 /*
 Game Design V1.0
@@ -217,16 +217,15 @@ static Collide_Result collide_quad_ray(m4 quad_mtx, Image *img, v3 ray_pos, v3 r
     v3 hit_local = ray_pos_local + ray_dir_local * distance;
     v3 hit_global = ray_pos + ray_dir * distance;
 
-    v2 min = -quad.radius;
-    v2 max = quad.radius;
+    if (hit_local.x > 0.5) return result;
+    if (hit_local.x < -0.5) return result;
+    if (hit_local.y > 0.5) return result;
+    if (hit_local.y < -0.5) return result;
 
-    if (hit_local.x > max.x) return result;
-    if (hit_local.x < min.x) return result;
-    if (hit_local.y > max.y) return result;
-    if (hit_local.y < min.y) return result;
-
-    v2 pixel = (hit_local.xy - min) / GFX_PIXEL_SCALE_3D;
-    pixel.y = img->size.y - pixel.y - 1;
+    v2 pixel = hit_local.xy;
+    pixel.y *= -1;
+    pixel += (v2){0.5f, 0.5f};
+    pixel *= v2u_to_v2(img->size);
 
     v4 *px = image_get(img, (v2i){pixel.x, pixel.y});
     if (!px) return result;
