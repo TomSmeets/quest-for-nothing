@@ -15,7 +15,10 @@ struct Wall {
     Image *image;
 };
 
-static Wall *wall2_new(Memory *mem) {
+static Wall *wall2_new(Memory *mem, m4 mtx, Image *image) {
+    Wall *wall = mem_struct(mem, Wall);
+    wall->mtx = mtx;
+    wall->image = image;
     return 0;
 }
 

@@ -338,7 +338,7 @@ static void include_graph(void) {
     fmt_s(out, "}\n");
     fmt_close(out);
     mem_free(mem);
-    hot_system("tred  out/include-graph.dot > out/include-graph-reduced.dot");
+    hot_system("tred out/include-graph.dot > out/include-graph-reduced.dot");
 }
 #else
 static void include_graph(void) {
