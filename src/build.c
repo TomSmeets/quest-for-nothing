@@ -4,6 +4,7 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
+#include "hot.h"
 #include "os_impl.h"
 #include "rand.h"
 #include "types.h"
@@ -187,9 +188,9 @@ static bool build_release(Memory *tmp, bool release) {
 }
 
 // Implementation
-typedef void os_main_t(OS *os);
+// typedef void os_main_t(OS *os);
 
-static os_main_t *build_and_load(Memory *tmp, char *main_path, u64 counter) {
+static char *build_and_load(Memory *tmp, char *main_path, u64 counter) {
     // Generate 'asset.h'
 
 #if OS_IS_WINDOWS
@@ -210,27 +211,15 @@ static os_main_t *build_and_load(Memory *tmp, char *main_path, u64 counter) {
         return 0;
     }
 
-    void *handle = os_dlopen(out_path);
-    if (!handle) {
-        fmt_ss(OS_FMT, "dlopen: ", os_dlerror(), "\n");
-        return 0;
-    }
-
-    os_main_t *fcn = os_dlsym(handle, "os_main_dynamic");
-    if (!fcn) {
-        fmt_ss(OS_FMT, "dlsym: ", os_dlerror(), "\n");
-        return 0;
-    }
-
-    return fcn;
+    return out_path;
 }
 
 typedef struct {
     // Run and hot reload single executable
     bool action_run;
     char *main_path;
-    OS *child_os;
-    os_main_t *update;
+    // OS *child_os;
+    // os_main_t *update;
 
     // Build everything
     bool action_build;
@@ -239,7 +228,9 @@ typedef struct {
     Random rng;
     Watch watch;
     bool first_time;
-} Hot;
+
+    Hot *hot;
+} Build;
 
 static void exit_with_help(Cli *cli) {
     char *name = cli->argv[0];
@@ -356,10 +347,10 @@ static char *arg_next(Arg *arg) {
     return arg->argc--, *arg->argv++;
 }
 
-static Hot *hot_init(OS *os) {
+static Build *build_init(OS *os) {
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
-    Hot *hot = mem_struct(mem, Hot);
+    Build *hot = mem_struct(mem, Build);
     Cli *cli = cli_new(tmp, os);
 
     // bool watch = false;
@@ -390,12 +381,7 @@ static Hot *hot_init(OS *os) {
 
         hot->action_run = true;
         hot->main_path = os->argv[2];
-
-        OS *child_os = mem_struct(mem, OS);
-        child_os->argc = os->argc - 2;
-        child_os->argv = os->argv + 2;
-        child_os->fmt = os->fmt;
-        hot->child_os = child_os;
+        hot->hot = hot_new(mem, os->argc - 2, os->argv + 2);
     } else if (cli_action(cli, "watch", "", "Build all targets and rebuild on every change")) {
         hot->action_build = true;
     } else if (cli_action(cli, "build", "", "Build for only one target for quick Debugging")) {
@@ -438,9 +424,9 @@ static Hot *hot_init(OS *os) {
 
 void os_main(OS *os) {
     // Call Constructor
-    if (!os->app) os->app = hot_init(os);
+    if (!os->app) os->app = build_init(os);
 
-    Hot *hot = os->app;
+    Build *hot = os->app;
     Memory *tmp = mem_new();
 
     bool changed = watch_changed(&hot->watch) || hot->first_time;
@@ -451,18 +437,11 @@ void os_main(OS *os) {
 
     if (hot->action_run) {
         if (changed) {
-            hot->update = build_and_load(tmp, hot->main_path, rand_u32(&hot->rng));
-            hot->child_os->reloaded = 1;
+            char *so_path = build_and_load(tmp, hot->main_path, rand_u32(&hot->rng));
+            hot_load(hot->hot, so_path);
         }
 
-        if (hot->update) {
-            hot->update(hot->child_os);
-            OS_GLOBAL = os;
-
-            // inherit child update rate
-            os->sleep_time = hot->child_os->sleep_time;
-            hot->child_os->reloaded = 0;
-        }
+        hot_update(hot->hot);
     }
 
     if (hot->action_build && changed) {
