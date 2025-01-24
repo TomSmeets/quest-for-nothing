@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // hot.h - Dynamically reload interactive programs
 #pragma once
-#include "os.h"
 #include "fmt.h"
 #include "mem.h"
+#include "os.h"
 
 typedef void os_main_t(OS *os);
 
@@ -46,7 +46,7 @@ static bool hot_load(Hot *hot, char *path) {
 
 static void os_set_update_time(u64 wake_time) {
     OS *os = OS_GLOBAL;
-    if(os->sleep_time > wake_time) {
+    if (os->sleep_time > wake_time) {
         os->sleep_time = wake_time;
     }
 }
@@ -54,7 +54,7 @@ static void os_set_update_time(u64 wake_time) {
 // Call child main function
 static void hot_update(Hot *hot) {
     OS *os = OS_GLOBAL;
-    if(!hot->child_main) return;
+    if (!hot->child_main) return;
 
     hot->child_main(hot->child_os);
 

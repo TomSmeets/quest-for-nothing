@@ -19,7 +19,7 @@ u64 js_main(void) {
         os->fmt = fmt_new(mem, (void *)1);
         OS_GLOBAL = os;
     }
-    OS_GLOBAL->sleep_time = 1000*1000;
+    OS_GLOBAL->sleep_time = 1000 * 1000;
     os_main(OS_GLOBAL);
     return OS_GLOBAL->sleep_time;
 }

@@ -2,9 +2,9 @@
 // build.c - Dynamically compile and reload interactive programs
 #include "cli.h"
 #include "fmt.h"
+#include "hot.h"
 #include "mem.h"
 #include "os.h"
-#include "hot.h"
 #include "os_impl.h"
 #include "rand.h"
 #include "types.h"

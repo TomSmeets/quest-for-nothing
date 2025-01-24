@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     os->fmt = fmt_new(mem, fd_to_file(1));
     OS_GLOBAL = os;
     for (;;) {
-        os->sleep_time = 1000*1000;
+        os->sleep_time = 1000 * 1000;
         os_main(os);
         os_sleep(os->sleep_time);
     }
