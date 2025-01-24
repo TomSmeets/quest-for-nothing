@@ -3,6 +3,7 @@
 #include "cli.h"
 #include "fmt.h"
 #include "hot.h"
+#include "include_graph.h"
 #include "mem.h"
 #include "os.h"
 #include "os_impl.h"
@@ -243,108 +244,6 @@ static void exit_with_help(Cli *cli) {
     fmt_ss(OS_FMT, "  ", name, " release\n");
     fmt_ss(OS_FMT, "  ", name, " asset\n");
     os_exit(1);
-}
-
-#if OS_IS_LINUX
-#include <dirent.h>
-#include <stdio.h>
-static void include_graph(void) {
-    DIR *dir = opendir("src");
-
-    Memory *mem = mem_new();
-    Fmt *out = fmt_open(mem, "out/include-graph.dot");
-    fmt_s(out, "digraph {\n");
-    fmt_s(out, "  layout=dot;\n");
-    // fmt_s(out, "  graph[showboxes=2];\n");
-    fmt_s(out, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
-    // fmt_s(out, "  overlap=false;\n");
-    // fmt_s(out, "  rankdir=LR;\n");
-    fmt_s(out, "  edge[color=\"#bbbbbb\"];\n");
-    // fmt_s(out, "  splines=false;\n");
-    // fmt_s(out, "  node[shape=box];\n");
-    for (;;) {
-        struct dirent *ent = readdir(dir);
-        if (!ent) break;
-
-        // Skip '.', '..', and hidden files
-        if (ent->d_name[0] == '.') continue;
-        if (!(str_ends_with(ent->d_name, ".h") || str_ends_with(ent->d_name, ".c"))) continue;
-
-        // Don't scan opengl api, it is quite big.
-        if (str_eq(ent->d_name, "ogl_api.h")) continue;
-
-        // Full Path
-        Fmt *full_path_fmt = fmt_memory(mem);
-        fmt_ss(full_path_fmt, "src/", ent->d_name, "");
-        char *full_path = fmt_close(full_path_fmt);
-
-        // Read file
-        FILE *fd = fopen(full_path, "r");
-
-        // Remove .h
-        char *input = ent->d_name;
-        bool is_c = str_ends_with(input, ".c");
-        bool is_h = str_ends_with(input, ".h");
-        if (is_c || is_h) input[str_len(input) - 2] = 0;
-
-        u32 line_count = 0;
-        u32 dep_count = 0;
-        for (;;) {
-            char buffer[1024];
-            char *line = fgets(buffer, sizeof(buffer), fd);
-            if (!line) break;
-            line_count++;
-
-            char *prefix = "#include \"";
-            char *suffix = "\"\n";
-            if (!str_starts_with(line, prefix)) continue;
-            if (!str_ends_with(line, suffix)) continue;
-
-            u32 len = str_len(line);
-            line[len - str_len(suffix)] = 0;
-            line += str_len(prefix);
-
-            // Ignore '../' paths
-            if (line[0] == '.') continue;
-
-            // Remove '.c' and '.h'
-            if (str_ends_with(line, ".h") || str_ends_with(line, ".c")) {
-                line[str_len(line) - 2] = 0;
-            }
-
-            dep_count++;
-            fmt_sss(out, "  ", input, " -> ", line, ";\n");
-        }
-        fmt_ss(out, "  ", input, "[");
-        f32 size = (f32)f_sqrt(line_count) * 2;
-        if (size < 14) size = 14;
-        fmt_sf(out, "fontsize=", size, ",");
-        if (is_c)
-            fmt_s(out, "fillcolor=\"#ffbbbb\",");
-        else if (dep_count == 0)
-            fmt_s(out, "fillcolor=\"#eeeeff\",");
-        fmt_s(out, "];\n");
-        fclose(fd);
-    }
-    fmt_s(out, "}\n");
-    fmt_close(out);
-    mem_free(mem);
-    hot_system("tred out/include-graph.dot > out/include-graph-reduced.dot");
-}
-#else
-static void include_graph(void) {
-    os_fail("Not supported on this plaform");
-}
-#endif
-
-typedef struct {
-    u32 argc;
-    char **argv;
-} Arg;
-
-static char *arg_next(Arg *arg) {
-    if (arg->argc == 0) return 0;
-    return arg->argc--, *arg->argv++;
 }
 
 static Build *build_init(OS *os) {

@@ -73,6 +73,7 @@ static void *os_alloc_raw(u32 size);
 typedef enum {
     Open_Write,
     Open_Read,
+    Open_Dir,
 } OS_Open_Type;
 
 static File *os_open(char *path, OS_Open_Type type);

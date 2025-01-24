@@ -1,6 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // str.h - simple string handling functions
 #pragma once
+#include "mem.h"
 #include "os.h"
 
 // Number of chars in a zero terminated string
@@ -33,4 +34,11 @@ static bool str_starts_with(char *str, char *start) {
         start++;
         str++;
     }
+}
+
+static char *str_dup(char *str, Memory *mem) {
+    u32 len = str_len(str);
+    char *cpy = mem_push_uninit(mem, len + 1);
+    std_memcpy(cpy, str, len + 1);
+    return cpy;
 }
