@@ -44,13 +44,6 @@ static bool hot_load(Hot *hot, char *path) {
     return 1;
 }
 
-static void os_set_update_time(u64 wake_time) {
-    OS *os = OS_GLOBAL;
-    if (os->sleep_time > wake_time) {
-        os->sleep_time = wake_time;
-    }
-}
-
 // Call child main function
 static void hot_update(Hot *hot) {
     OS *os = OS_GLOBAL;

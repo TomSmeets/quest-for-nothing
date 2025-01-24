@@ -76,6 +76,10 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
+- split into init and update?
+  void *os_init(void);
+  void os_update(void *app);
+
 - M4 is always scaled and centered. Always TRS
   - Shapes are m4
   - Quad is m4
