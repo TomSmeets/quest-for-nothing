@@ -422,7 +422,7 @@ static Build *build_init(OS *os) {
     return hot;
 }
 
-void os_main(OS *os) {
+static void os_main(OS *os) {
     // Call Constructor
     if (!os->app) os->app = build_init(os);
 
