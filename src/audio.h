@@ -20,6 +20,8 @@ static f32 sound_note_to_freq(i32 note) {
 //   - Melodic Embellishments + Melodic Reduction
 //   Learn every chord and chord symbol: https://www.youtube.com/watch?v=CyNiY1jzOuQ
 //   - Chords vs Melody
+// Inspiration
+//   - https://www.youtube.com/watch?v=J_FCCvNzbiY
 typedef struct {
     f32 dt;
     Random rand;
