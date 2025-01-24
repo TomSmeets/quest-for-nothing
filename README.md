@@ -8,13 +8,13 @@
 Install `clang` and `sdl2`, then run the build script.
 
 ```bash
-./build.sh linux
+./build linux
 ```
 
-See `./build.sh` for more options:
+See `./build` for more options:
 
 ```
-Usage: ./build.sh <action> [args]...
+Usage: ./build <action> [args]...
 
 Actions:
   run <main> [args]... Build and run with hot reloading
@@ -29,31 +29,31 @@ Actions:
   format               Format code
 
 Examples:
-  ./build.sh run src/main.c
-  ./build.sh run src/hot.c watch
-  ./build.sh build
-  ./build.sh release
-  ./build.sh asset
+  ./build run src/main.c
+  ./build run src/hot.c watch
+  ./build build
+  ./build release
+  ./build asset
 ```
 
 # Building windows
 For cross compiling to windows you need `mingw-w64`.
 
 ```bash
-./build.sh windows
+./build windows
 ```
 
 # Running web version
 For cross compiling to windows you need `wasm-ld` which is in the `lld` package on Arch Linux.
 
 ```bash
-./build.sh web
+./build web
 ```
 
 To run the web version start a simple python http server after building. Then navigate to `http://localhost:8000/out`.
 
 ```bash
-./build.sh serve
+./build serve
 ```
 
 # Building Manually
