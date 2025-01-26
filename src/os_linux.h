@@ -20,11 +20,11 @@ static struct timespec linux_us_to_time(u64 time) {
     return ts;
 }
 
-static int file_to_fd(File *f) {
-    return (int)((u64)f - 1);
+static i32 file_to_fd(File *f) {
+    return (i32)((u64)f - 1);
 }
 
-static File *fd_to_file(int fd) {
+static File *fd_to_file(i32 fd) {
     return (File *)((u64)fd + 1);
 }
 
@@ -86,8 +86,8 @@ static void *os_alloc_raw(u32 size) {
         OS_GLOBAL->stat_alloc_size += size;
         // fmt_su(OS_FMT, "os_alloc_raw: total=", OS_GLOBAL->stat_alloc_size / 1024 / 1024, " MB\n");
     }
-    int prot = PROT_READ | PROT_WRITE;
-    int flags = MAP_PRIVATE | MAP_ANONYMOUS;
+    i32 prot = PROT_READ | PROT_WRITE;
+    i32 flags = MAP_PRIVATE | MAP_ANONYMOUS;
     void *alloc = linux_mmap(0, size, prot, flags, -1, 0);
     assert(alloc && alloc != MAP_FAILED, "Failed to allocate memory");
     return alloc;
@@ -95,11 +95,11 @@ static void *os_alloc_raw(u32 size) {
 
 // ==== Desktop ====
 static File *os_open(char *path, OS_Open_Type type) {
-    int fd = -1;
+    i32 fd = -1;
     if (type == Open_Write) {
-        fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        fd = linux_open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     } else if (type == Open_Read) {
-        fd = open(path, O_RDONLY);
+        fd = linux_open(path, O_RDONLY, 0);
     }
 
     // Failed to open file
@@ -110,13 +110,13 @@ static File *os_open(char *path, OS_Open_Type type) {
 
 static void os_close(File *file) {
     assert(file, "File should be valid");
-    int ret = close(file_to_fd(file));
+    i32 ret = linux_close(file_to_fd(file));
     assert(ret == 0, "Failed to close file");
 }
 
 static u32 os_read(File *file, u8 *data, u32 len) {
     assert(file, "Input file should be valid");
-    ssize_t result = read(file_to_fd(file), data, len);
+    ssize_t result = linux_read(file_to_fd(file), data, len);
     assert(result >= 0, "Failed to read");
     return result;
 }
@@ -140,6 +140,6 @@ static char *os_dlerror(void) {
 
 static bool os_system(char *cmd) {
     fmt_ss(OS_FMT, "> ", cmd, "\n");
-    int ret = system(cmd);
-    return ret == 0;
+    i32 ret = system(cmd);
+    return ret >= 0;
 }
