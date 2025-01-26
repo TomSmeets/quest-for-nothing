@@ -109,3 +109,9 @@ static void *os_dlsym(File *file, char *name) {
 static char *os_dlerror(void) {
     return 0;
 }
+
+static bool os_system(char *cmd) {
+    fmt_ss(OS_FMT, "> ", cmd, "\n");
+    int ret = system(cmd);
+    return ret == 0;
+}

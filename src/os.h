@@ -86,6 +86,8 @@ static File *os_dlopen(char *path);
 static void *os_dlsym(File *handle, char *name);
 static char *os_dlerror(void);
 
+static bool os_system(char *command);
+
 // Set maximum wait time between os_main calls
 static void os_set_update_time(u64 wake_time) {
     OS *os = OS_GLOBAL;

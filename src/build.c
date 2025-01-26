@@ -62,15 +62,6 @@ typedef enum {
     Platform_Wasm,
 } Platform;
 
-static bool hot_system(char *cmd) {
-    fmt_ss(OS_FMT, "> ", cmd, "\n");
-    int ret = system(cmd);
-    if (ret != 0) {
-        fmt_s(OS_FMT, "Command Failed!\n");
-    }
-    return ret == 0;
-}
-
 // Build single executable using clang
 // This will become a single 'clang' call
 static bool build_single(Memory *tmp, char *output, char *input, Platform plat, bool release, bool dynamic) {
@@ -140,7 +131,7 @@ static bool build_single(Memory *tmp, char *output, char *input, Platform plat, 
     fmt_ss(fmt, " ", input, "");
 
     char *cmd = fmt_close(fmt);
-    bool ok = hot_system(cmd);
+    bool ok = os_system(cmd);
     return ok;
 }
 
@@ -157,11 +148,11 @@ static void sdl2_download_dll(void) {
     if (os_exists("out/SDL2.dll")) return;
 
     // Download sdl2
-    hot_system("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip");
+    os_system("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip");
 #if OS_IS_WINDOWS
-    hot_system("cd out/ && tar -xf SDL2.zip SDL2.dll");
+    os_system("cd out/ && tar -xf SDL2.zip SDL2.dll");
 #else
-    hot_system("cd out/ && unzip SDL2.zip SDL2.dll");
+    os_system("cd out/ && unzip SDL2.zip SDL2.dll");
 #endif
 }
 
@@ -172,18 +163,18 @@ static bool build_debug(Memory *tmp) {
 }
 
 static bool build_release(Memory *tmp, bool release) {
-    if (!hot_system("mkdir -p out/release")) return 0;
+    if (!os_system("mkdir -p out/release")) return 0;
     if (!build_single(tmp, "out/release/quest-for-nothing.elf", "src/main.c", Platform_Linux, release, false)) return 0;
     if (!build_single(tmp, "out/release/quest-for-nothing.exe", "src/main.c", Platform_Windows, release, false)) return 0;
     if (!build_single(tmp, "out/release/quest-for-nothing.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
 
     sdl2_download_dll();
 #if OS_IS_WINDOWS
-    if (!hot_system("COPY src\\os_wasm.html out\\release\\index.html")) return 0;
-    if (!hot_system("COPY out\\SDL2.dll out\\release\\SDL2.dll")) return 0;
+    if (!os_system("COPY src\\os_wasm.html out\\release\\index.html")) return 0;
+    if (!os_system("COPY out\\SDL2.dll out\\release\\SDL2.dll")) return 0;
 #else
-    if (!hot_system("cp src/os_wasm.html out/release/index.html")) return 0;
-    if (!hot_system("cp out/SDL2.dll out/release/SDL2.dll")) return 0;
+    if (!os_system("cp src/os_wasm.html out/release/index.html")) return 0;
+    if (!os_system("cp out/SDL2.dll out/release/SDL2.dll")) return 0;
 #endif
     return 1;
 }
@@ -294,17 +285,17 @@ static Build *build_init(OS *os) {
         os_exit(0);
     } else if (cli_action(cli, "upload", "", "Build release and upload to https://tsmeets.itch.io/quest-for-nothing and https://tsmeets.nl/qfn")) {
         if (!build_release(tmp, true)) os_exit(1);
-        hot_system("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')");
-        hot_system("butler push out/release tsmeets/quest-for-nothing:release-web --userversion $(date +'%F')");
-        hot_system("rclone copy out/release fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/");
+        os_system("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')");
+        os_system("butler push out/release tsmeets/quest-for-nothing:release-web --userversion $(date +'%F')");
+        os_system("rclone copy out/release fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/");
         os_exit(0);
     } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
-        assert(hot_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
+        assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
     } else if (cli_action(cli, "asset", "", "Build asset.h")) {
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
-        assert(hot_system("clang-format --verbose -i src/*"), "Format failed!");
+        assert(os_system("clang-format --verbose -i src/*"), "Format failed!");
         os_exit(0);
     } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
         include_graph();

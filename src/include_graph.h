@@ -2,9 +2,7 @@
 #if OS_IS_LINUX
 #include "math.h"
 #include "mem.h"
-#include "os.h"
-#include <dirent.h>
-#include <stdio.h>
+#include "os_impl.h"
 
 typedef struct File_Info File_Info;
 struct File_Info {
@@ -13,7 +11,7 @@ struct File_Info {
     File_Info *next;
 };
 
-static File_Info *os_open_dir(char *path, Memory *mem) {
+static File_Info *os_read_dir(char *path, Memory *mem) {
     DIR *dir = opendir(path);
     if (!dir) return 0;
 
@@ -49,7 +47,7 @@ static void include_graph(void) {
     fmt_s(out, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
     fmt_s(out, "  edge[color=\"#bbbbbb\"];\n");
 
-    for (File_Info *file = os_open_dir(path, mem); file; file = file->next) {
+    for (File_Info *file = os_read_dir(path, mem); file; file = file->next) {
         // Skip '.', '..', and hidden files
         bool is_hidden = str_starts_with(file->name, ".");
         if (is_hidden) continue;
@@ -115,7 +113,7 @@ static void include_graph(void) {
     fmt_s(out, "}\n");
     fmt_close(out);
     mem_free(mem);
-    system("tred out/include-graph.dot > out/include-graph-reduced.dot");
+    os_system("tred out/include-graph.dot > out/include-graph-reduced.dot");
 }
 #else
 static void include_graph(void) {

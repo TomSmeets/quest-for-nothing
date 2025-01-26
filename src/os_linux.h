@@ -138,3 +138,9 @@ static void *os_dlsym(File *handle, char *name) {
 static char *os_dlerror(void) {
     return dlerror();
 }
+
+static bool os_system(char *cmd) {
+    fmt_ss(OS_FMT, "> ", cmd, "\n");
+    int ret = system(cmd);
+    return ret == 0;
+}
