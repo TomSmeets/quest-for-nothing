@@ -59,7 +59,7 @@ static u64 os_rand(void) {
     u64 seed = 0;
     int fd = linux_open("/dev/urandom", O_RDONLY, 0);
     linux_read(fd, &seed, sizeof(seed));
-    close(fd);
+    linux_close(fd);
     return seed;
 }
 
@@ -73,13 +73,13 @@ static void os_write(File *file, u8 *data, u32 len) {
 }
 
 static void os_exit(i32 status) {
-    _exit(status);
+    linux_exit_group(status);
 }
 
 static void os_fail(char *message) {
     linux_write(1, message, str_len(message));
     __builtin_trap();
-    _exit(1);
+    linux_exit_group(1);
 }
 
 static void *os_alloc_raw(u32 size) {

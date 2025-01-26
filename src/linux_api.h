@@ -201,7 +201,11 @@ static i32 linux_open(const char *path, i32 flags, u32 mode) {
 }
 
 static i32 linux_close(i32 fd) {
-    return linux_syscall1(3, fd);
+    return linux_syscall1(0x03, fd);
+}
+
+__attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
+    for (;;) linux_syscall1(0xe7, error_code);
 }
 
 #if 0
