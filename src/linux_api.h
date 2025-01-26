@@ -17,7 +17,6 @@ static_assert(sizeof(void *) == sizeof(u64));
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/inotify.h>
 #include <sys/mman.h>
 #include <sys/select.h>
 #include <sys/stat.h>
@@ -82,19 +81,9 @@ typedef struct {
 extern int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds, struct timeval *restrict timeout);
 #define NAME_MAX 255
 
-struct inotify_event {
-    int wd;
-    unsigned int mask;
-    unsigned int cookie;
-    unsigned int len;
-    char name[];
-};
-
 extern int inotify_init(void);
 extern int inotify_add_watch(int fd, const char *name, unsigned int mask);
-#define IN_DELETE 0x00000200
-#define IN_CREATE 0x00000100
-#define IN_MODIFY 0x00000002
+
 #endif
 
 static i64 linux_syscall6(i64 a0, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5, i64 a6) {
@@ -214,6 +203,26 @@ __attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
 
 static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 offset) {
     return (void *)linux_syscall6(0x09, (i64)addr, len, prot, flags, fd, offset);
+}
+
+#define IN_DELETE 0x00000200 // File was modified
+#define IN_CREATE 0x00000100 // Subfile was created
+#define IN_MODIFY 0x00000002 // Subfile was deleted
+
+struct inotify_event {
+    i32 wd;
+    u32 mask;
+    u32 cookie;
+    u32 len;
+    char name[];
+};
+
+static i32 linux_inotify_init(i32 flags) {
+    return linux_syscall1(0x126, flags);
+}
+
+static i32 linux_inotify_add_watch(i32 fd, const char *path, u32 mask) {
+    return linux_syscall3(0xfe, fd, (i64)path, mask);
 }
 
 #if 0

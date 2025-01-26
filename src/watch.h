@@ -9,15 +9,15 @@
 
 #if OS_IS_LINUX
 typedef struct {
-    int fd;
+    i32 fd;
 } Watch;
 
 static void watch_init(Watch *watch, char *path) {
-    int fd = inotify_init();
+    i32 fd = linux_inotify_init(0);
     assert(fd >= 0, "Could not init inotify");
     watch->fd = fd;
 
-    int wd = inotify_add_watch(watch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
+    i32 wd = linux_inotify_add_watch(watch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
     assert(wd >= 0, "inotify_add_watch");
 }
 
