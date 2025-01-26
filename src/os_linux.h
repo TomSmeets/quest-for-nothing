@@ -57,8 +57,8 @@ static u64 os_time(void) {
 
 static u64 os_rand(void) {
     u64 seed = 0;
-    int fd = open("/dev/urandom", O_RDONLY);
-    read(fd, &seed, sizeof(seed));
+    int fd = linux_open("/dev/urandom", O_RDONLY, 0);
+    linux_read(fd, &seed, sizeof(seed));
     close(fd);
     return seed;
 }
@@ -66,7 +66,7 @@ static u64 os_rand(void) {
 static void os_write(File *file, u8 *data, u32 len) {
     u32 written = 0;
     while (written < len) {
-        ssize_t result = write(file_to_fd(file), data + written, len - written);
+        ssize_t result = linux_write(file_to_fd(file), data + written, len - written);
         assert(result > 0, "Failed to write");
         written += result;
     }
@@ -77,7 +77,7 @@ static void os_exit(i32 status) {
 }
 
 static void os_fail(char *message) {
-    write(1, message, str_len(message));
+    linux_write(1, message, str_len(message));
     __builtin_trap();
     _exit(1);
 }
