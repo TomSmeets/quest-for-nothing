@@ -123,7 +123,7 @@ static u32 os_read(File *file, u8 *data, u32 len) {
 
 static void os_sleep(u64 us) {
     struct timespec time = linux_us_to_time(us);
-    nanosleep(&time, 0);
+    linux_nanosleep(&time, 0);
 }
 
 static File *os_dlopen(char *path) {

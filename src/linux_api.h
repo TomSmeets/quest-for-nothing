@@ -49,12 +49,6 @@ struct timespec {
     time_t tv_sec;
     syscall_slong_t tv_nsec;
 };
-extern void _exit(int status) __attribute__((__noreturn__));
-extern int open(const char *file, int oflag, ...);
-extern ssize_t write(int fd, const void *buf, size_t n);
-extern ssize_t read(int fd, void *buf, size_t n);
-extern int close(int fd);
-extern void *mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
 extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
 extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
 
@@ -70,10 +64,6 @@ struct timeval {
 };
 
 #define NAME_MAX 255
-
-extern int inotify_init(void);
-extern int inotify_add_watch(int fd, const char *name, unsigned int mask);
-
 #endif
 
 typedef struct {
@@ -201,6 +191,10 @@ static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 of
 
 static i32 linux_select(i32 count, linux_fd_set *input_fds, linux_fd_set *output_fds, linux_fd_set *except_fds, struct timeval *timeout) {
     return linux_syscall5(0x17, count, (i64)input_fds, (i64)output_fds, (i64)except_fds, (i64)timeout);
+}
+
+static i32 linux_nanosleep(const struct timespec *duration, struct timespec *remaining) {
+    return linux_syscall2(0x23, (i64)duration, (i64)remaining);
 }
 
 #define IN_DELETE 0x00000200 // File was modified
