@@ -204,6 +204,10 @@ static i32 linux_close(i32 fd) {
     return linux_syscall1(0x03, fd);
 }
 
+static i64 linux_getrandom(void *buf, u64 size, u32 flags) {
+    return linux_syscall3(0x13e, (i64)buf, size, flags);
+}
+
 __attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
     for (;;) linux_syscall1(0xe7, error_code);
 }
@@ -250,21 +254,5 @@ static void linux_spawn(u32 argc, char *argv) {
     args.flags = CLONE_VM | CLONE_VFORK | SIGCHLD;
     arg.stack = mmap(0, 36*1024, 
     linux_clone3(args)
-// clone3({flags=CLONE_VM|CLONE_VFORK|CLONE_CLEAR_SIGHAND, exit_signal=SIGCHLD, stack=0x78f294890000, stack_size=0x9000}, 88 <unfinished ...>
-// execve("/bin/sh", ["sh", "-c", "--", "ls -la"], 0x7ffe3289e8e8 /* 50 vars */ <unfinished ...>
-
-
-703657 rt_sigaction(SIGINT, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x794ed82491d0}, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
-703657 rt_sigaction(SIGQUIT, {sa_handler=SIG_IGN, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x794ed82491d0}, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
-703657 rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
-703657 mmap(NULL, 36864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS|MAP_STACK, -1, 0) = 0x794ed8430000
-703657 rt_sigprocmask(SIG_BLOCK, ~[], [CHLD], 8) = 0
-703657 clone3({flags=CLONE_VM|CLONE_VFORK|CLONE_CLEAR_SIGHAND, exit_signal=SIGCHLD, stack=0x794ed8430000, stack_size=0x9000}, 88 <unfinished ...>
-703658 rt_sigprocmask(SIG_BLOCK, NULL, ~[KILL STOP], 8) = 0
-703658 rt_sigaction(SIGINT, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x794ed82491d0}, NULL, 8) = 0
-703658 rt_sigaction(SIGQUIT, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=SA_RESTORER, sa_restorer=0x794ed82491d0}, NULL, 8) = 0
-703658 rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
-703658 execve("/bin/sh", ["sh", "-c", "--", "ls -la"], 0x7fff316b0608 /* 50 vars */ <unfinished ...>
-703657 <... clone3 resumed>)            = 703658
 }
 #endif

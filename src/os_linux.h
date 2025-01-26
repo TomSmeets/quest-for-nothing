@@ -57,9 +57,8 @@ static u64 os_time(void) {
 
 static u64 os_rand(void) {
     u64 seed = 0;
-    int fd = linux_open("/dev/urandom", O_RDONLY, 0);
-    linux_read(fd, &seed, sizeof(seed));
-    linux_close(fd);
+    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
+    assert(ret == sizeof(seed), "");
     return seed;
 }
 
