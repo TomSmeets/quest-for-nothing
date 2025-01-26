@@ -356,6 +356,8 @@ static Image *ui_get_char(UI *ui, u8 chr) {
 }
 
 static void ui_text(UI *ui, m4 mtx, char *text) {
+    f32 size = 24;
+
     f32 x = 0;
     f32 y = 0;
     for (;;) {
@@ -364,19 +366,20 @@ static void ui_text(UI *ui, m4 mtx, char *text) {
 
         if (c == '\n') {
             x = 0;
-            y -= 6 * 4;
+            y -= size;
             continue;
         }
 
         Image *img = ui_get_char(ui, c);
         if (img) {
             m4 mtx2 = m4_id();
+            m4_scale(&mtx2, (v3){size, size, 1});
             m4_translate_x(&mtx2, x);
             m4_translate_y(&mtx2, y);
             m4_apply(&mtx2, mtx);
             gfx_quad_ui(ui->gfx, mtx2, img);
         }
 
-        x += 6 * 4;
+        x += size;
     }
 }
