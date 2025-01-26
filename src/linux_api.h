@@ -69,22 +69,16 @@ struct timeval {
     syscall_slong_t tv_usec;
 };
 
-typedef long int fd_mask;
-#define FD_BIT_COUNT (8 * sizeof(fd_mask))
-typedef struct {
-    fd_mask bits[1024 / FD_BIT_COUNT];
-} fd_set;
-#define FD_ELT(fd) ((fd) / FD_BIT_COUNT)
-#define FD_MASK(fd) (1UL << ((fd) % FD_BIT_COUNT))
-#define FD_SET(fd, set) (set)->bits[FD_ELT(fd)] |= FD_MASK(fd)
-#define FD_ISSET(fd, set) (((set)->bits[FD_ELT(fd)] & FD_MASK(fd)) != 0)
-extern int select(int nfds, fd_set *restrict readfds, fd_set *restrict writefds, fd_set *restrict exceptfds, struct timeval *restrict timeout);
 #define NAME_MAX 255
 
 extern int inotify_init(void);
 extern int inotify_add_watch(int fd, const char *name, unsigned int mask);
 
 #endif
+
+typedef struct {
+    u64 bits[1024 / (8 * sizeof(u64))];
+} linux_fd_set;
 
 static i64 linux_syscall6(i64 a0, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5, i64 a6) {
     i64 ret;
@@ -203,6 +197,10 @@ __attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
 
 static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 offset) {
     return (void *)linux_syscall6(0x09, (i64)addr, len, prot, flags, fd, offset);
+}
+
+static i32 linux_select(i32 count, linux_fd_set *input_fds, linux_fd_set *output_fds, linux_fd_set *except_fds, struct timeval *timeout) {
+    return linux_syscall5(0x17, count, (i64)input_fds, (i64)output_fds, (i64)except_fds, (i64)timeout);
 }
 
 #define IN_DELETE 0x00000200 // File was modified

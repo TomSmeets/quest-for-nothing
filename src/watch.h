@@ -29,17 +29,16 @@ static bool watch_changed(Watch *watch) {
     timeout.tv_usec = 0;
 
     for (;;) {
-        fd_set fds = {};
-        FD_SET(watch->fd, &fds);
-        int ret = select(watch->fd + 1, &fds, 0, 0, &timeout);
+        linux_fd_set fds = {};
+
+        // Add fd to set
+        fds.bits[watch->fd / 64] |= 1ull << (watch->fd % 64);
+
+        int ret = linux_select(watch->fd + 1, &fds, 0, 0, &timeout);
         assert(ret >= 0, "select");
 
         if (ret == 0) {
             return change_count > 0;
-        }
-
-        if (!FD_ISSET(watch->fd, &fds)) {
-            continue;
         }
 
         u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
