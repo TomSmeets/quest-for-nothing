@@ -105,8 +105,8 @@ static i64 linux_syscall6(i64 a0, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5, i64 a6
     register i64 r2 __asm__("rsi") = a2;
     register i64 r3 __asm__("rdx") = a3;
     register i64 r4 __asm__("r10") = a4;
-    register i64 r5 __asm__("r9") = a5;
-    register i64 r6 __asm__("r8") = a6;
+    register i64 r5 __asm__("r8") = a5;
+    register i64 r6 __asm__("r9") = a6;
 
     // https://stackoverflow.com/a/54957101
     // https://gitlab.com/x86-psABIs/x86-64-ABI
@@ -132,7 +132,7 @@ static i64 linux_syscall5(i64 a0, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5) {
     register i64 r2 __asm__("rsi") = a2;
     register i64 r3 __asm__("rdx") = a3;
     register i64 r4 __asm__("r10") = a4;
-    register i64 r5 __asm__("r9") = a5;
+    register i64 r5 __asm__("r8") = a5;
     __asm__ __volatile__("syscall" : "=a"(ret) : "r"(r0), "r"(r1), "r"(r2), "r"(r3), "r"(r4), "r"(r5) : "rcx", "r11", "memory");
     return ret;
 }
@@ -206,6 +206,10 @@ static i32 linux_close(i32 fd) {
 
 __attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
     for (;;) linux_syscall1(0xe7, error_code);
+}
+
+static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 offset) {
+    return (void *)linux_syscall6(0x09, (i64)addr, len, prot, flags, fd, offset);
 }
 
 #if 0

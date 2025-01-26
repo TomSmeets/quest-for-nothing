@@ -89,7 +89,7 @@ static void *os_alloc_raw(u32 size) {
     }
     int prot = PROT_READ | PROT_WRITE;
     int flags = MAP_PRIVATE | MAP_ANONYMOUS;
-    void *alloc = mmap(0, size, prot, flags, -1, 0);
+    void *alloc = linux_mmap(0, size, prot, flags, -1, 0);
     assert(alloc && alloc != MAP_FAILED, "Failed to allocate memory");
     return alloc;
 }
