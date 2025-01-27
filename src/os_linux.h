@@ -6,15 +6,15 @@
 #include "os.h"
 #include "str.h"
 
-static u64 linux_time_to_us(struct timespec *t) {
+static u64 linux_time_to_us(struct linux_timespec *t) {
     return t->tv_sec * 1000 * 1000 + t->tv_nsec / 1000;
 }
 
-static struct timespec linux_us_to_time(u64 time) {
+static struct linux_timespec linux_us_to_time(u64 time) {
     u64 sec = time / (1000 * 1000);
     u64 nsec = (time - sec * 1000 * 1000) * 1000;
 
-    struct timespec ts;
+    struct linux_timespec ts;
     ts.tv_sec = sec;
     ts.tv_nsec = nsec;
     return ts;
@@ -50,7 +50,7 @@ int main(int argc, char **argv) {
 
 // Read
 static u64 os_time(void) {
-    struct timespec t = {};
+    struct linux_timespec t = {};
     clock_gettime(CLOCK_MONOTONIC, &t);
     return linux_time_to_us(&t);
 }
@@ -65,7 +65,7 @@ static u64 os_rand(void) {
 static void os_write(File *file, u8 *data, u32 len) {
     u32 written = 0;
     while (written < len) {
-        ssize_t result = linux_write(file_to_fd(file), data + written, len - written);
+        i64 result = linux_write(file_to_fd(file), data + written, len - written);
         assert(result > 0, "Failed to write");
         written += result;
     }
@@ -116,13 +116,13 @@ static void os_close(File *file) {
 
 static u32 os_read(File *file, u8 *data, u32 len) {
     assert(file, "Input file should be valid");
-    ssize_t result = linux_read(file_to_fd(file), data, len);
+    i64 result = linux_read(file_to_fd(file), data, len);
     assert(result >= 0, "Failed to read");
     return result;
 }
 
 static void os_sleep(u64 us) {
-    struct timespec time = linux_us_to_time(us);
+    struct linux_timespec time = linux_us_to_time(us);
     linux_nanosleep(&time, 0);
 }
 

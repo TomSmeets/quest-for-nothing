@@ -4,6 +4,11 @@
 #include "mem.h"
 #include "os_impl.h"
 
+#define _POSIX_C_SOURCE 199309L
+#define _DEFAULT_SOURCE
+#include <dirent.h>
+#include <stdio.h>
+
 typedef struct File_Info File_Info;
 struct File_Info {
     char *name;

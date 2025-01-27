@@ -7,25 +7,6 @@ static_assert(sizeof(void *) == sizeof(u64));
 // u32 mode_t
 // u64 size_t
 
-#if 1
-#define _POSIX_C_SOURCE 199309L
-#define _DEFAULT_SOURCE
-#include <dirent.h>
-#include <dlfcn.h>
-#include <fcntl.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/select.h>
-#include <sys/stat.h>
-#include <sys/time.h>
-#include <sys/types.h>
-#include <time.h>
-#include <unistd.h>
-#else
-// Improves compile time significantly
 #define PROT_READ 0x1
 #define PROT_WRITE 0x2
 #define MAP_PRIVATE 0x02
@@ -39,28 +20,26 @@ static_assert(sizeof(void *) == sizeof(u64));
 #define O_RDWR 02
 #define O_CREAT 0100
 #define O_TRUNC 01000
-typedef long int time_t;
-typedef long int syscall_slong_t;
-typedef long int ssize_t;
-typedef long unsigned int size_t;
-typedef long int off_t;
-typedef int clockid_t;
-struct timespec {
-    time_t tv_sec;
-    syscall_slong_t tv_nsec;
+
+#if 0
+#else
+// Improves compile time significantly
+struct linux_timespec {
+    i64 tv_sec;
+    i64 tv_nsec;
 };
-extern int clock_gettime(clockid_t clock_id, struct timespec *tp);
-extern int nanosleep(const struct timespec *__requested_time, struct timespec *__remaining);
 
 // dlfcn..h
 extern void *dlopen(const char *file, int mode);
 extern void *dlsym(void *restrict handle, const char *restrict name);
 extern char *dlerror(void);
 
+extern int clock_gettime(i32 clock_id, struct linux_timespec *tp);
+
 extern int system(const char *command);
-struct timeval {
-    time_t tv_sec;
-    syscall_slong_t tv_usec;
+struct linux_timeval {
+    i64 tv_sec;
+    i64 tv_usec;
 };
 
 #define NAME_MAX 255
@@ -189,11 +168,11 @@ static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 of
     return (void *)linux_syscall6(0x09, (i64)addr, len, prot, flags, fd, offset);
 }
 
-static i32 linux_select(i32 count, linux_fd_set *input_fds, linux_fd_set *output_fds, linux_fd_set *except_fds, struct timeval *timeout) {
+static i32 linux_select(i32 count, linux_fd_set *input_fds, linux_fd_set *output_fds, linux_fd_set *except_fds, struct linux_timeval *timeout) {
     return linux_syscall5(0x17, count, (i64)input_fds, (i64)output_fds, (i64)except_fds, (i64)timeout);
 }
 
-static i32 linux_nanosleep(const struct timespec *duration, struct timespec *remaining) {
+static i32 linux_nanosleep(const struct linux_timespec *duration, struct linux_timespec *remaining) {
     return linux_syscall2(0x23, (i64)duration, (i64)remaining);
 }
 

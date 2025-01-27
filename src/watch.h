@@ -24,7 +24,7 @@ static void watch_init(Watch *watch, char *path) {
 static bool watch_changed(Watch *watch) {
     u32 change_count = 0;
 
-    struct timeval timeout;
+    struct linux_timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = 0;
 
@@ -43,7 +43,7 @@ static bool watch_changed(Watch *watch) {
 
         u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 
-        ssize_t length = read(watch->fd, buffer, sizeof(buffer));
+        i64 length = linux_read(watch->fd, buffer, sizeof(buffer));
         if (length < 0) {
             fmt_s(OS_FMT, "Failed to read data from watch\n");
             break;
