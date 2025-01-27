@@ -6,8 +6,13 @@ static_assert(sizeof(int) == sizeof(i32));
 static_assert(sizeof(void *) == sizeof(u64));
 
 struct linux_timespec {
-    i64 tv_sec;
-    i64 tv_nsec;
+    i64 sec;
+    i64 nsec;
+};
+
+struct linux_timeval {
+    i64 sec;
+    i64 usec;
 };
 
 // libc
@@ -158,8 +163,13 @@ static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 of
 }
 
 #define CLOCK_MONOTONIC 1
-extern i32 linux_clock_gettime(i32 clock_id, struct linux_timespec *time) {
+static i32 linux_clock_gettime(i32 clock_id, struct linux_timespec *time) {
     return linux_syscall2(0xe4, clock_id, (i64)time);
+}
+
+// vsyscalls are simpler than loading the vdso
+static i64 linux_gettimeofday(struct linux_timeval *time, void *tz) {
+    return ((i64(*)(struct linux_timeval *, void *))0xffffffffff600000)(time, tz);
 }
 
 // TODO: The libc version works in userspace using VDSO, maby cool to implement too

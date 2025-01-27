@@ -7,7 +7,7 @@
 #include "str.h"
 
 static u64 linux_time_to_us(struct linux_timespec *t) {
-    return t->tv_sec * 1000 * 1000 + t->tv_nsec / 1000;
+    return t->sec * 1000 * 1000 + t->nsec / 1000;
 }
 
 static struct linux_timespec linux_us_to_time(u64 time) {
@@ -15,8 +15,8 @@ static struct linux_timespec linux_us_to_time(u64 time) {
     u64 nsec = (time - sec * 1000 * 1000) * 1000;
 
     struct linux_timespec ts;
-    ts.tv_sec = sec;
-    ts.tv_nsec = nsec;
+    ts.sec = sec;
+    ts.nsec = nsec;
     return ts;
 }
 
@@ -50,9 +50,15 @@ int main(int argc, char **argv) {
 
 // Read
 static u64 os_time(void) {
+#if 1
     struct linux_timespec t = {};
     linux_clock_gettime(CLOCK_MONOTONIC, &t);
     return linux_time_to_us(&t);
+#else
+    struct linux_timeval time = {};
+    linux_gettimeofday(&time, 0);
+    return time.sec * 1000 * 1000 + time.usec;
+#endif
 }
 
 static u64 os_rand(void) {
