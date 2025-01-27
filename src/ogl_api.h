@@ -1517,7 +1517,7 @@ typedef struct {
 } OGL_Api;
 
 static void ogl_api_load(OGL_Api *gl, void *load_symbol(const char *)) {
-#define LOAD(k) gl->k = load_symbol(#k);
+#define LOAD(k) gl->k = load_symbol(#k)
     LOAD(glCullFace);
     LOAD(glFrontFace);
     LOAD(glHint);

@@ -202,11 +202,6 @@ typedef union {
 static_assert(sizeof(SDL_Event) == 64);
 
 #define SDL_INIT_EVERYTHING 0b1111001000110001u
-extern int SDL_Init(u32 flags);
-
-extern void SDL_Quit(void);
-extern int SDL_PollEvent(SDL_Event *event);
-
 typedef void SDL_Window;
 typedef void SDL_GLContext;
 
@@ -261,16 +256,6 @@ typedef struct {
     int refresh_rate;
     void *driverdata;
 } SDL_DisplayMode;
-
-extern SDL_Window *SDL_CreateWindow(const char *title, int x, int y, int w, int h, u32 flags);
-extern void SDL_GetWindowSize(SDL_Window *window, int *w, int *h);
-extern int SDL_GL_SetSwapInterval(int interval);
-extern int SDL_GL_SetAttribute(SDL_GLattr attr, int value);
-extern void SDL_GL_SwapWindow(SDL_Window *window);
-extern void *SDL_GL_GetProcAddress(const char *proc);
-extern int SDL_GetWindowDisplayMode(SDL_Window *window, SDL_DisplayMode *mode);
-extern SDL_GLContext *SDL_GL_CreateContext(SDL_Window *window);
-extern int SDL_SetRelativeMouseMode(int enabled);
 
 typedef enum {
     SDL_WINDOW_FULLSCREEN = 0x00000001,

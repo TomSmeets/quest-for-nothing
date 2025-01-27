@@ -5,7 +5,7 @@
 #include "types.h"
 
 // Include implementation code becase we depend on platform spesific code
-#include "os_impl.h"
+#include "linux_api.h"
 
 #if OS_IS_LINUX
 typedef struct {
@@ -13,7 +13,7 @@ typedef struct {
 } Watch;
 
 static void watch_init(Watch *watch, char *path) {
-    i32 fd = linux_inotify_init(0);
+    i32 fd = linux_inotify_init(O_NONBLOCK);
     assert(fd >= 0, "Could not init inotify");
     watch->fd = fd;
 
@@ -21,50 +21,46 @@ static void watch_init(Watch *watch, char *path) {
     assert(wd >= 0, "inotify_add_watch");
 }
 
-static bool watch_changed(Watch *watch) {
-    u32 change_count = 0;
-
-    struct linux_timeval timeout;
-    timeout.tv_sec = 0;
-    timeout.tv_usec = 0;
-
+static bool watch_changed_quick(Watch *watch) {
     for (;;) {
-        linux_fd_set fds = {};
-
-        // Add fd to set
-        fds.bits[watch->fd / 64] |= 1ull << (watch->fd % 64);
-
-        int ret = linux_select(watch->fd + 1, &fds, 0, 0, &timeout);
-        assert(ret >= 0, "select");
-
-        if (ret == 0) {
-            return change_count > 0;
-        }
-
         u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 
         i64 length = linux_read(watch->fd, buffer, sizeof(buffer));
+
+        // No more data
+        if (length == -EAGAIN) {
+            return false;
+        }
+
+        // Some other error
         if (length < 0) {
             fmt_s(OS_FMT, "Failed to read data from watch\n");
-            break;
+            return false;
         }
 
+        // Change!
         struct inotify_event *event = (struct inotify_event *)buffer;
-        if (event->len) {
-            fmt_ss(OS_FMT, "changed: ", event->name, "\n");
-
-            if (str_eq(event->name, "asset.h")) {
-                continue;
-            }
-        }
-
-        // Debounce (100 ms)
-        timeout.tv_usec = 200 * 1000;
-        change_count++;
+        fmt_ss(OS_FMT, "changed: ", event->name, "\n");
+        return true;
     }
-
-    return false;
 }
+
+static bool watch_changed(Watch *watch) {
+    if (!watch_changed_quick(watch)) return false;
+
+    // Something changed, debounce
+    for (;;) {
+        // Debounce time
+        os_sleep(50 * 1000);
+
+        // No more changes
+        if (!watch_changed_quick(watch)) return true;
+
+        // Something changed, clear buffer and debounce again
+        while (watch_changed_quick(watch));
+    }
+}
+
 #elif OS_IS_WINDOWS
 typedef struct {
     HANDLE handle;

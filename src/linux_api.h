@@ -19,18 +19,7 @@ extern void *dlopen(const char *file, i32 mode);
 extern void *dlsym(void *restrict handle, const char *restrict name);
 extern char *dlerror(void);
 
-// VDSO
-#define CLOCK_MONOTONIC 1
-extern i32 clock_gettime(i32 clock_id, struct linux_timespec *tp);
-
-struct linux_timeval {
-    i64 tv_sec;
-    i64 tv_usec;
-};
-
-typedef struct {
-    u64 bits[1024 / (8 * sizeof(u64))];
-} linux_fd_set;
+// =================== Syscalls ==============
 
 static i64 linux_syscall6(i64 a0, i64 a1, i64 a2, i64 a3, i64 a4, i64 a5, i64 a6) {
     i64 ret;
@@ -122,6 +111,9 @@ static i64 linux_syscall0(i64 a0) {
     return ret;
 }
 
+// Linux Errors (if return value < 0, errno = -return)
+#define EAGAIN 11
+
 // Sys calls
 static i64 linux_read(i32 fd, void *buf, u64 size) {
     return linux_syscall3(0x00, fd, (i64)buf, size);
@@ -136,6 +128,7 @@ static i64 linux_write(i32 fd, const void *buf, u64 size) {
 #define O_RDWR 02
 #define O_CREAT 0100
 #define O_TRUNC 01000
+#define O_NONBLOCK 04000
 
 static i32 linux_open(const char *path, i32 flags, u32 mode) {
     return linux_syscall3(0x02, (i64)path, flags, mode);
@@ -160,9 +153,13 @@ static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 of
     return (void *)linux_syscall6(0x09, (i64)addr, len, prot, flags, fd, offset);
 }
 
-static i32 linux_select(i32 count, linux_fd_set *input_fds, linux_fd_set *output_fds, linux_fd_set *except_fds, struct linux_timeval *timeout) {
-    return linux_syscall5(0x17, count, (i64)input_fds, (i64)output_fds, (i64)except_fds, (i64)timeout);
+#define CLOCK_MONOTONIC 1
+extern i32 linux_clock_gettime(i32 clock_id, struct linux_timespec *time) {
+    return linux_syscall2(0xe4, clock_id, (i64)time);
 }
+
+// TODO: The libc version works in userspace using VDSO, maby cool to implement too
+// extern i32 clock_gettime(i32 clock_id, struct linux_timespec *tp);
 
 static i32 linux_nanosleep(const struct linux_timespec *duration, struct linux_timespec *remaining) {
     return linux_syscall2(0x23, (i64)duration, (i64)remaining);

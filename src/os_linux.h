@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
 // Read
 static u64 os_time(void) {
     struct linux_timespec t = {};
-    clock_gettime(CLOCK_MONOTONIC, &t);
+    linux_clock_gettime(CLOCK_MONOTONIC, &t);
     return linux_time_to_us(&t);
 }
 
