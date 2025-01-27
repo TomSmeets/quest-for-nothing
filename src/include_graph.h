@@ -3,10 +3,6 @@
 #include "math.h"
 #include "mem.h"
 #include "os_impl.h"
-
-#define _POSIX_C_SOURCE 199309L
-#define _DEFAULT_SOURCE
-#include <dirent.h>
 #include <stdio.h>
 
 typedef struct File_Info File_Info;
@@ -23,7 +19,7 @@ static File_Info *os_read_dir(char *path, Memory *mem) {
     File_Info *first = 0;
     File_Info *last = 0;
 
-    // Allocate temp buffer (very fast because it is cached)
+    // Allocate temp buffer (it is cached)
     void *buffer = mem_alloc_chunk();
 
     for (;;) {
@@ -31,8 +27,8 @@ static File_Info *os_read_dir(char *path, Memory *mem) {
 
         // Some Error occured
         if (len < 0) {
-            mem_free_chunk(buffer);
-            return 0;
+            first = last = 0;
+            break;
         }
 
         // Should not happen
@@ -51,6 +47,7 @@ static File_Info *os_read_dir(char *path, Memory *mem) {
 
     // Release buffer back to the cache
     mem_free_chunk(buffer);
+    linux_close(dir);
     return first;
 }
 

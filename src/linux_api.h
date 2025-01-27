@@ -197,6 +197,9 @@ static i32 linux_inotify_add_watch(i32 fd, const char *path, u32 mask) {
     return linux_syscall3(0xfe, fd, (i64)path, mask);
 }
 
+#define DT_DIR 4
+#define DT_REG 8
+
 struct linux_dirent64 {
     u64 ino;
     i64 off;
