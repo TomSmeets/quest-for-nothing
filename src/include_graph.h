@@ -3,7 +3,7 @@
 #include "math.h"
 #include "mem.h"
 #include "os_impl.h"
-#include <stdio.h>
+#include "read.h"
 
 typedef struct File_Info File_Info;
 struct File_Info {
@@ -85,7 +85,7 @@ static void include_graph(void) {
         char *full_path = fmt_mem_ss(mem, path, "/", file->name);
 
         // Read file
-        FILE *fd = fopen(full_path, "r");
+        Read *read = read_new(mem, full_path);
 
         // Remove extention
         if (is_c_file || is_h_file) {
@@ -96,12 +96,12 @@ static void include_graph(void) {
         u32 dep_count = 0;
         for (;;) {
             char buffer[1024];
-            char *line = fgets(buffer, sizeof(buffer), fd);
+            char *line = read_line(read, buffer, sizeof(buffer));
             if (!line) break;
             line_count++;
 
             char *prefix = "#include \"";
-            char *suffix = "\"\n";
+            char *suffix = "\"";
             if (!str_starts_with(line, prefix)) continue;
             if (!str_ends_with(line, suffix)) continue;
 
@@ -129,7 +129,7 @@ static void include_graph(void) {
         else if (dep_count == 0)
             fmt_s(out, "fillcolor=\"#eeeeff\",");
         fmt_s(out, "];\n");
-        fclose(fd);
+        read_close(read);
     }
     fmt_s(out, "}\n");
     fmt_close(out);
