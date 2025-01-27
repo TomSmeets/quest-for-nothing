@@ -58,7 +58,7 @@ static u64 os_time(void) {
 static u64 os_rand(void) {
     u64 seed = 0;
     i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
-    assert(ret == sizeof(seed), "");
+    assert(ret == sizeof(seed), "linux getrandom failed");
     return seed;
 }
 

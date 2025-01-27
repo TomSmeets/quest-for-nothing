@@ -38,7 +38,7 @@ static Maze_Cell maze_get(Maze *maze, v2i pos) {
 
 // Remove a random element from the list
 static Maze_Cell rand_choose(Random *rng, Maze_Cell *list, u32 *len) {
-    assert(*len > 0, "");
+    assert(*len > 0, "No more elments to choose from!");
     u32 i = rand_u32_range(rng, 0, *len - 1);
     Maze_Cell value = list[i];
     list[i] = list[--*len];

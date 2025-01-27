@@ -71,7 +71,7 @@ static void level_generate(Entity **level, Memory *mem, Random *rng, v2i size) {
         for (i32 x = -1; x < size.x + 1; ++x) {
             v2i pos = {x, y};
             Maze_Cell cell = maze_get(&maze, pos);
-            assert(cell != Maze_Cell_Todo, "");
+            assert(cell != Maze_Cell_Todo, "There are still cells left to-do?");
             if (cell == Maze_Cell_Empty) continue;
 
             Maze_Cell cell_xp = maze_get(&maze, pos + (v2i){1, 0});
