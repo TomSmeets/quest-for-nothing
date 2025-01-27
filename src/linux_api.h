@@ -4,46 +4,29 @@
 static_assert(sizeof(long) == sizeof(i64));
 static_assert(sizeof(int) == sizeof(i32));
 static_assert(sizeof(void *) == sizeof(u64));
-// u32 mode_t
-// u64 size_t
 
-#define PROT_READ 0x1
-#define PROT_WRITE 0x2
-#define MAP_PRIVATE 0x02
-#define MAP_ANONYMOUS 0x20
-#define MAP_FAILED ((void *)-1)
-#define CLOCK_MONOTONIC 1
-#define RTLD_NOW 0x00002
-#define RTLD_LOCAL 0
-#define O_RDONLY 00
-#define O_WRONLY 01
-#define O_RDWR 02
-#define O_CREAT 0100
-#define O_TRUNC 01000
-
-#if 0
-#else
-// Improves compile time significantly
 struct linux_timespec {
     i64 tv_sec;
     i64 tv_nsec;
 };
 
-// dlfcn..h
-extern void *dlopen(const char *file, int mode);
+// libc
+extern i32 system(const char *command);
+
+#define RTLD_NOW 0x00002
+#define RTLD_LOCAL 0
+extern void *dlopen(const char *file, i32 mode);
 extern void *dlsym(void *restrict handle, const char *restrict name);
 extern char *dlerror(void);
 
-extern int clock_gettime(i32 clock_id, struct linux_timespec *tp);
+// VDSO
+#define CLOCK_MONOTONIC 1
+extern i32 clock_gettime(i32 clock_id, struct linux_timespec *tp);
 
-extern int system(const char *command);
 struct linux_timeval {
     i64 tv_sec;
     i64 tv_usec;
 };
-
-#define NAME_MAX 255
-#endif
 
 typedef struct {
     u64 bits[1024 / (8 * sizeof(u64))];
@@ -148,6 +131,12 @@ static i64 linux_write(i32 fd, const void *buf, u64 size) {
     return linux_syscall3(0x01, fd, (i64)buf, size);
 }
 
+#define O_RDONLY 00
+#define O_WRONLY 01
+#define O_RDWR 02
+#define O_CREAT 0100
+#define O_TRUNC 01000
+
 static i32 linux_open(const char *path, i32 flags, u32 mode) {
     return linux_syscall3(0x02, (i64)path, flags, mode);
 }
@@ -160,9 +149,12 @@ static i64 linux_getrandom(void *buf, u64 size, u32 flags) {
     return linux_syscall3(0x13e, (i64)buf, size, flags);
 }
 
-__attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
-    for (;;) linux_syscall1(0xe7, error_code);
-}
+#define PROT_READ 0x1
+#define PROT_WRITE 0x2
+
+#define MAP_PRIVATE 0x02
+#define MAP_ANONYMOUS 0x20
+#define MAP_FAILED ((void *)-1)
 
 static void *linux_mmap(void *addr, u64 len, i32 prot, i32 flags, i32 fd, i64 offset) {
     return (void *)linux_syscall6(0x09, (i64)addr, len, prot, flags, fd, offset);
@@ -176,9 +168,17 @@ static i32 linux_nanosleep(const struct linux_timespec *duration, struct linux_t
     return linux_syscall2(0x23, (i64)duration, (i64)remaining);
 }
 
-#define IN_DELETE 0x00000200 // File was modified
+__attribute__((__noreturn__)) static void linux_exit_group(i32 error_code) {
+    // Add infinite loop to make clang happy
+    // (function should not return)
+    for (;;) linux_syscall1(0xe7, error_code);
+}
+
+#define IN_MODIFY 0x00000002 // File was modified
 #define IN_CREATE 0x00000100 // Subfile was created
-#define IN_MODIFY 0x00000002 // Subfile was deleted
+#define IN_DELETE 0x00000200 // Subfile was deleted
+
+#define NAME_MAX 255
 
 struct inotify_event {
     i32 wd;
@@ -197,6 +197,7 @@ static i32 linux_inotify_add_watch(i32 fd, const char *path, u32 mask) {
 }
 
 #if 0
+// TODO
 struct linux_dirent64 {
     u64 d_ino;
     i64 d_off;
