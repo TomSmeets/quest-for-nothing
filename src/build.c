@@ -316,7 +316,6 @@ static void os_main(OS *os) {
     // Call Constructor
     if (!os->app) os->app = build_init(os);
 
-    fmt_s(OS_FMT, "update..\n");
     Build *hot = os->app;
     Memory *tmp = mem_new();
 

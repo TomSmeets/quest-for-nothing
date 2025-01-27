@@ -17,21 +17,40 @@ struct File_Info {
 };
 
 static File_Info *os_read_dir(char *path, Memory *mem) {
-    DIR *dir = opendir(path);
-    if (!dir) return 0;
+    i32 dir = linux_open(path, O_RDONLY | O_DIRECTORY, 0);
+    if (dir < 0) return 0;
 
     File_Info *first = 0;
     File_Info *last = 0;
-    for (;;) {
-        struct dirent *ent = readdir(dir);
-        if (!ent) break;
 
-        File_Info *info = mem_struct(mem, File_Info);
-        info->name = str_dup(ent->d_name, mem);
-        info->is_dir = ent->d_type == DT_DIR;
-        LIST_APPEND(first, last, info);
+    // Allocate temp buffer (very fast because it is cached)
+    void *buffer = mem_alloc_chunk();
+
+    for (;;) {
+        i64 len = linux_getdents64(dir, buffer, MEMORY_CHUNK_SIZE);
+
+        // Some Error occured
+        if (len < 0) {
+            mem_free_chunk(buffer);
+            return 0;
+        }
+
+        // Should not happen
+        assert(len <= MEMORY_CHUNK_SIZE, "getdents64 returned too many bytes");
+
+        // End of directory
+        if (len == 0) break;
+
+        for (struct linux_dirent64 *ent = buffer; (void *)ent < buffer + len; ent = (void *)ent + ent->reclen) {
+            File_Info *info = mem_struct(mem, File_Info);
+            info->name = str_dup(ent->name, mem);
+            info->is_dir = ent->type == DT_DIR;
+            LIST_APPEND(first, last, info);
+        }
     }
 
+    // Release buffer back to the cache
+    mem_free_chunk(buffer);
     return first;
 }
 

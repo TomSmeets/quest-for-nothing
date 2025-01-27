@@ -126,9 +126,13 @@ static i64 linux_write(i32 fd, const void *buf, u64 size) {
 #define O_RDONLY 00
 #define O_WRONLY 01
 #define O_RDWR 02
+
 #define O_CREAT 0100
 #define O_TRUNC 01000
+#define O_APPEND 02000
 #define O_NONBLOCK 04000
+#define O_DIRECTORY 0200000
+#define O_CLOEXEC 02000000
 
 static i32 linux_open(const char *path, i32 flags, u32 mode) {
     return linux_syscall3(0x02, (i64)path, flags, mode);
@@ -193,20 +197,19 @@ static i32 linux_inotify_add_watch(i32 fd, const char *path, u32 mask) {
     return linux_syscall3(0xfe, fd, (i64)path, mask);
 }
 
-#if 0
-// TODO
 struct linux_dirent64 {
-    u64 d_ino;
-    i64 d_off;
-    unsigned short d_reclen;
-    unsigned char d_type;
-    char d_name[];
+    u64 ino;
+    i64 off;
+    unsigned short reclen;
+    unsigned char type;
+    char name[];
 };
 
-static i64 linux_getdents64(u32 fd, struct linux_dirent64 *dirent, unsigned int count) {
-    return linux_syscall3(0xd9, fd, (i64)dirent, count);
+static i64 linux_getdents64(i32 fd, struct linux_dirent64 *dirent, u32 count) {
+    return linux_syscall3(217, fd, (i64)dirent, count);
 }
 
+#if 0
 struct linux_clone_args {
     u64 flags;
     i32 *pidfd;
