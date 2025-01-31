@@ -252,7 +252,7 @@ static void build_parse(int argc, char **argv) {
     // Platform
     bool wasm = 0;
     bool windows = 0;
-    bool linux = 0;
+    // bool linux = 0;
 
     // Application
     bool main = 0;

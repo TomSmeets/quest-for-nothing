@@ -2,6 +2,7 @@
 // game.h - Game data structures and implementation
 #pragma once
 #include "audio.h"
+#include "music.h"
 #include "camera.h"
 #include "collision.h"
 #include "engine.h"
@@ -47,6 +48,7 @@ typedef struct {
     u32 debug;
 
     Sparse_Set *sparse;
+    Music music;
 } Game;
 
 static Image *gen_gun(Memory *mem, Random *rng) {
@@ -148,6 +150,7 @@ static Game *game_new(Random *rng) {
     game->camera.target = game->player;
 
     game->sparse = sparse_set_new(mem);
+    music_init(&game->music);
     return game;
 }
 
@@ -391,6 +394,7 @@ static void game_update(Game *game, Engine *eng) {
     }
 
     camera_update(&game->camera, eng->dt);
+    // music_play(&game->music, eng);
 
     // Update bvh
     sparse_set_swap(game->sparse);
