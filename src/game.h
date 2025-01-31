@@ -2,7 +2,6 @@
 // game.h - Game data structures and implementation
 #pragma once
 #include "audio.h"
-#include "music.h"
 #include "camera.h"
 #include "collision.h"
 #include "engine.h"
@@ -12,6 +11,7 @@
 #include "level.h"
 #include "mem.h"
 #include "monster.h"
+#include "music.h"
 #include "player.h"
 #include "rand.h"
 #include "sparse_set.h"
