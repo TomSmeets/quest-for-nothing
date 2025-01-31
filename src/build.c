@@ -237,31 +237,40 @@ static void exit_with_help(Cli *cli) {
     os_exit(1);
 }
 
+// build release all
+// build all release
+// build linux windows wasm release
+// build format
+// build run src/main.c
+// build release watch all
+// build watch
+
+static void build_parse(int argc, char **argv) {
+    // Build in release mode
+    bool release = 0;
+
+    // Platform
+    bool wasm = 0;
+    bool windows = 0;
+    bool linux = 0;
+
+    // Application
+    bool main = 0;
+    bool build = 0;
+
+    // Other actions
+    bool format = 0;
+    char *run = 0;
+    bool watch = 0;
+    bool graph = 0;
+    bool serve = 0;
+}
+
 static Build *build_init(OS *os) {
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
     Build *hot = mem_struct(mem, Build);
     Cli *cli = cli_new(tmp, os);
-
-    // bool watch = false;
-    // bool build_linux   = false;
-    // bool build_windows = false;
-    // bool build_wasm    = false;
-
-    // // build run src/main.c ...
-    // // build linux windows wasm
-    // // build watch all
-
-    // Arg arg = { os->argc, os->argv };
-    // char *main_name = arg_next(&arg);
-    // for(;;) {
-    //     char *cmd = arg_next(&arg);
-
-    // }
-
-    // for(u32 i = 0; i < os->argc; ++i) {
-    //     char *arg = os->argv[i];
-    // }
 
     if (cli_action(cli, "run", "<main> [args]...", "Build and run with hot reloading")) {
         if (os->argc < 3) {
@@ -291,8 +300,6 @@ static Build *build_init(OS *os) {
         os_exit(0);
     } else if (cli_action(cli, "serve", "", "Start a simple local python http server for testing the web version")) {
         assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
-        os_exit(0);
-    } else if (cli_action(cli, "asset", "", "Build asset.h")) {
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
         assert(os_system("clang-format --verbose -i src/*"), "Format failed!");

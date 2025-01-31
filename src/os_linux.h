@@ -50,15 +50,9 @@ int main(int argc, char **argv) {
 
 // Read
 static u64 os_time(void) {
-#if 1
     struct linux_timespec t = {};
     linux_clock_gettime(CLOCK_MONOTONIC, &t);
     return linux_time_to_us(&t);
-#else
-    struct linux_timeval time = {};
-    linux_gettimeofday(&time, 0);
-    return time.sec * 1000 * 1000 + time.usec;
-#endif
 }
 
 static u64 os_rand(void) {

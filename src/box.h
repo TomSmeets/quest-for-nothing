@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// box.h - AABB
+// box.h - A 3d axis aligned bounding box
 #pragma once
 #include "vec.h"
 
