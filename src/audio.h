@@ -27,7 +27,7 @@ typedef struct {
     Random rand;
 
     u32 sound_count;
-    Sound sounds[16];
+    Sound sounds[64];
 } Audio;
 
 static Audio *audio_new(Memory *mem) {

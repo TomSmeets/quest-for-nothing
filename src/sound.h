@@ -69,7 +69,7 @@ static f32 sound_source(Sound *sound, Sound_Source *source, f32 input) {
 
 static void sound_reset(Sound *sound) {
     sound->dt = 1.0f / AUDIO_SAMPLE_RATE;
-    sound->time = 0;
+    // sound->time = 0;
     sound->src_a.phase = 0;
     sound->src_b.phase = 0;
     sound->src_c.phase = 0;

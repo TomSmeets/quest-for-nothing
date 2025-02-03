@@ -394,7 +394,7 @@ static void game_update(Game *game, Engine *eng) {
     }
 
     camera_update(&game->camera, eng->dt);
-    // music_play(&game->music, eng);
+    music_play(&game->music, eng);
 
     // Update bvh
     sparse_set_swap(game->sparse);
