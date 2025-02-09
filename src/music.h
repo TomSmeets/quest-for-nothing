@@ -28,20 +28,20 @@ typedef struct {
 // starts at C0..
 // Each octave is 7 notes
 // C4 = 7*4
-#define MUSIC_C4 (7 * 4)
+#define MUSIC_C4 (7*4)
 static f32 music_note_to_freq(u32 note) {
     assert(note <= 7 * 8, "only 8 supported ocatves");
 
     f32 octave_list[9] = {
         1.0f / 16.0f, // 0
-        1.0f / 8.0f,  // 1
-        1.0f / 4.0f,  // 2
-        1.0f / 2.0f,  // 3
-        1.0f,         // 4
-        2.0f,         // 5
-        4.0f,         // 6
-        8.0f,         // 7
-        16.0f,        // 8
+        1.0f / 8.0f, // 1
+        1.0f / 4.0f, // 2
+        1.0f / 2.0f, // 3
+        1.0f, // 4
+        2.0f, // 5
+        4.0f, // 6
+        8.0f, // 7
+        16.0f, // 8
     };
 
     // A - F
@@ -71,6 +71,12 @@ static void music_init(Music *music) {
     // u32 notes[] = {}
 }
 
+static bool sound(Sound_Vars *snd) {
+    f32 a = sound_saw(snd, snd->freq);
+    f32 b = sound_saw(snd, snd->freq);
+}
+
+
 static void music_play(Music *music, Engine *eng) {
     music->sleep_time -= eng->dt;
     if (music->sleep_time > 0) return;
@@ -88,42 +94,19 @@ static void music_play(Music *music, Engine *eng) {
 
         {
             Sound snd = {};
-            snd.freq = music_note_to_freq(music->note + 4 * 7);
-            snd.src_a.freq = 1;
-            snd.src_a.volume = .25;
-            snd.src_a.attack_time = 0.1;
-            snd.src_a.release_time = dt * 2;
-
-            snd.src_b.freq = 1.0f;
-            snd.src_b.volume = 1.0;
-            snd.src_b.attack_time = 0.2;
-            snd.src_b.release_time = dt * 2;
-
-            snd.src_c.freq = 1;
-            snd.src_c.volume = 0;
-            snd.src_c.attack_time = 0.1;
-            snd.src_c.release_time = dt * 2;
-            snd.time = time;
-            audio_play(eng->audio, snd);
-        }
-
-        {
-            Sound snd = {};
             snd.freq = music_note_to_freq(music->note + 3 * 7);
             snd.src_a.freq = 1;
-            snd.src_a.volume = .125;
-            snd.src_a.attack_time = 0.2;
+            snd.src_a.volume = 1;
+            snd.src_a.attack_time = 0.1;
+            snd.src_a.duration = dt;
             snd.src_a.release_time = dt;
 
-            snd.src_b.freq = 1.0f;
-            snd.src_b.volume = 8.0;
-            snd.src_b.attack_time = 0.2;
+            snd.src_b.freq = .5;
+            snd.src_b.volume = .5;
+            snd.src_b.attack_time = 0.1;
+            snd.src_b.duration = dt;
             snd.src_b.release_time = dt;
 
-            snd.src_c.freq = 1;
-            snd.src_c.volume = 0;
-            snd.src_c.attack_time = 0.5;
-            snd.src_c.release_time = dt;
             snd.time = time;
             audio_play(eng->audio, snd);
         }
@@ -136,7 +119,7 @@ static void music_play(Music *music, Engine *eng) {
             music->note -= 1;
         }
 
-        if (music->note > 7) music->note = 6;
-        if (music->note < -7) music->note = -6;
+        if(music->note > 7) music->note = 6;
+        if(music->note < -7) music->note = -6;
     }
 }
