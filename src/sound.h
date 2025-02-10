@@ -11,40 +11,24 @@
 // https://www.eetimes.com/making-sounds-with-analogue-electronics-part-1-before-the-synthesizer/
 // FM: https://www.youtube.com/watch?v=DD0UpZ5uGAo
 // https://www.musicdsp.org/en/latest/index.html
+//
 
-// Very simple envelope
-static f32 sound_envelope(f32 time, f32 attack_time, f32 duration, f32 release_time) {
-    f32 v_attack = f_step_duration(time, attack_time);
-    f32 v_release = 1 - f_step_duration(time - duration, release_time);
-    return f_min(v_attack, v_release);
-}
-
-static f32 sound_sample(Sound *sound) {
-    if (!sound->playing) return 0;
-
-    sound->time += sound->dt;
-
-    if (sound->time > sound->src_a.duration + sound->src_a.release_time) {
-        sound->playing = false;
-    }
-
-    // v_a = sound_filter(sound, sound->freq*2, v_a).low_pass;
-    return v_a;
-}
-
-typedef struct Sound_Vars Sound_Vars;
-struct Sound_Vars {
-    // Sound current timestamp
-    f32 time;
-
-    // Sample detla time
-    f32 dt;
+typedef struct Sound Sound;
+struct Sound {
+    // Duration
+    f32 duration;
 
     // Base frequency
     f32 freq;
 
-    // Duration
-    f32 duration;
+    // Implementation
+    f32 (*algorithm)(Sound *);
+
+    // Current sound runtime
+    f32 time;
+
+    // Sample detla time
+    f32 dt;
 
     // For noise
     Random rand;
@@ -52,26 +36,38 @@ struct Sound_Vars {
     // List of 'phase' values for sine waves.
     u32 phase_ix;
     f32 phase[64];
-
-    f32 *(*algorithm)(Sound_Vars *);
 };
 
-static void sound_var_begin(Sound_Vars *snd) {
+// Very simple envelope
+static f32 sound_envelope(f32 time, f32 attack_time, f32 duration, f32 release_time) {
+    f32 v_attack  = f_step_duration(time, attack_time);
+    f32 v_release = f_step_duration(time - duration - attack_time, release_time);
+    return f_min(v_attack, 1-v_release);
+}
+
+static f32 sound_sample(Sound *sound) {
+    sound->phase_ix = 0;
+    f32 sample = (*sound->algorithm)(sound);
+    sound->time += sound->dt;
+    return sample;
+}
+
+static void sound_var_begin(Sound *snd) {
     snd->phase_ix = 0;
 }
 
-static void sound_var_end(Sound_Vars *snd) {
+static void sound_var_end(Sound *snd) {
     snd->time += snd->dt;
 }
 
 // Get a new persistent variable for this sample
-static f32 *sound_var(Sound_Vars *sound) {
+static f32 *sound_var(Sound *sound) {
     if (sound->phase_ix >= array_count(sound->phase)) return 0;
     return sound->phase + sound->phase_ix++;
 }
 
 // Get a number of persistent variables for this sample
-static f32 *sound_var_list(Sound_Vars *sound, u32 count) {
+static f32 *sound_var_list(Sound *sound, u32 count) {
     if (sound->phase_ix + count > array_count(sound->phase)) return 0;
     f32 *ret = sound->phase + sound->phase_ix;
     sound->phase_ix += count;
@@ -79,7 +75,7 @@ static f32 *sound_var_list(Sound_Vars *sound, u32 count) {
 }
 
 // Generate linear ramp from [0, 1) at a given frequency
-static f32 sound_ramp(Sound_Vars *sound, f32 freq, f32 phase) {
+static f32 sound_ramp(Sound *sound, f32 freq, f32 phase) {
     // Get a phase value
     f32 *var = sound_var(sound);
 
@@ -90,26 +86,26 @@ static f32 sound_ramp(Sound_Vars *sound, f32 freq, f32 phase) {
 }
 
 // Saw wave (rising)
-static f32 sound_saw(Sound_Vars *sound, f32 freq, f32 phase) {
+static f32 sound_saw(Sound *sound, f32 freq, f32 phase) {
     return sound_ramp(sound, freq, phase) * 2.0f - 1.0f;
 }
 
 // Pulse/square wave
-static f32 sound_pulse(Sound_Vars *sound, f32 freq, f32 phase, f32 duty) {
+static f32 sound_pulse(Sound *sound, f32 freq, f32 phase, f32 duty) {
     return sound_ramp(sound, freq, phase) < duty;
 }
 
 // Generate a pure sine wave at a given frequency
 // range = [-1, 1]
-static f32 sound_sine(Sound_Vars *sound, f32 freq, f32 phase) {
+static f32 sound_sine(Sound *sound, f32 freq, f32 phase) {
     return f_sin2pi(sound_ramp(sound, freq, phase));
 }
 
-static f32 sound_noise_white(Sound_Vars *sound) {
+static f32 sound_noise_white(Sound *sound) {
     return rand_f32_signed(&sound->rand);
 }
 
-static f32 sound_noise(Sound_Vars *sound, f32 freq, f32 duty) {
+static f32 sound_noise(Sound *sound, f32 freq, f32 duty) {
     // Current sample
     f32 *value = sound_var(sound);
 
@@ -132,7 +128,7 @@ static f32 sound_noise(Sound_Vars *sound, f32 freq, f32 duty) {
 }
 
 // Delay input by 'count' samples
-static f32 sound_delay(Sound_Vars *sound, f32 input, u32 count) {
+static f32 sound_delay(Sound *sound, f32 input, u32 count) {
     f32 value = input;
     for(u32 i = 0; i < count; ++i) {
         f32 *prev = sound_var(sound);
@@ -144,7 +140,7 @@ static f32 sound_delay(Sound_Vars *sound, f32 input, u32 count) {
 }
 
 // Feedback signal
-static f32 *sound_feedback(Sound_Vars *sound) {
+static f32 *sound_feedback(Sound *sound) {
     return sound_var(sound);
 }
 
@@ -155,16 +151,16 @@ typedef struct {
 } Sound_Filter_Result;
 
 // Filter the incoming samples at a given cutoff frequency.
-static Sound_Filter_Result sound_filter(Sound_Vars *sound, f32 cutoff_freq, f32 sample) {
+static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sample) {
     f32 *var0 = sound_var(sound);
     f32 *var1 = sound_var(sound);
 
-    f32 rc = 1.0 / (cutoff_freq * PI2);
+    f32 rc = 1.0f / (cutoff_freq * PI2);
     f32 f = sound->dt / (rc + sound->dt);
 
     // f and fb calculation
-    f32 q = 0.9;
-    f32 fb = q + q / (1.0 - f);
+    f32 q = 0.9f;
+    f32 fb = q + q / (1.0f - f);
 
     // High Pass Filter
     f32 hp = sample - *var0;

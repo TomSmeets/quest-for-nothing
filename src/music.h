@@ -71,9 +71,21 @@ static void music_init(Music *music) {
     // u32 notes[] = {}
 }
 
-static bool sound(Sound_Vars *snd) {
-    f32 a = sound_saw(snd, snd->freq);
-    f32 b = sound_saw(snd, snd->freq);
+static f32 music_algorithm(Sound *snd) {
+    f32 volume = sound_envelope(snd->time, 0.1, snd->duration, 0.1);
+
+    f32 b = sound_sine(snd, snd->freq, 0);
+    f32 a = sound_sine(snd, snd->freq * (1 + b), 0);
+
+
+    if(snd->time < 0) return 0;
+
+    if(volume <= 0) {
+         snd->algorithm = 0;
+         return 0;
+     }
+
+    return a*volume;
 }
 
 
@@ -81,7 +93,7 @@ static void music_play(Music *music, Engine *eng) {
     music->sleep_time -= eng->dt;
     if (music->sleep_time > 0) return;
 
-    u32 beat_count = 4;
+    u32 beat_count = 1;
     f32 beat_per_second = 70.0f / 60.0f;
     f32 dt = 1.0f / beat_per_second;
     music->sleep_time += dt * beat_count;
@@ -92,25 +104,11 @@ static void music_play(Music *music, Engine *eng) {
     for (u32 i = 0; i < beat_count; ++i) {
         fmt_s(OS_FMT, "Submitting beats\n");
 
-        {
-            Sound snd = {};
-            snd.freq = music_note_to_freq(music->note + 3 * 7);
-            snd.src_a.freq = 1;
-            snd.src_a.volume = 1;
-            snd.src_a.attack_time = 0.1;
-            snd.src_a.duration = dt;
-            snd.src_a.release_time = dt;
-
-            snd.src_b.freq = .5;
-            snd.src_b.volume = .5;
-            snd.src_b.attack_time = 0.1;
-            snd.src_b.duration = dt;
-            snd.src_b.release_time = dt;
-
-            snd.time = time;
-            audio_play(eng->audio, snd);
-        }
-
+        Sound *snd = audio_play(eng->audio);
+        snd->duration = dt;
+        snd->freq = music_note_to_freq(music->note + 3 * 7);
+        snd->time = time;
+        snd->algorithm = music_algorithm;
         time -= 1.0f * dt;
 
         if (rand_u32(&eng->rng) % 2 == 0) {

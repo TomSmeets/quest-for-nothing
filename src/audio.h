@@ -34,19 +34,17 @@ static Audio *audio_new(Memory *mem) {
     return mem_struct(mem, Audio);
 }
 
-static void audio_play(Audio *audio, Sound new_sound) {
-    sound_reset(&new_sound);
-
+static Sound *audio_play(Audio *audio) {
     for (u32 i = 0; i < array_count(audio->sounds); ++i) {
         Sound *sound = audio->sounds + i;
 
         // Find an empty slot
-        if (sound->playing) continue;
-
-        *sound = new_sound;
-        fmt_su(OS_FMT, "Playing Sound in slot ", i, "\n");
-        return;
+        if (sound->algorithm) continue;
+        *sound = (Sound){};
+        sound->dt = 1.0 / AUDIO_SAMPLE_RATE;
+        sound->rand = rand_fork(&audio->rand);
+        return sound;
     }
-
     fmt_s(OS_FMT, "Could not play sound\n");
+    return 0;
 }

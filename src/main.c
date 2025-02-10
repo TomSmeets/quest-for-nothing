@@ -47,7 +47,7 @@ static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
         Sound *snd = audio->sounds + i_snd;
         for (u32 i = 0; i < sample_count; ++i) {
             // Skip finished sounds
-            if (!snd->playing) break;
+            if (!snd->algorithm) break;
 
             // Add next sample
             samples[i] += sound_sample(snd);
