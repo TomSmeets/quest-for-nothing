@@ -34,8 +34,8 @@ typedef struct {
 static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     Sdl *sdl = user;
 
-    v2 *samples = (v2*)data;
-    u32 sample_count = (u32) size / sizeof(v2);
+    v2 *samples = (v2 *)data;
+    u32 sample_count = (u32)size / sizeof(v2);
 
     // Init all samples to 0
     std_memzero(samples, sizeof(v2) * sample_count);
@@ -44,7 +44,7 @@ static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
         Sdl_Audio_Callback *sound = sdl->sound_list + i;
         bool running = sound->callback(user, sample_count, samples);
 
-        if(!running) {
+        if (!running) {
             // Swap remove last sound
             // and go to nex sound, which is at this position now
             *sound = sdl->sound_list[--sdl->sound_count];
