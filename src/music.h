@@ -28,40 +28,6 @@ typedef struct {
 // starts at C0..
 // Each octave is 7 notes
 // C4 = 7*4
-#define MUSIC_C4 (7 * 4)
-static f32 music_note_to_freq(u32 note) {
-    assert(note <= 7 * 8, "only 8 supported ocatves");
-
-    f32 octave_list[9] = {
-        1.0f / 16.0f, // 0
-        1.0f / 8.0f,  // 1
-        1.0f / 4.0f,  // 2
-        1.0f / 2.0f,  // 3
-        1.0f,         // 4
-        2.0f,         // 5
-        4.0f,         // 6
-        8.0f,         // 7
-        16.0f,        // 8
-    };
-
-    // A - F
-    f32 note_list[7] = {
-        261.62556530059860, // C
-        // 277.18263097687210, // C#
-        293.66476791740760, // D
-        // 311.12698372208090, // D#
-        329.62755691286990, // E
-        349.22823143300390, // F
-        // 369.99442271163440, // F#
-        391.99543598174927, // G
-        // 415.30469757994510, // G#
-        440.00000000000000, // A
-        // 466.16376151808990, // A#
-        493.88330125612410, // B
-    };
-
-    return octave_list[note / 7] * note_list[note % 7];
-}
 
 static void music_init(Music *music) {
     // u32 notes[3][] = {
