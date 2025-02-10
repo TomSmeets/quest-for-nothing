@@ -40,9 +40,9 @@ struct Sound {
 
 // Very simple envelope
 static f32 sound_envelope(f32 time, f32 attack_time, f32 duration, f32 release_time) {
-    f32 v_attack  = f_step_duration(time, attack_time);
+    f32 v_attack = f_step_duration(time, attack_time);
     f32 v_release = f_step_duration(time - duration - attack_time, release_time);
-    return f_min(v_attack, 1-v_release);
+    return f_min(v_attack, 1 - v_release);
 }
 
 static f32 sound_sample(Sound *sound) {
@@ -130,7 +130,7 @@ static f32 sound_noise(Sound *sound, f32 freq, f32 duty) {
 // Delay input by 'count' samples
 static f32 sound_delay(Sound *sound, f32 input, u32 count) {
     f32 value = input;
-    for(u32 i = 0; i < count; ++i) {
+    for (u32 i = 0; i < count; ++i) {
         f32 *prev = sound_var(sound);
         f32 tmp = *prev;
         *prev = value;
@@ -175,4 +175,3 @@ static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sampl
     f32 lp = *var1;
     return (Sound_Filter_Result){lp, bp, hp};
 }
-
