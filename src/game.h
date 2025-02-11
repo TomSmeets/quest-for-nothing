@@ -369,6 +369,16 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->image_mtx);
 }
 
+static f32 game_audio(Game *game, Engine *eng) {
+    f32 sample = 0.0f;
+    for (u32 i_snd = 0; i_snd < array_count(eng->audio->sounds); ++i_snd) {
+        Sound *snd = eng->audio->sounds + i_snd;
+        if (!snd->playing) continue;
+        sample += sound_sample(snd);
+    }
+    return sample;
+}
+
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
 

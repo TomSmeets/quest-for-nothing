@@ -36,22 +36,10 @@ static App *app_init(OS *os) {
 
 static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
     App *app = OS_GLOBAL->app;
-    Audio *audio = app->eng->audio;
-
     for (u32 i = 0; i < sample_count; ++i) {
-        f32 sample = 0.0f;
-        for (u32 i_snd = 0; i_snd < array_count(audio->sounds); ++i_snd) {
-            Sound *snd = audio->sounds + i_snd;
-            if (!snd->playing) continue;
-            sample += sound_sample(snd);
-        }
-
-        // Reduce volume and limit max volume
+        f32 sample = game_audio(app->game, app->eng);
         sample *= 0.25;
-
-        // Limit
         sample = f_clamp(sample, -1, 1);
-
         samples[i] = (v2){sample, sample};
     }
 }
