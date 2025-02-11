@@ -1,6 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_desktop.h - GFX Platform implementation for Windows and Linux
 #pragma once
+#include "gfx.h"
 #include "ogl_api.h"
 #include "sdl.h"
 
@@ -14,7 +15,7 @@ static unsigned char ASSET_SHADER_FRAG[] = {
     , 0
 };
 
-struct OS_Gfx {
+struct Gfx_Imp {
     OGL_Api gl;
     Sdl *sdl;
 
@@ -103,8 +104,8 @@ static GLuint ogl_program_compile_and_link(OGL_Api *gl, char *vert, char *frag) 
 }
 
 // Initialize Graphics stack
-static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
-    OS_Gfx *gfx = mem_struct(mem, OS_Gfx);
+static Gfx_Imp *gfx_imp_init(Memory *mem, char *title) {
+    Gfx_Imp *gfx = mem_struct(mem, Gfx_Imp);
     OGL_Api *gl = &gfx->gl;
 
     // Load SDL2
@@ -132,7 +133,7 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     // Setup Instances
     gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
 
-    OS_Gfx_Quad *q0 = 0;
+    Gfx_Quad *q0 = 0;
     for (u32 i = 0; i <= 5; ++i) {
         gl->glEnableVertexAttribArray(i);
         gl->glVertexAttribDivisor(i, 1);
@@ -162,7 +163,7 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
     gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
     // NOTE: Linear color space
-    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, OS_GFX_ATLAS_SIZE, OS_GFX_ATLAS_SIZE, 0, GL_RGBA, GL_FLOAT, 0);
+    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, GFX_ATLAS_SIZE, GFX_ATLAS_SIZE, 0, GL_RGBA, GL_FLOAT, 0);
 
     // Set OpenGL Settings
     gl->glEnable(GL_FRAMEBUFFER_SRGB);
@@ -181,7 +182,7 @@ static OS_Gfx *os_gfx_init(Memory *mem, char *title) {
 }
 
 // Start frame
-static Input *os_gfx_begin(OS_Gfx *gfx) {
+static Input *gfx_imp_begin(Gfx_Imp *gfx) {
     Input *input = sdl_poll(gfx->sdl);
     gfx->gl.glViewport(0, 0, input->window_size.x, input->window_size.y);
     gfx->gl.glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
@@ -189,22 +190,22 @@ static Input *os_gfx_begin(OS_Gfx *gfx) {
 }
 
 // Grab mouse
-static void os_gfx_set_grab(OS_Gfx *gfx, bool grab) {
+static void gfx_imp_set_grab(Gfx_Imp *gfx, bool grab) {
     sdl_set_mouse_grab(gfx->sdl, grab);
 }
 
-static void os_gfx_set_fullscreen(OS_Gfx *gfx, bool full) {
+static void gfx_imp_set_fullscreen(Gfx_Imp *gfx, bool full) {
     gfx->sdl->api.SDL_SetWindowFullscreen(gfx->sdl->win, full ? SDL_WINDOW_FULLSCREEN : 0);
     gfx->sdl->input.is_fullscreen = full;
 }
 
 // Write to texture atlas
-static void os_gfx_texture(OS_Gfx *gfx, v2u pos, Image *img) {
+static void gfx_imp_texture(Gfx_Imp *gfx, v2u pos, Image *img) {
     gfx->gl.glTexSubImage2D(GL_TEXTURE_2D, 0, pos.x, pos.y, img->size.x, img->size.y, GL_RGBA, GL_FLOAT, img->pixels);
 }
 
 // Perform a draw call
-static void os_gfx_draw(OS_Gfx *gfx, m44 projection, bool depth, u32 quad_count, OS_Gfx_Quad *quad_list) {
+static void gfx_imp_draw(Gfx_Imp *gfx, m44 projection, bool depth, u32 quad_count, Gfx_Quad *quad_list) {
     OGL_Api *api = &gfx->gl;
 
     if (depth) {
@@ -223,6 +224,10 @@ static void os_gfx_draw(OS_Gfx *gfx, m44 projection, bool depth, u32 quad_count,
 }
 
 // Finish frame
-static void os_gfx_end(OS_Gfx *gfx) {
+static void gfx_imp_end(Gfx_Imp *gfx) {
     sdl_swap_window(gfx->sdl);
+}
+
+static void sdl_audio_callback(u32 count, v2 *output) {
+    gfx_audio_callback(count, output);
 }

@@ -34,7 +34,7 @@ static App *app_init(OS *os) {
     return app;
 }
 
-static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
+static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     App *app = OS_GLOBAL->app;
     for (u32 i = 0; i < sample_count; ++i) {
         f32 sample = game_audio(app->game, app->eng);
@@ -106,7 +106,7 @@ static void os_main(OS *os) {
     game_update(app->game, eng);
 
     if (app->game->debug == DBG_Texture) {
-        *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (OS_Gfx_Quad){
+        *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (Gfx_Quad){
             .x = {400, 0, 0},
             .y = {0, 400, 0},
             .z = {0, 0, 1},
