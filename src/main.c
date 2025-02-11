@@ -34,6 +34,34 @@ static App *app_init(OS *os) {
     return app;
 }
 
+static void os_gfx_audio_callback(u32 sample_count, v2 *samples) {
+    App *app = OS_GLOBAL->app;
+    if (!app) return;
+
+    Audio *audio = app->eng->audio;
+
+    // Init all samples to 0
+    std_memzero(samples, sizeof(v2) * sample_count);
+
+    for (u32 i_snd = 0; i_snd < array_count(audio->sounds); ++i_snd) {
+        Sound *snd = audio->sounds + i_snd;
+        for (u32 i = 0; i < sample_count; ++i) {
+            // Skip finished sounds
+            if (!snd->playing) break;
+
+            // Add next sample
+            samples[i] += sound_sample(snd);
+        }
+    }
+
+    // Reduce volume and clamp (Protect my ears)
+    for (u32 i = 0; i < sample_count; ++i) {
+        v2 *sample = samples + i;
+        sample->x = f_clamp(sample->x * 0.25, -1, 1);
+        sample->y = f_clamp(sample->y * 0.25, -1, 1);
+    }
+}
+
 static void handle_basic_input(App *app, Input *input, Engine *eng) {
     // Quit
     if (input->quit || (key_down(input, KEY_SHIFT) && key_down(input, KEY_Q))) {

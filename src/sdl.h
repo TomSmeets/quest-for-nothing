@@ -15,51 +15,16 @@
 static void os_gfx_audio_callback(u32 count, v2 *output);
 
 typedef struct {
-    // Fill samples
-    // Return false when the sound is done
-    bool (*callback)(void *user, u32 count, v2 *output);
-    void *user;
-} Sdl_Audio_Callback;
-
-typedef struct {
     Sdl_Api api;
     SDL_Window *win;
     SDL_GLContext *ctx;
     Input input;
-
-    u32 sound_count;
-    Sdl_Audio_Callback sound_list[64];
+    void (*audio_callback)(u32 count, v2 *output);
 } Sdl;
 
 static void sdl_audio_callback_wrapper(void *user, u8 *data, i32 size) {
     Sdl *sdl = user;
-
-    v2 *samples = (v2 *)data;
-    u32 sample_count = (u32)size / sizeof(v2);
-
-    // Init all samples to 0
-    std_memzero(samples, sizeof(v2) * sample_count);
-
-    for (u32 i = 0; i < sdl->sound_count;) {
-        Sdl_Audio_Callback *sound = sdl->sound_list + i;
-        bool running = sound->callback(user, sample_count, samples);
-
-        if (!running) {
-            // Swap remove last sound
-            // and go to nex sound, which is at this position now
-            *sound = sdl->sound_list[--sdl->sound_count];
-        } else {
-            // Go to next sound
-            i++;
-        }
-    }
-
-    // Reduce volume and clamp (Protect my ears)
-    for (u32 i = 0; i < sample_count; ++i) {
-        v2 *sample = samples + i;
-        sample->x = f_clamp(sample->x * 0.25, -1, 1);
-        sample->y = f_clamp(sample->y * 0.25, -1, 1);
-    }
+    sdl->audio_callback((u32)size / sizeof(v2), (v2 *)data);
 }
 
 static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
@@ -112,6 +77,8 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
         .userdata = sdl,
         .callback = sdl_audio_callback_wrapper,
     };
+    sdl->audio_callback = os_gfx_audio_callback;
+
     assert(api->SDL_OpenAudio(&want, 0) == 0, "Failed to load SDL2 audio");
 
     // Start Audio
@@ -123,14 +90,6 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
 static void sdl_quit(Sdl *sdl) {
     Sdl_Api *api = &sdl->api;
     api->SDL_Quit();
-}
-
-static void sdl_play(Sdl *sdl, bool (*callback)(void *user, u32 count, v2 *samples), void *user) {
-    sdl->api.SDL_LockAudio();
-    if (sdl->sound_count < array_count(sdl->sound_list)) {
-        sdl->sound_list[sdl->sound_count++] = (Sdl_Audio_Callback){callback, user};
-    }
-    sdl->api.SDL_UnlockAudio();
 }
 
 static Input *sdl_poll(Sdl *sdl) {
