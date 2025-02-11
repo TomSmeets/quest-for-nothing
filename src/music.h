@@ -85,3 +85,51 @@ static void music_play(Music *music, Engine *eng) {
         if (music->note < -7) music->note = -6;
     }
 }
+
+#if 0
+typedef enum {
+    Sound_Step,
+} Sound_Type;
+
+typedef struct {
+    f32 freq;
+    f32 time;
+
+    f32 attack;
+    f32 release;
+    f32 sustain;
+    f32 decay;
+
+    u32 phase_count;
+    f32 phase[64];
+
+    // 3d sound params
+    v3 pos;
+    v3 vel;
+} Sound;
+
+typedef struct {
+    Random rand;
+
+    // Immediate mode data
+    u32 phase_count;
+    f32 phase[64];
+} Audio;
+
+static f32 audio_step(Audio *ctx) {
+    f32 v = 0;
+    f32 t = 0;
+    for(u32 i = 0; i < ctx->sound_count; ++i) {
+        Sound *snd = ctx->sounds + i;
+        f32 a = audio_sine(t, 440, 0);
+        f32 b = audio_sine(t,  10, 0);
+        audio_noise(ctx->rand)
+        v += a * (1 + b * 0.5);
+    }
+    f32 r = audio_reverb(v);
+    return r;
+}
+
+static void audio_lock():
+static void audio_unlock(Audio *audio)
+#endif

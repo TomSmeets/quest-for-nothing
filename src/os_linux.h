@@ -82,10 +82,6 @@ static void os_fail(char *message) {
 }
 
 static void *os_alloc_raw(u32 size) {
-    if (OS_GLOBAL) {
-        OS_GLOBAL->stat_alloc_size += size;
-        // fmt_su(OS_FMT, "os_alloc_raw: total=", OS_GLOBAL->stat_alloc_size / 1024 / 1024, " MB\n");
-    }
     i32 prot = PROT_READ | PROT_WRITE;
     i32 flags = MAP_PRIVATE | MAP_ANONYMOUS;
     void *alloc = linux_mmap(0, size, prot, flags, -1, 0);

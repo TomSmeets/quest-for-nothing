@@ -35,12 +35,7 @@ typedef struct {
     // Time to sleep until next call
     u64 sleep_time;
 
-    // == Statistics ==
-    u32 stat_alloc_count;
-    u32 stat_alloc_size;
-
     // == Globals for other modules ==
-
     // Cached memory allocations, see mem.h
     void *memory_cache;
 
