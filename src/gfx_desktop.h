@@ -202,7 +202,7 @@ static void gfx_set_grab(Gfx *gfx, bool grab) {
     sdl_set_mouse_grab(gfx->os->sdl, grab);
 }
 
-static void gfx_imp_set_fullscreen(Gfx *gfx, bool full) {
+static void gfx_set_fullscreen(Gfx *gfx, bool full) {
     gfx->os->sdl->api.SDL_SetWindowFullscreen(gfx->os->sdl->win, full ? SDL_WINDOW_FULLSCREEN : 0);
     gfx->os->sdl->input.is_fullscreen = full;
 }

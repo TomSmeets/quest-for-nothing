@@ -2,11 +2,12 @@
 // game_audio.h - Audio effects and Music
 #pragma once
 #include "engine.h"
+#include "music.h"
 
 // Play Jump sound
 static void game_audio_jump(Engine *eng) {
     Voice snd = {};
-    snd.freq = sound_note_to_freq(-12 * 3.5 + rand_u32_range(&eng->rng, 0, 6));
+    snd.freq = music_note_to_freq(7 * 3 + rand_u32_range(&eng->rng, 0, 6));
     snd.kind = 0;
 
     gfx_audio_lock(eng->gfx);
@@ -17,7 +18,7 @@ static void game_audio_jump(Engine *eng) {
 // Play Gun shooting sound
 static void game_audio_shoot(Engine *eng) {
     Voice snd = {};
-    snd.freq = sound_note_to_freq(-12 * 3 + rand_u32_range(&eng->rng, 0, 4));
+    snd.freq = music_note_to_freq(7 * 3 + rand_u32_range(&eng->rng, 0, 4));
     snd.kind = 1;
 
     gfx_audio_lock(eng->gfx);
