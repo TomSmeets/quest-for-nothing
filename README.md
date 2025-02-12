@@ -99,3 +99,21 @@ I'd like to release this someday, so keeping it very simple!
 - [ ] Publish on Play Store
 - [ ] Time travel effects?
 - Missions: Alien hitman, Show sprite in ui, find and kill in secret.
+
+
+# Design
+
+Why only headers and static functions?
+
+- All dependency management is done with `#include`'s.
+- Every module is a single `.h` file.
+- Compilation is done in one pass, improving build time.
+- The compiler optimizes, not the linker. ompiler can inline everything if needed.
+
+How does hot reloading work?
+- When a source file changed (and at start):
+  1. Recompile as a shared object to a unique path.
+  2. Call `update(void **handle)` function
+
+- Don't use globals, they are reset on reload. If needed manually update the global on every reload. (See `OS_GLOBAL`)
+- Don't use libc malloc/free, it uses globals. (malloc will work, but free probably not)
