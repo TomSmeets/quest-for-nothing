@@ -1,32 +1,46 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound.h - Immediate mode sound synthesis and digital filters
 #pragma once
-#include "gfx.h"
 #include "id.h"
 #include "math.h"
 #include "rand.h"
 #include "std.h"
 #include "types.h"
 
+#define SOUND_SAMPLE_RATE 48000
+#define SOUND_DT (1.0f / SOUND_SAMPLE_RATE)
+
 // https://www.eetimes.com/making-sounds-with-analogue-electronics-part-1-before-the-synthesizer/
 // FM: https://www.youtube.com/watch?v=DD0UpZ5uGAo
 
 typedef struct {
-    // Runtime
-    f32 time;
-    f32 dt;
+    // For noise
+    Random rand;
 
     // List of 'phase' values for sine waves.
     u32 phase_ix;
     f32 phase[16];
 
-    // For noise
-    Random rand;
+    // Optional paramters
 } Sound;
 
-static f32 sound_adsr(Sound *snd, f32 t_attack, f32 t_decay, f32 t_sustain, f32 t_release, bool *done) {
-    f32 time = snd->time;
+typedef struct {
+    f32 freq;
+    f32 time;
+} Sound_Parameters;
 
+static f32 sound_ar(f32 time, f32 t_attack, f32 t_release, bool *done) {
+    f32 value = 0.0f;
+    value += f_step_duration(time, t_attack);
+    time -= t_attack;
+    value -= f_step_duration(time, t_release);
+    time -= t_release;
+    // Signal done
+    if (done && time >= 0) *done = true;
+    return value;
+}
+
+static f32 sound_adsr(f32 time, f32 t_attack, f32 t_decay, f32 t_sustain, f32 t_release, bool *done) {
     f32 sustain_volume = 0.8;
 
     f32 value = 0.0f;
@@ -47,10 +61,6 @@ static void sound_begin(Sound *snd) {
     snd->phase_ix = 0;
 }
 
-static void sound_end(Sound *snd) {
-    snd->time += snd->dt;
-}
-
 // Get a new persistent variable for this sample
 static f32 *sound_var(Sound *sound) {
     assert(sound->phase_ix < array_count(sound->phase), "Out of sound memory");
@@ -69,7 +79,7 @@ static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sampl
     f32 *var1 = sound_var(sound);
 
     f32 rc = 1.0 / (cutoff_freq * PI2);
-    f32 f = sound->dt / (rc + sound->dt);
+    f32 f = SOUND_DT / (rc + SOUND_DT);
 
     // f and fb calculation
     f32 q = 0.9;
@@ -101,7 +111,7 @@ static f32 sound_ramp(Sound *sound, f32 freq, f32 offset) {
     f32 out = f_fract(*phase + offset);
 
     // Compute next variable
-    *phase = f_fract(*phase + sound->dt * freq);
+    *phase = f_fract(*phase + SOUND_DT * freq);
     return f_fract(out + offset);
 }
 
@@ -143,7 +153,7 @@ static f32 sound_noise_freq(Sound *sound, f32 freq, f32 duty) {
     f32 ret = *phase < duty ? *value : 0.0;
 
     // Increment phase
-    *phase += sound->dt * freq;
+    *phase += SOUND_DT * freq;
 
     // Reached next cycle
     if (*phase >= 1.0) {

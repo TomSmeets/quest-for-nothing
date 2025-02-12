@@ -370,13 +370,7 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
 }
 
 static f32 game_audio(Game *game, Engine *eng) {
-    f32 sample = 0.0f;
-    for (u32 i_snd = 0; i_snd < array_count(eng->audio->sounds); ++i_snd) {
-        Sound *snd = eng->audio->sounds + i_snd;
-        if (!snd->playing) continue;
-        sample += sound_sample(snd);
-    }
-    return sample;
+    return audio_sample(eng->audio);
 }
 
 static void game_update(Game *game, Engine *eng) {

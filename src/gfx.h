@@ -11,6 +11,7 @@
 
 #define GFX_ATLAS_SIZE 4096
 #define AUDIO_SAMPLE_RATE 48000
+#define AUDIO_DT (1.0f / (f32) AUDIO_SAMPLE_RATE)
 
 typedef struct Gfx_Imp Gfx_Imp;
 
@@ -31,9 +32,6 @@ static Gfx_Imp *gfx_imp_init(Memory *mem, char *title);
 // Start frame
 static Input *gfx_imp_begin(Gfx_Imp *gfx);
 
-// Grab mouse
-static void gfx_imp_set_grab(Gfx_Imp *gfx, bool grab);
-static void gfx_imp_set_fullscreen(Gfx_Imp *gfx, bool full);
 
 // Write to texture atlas
 static void gfx_imp_texture(Gfx_Imp *gfx, v2u pos, Image *img);
@@ -41,8 +39,6 @@ static void gfx_imp_texture(Gfx_Imp *gfx, v2u pos, Image *img);
 // Perform a draw call
 static void gfx_imp_draw(Gfx_Imp *gfx, m44 projection, bool depth, u32 quad_count, Gfx_Quad *quad_list);
 
-// Audio callback, called from platform layer
-static void gfx_audio_callback(u32 count, v2 *samples);
 
 // Finish frame
 static void gfx_imp_end(Gfx_Imp *gfx);
@@ -68,6 +64,9 @@ typedef struct {
     Gfx_Pass_List pass_ui;
     Gfx_Pass_List pass_3d;
 } Gfx;
+
+// Audio callback
+static void gfx_audio_callback(u32 count, v2 *samples);
 
 static Gfx *gfx_new(Memory *mem, char *title) {
     Gfx *gfx = mem_struct(mem, Gfx);
@@ -165,10 +164,8 @@ static void gfx_quad_3d(Gfx *gfx, m4 mtx, Image *img) {
     gfx_quad(gfx, mtx, img, &gfx->pass_3d);
 }
 
-static void gfx_set_grab(Gfx *gfx, bool grab) {
-    gfx_imp_set_grab(gfx->os, grab);
-}
+static void gfx_set_grab(Gfx *gfx, bool grab);
+static void gfx_set_fullscreen(Gfx *gfx, bool full);
 
-static void gfx_set_fullscreen(Gfx *gfx, bool full) {
-    gfx_imp_set_fullscreen(gfx->os, full);
-}
+static void gfx_audio_lock(Gfx *gfx);
+static void gfx_audio_unlock(Gfx *gfx);
