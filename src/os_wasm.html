@@ -39,7 +39,7 @@ function js_write(data, len) {
 }
 
 // Grab the mouse
-function js_gfx_grab(grab) {
+function gfx_js_grab(grab) {
     if(grab) {
         canvas.requestPointerLock()
     } else {
@@ -48,7 +48,7 @@ function js_gfx_grab(grab) {
 }
 
 // Grab the mouse
-function js_gfx_fullscreen(full) {
+function gfx_js_fullscreen(full) {
     if(full) {
         canvas.requestFullscreen()
     } else {
@@ -67,25 +67,25 @@ function js_loop() {
     }
 }
 
-function js_gfx_init() {
+function gfx_js_init() {
     const multisample_scaling = 2
     ctx.canvas = document.getElementById('canvas')
 
-    document.addEventListener("keydown",   (ev) => { ctx.exports.js_gfx_key_down(ev.keyCode, true) }, true)
-    document.addEventListener("keyup",     (ev) => { ctx.exports.js_gfx_key_down(ev.keyCode, false) }, true)
-    document.addEventListener("mousemove", (ev) => { ctx.exports.js_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
-    document.addEventListener("mousedown", (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, true) }, true)
-    document.addEventListener("mouseup",   (ev) => { ctx.exports.js_gfx_mouse_down(ev.button, false) }, true)
+    document.addEventListener("keydown",   (ev) => { ctx.exports.gfx_js_key_down(ev.keyCode, true) }, true)
+    document.addEventListener("keyup",     (ev) => { ctx.exports.gfx_js_key_down(ev.keyCode, false) }, true)
+    document.addEventListener("mousemove", (ev) => { ctx.exports.gfx_js_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
+    document.addEventListener("mousedown", (ev) => { ctx.exports.gfx_js_mouse_down(ev.button, true) }, true)
+    document.addEventListener("mouseup",   (ev) => { ctx.exports.gfx_js_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
         canvas.width = window.innerWidth*multisample_scaling;
         canvas.height = window.innerHeight*multisample_scaling;
-        ctx.exports.js_gfx_resize(window.innerWidth, window.innerHeight);
+        ctx.exports.gfx_js_resize(window.innerWidth, window.innerHeight);
     }, false);
 
     // Send initial size to wasm
     canvas.width = window.innerWidth*multisample_scaling;
     canvas.height = window.innerHeight*multisample_scaling;
-    ctx.exports.js_gfx_resize(window.innerWidth, window.innerHeight);
+    ctx.exports.gfx_js_resize(window.innerWidth, window.innerHeight);
 
     // # Load Opengl
     const texture_size = 4096;
@@ -251,7 +251,7 @@ function js_gfx_init() {
     ctx.audio_processor.connect(ctx.audio.destination);
 }
 
-function js_gfx_begin() {
+function gfx_js_begin() {
     var gl = ctx.gl;
     var canvas = ctx.canvas;
     ctx.audio.resume();
@@ -261,13 +261,13 @@ function js_gfx_begin() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-function js_gfx_texture(x, y, sx, sy, pixels) {
+function gfx_js_texture(x, y, sx, sy, pixels) {
     const gl = ctx.gl;
     const pixel_array = new Float32Array(ctx.memory.buffer, pixels, sx*sy*4);
     gl.texSubImage2D( gl.TEXTURE_2D, 0,  x,  y,  sx,  sy,  gl.RGBA,  gl.FLOAT,  pixel_array);
 }
 
-function js_gfx_draw(projection, depth, quad_count, quad_list) {
+function gfx_js_draw(projection, depth, quad_count, quad_list) {
     const gl = ctx.gl;
     const quad_array = new Float32Array(ctx.memory.buffer, quad_list, quad_count*16);
     const projection_array = new Float32Array(ctx.memory.buffer, projection, 4*4);
@@ -292,20 +292,20 @@ function js_gfx_draw(projection, depth, quad_count, quad_list) {
     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, quad_count);
 }
 
-function js_gfx_end() {
+function gfx_js_end() {
 }
 
 fetch('quest-for-nothing.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
     env: {
         js_time,
         js_write,
-        js_gfx_grab,
-        js_gfx_fullscreen,
-        js_gfx_init,
-        js_gfx_begin,
-        js_gfx_texture,
-        js_gfx_draw,
-        js_gfx_end,
+        gfx_js_grab,
+        gfx_js_fullscreen,
+        gfx_js_init,
+        gfx_js_begin,
+        gfx_js_texture,
+        gfx_js_draw,
+        gfx_js_end,
     },
 })).then(ret => {
     ctx.memory  = ret.instance.exports.memory;

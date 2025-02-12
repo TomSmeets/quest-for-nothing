@@ -40,14 +40,14 @@ static Input *gfx_imp_begin(Gfx_Imp *gfx) {
 }
 
 // Grab mouse
-static void gfx_imp_set_grab(Gfx_Imp *gfx, bool grab) {
+static void gfx_set_grab(Gfx *gfx, bool grab) {
     gfx_js_grab(grab);
-    gfx->input.mouse_is_grabbed = grab;
+    gfx->os->input.mouse_is_grabbed = grab;
 }
 
-static void gfx_imp_set_fullscreen(Gfx_Imp *gfx, bool full) {
+static void gfx_set_fullscreen(Gfx *gfx, bool full) {
     gfx_js_fullscreen(full);
-    gfx->input.is_fullscreen = full;
+    gfx->os->input.is_fullscreen = full;
 }
 
 // Write to texture atlas
@@ -97,4 +97,11 @@ v2 *js_audio_callback(u32 sample_count) {
     assert(sample_count == array_count(GFX_GLOBAL.audio_buffer), "Invalid sample count");
     gfx_audio_callback(sample_count, GFX_GLOBAL.audio_buffer);
     return GFX_GLOBAL.audio_buffer;
+}
+
+static void gfx_audio_lock(Gfx *gfx) {
+    // No need for locking
+}
+
+static void gfx_audio_unlock(Gfx *gfx) {
 }
