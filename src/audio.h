@@ -6,7 +6,6 @@
 #include "sound.h"
 #include "types.h"
 
-
 typedef struct {
     float freq;
     float time;
@@ -16,7 +15,7 @@ typedef struct {
 } Voice;
 
 static f32 voice_pew(Voice *voice) {
- Sound *sound =& voice->sound;
+    Sound *sound = &voice->sound;
     f32 volume = sound_ar(voice->time, 0.01, 1.0f, &voice->done);
     f32 sample = 0.0f;
     sample += sound_saw(sound, voice->freq * BLEND(0.8f, 1.0, volume), 0);
@@ -24,10 +23,10 @@ static f32 voice_pew(Voice *voice) {
 }
 
 static f32 voice_noise(Voice *voice) {
- Sound *sound =& voice->sound;
+    Sound *sound = &voice->sound;
     f32 volume = sound_ar(voice->time, 0.01, 1.0f, &voice->done);
     f32 sample = sound_noise_freq(sound, voice->freq, 0);
-    return volume*sample;
+    return volume * sample;
 }
 
 static f32 voice_sample(Voice *voice) {
@@ -60,17 +59,17 @@ static Audio *audio_new(Memory *mem) {
 }
 
 static void audio_play(Audio *audio, Voice voice) {
-    if(audio->voice_count == array_count(audio->voices)) return;
+    if (audio->voice_count == array_count(audio->voices)) return;
     audio->voices[audio->voice_count++] = voice;
 }
 
 static f32 audio_sample(Audio *audio) {
     f32 res = 0.0f;
-    for(u32 i = 0; i < audio->voice_count;) {
+    for (u32 i = 0; i < audio->voice_count;) {
         Voice *voice = audio->voices + i;
         res += voice_sample(voice);
 
-        if(voice->done) {
+        if (voice->done) {
             // Swap remove
             audio->voices[i] = audio->voices[--audio->voice_count];
         } else {

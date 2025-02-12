@@ -11,7 +11,7 @@
 
 #define GFX_ATLAS_SIZE 4096
 #define AUDIO_SAMPLE_RATE 48000
-#define AUDIO_DT (1.0f / (f32) AUDIO_SAMPLE_RATE)
+#define AUDIO_DT (1.0f / (f32)AUDIO_SAMPLE_RATE)
 
 typedef struct Gfx_Imp Gfx_Imp;
 
@@ -32,13 +32,11 @@ static Gfx_Imp *gfx_imp_init(Memory *mem, char *title);
 // Start frame
 static Input *gfx_imp_begin(Gfx_Imp *gfx);
 
-
 // Write to texture atlas
 static void gfx_imp_texture(Gfx_Imp *gfx, v2u pos, Image *img);
 
 // Perform a draw call
 static void gfx_imp_draw(Gfx_Imp *gfx, m44 projection, bool depth, u32 quad_count, Gfx_Quad *quad_list);
-
 
 // Finish frame
 static void gfx_imp_end(Gfx_Imp *gfx);
