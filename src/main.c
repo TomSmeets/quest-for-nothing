@@ -36,6 +36,8 @@ static App *app_init(OS *os) {
 
 static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     App *app = OS_GLOBAL->app;
+    if (!app) return;
+
     for (u32 i = 0; i < sample_count; ++i) {
         f32 sample = game_audio(app->game, app->eng);
         sample *= 0.25;

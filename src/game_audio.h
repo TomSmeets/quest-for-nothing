@@ -18,7 +18,7 @@ static void game_audio_jump(Engine *eng) {
 // Play Gun shooting sound
 static void game_audio_shoot(Engine *eng) {
     Voice snd = {};
-    snd.freq = music_note_to_freq(7 * 3 + rand_u32_range(&eng->rng, 0, 4));
+    snd.freq = music_note_to_freq(7 * 2 + rand_u32_range(&eng->rng, 0, 4));
     snd.kind = 1;
 
     gfx_audio_lock(eng->gfx);

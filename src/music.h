@@ -86,7 +86,7 @@ static void music_play(Music *music, Engine *eng) {
     for (u32 i = 0; i < beat_count; ++i) {
         fmt_s(OS_FMT, "Submitting beats\n");
 
-        #if 0
+#if 0
         {
             Sound snd = {};
             snd.freq = music_note_to_freq(music->note + 4 * 7);
@@ -129,7 +129,7 @@ static void music_play(Music *music, Engine *eng) {
             audio_play(eng->audio, snd);
         }
 
-        #endif
+#endif
         time -= 1.0f * dt;
 
         if (rand_u32(&eng->rng) % 2 == 0) {

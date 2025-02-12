@@ -16,21 +16,25 @@ typedef struct {
 
 static f32 voice_pew(Voice *voice) {
     Sound *sound = &voice->sound;
-    f32 volume = sound_ar(voice->time, 0.01, 1.0f, &voice->done);
+    f32 volume = sound_ar(voice->time, 0.02, 0.5f, &voice->done);
     f32 sample = 0.0f;
-    sample += sound_saw(sound, voice->freq * BLEND(0.8f, 1.0, volume), 0);
+    sample += sound_saw(sound, voice->freq * BLEND(0.8f, 4.0, volume), 0);
     return volume * sample;
 }
 
 static f32 voice_noise(Voice *voice) {
     Sound *sound = &voice->sound;
-    f32 volume = sound_ar(voice->time, 0.01, 1.0f, &voice->done);
-    f32 sample = sound_noise_freq(sound, voice->freq, 0);
-    return volume * sample;
+    f32 v1 = sound_ar(voice->time, 0.50, 1.0f, &voice->done);
+    f32 v2 = sound_ar(voice->time, 0.0, 0.4f, 0);
+    f32 sample = 0;
+    sample += v1 * sound_noise_freq(sound, voice->freq * v1 * 1.0f, 0.2f) * 0.5f;
+    sample += v2 * sound_noise_freq(sound, voice->freq * v2 * 4.0f, 0.2f) * 2.0f;
+    return sample;
 }
 
 static f32 voice_sample(Voice *voice) {
     f32 ret = 0.0f;
+    sound_begin(&voice->sound);
     if (voice->kind == 0) ret = voice_pew(voice);
     if (voice->kind == 1) ret = voice_noise(voice);
     voice->time += SOUND_DT;
