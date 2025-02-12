@@ -76,7 +76,7 @@ static void music_play(Music *music, Engine *eng) {
     if (music->sleep_time > 0) return;
 
     u32 beat_count = 4;
-    f32 beat_per_second = 70.0f / 60.0f;
+    f32 beat_per_second = 60.0f / 60.0f;
     f32 dt = 1.0f / beat_per_second;
     music->sleep_time += dt * beat_count;
 
@@ -84,52 +84,17 @@ static void music_play(Music *music, Engine *eng) {
 
     f32 time = 0;
     for (u32 i = 0; i < beat_count; ++i) {
-        fmt_s(OS_FMT, "Submitting beats\n");
+        // {
+        //     Voice snd = {};
+        //     snd.freq = music_note_to_freq(music->note + 3 * 7);
+        //     snd.time = time;
+        //     snd.kind = 2;
 
-#if 0
-        {
-            Sound snd = {};
-            snd.freq = music_note_to_freq(music->note + 4 * 7);
-            snd.src_a.freq = 1;
-            snd.src_a.volume = .25;
-            snd.src_a.attack_time = 0.1;
-            snd.src_a.release_time = dt * 2;
+        //     gfx_audio_lock(eng->gfx);
+        //     audio_play(eng->audio, snd);
+        //     gfx_audio_unlock(eng->gfx);
+        // }
 
-            snd.src_b.freq = 1.0f;
-            snd.src_b.volume = 1.0;
-            snd.src_b.attack_time = 0.2;
-            snd.src_b.release_time = dt * 2;
-
-            snd.src_c.freq = 1;
-            snd.src_c.volume = 0;
-            snd.src_c.attack_time = 0.1;
-            snd.src_c.release_time = dt * 2;
-            snd.time = time;
-            audio_play(eng->audio, snd);
-        }
-
-        {
-            Sound snd = {};
-            snd.freq = music_note_to_freq(music->note + 3 * 7);
-            snd.src_a.freq = 1;
-            snd.src_a.volume = .125;
-            snd.src_a.attack_time = 0.2;
-            snd.src_a.release_time = dt;
-
-            snd.src_b.freq = 1.0f;
-            snd.src_b.volume = 8.0;
-            snd.src_b.attack_time = 0.2;
-            snd.src_b.release_time = dt;
-
-            snd.src_c.freq = 1;
-            snd.src_c.volume = 0;
-            snd.src_c.attack_time = 0.5;
-            snd.src_c.release_time = dt;
-            snd.time = time;
-            audio_play(eng->audio, snd);
-        }
-
-#endif
         time -= 1.0f * dt;
 
         if (rand_u32(&eng->rng) % 2 == 0) {

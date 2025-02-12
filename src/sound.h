@@ -136,6 +136,11 @@ static f32 sound_sine(Sound *sound, f32 freq, f32 offset) {
     return f_sin2pi(sound_ramp(sound, freq, offset));
 }
 
+static f32 sound_triangle(Sound *sound, f32 freq, f32 offset) {
+    f32 v = sound_ramp(sound, freq, offset);
+    return f_min(v * 4 - 1, 3 - v * 4);
+}
+
 // Static white noise
 static f32 sound_noise_white(Sound *sound) {
     return rand_f32_signed(&sound->rand);
