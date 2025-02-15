@@ -279,39 +279,48 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
         camera_shake(&game->camera, 0.5);
         game_audio_shoot(eng);
 
-        v3 ray_pos = pl->head_mtx.w;
-        v3 ray_dir = pl->head_mtx.z;
+        for (u32 i = 0; i < 32; ++i) {
+            v3 ray_pos = pl->head_mtx.w;
+            v3 ray_dir = pl->head_mtx.z;
 
-        Collide_Result best_result = {0};
-        Entity *best_monster = 0;
-        for (Entity *mon = game->monsters; mon; mon = mon->next) {
-            if (mon == pl) continue;
-            Collide_Result result = collide_quad_ray(mon->image_mtx, mon->image, ray_pos, ray_dir);
-            if (!result.hit) continue;
-            if (best_result.hit && result.distance > best_result.distance) continue;
-            best_monster = mon;
-            best_result = result;
-        }
+            f32 a = rand_f32_signed(&eng->rng);
+            f32 r = rand_f32_signed(&eng->rng) * 0.001;
+            f32 ox = f_cos2pi(a) * r;
+            f32 oy = f_sin2pi(a) * r;
 
-        if (best_monster) {
-            Image *img = best_monster->image;
+            ray_dir += pl->head_mtx.x * ox;
+            ray_dir += pl->head_mtx.y * oy;
 
-            // Damage entity
-            if (best_monster->health > 0) {
-                best_monster->health--;
+            Collide_Result best_result = {0};
+            Entity *best_monster = 0;
+            for (Entity *mon = game->monsters; mon; mon = mon->next) {
+                if (mon == pl) continue;
+                Collide_Result result = collide_quad_ray(mon->image_mtx, mon->image, ray_pos, ray_dir);
+                if (!result.hit) continue;
+                if (best_result.hit && result.distance > best_result.distance) continue;
+                best_monster = mon;
+                best_result = result;
+            }
 
-                // Entity just died
-                if (best_monster->health == 0) {
-                    for (u32 y = 0; y < img->size.y; ++y) {
-                        for (u32 x = 0; x < img->size.x; ++x) {
-                            v4 *px = img->pixels + y * img->size.x + x;
-                            px->xyz = BLEND(px->xyz, GRAY, 0.5f);
+            if (best_monster) {
+                Image *img = best_monster->image;
+
+                // Damage entity
+                if (best_monster->health > 0) {
+                    best_monster->health--;
+
+                    // Entity just died
+                    if (best_monster->health == 0) {
+                        for (u32 y = 0; y < img->size.y; ++y) {
+                            for (u32 x = 0; x < img->size.x; ++x) {
+                                v4 *px = img->pixels + y * img->size.x + x;
+                                px->xyz = BLEND(px->xyz, GRAY, 0.5f);
+                            }
                         }
                     }
                 }
-            }
 
-            for (u32 i = 0; i < 32; ++i) {
+                // for (u32 i = 0; i < 32; ++i) {
                 f32 a = rand_f32_signed(&eng->rng);
                 f32 r = rand_f32_signed(&eng->rng);
 
@@ -324,9 +333,10 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
                 if (!px) continue;
 
                 px->xyz = BLEND(px->xyz, best_monster->sprite.blood_color, 0.6);
-            }
+                // }
 
-            img->variation++;
+                img->variation++;
+            }
         }
     }
 
