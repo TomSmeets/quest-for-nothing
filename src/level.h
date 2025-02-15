@@ -21,10 +21,10 @@ static void level_add_wall(Memory *mem, Entity **level, Image *img, v3i pos, m4 
     m4_translate(&mtx, pos_f);
 
     Entity *ent = mem_struct(mem, Entity);
+    ent->type = Entity_Wall;
     ent->mtx = mtx;
     ent->image = image_copy(mem, img);
     ent->size = (v2){4, 4};
-    ent->is_wall = true;
     ent->next = *level;
     ent->pos = pos_f;
     *level = ent;

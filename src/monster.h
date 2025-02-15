@@ -44,12 +44,12 @@ static void m4_image_ui(m4 *mtx, Image *img) {
 
 static Entity *monster_new(Memory *mem, Random *rng, v3 pos, Sprite_Properties prop) {
     Entity *mon = mem_struct(mem, Entity);
+    mon->type = Entity_Monster;
     mon->mtx = m4_id();
     mon->sprite = monster_sprite_generate(mem, prop, rng);
     mon->image = mon->sprite.image;
 
     // Monster
-    mon->is_monster = true;
     mon->pos = pos;
     mon->pos_old = pos;
     mon->size.x = (f32)mon->image->size.x / 32.0f;
@@ -147,7 +147,7 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
         // Skip collisions with myself
         if (ent == mon) continue;
 
-        if (ent->is_monster) {
+        if (ent->type == Entity_Monster) {
             Shape other = monster_shape(ent);
             Collision_Result res = collide_shape(shape, other);
             if (!res.collision) break;
@@ -156,7 +156,7 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
 
         // Draw colliding box
         gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
-        if (ent->is_wall) {
+        if (ent->type == Entity_Wall) {
             m4 wall_inv = m4_invert_tr(ent->mtx);
             v3 p_local = m4_mul_pos(wall_inv, mon->pos);
             f32 rx = ent->size.x * .5;
@@ -213,7 +213,7 @@ static void monster_update(Entity *mon, Entity *player, Image *gun, Sparse_Set *
     }
 
     // Update matricies
-    if (mon->is_monster || mon->is_player) {
+    if (mon->type == Entity_Monster || mon->type == Entity_Player) {
         mon->mtx = m4_id();
         m4_rotate_z(&mon->mtx, mon->rot.z);
         m4_rotate_x(&mon->mtx, mon->rot.x);

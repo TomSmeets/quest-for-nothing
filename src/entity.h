@@ -24,6 +24,9 @@ typedef enum {
 // This Simplifies storage, collision detection and allows for
 typedef struct Entity Entity;
 struct Entity {
+    Entity *next;
+    Entity_Type type;
+
     // Body Position, orientation and Scaling (TRS Matrix)
     // Used for collision and rendering
     m4 mtx;
@@ -43,9 +46,6 @@ struct Entity {
     // Shadow
     Image *shadow;
 
-    bool is_player;
-    bool is_monster;
-    bool is_wall;
     bool is_flying;
     bool is_alive;
 
@@ -74,15 +74,12 @@ struct Entity {
     v3 rot;
     f32 recoil_animation;
     f32 step_volume;
-
-    // Next entity in the list
-    Entity *next;
 };
 
 static Entity *wall_new(Memory *mem, m4 mtx, Image *img) {
     Entity *ent = mem_struct(mem, Entity);
+    ent->type = Entity_Wall;
     ent->mtx = mtx;
     ent->image = img;
-    ent->is_wall = true;
     return ent;
 }

@@ -7,6 +7,7 @@
 #include "engine.h"
 #include "game_audio.h"
 #include "game_debug.h"
+#include "gun.h"
 #include "image.h"
 #include "level.h"
 #include "mem.h"
@@ -51,39 +52,6 @@ typedef struct {
     Music music;
 } Game;
 
-static Image *gen_gun(Memory *mem, Random *rng) {
-    u32 length = 8;
-    u32 height = 3;
-
-    u32 size = 8;
-    Image *img = image_new(mem, (v2u){length, height + 3});
-    // image_grid(img, (v4){1, 0, 0, 1}, (v4){0, 0, 1, 1});
-
-    v3 color_barrel = rand_color(rng) * 0.2;
-    v3 color_sight = rand_color(rng) * 0.2;
-    v3 color_grip = rand_color(rng) * 0.2;
-
-    // Barrel
-    for (u32 x = 0; x < length; ++x) {
-        for (u32 y = 0; y < height; ++y) {
-            image_write(img, (v2i){x, y + 1}, color_barrel);
-        }
-    }
-
-    // Sight
-    image_write(img, (v2i){1, 0}, color_sight);
-    image_write(img, (v2i){length - 1, 0}, color_sight);
-
-    for (u32 x = 0; x < 2; ++x) {
-        image_write(img, (v2i){length - 1 - x, height + 1}, color_grip);
-        image_write(img, (v2i){length - 1 - x, height + 2}, color_grip);
-    }
-
-    img->origin.x = length - 2;
-    img->origin.y = img->size.y - 2;
-    return img;
-}
-
 static Image *gen_cursor(Memory *mem) {
     u32 size = 5;
     Image *img = image_new(mem, (v2u){size, size});
@@ -102,8 +70,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
     // Player
     Sprite_Properties s = sprite_new(rng);
     Entity *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
-    player->is_monster = false;
-    player->is_player = true;
+    player->type = Entity_Player;
 
     // Insert
     player->next = game->monsters;
@@ -112,7 +79,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
 
     for (Entity *wall = game->monsters; wall; wall = wall->next) {
         // Only consider walls
-        if (!wall->is_wall) continue;
+        if (wall->type != Entity_Wall) continue;
         if (wall->mtx.z.y < 0.5) continue;
 
         // Don't generate them too close
@@ -143,7 +110,7 @@ static Game *game_new(Random *rng) {
     level_generate(&game->monsters, mem, rng, level_size);
 
     // Generate player
-    game->gun = gen_gun(mem, rng);
+    game->gun = gun_new(mem, rng);
 
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
@@ -365,9 +332,9 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
-    if (ent->is_monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
-    if (ent->is_player) player_update(ent, game, eng);
-    if (ent->is_wall) wall_update(game, eng, ent);
+    if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
+    if (ent->type == Entity_Player) player_update(ent, game, eng);
+    if (ent->type == Entity_Wall) wall_update(game, eng, ent);
     if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->image_mtx);
 }
 
