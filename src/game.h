@@ -312,11 +312,11 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
             }
 
             for (u32 i = 0; i < 32; ++i) {
-                f32 ox = rand_f32_signed(&eng->rng);
-                f32 oy = rand_f32_signed(&eng->rng);
+                f32 a = rand_f32_signed(&eng->rng);
+                f32 r = rand_f32_signed(&eng->rng);
 
-                ox = ox * ox - 0.5;
-                oy = oy * oy - 0.5;
+                f32 ox = f_cos2pi(a)*r;
+                f32 oy = f_sin2pi(a)*r;
 
                 i32 x = best_result.pixel.x + ox * best_result.distance * 4;
                 i32 y = best_result.pixel.y + oy * best_result.distance * 4;
