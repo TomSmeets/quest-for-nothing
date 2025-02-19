@@ -1,14 +1,13 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // wall.h - A Quad in 3d space
 #pragma once
-#include "collision.h"
-#include "engine.h"
 #include "image.h"
 #include "mat.h"
-#include "sparse_set.h"
+#include "entity.h"
 
 typedef struct Wall Wall;
 struct Wall {
+    Entity_Type type;
     Wall *next;
     m4 mtx;
     Image *image;
@@ -16,18 +15,12 @@ struct Wall {
 
 static Wall *wall2_new(Memory *mem, m4 mtx, Image *image) {
     Wall *wall = mem_struct(mem, Wall);
+    wall->type = Entity_Wall;
     wall->mtx = mtx;
     wall->image = image;
     return wall;
 }
 
-static void wall2_update(Engine *eng, Sparse_Set *sparse, Wall *wall) {
-    gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
-    gfx_debug_mtx(eng->gfx_dbg, wall->mtx);
-
-    Box box = box_from_quad2(wall->mtx);
-    sparse_set_add(sparse, box, wall);
-}
-
-static void wall_draw(Wall *wall, Gfx *gfx) {
+static Box wall_box(Wall *wall) {
+    return box_from_quad2(wall->mtx);
 }

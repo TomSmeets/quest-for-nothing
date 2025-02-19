@@ -31,7 +31,10 @@ struct Entity {
     // Used for collision and rendering
     m4 mtx;
 
+    // Base
     m4 image_mtx;
+    Image *image;
+
     // Entity Head Orientation. (TR Matrix)
     // - Gun direction
     // - Camera direction
@@ -40,8 +43,6 @@ struct Entity {
     // Entity Size (width, height)
     v2 size;
 
-    // Main sprite
-    Image *image;
 
     // Shadow
     Image *shadow;

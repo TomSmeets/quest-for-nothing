@@ -352,7 +352,12 @@ static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
-        wall2_update(eng, game->sparse, wall);
+        // Collision
+        Box box = wall_box(wall);
+        sparse_set_add(game->sparse, box, wall);
+
+        gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
+        gfx_debug_mtx(eng->gfx_dbg, wall->mtx);
     }
 
     // Debug draw sparse data
