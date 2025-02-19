@@ -8,7 +8,6 @@
 #include "sparse_set.h"
 
 typedef struct Wall Wall;
-
 struct Wall {
     Wall *next;
     m4 mtx;
