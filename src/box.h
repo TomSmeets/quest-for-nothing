@@ -15,12 +15,14 @@ static Box box_empty(void) {
     return (Box){{inf, inf, inf}, {-inf, -inf, -inf}};
 }
 
+// Does A intersect B
 static bool box_intersect(Box a, Box b) {
     return (a.min.x < b.max.x && a.max.x > b.min.x) && //
            (a.min.y < b.max.y && a.max.y > b.min.y) && //
            (a.min.z < b.max.z && a.max.z > b.min.z);
 }
 
+// Create box that contains both A and B
 static Box box_union(Box a, Box b) {
     if (a.min.x > b.min.x) a.min.x = b.min.x;
     if (a.min.y > b.min.y) a.min.y = b.min.y;
@@ -32,6 +34,7 @@ static Box box_union(Box a, Box b) {
     return a;
 }
 
+// Create a box that contains both A and P
 static Box box_union_point(Box a, v3 p) {
     if (a.min.x > p.x) a.min.x = p.x;
     if (a.min.y > p.y) a.min.y = p.y;
