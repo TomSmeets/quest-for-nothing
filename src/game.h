@@ -50,6 +50,7 @@ typedef struct {
 
     Sparse_Set *sparse;
     Music music;
+    Wall *walls;
 } Game;
 
 static Image *gen_cursor(Memory *mem) {
@@ -100,7 +101,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
 // Create a new game
 static Game *game_new(Random *rng) {
     v2i level_size = {8, 8};
-    v2i spawn = level_size / 2;
+    v2i spawn = 0;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
@@ -118,6 +119,11 @@ static Game *game_new(Random *rng) {
 
     game->sparse = sparse_set_new(mem);
     music_init(&game->music);
+
+    Image *img = image_new(mem, (v2u){32, 32});
+    image_fill(img, (v4){1, 0, 1, 1});
+    m4 mtx = m4_id();
+    game->walls = wall2_new(mem, mtx, img);
     return game;
 }
 
@@ -344,6 +350,10 @@ static f32 game_audio(Game *game, Engine *eng) {
 
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
+
+    for (Wall *wall = game->walls; wall; wall = wall->next) {
+        wall2_update(eng, game->sparse, wall);
+    }
 
     // Debug draw sparse data
     if (game->debug == DBG_Collision) {

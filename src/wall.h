@@ -18,12 +18,16 @@ static Wall *wall2_new(Memory *mem, m4 mtx, Image *image) {
     Wall *wall = mem_struct(mem, Wall);
     wall->mtx = mtx;
     wall->image = image;
-    return 0;
+    return wall;
 }
 
 static void wall2_update(Engine *eng, Sparse_Set *sparse, Wall *wall) {
     gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
+    gfx_debug_mtx(eng->gfx_dbg, wall->mtx);
 
     Box box = box_from_quad2(wall->mtx);
     sparse_set_add(sparse, box, wall);
+}
+
+static void wall_draw(Wall *wall, Gfx *gfx) {
 }
