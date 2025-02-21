@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // wall.h - A Quad in 3d space
 #pragma once
+#include "entity.h"
 #include "image.h"
 #include "mat.h"
-#include "entity.h"
 
 typedef struct Wall Wall;
 struct Wall {

@@ -43,7 +43,6 @@ struct Entity {
     // Entity Size (width, height)
     v2 size;
 
-
     // Shadow
     Image *shadow;
 
