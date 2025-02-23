@@ -72,7 +72,6 @@ typedef struct {
     v3 color_blood;
 } Sprite_Properties;
 
-
 static v3 rand_rainbow(Rand *rng) {
     return color_rainbow(rand_f32(rng, 0, 1));
 }

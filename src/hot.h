@@ -2,9 +2,9 @@
 // hot.h - Dynamically reload interactive programs
 #pragma once
 #include "fmt.h"
+#include "fs.h"
 #include "mem.h"
 #include "os.h"
-#include "fs.h"
 
 typedef void os_main_t(OS *os);
 

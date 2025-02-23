@@ -1,6 +1,6 @@
 #pragma once
-#include "mem.h"
 #include "fmt.h"
+#include "mem.h"
 #include "os.h"
 
 // Get a new absolute path to a temporary file
@@ -15,5 +15,3 @@ static char *fs_tmpfile(Memory *mem, char *name) {
 
 static void os_exec(char **cmd) {
 }
-
-
