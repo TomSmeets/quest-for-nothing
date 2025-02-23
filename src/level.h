@@ -31,7 +31,7 @@ static void level_add_wall(Memory *mem, Entity **level, Image *img, v3i pos, m4 
 }
 
 // Generate an empty level
-static void level_generate(Entity **level, Memory *mem, Random *rng, v2i size) {
+static void level_generate(Entity **level, Memory *mem, Rand *rng, v2i size) {
     i32 cell_scale = 4;
 
     m4 mtx_yn = m4_id();

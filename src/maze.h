@@ -37,9 +37,9 @@ static Maze_Cell maze_get(Maze *maze, v2i pos) {
 }
 
 // Remove a random element from the list
-static Maze_Cell rand_choose(Random *rng, Maze_Cell *list, u32 *len) {
+static Maze_Cell rand_choose(Rand *rng, Maze_Cell *list, u32 *len) {
     assert(*len > 0, "No more elments to choose from!");
-    u32 i = rand_u32_range(rng, 0, *len - 1);
+    u32 i = rand_u32(rng, 0, *len);
     Maze_Cell value = list[i];
     list[i] = list[--*len];
     return value;
@@ -54,7 +54,7 @@ static v2i maze_dir_to_v2i(Maze_Cell dir) {
 }
 
 // Continue generation at a given node
-static void maze_generate_at(Maze *maze, Random *rng, v2i pos) {
+static void maze_generate_at(Maze *maze, Rand *rng, v2i pos) {
     // Possible directions
     Maze_Cell open_list[] = {
         Maze_Cell_XN,
@@ -91,7 +91,7 @@ static void maze_generate_at(Maze *maze, Random *rng, v2i pos) {
 }
 
 // Generate a maze
-static void maze_generate(Maze *maze, Random *rng) {
+static void maze_generate(Maze *maze, Rand *rng) {
     v2i start_pos = {0, 0};
     *maze_ref(maze, start_pos) = Maze_Cell_Start;
     maze_generate_at(maze, rng, start_pos);

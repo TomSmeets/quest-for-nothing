@@ -217,7 +217,7 @@ typedef struct {
     bool action_build;
 
     // For generating unique '.so' names
-    Random rng;
+    Rand rng;
     Watch watch;
     bool first_time;
 
@@ -334,7 +334,7 @@ static void os_main(OS *os) {
 
     if (hot->action_run) {
         if (changed) {
-            char *so_path = build_and_load(tmp, hot->main_path, rand_u32(&hot->rng));
+            char *so_path = build_and_load(tmp, hot->main_path, rand_next(&hot->rng));
             hot_load(hot->hot, so_path);
         }
 

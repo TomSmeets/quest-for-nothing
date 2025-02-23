@@ -15,7 +15,7 @@
 
 typedef struct {
     // For noise
-    Random rand;
+    Rand rand;
 
     // List of 'phase' values for sine waves.
     u32 phase_ix;
@@ -143,7 +143,7 @@ static f32 sound_triangle(Sound *sound, f32 freq, f32 offset) {
 
 // Static white noise
 static f32 sound_noise_white(Sound *sound) {
-    return rand_f32_signed(&sound->rand);
+    return rand_f32(&sound->rand, -1, 1);
 }
 
 // Noise at a given frequency
@@ -162,7 +162,7 @@ static f32 sound_noise_freq(Sound *sound, f32 freq, f32 duty) {
 
     // Reached next cycle
     if (*phase >= 1.0) {
-        *value = rand_f32_signed(&sound->rand);
+        *value = rand_f32(&sound->rand, -1, 1);
         *phase -= (i32)*phase;
     }
 

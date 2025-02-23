@@ -97,7 +97,7 @@ static void music_play(Music *music, Engine *eng) {
 
         time -= 1.0f * dt;
 
-        if (rand_u32(&eng->rng) % 2 == 0) {
+        if (rand_choice(&eng->rng, 0.5)) {
             music->note += 1;
         } else {
             music->note -= 1;

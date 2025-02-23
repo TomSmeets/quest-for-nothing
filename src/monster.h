@@ -79,7 +79,7 @@ static void monster_die(Entity *mon, Engine *eng) {
 
 static void monster_update_eyes(Entity *mon, Engine *eng) {
     if (animate2(&mon->look_around_timer, eng->dt)) {
-        mon->look_around_timer = rand_f32_range(&eng->rng, 1, 8);
+        mon->look_around_timer = rand_f32(&eng->rng, 1, 8);
         monster_sprite_update_eyes(&mon->sprite, &eng->rng);
     }
 }
@@ -90,10 +90,10 @@ static void monster_update_ai(Entity *mon, Entity *player, Engine *eng) {
 
     // AI movement
     if (animate2(&mon->move_time, eng->dt)) {
-        mon->move_time = rand_f32_range(&eng->rng, 2, 10);
+        mon->move_time = rand_f32(&eng->rng, 2, 10);
 
         // AI Movement mode
-        u32 mode = rand_u32_range(&eng->rng, 0, 2);
+        u32 mode = rand_u32(&eng->rng, 0, 3);
 
         // Stand still
         if (mode == 0) mon->move_dir = 0;
@@ -102,7 +102,7 @@ static void monster_update_ai(Entity *mon, Entity *player, Engine *eng) {
         if (mode == 1) mon->move_dir = v2_normalize(player->pos.xz - mon->pos.xz) * 0.1;
 
         // Random direction
-        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32_signed(&eng->rng) * PI) * 0.25;
+        if (mode == 2) mon->move_dir = v2_from_rot(rand_f32(&eng->rng, -PI, PI)) * 0.25;
     }
 
     // Look direction

@@ -4,6 +4,7 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
+#include "fs.h"
 
 typedef void os_main_t(OS *os);
 

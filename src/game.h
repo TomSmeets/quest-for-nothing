@@ -64,7 +64,7 @@ static Image *gen_cursor(Memory *mem) {
     return img;
 }
 
-static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
+static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
 
@@ -89,7 +89,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
 
         // Choose random sprite props
         Sprite_Properties prop = s1;
-        if (rand_f32(rng) > 0.5) prop = s2;
+        if (rand_choice(rng, 0.5)) prop = s2;
 
         Entity *mon = monster_new(game->mem, rng, wall->pos, prop);
         // Insert
@@ -99,7 +99,7 @@ static void game_gen_monsters(Game *game, Random *rng, v3i spawn) {
 }
 
 // Create a new game
-static Game *game_new(Random *rng) {
+static Game *game_new(Rand *rng) {
     v2i level_size = {8, 8};
     v2i spawn = 0;
 
@@ -256,8 +256,8 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
             v3 ray_pos = pl->head_mtx.w;
             v3 ray_dir = pl->head_mtx.z;
 
-            f32 a = rand_f32_signed(&eng->rng);
-            f32 r = rand_f32_signed(&eng->rng) * 0.1;
+            f32 a = rand_f32(&eng->rng, -1, 1);
+            f32 r = rand_f32(&eng->rng, -0.1, 0.1);
             f32 ox = f_cos2pi(a) * r;
             f32 oy = f_sin2pi(a) * r;
 

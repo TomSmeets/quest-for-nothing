@@ -76,6 +76,21 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
+- Simplify Rand
+- Simplify/Fix 'animate'
+
+- Think: Global context for evertyhing??
+  - Rand
+  - Format
+  - Graphics
+  - Should be just an incetace, a pointer.
+    // rand_f32(G.rand)
+    // fmt_s(G.fmt, "blah")
+    // fmt_s(G.gfx, )
+    // fmt_s(G.app, )
+    // fmt_s(G.os, )
+  
+
 - split into init and update?
   void *os_init(void);
   void os_update(void *app);

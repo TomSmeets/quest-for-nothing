@@ -20,11 +20,11 @@ typedef struct {
 } Monster_Sprite;
 
 // Update monster eye position
-static void monster_sprite_update_eyes(Monster_Sprite *mon, Random *rng) {
+static void monster_sprite_update_eyes(Monster_Sprite *mon, Rand *rng) {
     v3 black = {0, 0, 0};
     v3 white = {1, 1, 1};
 
-    u32 look_dir = rand_u32(rng) % 4;
+    u32 look_dir = rand_u32(rng, 0, 4);
     for (u32 i = 0; i < mon->eye_count; ++i) {
         v2i eye = mon->eye[i];
         image_write(mon->image, eye + (v2i){0, 0}, look_dir == 0 ? black : white);
@@ -72,17 +72,22 @@ typedef struct {
     v3 color_blood;
 } Sprite_Properties;
 
-static Sprite_Properties sprite_new(Random *rng) {
+
+static v3 rand_rainbow(Rand *rng) {
+    return color_rainbow(rand_f32(rng, 0, 1));
+}
+
+static Sprite_Properties sprite_new(Rand *rng) {
     return (Sprite_Properties){
-        .texture = rand_f32_range(rng, 0.02, 0.08),
-        .body_height = rand_f32_range(rng, 12, 32),
-        .start_radius = rand_f32_range(rng, 1, 8),
-        .eye_y = rand_f32_range(rng, 0, 0.5),
-        .hand_y = rand_f32_range(rng, 0.5, 0.7),
-        .spike = rand_f32_range(rng, 0.5, 3.0),
+        .texture = rand_f32(rng, 0.02, 0.08),
+        .body_height = rand_f32(rng, 12, 32),
+        .start_radius = rand_f32(rng, 1, 8),
+        .eye_y = rand_f32(rng, 0, 0.5),
+        .hand_y = rand_f32(rng, 0.5, 0.7),
+        .spike = rand_f32(rng, 0.5, 3.0),
         .color_base = rand_color(rng),
         .color_accent = rand_color(rng),
-        .color_blood = color_rainbow(rand_f32(rng)),
+        .color_blood = rand_rainbow(rng),
     };
 }
 
@@ -101,7 +106,7 @@ static void sprite_blend(Sprite_Properties *x, Sprite_Properties y, f32 amount) 
 #undef blend
 }
 
-static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties prop, Random *rng) {
+static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties prop, Rand *rng) {
     // Initial line widths
     u32 body_height = f_round(prop.body_height);
     u32 eye_y = prop.eye_y * prop.body_height;
@@ -117,7 +122,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties pro
         if (radius > body_radius) body_radius = radius;
         if (i == eye_y) eye_x = radius / 2.0f;
         if (i == hand_y) hand_x = radius / 2.0f;
-        radius += rand_f32_signed(rng) * prop.spike;
+        radius += rand_f32(rng, -prop.spike, prop.spike);
         if (radius < 1) radius = 1;
     }
 
@@ -148,7 +153,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties pro
                 v3 color = color_blend(prop.color_base, prop.color_accent, (f32)y / (body_height - 1) * 0.5);
 
                 // Add a textured surface
-                color += rand_v3(rng) * prop.texture * (1 - dist);
+                color += rand_color(rng) * prop.texture * (1 - dist);
                 color *= 1.0 - dist * 0.2;
 
                 image_write(image, (v2i){x, y}, color);
