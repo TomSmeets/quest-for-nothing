@@ -1,7 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // level_sprite.h - Generate artwork for spaceship walls
 #pragma once
+#include "color.h"
 #include "image.h"
+#include "math.h"
 #include "rand.h"
 
 static void color_splatter(v3 *color, Rand *rng, v3 tint, f32 chance, f32 min, f32 max) {
@@ -14,8 +16,8 @@ static Image *level_sprite_generate(Memory *mem, Rand *rng) {
     u32 sy = 32 * 4;
 
     Image *img = image_new(mem, (v2u){sx, sy});
-    v3 tint1 = rand_color(rng);
-    v3 tint2 = rand_color(rng);
+    v3 tint1 = color_rand(rng);
+    v3 tint2 = color_rand(rng);
     for (u32 y = 0; y < sy; ++y) {
         for (u32 x = 0; x < sx; ++x) {
             f32 r_x = f_min(x, sx - x - 1);

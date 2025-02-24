@@ -48,12 +48,3 @@ static i32 rand_i32(Rand *rand, i32 min, i32 max) {
 static bool rand_choice(Rand *rand, f32 chance) {
     return rand_f32(rand, 0, 1) < chance;
 }
-
-// TODO: is not very good, remove
-static v3 rand_color(Rand *rand) {
-    return (v3){
-        rand_f32(rand, 0, 1),
-        rand_f32(rand, 0, 1),
-        rand_f32(rand, 0, 1),
-    };
-}

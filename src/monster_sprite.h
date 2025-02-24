@@ -3,6 +3,8 @@
 #pragma once
 #include "color.h"
 #include "image.h"
+#include "math.h"
+#include "mem.h"
 #include "rand.h"
 #include "vec.h"
 
@@ -72,10 +74,6 @@ typedef struct {
     v3 color_blood;
 } Sprite_Properties;
 
-static v3 rand_rainbow(Rand *rng) {
-    return color_rainbow(rand_f32(rng, 0, 1));
-}
-
 static Sprite_Properties sprite_new(Rand *rng) {
     return (Sprite_Properties){
         .texture = rand_f32(rng, 0.02, 0.08),
@@ -84,9 +82,9 @@ static Sprite_Properties sprite_new(Rand *rng) {
         .eye_y = rand_f32(rng, 0, 0.5),
         .hand_y = rand_f32(rng, 0.5, 0.7),
         .spike = rand_f32(rng, 0.5, 3.0),
-        .color_base = rand_color(rng),
-        .color_accent = rand_color(rng),
-        .color_blood = rand_rainbow(rng),
+        .color_base = color_rand(rng),
+        .color_accent = color_rand(rng),
+        .color_blood = color_rand_rainbow(rng),
     };
 }
 
@@ -152,7 +150,7 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties pro
                 v3 color = color_blend(prop.color_base, prop.color_accent, (f32)y / (body_height - 1) * 0.5);
 
                 // Add a textured surface
-                color += rand_color(rng) * prop.texture * (1 - dist);
+                color += color_rand(rng) * prop.texture * (1 - dist);
                 color *= 1.0 - dist * 0.2;
 
                 image_write(image, (v2i){x, y}, color);
