@@ -67,7 +67,7 @@ static f32 voice_sample(Voice *voice) {
 //   - https://www.youtube.com/watch?v=J_FCCvNzbiY
 typedef struct {
     f32 dt;
-    Random rand;
+    Rand rand;
 
     u32 voice_count;
     Voice voices[64];

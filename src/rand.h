@@ -8,16 +8,6 @@ typedef struct {
     u64 seed;
 } Rand;
 
-static Rand rand_new(u64 seed);
-static Rand rand_fork(Rand *rand);
-
-// Random number [0, 2^32)
-static u32 rand_next(Rand *rand);
-
-static u32 rand_u32(Rand *rand, u32 min, u32 max);
-static i32 rand_i32(Rand *rand, i32 min, i32 max);
-static f32 rand_f32(Rand *rand, f32 min, f32 max);
-
 static Rand rand_new(u64 seed) {
     return (Rand){seed};
 }

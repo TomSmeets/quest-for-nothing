@@ -24,7 +24,7 @@ typedef struct {
     Time time;
 
     // Submodules
-    Random rng;
+    Rand rng;
     Gfx *gfx;
     Gfx_Debug *gfx_dbg;
     Audio *audio;
@@ -32,7 +32,7 @@ typedef struct {
     UI *ui;
 } Engine;
 
-static Engine *engine_new(Memory *mem, OS *os, Random rng, char *title) {
+static Engine *engine_new(Memory *mem, OS *os, Rand rng, char *title) {
     Engine *eng = mem_struct(mem, Engine);
     eng->os = os;
     eng->mem = mem;

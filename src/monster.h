@@ -42,7 +42,7 @@ static void m4_image_ui(m4 *mtx, Image *img) {
 #define SHADOW_OFFSET 0.01
 #define MONSTER_OFFSET 0.02
 
-static Entity *monster_new(Memory *mem, Random *rng, v3 pos, Sprite_Properties prop) {
+static Entity *monster_new(Memory *mem, Rand *rng, v3 pos, Sprite_Properties prop) {
     Entity *mon = mem_struct(mem, Entity);
     mon->type = Entity_Monster;
     mon->mtx = m4_id();

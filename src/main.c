@@ -22,7 +22,7 @@ typedef struct {
 } App;
 
 static App *app_init(OS *os) {
-    Random rng = rand_new(os_rand());
+    Rand rng = rand_new(os_rand());
 
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);

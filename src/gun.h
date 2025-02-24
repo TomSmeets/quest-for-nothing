@@ -3,7 +3,7 @@
 #include "mem.h"
 #include "rand.h"
 
-static Image *gun_new(Memory *mem, Random *rng) {
+static Image *gun_new(Memory *mem, Rand *rng) {
     u32 length = 8;
     u32 height = 3;
 
