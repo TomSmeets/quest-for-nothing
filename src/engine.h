@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // engine.h - Immediate Mode Game Engine
 #pragma once
-
 #include "audio.h"
 #include "gfx.h"
 #include "gfx_debug.h"

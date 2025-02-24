@@ -1,4 +1,5 @@
 #pragma once
+#include "color_rand.h"
 #include "image.h"
 #include "mem.h"
 #include "rand.h"

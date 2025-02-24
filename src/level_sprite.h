@@ -2,6 +2,7 @@
 // level_sprite.h - Generate artwork for spaceship walls
 #pragma once
 #include "color.h"
+#include "color_rand.h"
 #include "image.h"
 #include "math.h"
 #include "rand.h"

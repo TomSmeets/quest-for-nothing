@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // color.h - Color types and math
 #pragma once
-#include "rand.h"
 #include "vec.h"
 
 #define WHITE ((v3){1, 1, 1})
@@ -19,23 +18,7 @@ static v4 color_alpha(v3 color, f32 alpha) {
     return (v4){color.x, color.y, color.z, alpha};
 }
 
-static v3 color_rand(Rand *rand) {
-    return (v3){
-        rand_f32(rand, 0, 1),
-        rand_f32(rand, 0, 1),
-        rand_f32(rand, 0, 1),
-    };
-}
-
 static v3 color_rainbow(f32 v) {
-    f32 r = 0.5f + 0.5 * f_cos2pi(v + 0.0f / 3.0f);
-    f32 g = 0.5f + 0.5 * f_cos2pi(v + 1.0f / 3.0f);
-    f32 b = 0.5f + 0.5 * f_cos2pi(v + 2.0f / 3.0f);
-    return (v3){r, g, b};
-}
-
-static v3 color_rand_rainbow(Rand *rand) {
-    f32 v = rand_f32(rand, 0, 1);
     f32 r = 0.5f + 0.5 * f_cos2pi(v + 0.0f / 3.0f);
     f32 g = 0.5f + 0.5 * f_cos2pi(v + 1.0f / 3.0f);
     f32 b = 0.5f + 0.5 * f_cos2pi(v + 2.0f / 3.0f);
