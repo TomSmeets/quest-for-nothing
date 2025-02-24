@@ -2,7 +2,6 @@
 // rand.h - Fast and random number generator
 #pragma once
 #include "types.h"
-#include "vec.h"
 
 typedef struct {
     u64 seed;

@@ -2,6 +2,7 @@
 // audio.h - Immediate mode audio synthesis and digital filters
 #pragma once
 #include "math.h"
+#include "mem.h"
 #include "rand.h"
 #include "sound.h"
 #include "types.h"

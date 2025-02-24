@@ -9,9 +9,9 @@ static Image *gun_new(Memory *mem, Rand *rng) {
 
     Image *img = image_new(mem, (v2u){length, height + 3});
 
-    v3 color_barrel = rand_color(rng) * 0.2;
-    v3 color_sight = rand_color(rng) * 0.2;
-    v3 color_grip = rand_color(rng) * 0.2;
+    v3 color_barrel = color_rand(rng) * 0.2;
+    v3 color_sight = color_rand(rng) * 0.2;
+    v3 color_grip = color_rand(rng) * 0.2;
 
     // Barrel
     for (u32 x = 0; x < length; ++x) {
