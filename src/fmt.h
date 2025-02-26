@@ -8,10 +8,10 @@
 #include "std.h"
 
 // Should be initialized by os_init
-#define OS_FMT ((Fmt *)OS_GLOBAL->fmt)
+#define OS_FMT (G->fmt)
 
 // Simple flexible buffered string formatter and printer
-typedef struct {
+typedef struct Fmt {
     // Optional output file (use fmt_open/fmt_close)
     File *out;
 

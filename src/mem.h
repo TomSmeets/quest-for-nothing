@@ -34,9 +34,9 @@ static void _mem_align(Memory *mem) {
 // Allocate a chunk of exactly MEMORY_CHUNK_SIZE bytes
 static void *mem_alloc_chunk(void) {
     // Return cached chunk (if present)
-    if (OS_GLOBAL && OS_GLOBAL->memory_cache) {
-        Memory_Chunk *alloc = OS_GLOBAL->memory_cache;
-        OS_GLOBAL->memory_cache = alloc->next;
+    if (G->mem_cache) {
+        Memory_Chunk *alloc = G->mem_cache;
+        G->mem_cache = alloc->next;
         return alloc;
     }
 
@@ -51,16 +51,16 @@ static void mem_free_chunk_list(Memory_Chunk *chunk) {
     while (last->next) last = last->next;
 
     // Add it to the free chunk list
-    last->next = OS_GLOBAL->memory_cache;
-    OS_GLOBAL->memory_cache = last;
+    last->next = G->mem_cache;
+    G->mem_cache = last;
 }
 
 // Free memory allocated by mem_alloc_chunk
 static void mem_free_chunk(void *mem) {
     Memory_Chunk *chunk = mem;
     // Add it to the free chunk list
-    chunk->next = OS_GLOBAL->memory_cache;
-    OS_GLOBAL->memory_cache = chunk;
+    chunk->next = G->mem_cache;
+    G->mem_cache = chunk;
 }
 
 // Allocate 'size' bytes of uninitialized memory

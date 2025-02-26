@@ -21,7 +21,10 @@ typedef struct {
     Image *cursor;
 } App;
 
-static App *app_init(OS *os) {
+static App *app_init(void) {
+    G->mem = mem_new();
+    G->rand = mem_struct(G->mem, Rand);
+
     Rand rng = rand_new(os_rand());
 
     Memory *mem = mem_new();
@@ -35,7 +38,7 @@ static App *app_init(OS *os) {
 }
 
 static void gfx_audio_callback(u32 sample_count, v2 *samples) {
-    App *app = OS_GLOBAL->app;
+    App *app = G->app;
     if (!app) return;
 
     for (u32 i = 0; i < sample_count; ++i) {
@@ -93,9 +96,9 @@ static void draw_cursor(App *app) {
     gfx_quad_ui(gfx, mtx, cursor);
 }
 
-static void os_main(OS *os) {
+static void os_main(void) {
     // Initialize App
-    if (!os->app) os->app = app_init(os);
+    if (!G->app) G->app = app_init(os);
 
     // Update Loop
     App *app = os->app;

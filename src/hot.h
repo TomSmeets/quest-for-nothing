@@ -5,23 +5,18 @@
 #include "fs.h"
 #include "mem.h"
 #include "os.h"
+#include "global.h"
 
-typedef void os_main_t(OS *os);
+typedef void os_main_t(Global *global_instance);
 
 typedef struct {
-    OS *child_os;
     os_main_t *child_main;
+    App *child_app;
+    bool reloaded;
 } Hot;
 
 static Hot *hot_new(Memory *mem, u32 argc, char **argv) {
     Hot *hot = mem_struct(mem, Hot);
-
-    OS *child_os = mem_struct(mem, OS);
-    child_os->argc = argc;
-    child_os->argv = argv;
-    child_os->fmt = OS_GLOBAL->fmt;
-    hot->child_os = child_os;
-
     return hot;
 }
 
@@ -41,21 +36,31 @@ static bool hot_load(Hot *hot, char *path) {
     }
 
     hot->child_main = child_main;
-    hot->child_os->reloaded = 1;
+    hot->reloaded = true;
     return 1;
 }
 
 // Call child main function
 static void hot_update(Hot *hot) {
-    OS *os = OS_GLOBAL;
     if (!hot->child_main) return;
 
-    hot->child_main(hot->child_os);
+    App *host_app = G->app;
+    bool host_reloaded = G->reloaded;
+    u32 host_argc = G->os->argc;
+    char **host_argv = G->os->argv;
+    
+    G->app = hot->child_app;
+    G->os->argc = host_argc - 1;
+    G->os->argv = host_argv + 1;
+    G->reloaded = hot->reloaded;
 
-    // Reset OS_GLBOAL
-    assert(OS_GLOBAL == os, "OS should not have changed.. right?");
+    hot->child_main(G);
 
-    // inherit child update rate
-    os_set_update_time(hot->child_os->sleep_time);
-    hot->child_os->reloaded = 0;
+    hot->child_app = G->app;
+    hot->reloaded  = false;
+
+    G->app = host_app;
+    G->os->argc = host_argc;
+    G->os->argv = host_argv;
+    G->reloaded = host_reloaded;
 }

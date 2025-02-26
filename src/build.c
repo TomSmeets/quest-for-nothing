@@ -67,18 +67,18 @@ typedef enum {
 static bool build_single(Memory *tmp, char *output, char *input, Platform plat, bool release, bool dynamic) {
     bool debug = !release;
 
-    fmt_sss(OS_FMT, "Compiling ", input, " to ", output, " in");
-    if (dynamic) fmt_s(OS_FMT, " Dynamic");
-    fmt_s(OS_FMT, release ? " Release" : " Debug");
-    fmt_s(OS_FMT, " mode");
-    fmt_s(OS_FMT, " for");
-    if (plat == Platform_Linux) fmt_s(OS_FMT, " Linux");
-    if (plat == Platform_Windows) fmt_s(OS_FMT, " Windows");
-    if (plat == Platform_Wasm) fmt_s(OS_FMT, " WASM");
-    fmt_s(OS_FMT, "\n");
+    fmt_sss(G->fmt, "Compiling ", input, " to ", output, " in");
+    if (dynamic) fmt_s(G->fmt, " Dynamic");
+    fmt_s(G->fmt, release ? " Release" : " Debug");
+    fmt_s(G->fmt, " mode");
+    fmt_s(G->fmt, " for");
+    if (plat == Platform_Linux) fmt_s(G->fmt, " Linux");
+    if (plat == Platform_Windows) fmt_s(G->fmt, " Windows");
+    if (plat == Platform_Wasm) fmt_s(G->fmt, " WASM");
+    fmt_s(G->fmt, "\n");
 
     if (plat == Platform_Linux && OS_IS_WINDOWS) {
-        fmt_s(OS_FMT, "Cannot cross-compile to linux from windows.\n");
+        fmt_s(G->fmt, "Cannot cross-compile to linux from windows.\n");
         return true;
     }
 
@@ -199,14 +199,16 @@ static char *build_and_load(Memory *tmp, char *main_path, u64 counter) {
     bool ok = build_single(tmp, out_path, main_path, Platform_Linux, false, true);
 
     if (!ok) {
-        fmt_s(OS_FMT, "Compile error!\n");
+        fmt_s(G->fmt, "Compile error!\n");
         return 0;
     }
 
     return out_path;
 }
 
-typedef struct {
+typedef struct App App;
+
+struct App {
     // Run and hot reload single executable
     bool action_run;
     char *main_path;
@@ -222,18 +224,18 @@ typedef struct {
     bool first_time;
 
     Hot *hot;
-} Build;
+};
 
 static void exit_with_help(Cli *cli) {
     char *name = cli->argv[0];
     cli_show_help(cli);
-    fmt_s(OS_FMT, "\n");
-    fmt_s(OS_FMT, "Examples:\n");
-    fmt_ss(OS_FMT, "  ", name, " run src/main.c\n");
-    fmt_ss(OS_FMT, "  ", name, " run src/build.c watch\n");
-    fmt_ss(OS_FMT, "  ", name, " build\n");
-    fmt_ss(OS_FMT, "  ", name, " release\n");
-    fmt_ss(OS_FMT, "  ", name, " asset\n");
+    fmt_s(G->fmt, "\n");
+    fmt_s(G->fmt, "Examples:\n");
+    fmt_ss(G->fmt, "  ", name, " run src/main.c\n");
+    fmt_ss(G->fmt, "  ", name, " run src/build.c watch\n");
+    fmt_ss(G->fmt, "  ", name, " build\n");
+    fmt_ss(G->fmt, "  ", name, " release\n");
+    fmt_ss(G->fmt, "  ", name, " asset\n");
     os_exit(1);
 }
 
@@ -266,15 +268,17 @@ static void build_parse(int argc, char **argv) {
     bool serve = 0;
 }
 
-static Build *build_init(OS *os) {
+static App *build_init(void) {
+    OS *os = G->os;
+
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
-    Build *hot = mem_struct(mem, Build);
+    App *hot = mem_struct(mem, App);
     Cli *cli = cli_new(tmp, os);
 
     if (cli_action(cli, "run", "<main> [args]...", "Build and run with hot reloading")) {
         if (os->argc < 3) {
-            fmt_s(OS_FMT, "Not enogh arguments\n");
+            fmt_s(G->fmt, "Not enogh arguments\n");
             exit_with_help(cli);
         }
 
@@ -319,11 +323,13 @@ static Build *build_init(OS *os) {
     return hot;
 }
 
-static void os_main(OS *os) {
+static void os_main(void) {
     // Call Constructor
-    if (!os->app) os->app = build_init(os);
+    if (!G->app) G->app = build_init();
 
-    Build *hot = os->app;
+    App *hot = G->app;
+    OS *os = G->os;
+
     Memory *tmp = mem_new();
 
     bool changed = watch_changed(&hot->watch) || hot->first_time;

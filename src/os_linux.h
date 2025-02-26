@@ -29,9 +29,9 @@ static File *fd_to_file(i32 fd) {
 }
 
 // Export main, allowing us to dynamically call it
-void os_main_dynamic(OS *os) {
-    OS_GLOBAL = os;
-    os_main(os);
+void os_main_dynamic(Global *global_instance) {
+    G = global_instance;
+    os_main();
 }
 
 int main(int argc, char **argv) {
@@ -39,11 +39,11 @@ int main(int argc, char **argv) {
     OS *os = mem_struct(mem, OS);
     os->argc = argc;
     os->argv = argv;
-    os->fmt = fmt_new(mem, fd_to_file(1));
-    OS_GLOBAL = os;
+    G->fmt = fmt_new(mem, fd_to_file(1));
+    G->os = os;
     for (;;) {
         os->sleep_time = 1000 * 1000;
-        os_main(os);
+        os_main();
         os_sleep(os->sleep_time);
     }
 }

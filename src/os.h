@@ -2,6 +2,7 @@
 // os.h - Base platform API
 #pragma once
 #include "types.h"
+#include "global.h"
 
 #if __unix__
 #define OS_IS_LINUX 1
@@ -21,10 +22,8 @@
 #define OS_IS_WASM 0
 #endif
 
-typedef struct {
-    // Application handle
-    void *app;
-
+typedef struct OS OS;
+struct OS {
     // Command line args
     u32 argc;
     char **argv;
@@ -34,25 +33,12 @@ typedef struct {
 
     // Time to sleep until next call
     u64 sleep_time;
-
-    // == Globals for other modules ==
-    // Cached memory allocations, see mem.h
-    void *memory_cache;
-
-    // Global formatter for printing to stdout, see fmt.h
-    void *fmt;
-
-    // Counter for unique id generation, see id.h
-    u32 uid;
-} OS;
+};
 
 typedef struct File File;
 
-// The only global variable
-static OS *OS_GLOBAL;
-
 // Callbacks
-static void os_main(OS *os);
+static void os_main(void);
 
 // Read
 static u64 os_time(void);
@@ -84,8 +70,7 @@ static char *os_dlerror(void);
 static bool os_system(char *command);
 
 // Set maximum wait time between os_main calls
-static void os_set_update_time(u64 wake_time) {
-    OS *os = OS_GLOBAL;
+static void os_set_update_time(OS *os, u64 wake_time) {
     if (os->sleep_time > wake_time) {
         os->sleep_time = wake_time;
     }
