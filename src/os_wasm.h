@@ -12,16 +12,18 @@
 WASM_IMPORT(js_time) u64 js_time(void);
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 
+static OS G_OS;
+static Fmt G_FMT;
+
 u64 js_main(void) {
-    if (!OS_GLOBAL) {
-        Memory *mem = mem_new();
-        OS *os = mem_struct(mem, OS);
-        os->fmt = fmt_new(mem, (void *)1);
-        OS_GLOBAL = os;
+    if (!G->os) {
+        G->os = &G_OS;
+        G_FMT.out = (void *)1;
+        G->fmt = &G_FMT;
     }
-    OS_GLOBAL->sleep_time = 1000 * 1000;
-    os_main(OS_GLOBAL);
-    return OS_GLOBAL->sleep_time;
+    G->os->sleep_time = 1000 * 1000;
+    os_main();
+    return G->os->sleep_time;
 }
 
 static u64 os_time(void) {

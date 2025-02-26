@@ -40,11 +40,10 @@ static u32 cli_arg_help_len(Cli_Action *act) {
 }
 
 static void cli_show_help(Cli *cli) {
-    Fmt *fmt = OS_FMT;
     char *name = cli->argv[0];
-    fmt_ss(fmt, "Usage: ", name, " <action> [args]...\n");
-    fmt_s(fmt, "\n");
-    fmt_s(fmt, "Actions:\n");
+    fmt_ss(G->fmt, "Usage: ", name, " <action> [args]...\n");
+    fmt_s(G->fmt, "\n");
+    fmt_s(G->fmt, "Actions:\n");
 
     u32 max_len = 0;
     for (Cli_Action *act = cli->action_list; act; act = act->next) {
@@ -55,16 +54,16 @@ static void cli_show_help(Cli *cli) {
     for (Cli_Action *act = cli->action_list; act; act = act->next) {
         u32 len = cli_arg_help_len(act);
         u32 pad = max_len - len;
-        fmt_s(fmt, "  ");
-        fmt_s(fmt, act->name);
-        fmt_s(fmt, " ");
-        fmt_s(fmt, act->args);
-        fmt_s(fmt, " ");
+        fmt_s(G->fmt, "  ");
+        fmt_s(G->fmt, act->name);
+        fmt_s(G->fmt, " ");
+        fmt_s(G->fmt, act->args);
+        fmt_s(G->fmt, " ");
         for (u32 i = 0; i < pad; ++i) {
-            fmt_s(fmt, " ");
+            fmt_s(G->fmt, " ");
         }
-        fmt_s(fmt, act->description);
-        fmt_s(fmt, "\n");
+        fmt_s(G->fmt, act->description);
+        fmt_s(G->fmt, "\n");
     }
 }
 

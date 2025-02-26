@@ -81,7 +81,7 @@ static Input *gfx_begin(Gfx *gfx) {
     // Recreate texture pack
     u32 cap = packer_capacity(gfx->pack, 32);
     if (cap < 16) {
-        fmt_s(OS_FMT, "Debug: Recreating texture atlas\n");
+        fmt_s(G->fmt, "Debug: Recreating texture atlas\n");
         packer_free(gfx->pack);
         gfx->pack = packer_new(GFX_ATLAS_SIZE);
     }
@@ -135,7 +135,7 @@ static void gfx_quad(Gfx *gfx, m4 mtx, Image *img, Gfx_Pass_List *pass) {
     if (!area) {
         area = packer_get_new(gfx->pack, img);
         if (!area) {
-            fmt_s(OS_FMT, "ERROR: Too many textures\n");
+            fmt_s(G->fmt, "ERROR: Too many textures\n");
             return;
         }
         gfx_imp_texture(gfx->os, area->pos, img);

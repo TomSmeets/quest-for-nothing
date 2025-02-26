@@ -67,13 +67,13 @@ static void gfx_imp_end(Gfx_Imp *gfx) {
 
 // Callbacks from js
 void gfx_js_key_down(u32 key, bool down) {
-    // fmt_suu(OS_FMT, "KEY: key=", key, " down=", down, "\n");
+    // fmt_suu(G->fmt, "KEY: key=", key, " down=", down, "\n");
     input_emit(&GFX_GLOBAL.input, key_from_char(key), down);
 }
 
 void gfx_js_mouse_move(f32 x, f32 y, f32 dx, f32 dy) {
     Input *input = &GFX_GLOBAL.input;
-    // fmt_sffff(OS_FMT, "Mouse: x=", x, " y=", y, " dx=", dx, " dy=", dy, "\n");
+    // fmt_sffff(G->fmt, "Mouse: x=", x, " y=", y, " dx=", dx, " dy=", dy, "\n");
     input->mouse_moved = true;
     input->mouse_pos.x = x - (f32)input->window_size.x / 2.0;
     input->mouse_pos.y = input->window_size.y / 2.0f - y;
@@ -82,13 +82,13 @@ void gfx_js_mouse_move(f32 x, f32 y, f32 dx, f32 dy) {
 }
 
 void gfx_js_mouse_down(u32 button, bool down) {
-    // fmt_suu(OS_FMT, "Mouse: button=", button, " down=", down, "\n");
+    // fmt_suu(G->fmt, "Mouse: button=", button, " down=", down, "\n");
     if (button == 0) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_LEFT, down);
     if (button == 2) input_emit(&GFX_GLOBAL.input, KEY_MOUSE_RIGHT, down);
 }
 
 void gfx_js_resize(i32 width, i32 height) {
-    // fmt_suu(OS_FMT, "Resize: width=", width, " height=", height, "\n");
+    // fmt_suu(G->fmt, "Resize: width=", width, " height=", height, "\n");
     GFX_GLOBAL.input.window_size.x = width;
     GFX_GLOBAL.input.window_size.y = height;
 }

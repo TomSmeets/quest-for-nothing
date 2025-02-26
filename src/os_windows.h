@@ -9,22 +9,27 @@
 #include <windows.h>
 
 // Export main, allowing us to dynamically call it
-__declspec(dllexport) void os_main_dynamic(OS *os) {
-    OS_GLOBAL = os;
-    os_main(os);
+__declspec(dllexport) void os_main_dynamic(Global *global_instance) {
+    G = global_instance;
+    os_main();
 }
 
 int main(int argc, char **argv) {
-    Memory *mem = mem_new();
-    OS *os = mem_struct(mem, OS);
-    os->argc = argc;
-    os->argv = argv;
-    os->fmt = fmt_new(mem, GetStdHandle(STD_OUTPUT_HANDLE));
-    OS_GLOBAL = os;
+    OS os = {};
+    os.argc = argc;
+    os.argv = argv;
+    G->os = &os;
+
+    Fmt fmt = {};
+    fmt.out = GetStdHandle(STD_OUTPUT_HANDLE);
+    G->fmt = &fmt;
+
+    Rand rand = rand_new(os_rand());
+    G->rand = &rand;
     for (;;) {
-        os->sleep_time = 1000 * 1000;
-        os_main(os);
-        os_sleep(os->sleep_time);
+        os.sleep_time = 1000 * 1000;
+        os_main();
+        os_sleep(os.sleep_time);
     }
 }
 
@@ -53,14 +58,14 @@ static void os_exit(i32 code) {
 }
 
 static void os_fail(char *message) {
-    fmt_ss(OS_FMT, "", message, "\n");
+    fmt_ss(G->fmt, "", message, "\n");
 
     // check windows error
     DWORD last_error = GetLastError();
     char *last_error_msg = 0;
     FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0, (LPTSTR)&last_error_msg, 0, 0);
 
-    fmt_ss(OS_FMT, "Windows Error Code: ", last_error_msg, "\n");
+    fmt_ss(G->fmt, "Windows Error Code: ", last_error_msg, "\n");
 
     // Exit
     os_exit(1);
@@ -111,7 +116,7 @@ static char *os_dlerror(void) {
 }
 
 static bool os_system(char *cmd) {
-    fmt_ss(OS_FMT, "> ", cmd, "\n");
+    fmt_ss(G->fmt, "> ", cmd, "\n");
     int ret = system(cmd);
     return ret == 0;
 }

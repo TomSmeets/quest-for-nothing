@@ -34,13 +34,13 @@ static bool watch_changed_quick(Watch *watch) {
 
         // Some other error
         if (length < 0) {
-            fmt_s(OS_FMT, "Failed to read data from watch\n");
+            fmt_s(G->fmt, "Failed to read data from watch\n");
             return false;
         }
 
         // Change!
         struct inotify_event *event = (struct inotify_event *)buffer;
-        fmt_ss(OS_FMT, "changed: ", event->name, "\n");
+        fmt_ss(G->fmt, "changed: ", event->name, "\n");
         return true;
     }
 }

@@ -143,7 +143,7 @@ static char *os_dlerror(void) {
 }
 
 static bool os_system(char *cmd) {
-    fmt_ss(OS_FMT, "> ", cmd, "\n");
+    fmt_ss(G->fmt, "> ", cmd, "\n");
     i32 ret = system(cmd);
     return ret >= 0;
 }

@@ -171,7 +171,7 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
             v3 dir = p_global - mon->pos;
             f32 dist = v3_length(dir);
             f32 pen = (box.max.x - box.min.x) * .5;
-            // fmt_sf(OS_FMT, "D: ", dist, "\n");
+            // fmt_sf(G->fmt, "D: ", dist, "\n");
             if (dist < pen) {
                 mon->pos -= dir / dist * (pen - dist);
                 // m4 hit = m4_id();

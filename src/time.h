@@ -16,16 +16,16 @@ static f32 time_begin(Time *time, u64 target_rate) {
     u64 increment = target_increment;
     while (time->compute_time > increment) increment += target_increment;
 
-    // fmt_su(OS_FMT, "target=", target_increment, " us");
-    // fmt_su(OS_FMT, " compute=", time->compute_time, " us");
-    // fmt_su(OS_FMT, " increment=", increment, " us\n");
+    fmt_su(G->fmt, "target=", target_increment, " us");
+    fmt_su(G->fmt, " compute=", time->compute_time, " us");
+    fmt_su(G->fmt, " increment=", increment, " us\n");
 
     u64 frame_time = time->frame_end;
 
     u64 now = os_time();
     if (frame_time + increment < now) {
         frame_time = now;
-        fmt_s(OS_FMT, "Ahead\n");
+        fmt_s(G->fmt, "Ahead\n");
     }
 
     time->frame_start = frame_time;
@@ -45,7 +45,7 @@ static u64 time_end(Time *time) {
     time->compute_time = compute_time;
     if (time->frame_end < now) {
         // Missed a frame
-        fmt_sf(OS_FMT, "missed a frame, compute=", 1e6f / (f32)compute_time, " fps\n");
+        fmt_sf(G->fmt, "missed a frame, compute=", 1e6f / (f32)compute_time, " fps\n");
         return 0;
     }
 
