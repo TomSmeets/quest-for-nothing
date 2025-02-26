@@ -3,9 +3,11 @@
 #pragma once
 #include "types.h"
 
-typedef struct {
+typedef struct Rand Rand;
+
+struct Rand {
     u64 seed;
-} Rand;
+};
 
 static Rand rand_new(u64 seed) {
     return (Rand){seed};

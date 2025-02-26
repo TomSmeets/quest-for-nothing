@@ -101,7 +101,7 @@ static Input *sdl_poll(Sdl *sdl) {
     Input *input = &sdl->input;
     input_reset(input);
 
-    if (OS_GLOBAL->reloaded) sdl->audio_callback = sdl_audio_callback;
+    if (G->reloaded) sdl->audio_callback = sdl_audio_callback;
 
     SDL_Event src;
     while (api->SDL_PollEvent(&src)) {

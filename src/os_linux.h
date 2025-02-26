@@ -2,8 +2,10 @@
 // os_linux.h - Platform implementation for linux
 #pragma once
 #include "fmt.h"
+#include "global.h"
 #include "linux_api.h"
 #include "os.h"
+#include "rand.h"
 #include "str.h"
 
 static u64 linux_time_to_us(struct linux_timespec *t) {
@@ -35,16 +37,22 @@ void os_main_dynamic(Global *global_instance) {
 }
 
 int main(int argc, char **argv) {
-    Memory *mem = mem_new();
-    OS *os = mem_struct(mem, OS);
-    os->argc = argc;
-    os->argv = argv;
-    G->fmt = fmt_new(mem, fd_to_file(1));
-    G->os = os;
+    OS os = {};
+    os.argc = argc;
+    os.argv = argv;
+    G->os = &os;
+
+    Fmt fmt = {};
+    fmt.out = fd_to_file(1);
+    G->fmt = &fmt;
+
+    Rand rand = rand_new(os_rand());
+    G->rand = &rand;
+
     for (;;) {
-        os->sleep_time = 1000 * 1000;
+        os.sleep_time = 1000 * 1000;
         os_main();
-        os_sleep(os->sleep_time);
+        os_sleep(os.sleep_time);
     }
 }
 

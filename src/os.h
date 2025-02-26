@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Base platform API
 #pragma once
-#include "types.h"
 #include "global.h"
+#include "types.h"
 
 #if __unix__
 #define OS_IS_LINUX 1

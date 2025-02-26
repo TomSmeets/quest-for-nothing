@@ -4,12 +4,14 @@
 #include "game.h"
 #include "gfx.h"
 #include "gfx_impl.h"
+#include "global.h"
 #include "input.h"
 #include "math.h"
 #include "os.h"
 #include "os_impl.h"
 
-typedef struct {
+typedef struct App App;
+struct App {
     Memory *mem;
 
     // Entire game state
@@ -19,19 +21,14 @@ typedef struct {
     Engine *eng;
 
     Image *cursor;
-} App;
+};
 
 static App *app_init(void) {
-    G->mem = mem_new();
-    G->rand = mem_struct(G->mem, Rand);
-
-    Rand rng = rand_new(os_rand());
-
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
 
     app->mem = mem;
-    app->eng = engine_new(mem, os, rng, "Quest For Nothing");
+    app->eng = engine_new(mem, G->os, *G->rand, "Quest For Nothing");
     app->game = game_new(&app->eng->rng);
     app->cursor = gen_cursor(mem);
     return app;
@@ -98,10 +95,10 @@ static void draw_cursor(App *app) {
 
 static void os_main(void) {
     // Initialize App
-    if (!G->app) G->app = app_init(os);
+    if (!G->app) G->app = app_init();
 
     // Update Loop
-    App *app = os->app;
+    App *app = G->app;
     Engine *eng = app->eng;
 
     engine_begin(eng);

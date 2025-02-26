@@ -4,15 +4,19 @@
 #include "types.h"
 
 typedef struct App App;
+typedef struct Fmt Fmt;
+typedef struct Rand Rand;
+typedef struct OS OS;
+typedef struct Memory_Chunk Memory_Chunk;
 
 typedef struct {
     bool reloaded;
     u32 id;
     App *app;
-    struct Fmt *fmt;
-    struct Rand *rand;
-    struct OS *os;
-    struct Memory_Chunk *mem_cache;
+    Fmt *fmt;
+    Rand *rand;
+    OS *os;
+    Memory_Chunk *mem_cache;
 } Global;
 
 static Global _GLOBAL_INSTANCE;
