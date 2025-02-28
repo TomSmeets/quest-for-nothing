@@ -319,7 +319,7 @@ static App *build_init(void) {
     // Init inotify
     watch_init(&hot->watch, "src");
     hot->first_time = 1;
-    hot->rng.seed = os_rand();
+    hot->rng = rand_fork(G->rand);
     mem_free(tmp);
     return hot;
 }

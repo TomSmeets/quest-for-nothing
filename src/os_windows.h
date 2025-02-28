@@ -4,6 +4,7 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
+#include "rand.h"
 #include "std.h"
 #include "str.h"
 #include <windows.h>
@@ -24,7 +25,7 @@ int main(int argc, char **argv) {
     fmt.out = GetStdHandle(STD_OUTPUT_HANDLE);
     G->fmt = &fmt;
 
-    Rand rand = rand_new(os_rand());
+    Rand rand = rand_new(os_time());
     G->rand = &rand;
     for (;;) {
         os.sleep_time = 1000 * 1000;

@@ -4,6 +4,7 @@
 #include "fmt.h"
 #include "mem.h"
 #include "os.h"
+#include "rand.h"
 #include "std.h"
 #include "str.h"
 
@@ -14,11 +15,14 @@ WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 
 static OS G_OS;
 static Fmt G_FMT;
+static Rand G_RAND;
 
 u64 js_main(void) {
     if (!G->os) {
         G->os = &G_OS;
         G_FMT.out = (void *)1;
+        G_RAND.seed = js_time();
+        G->rand = &G_RAND;
         G->fmt = &G_FMT;
     }
     G->os->sleep_time = 1000 * 1000;
@@ -27,10 +31,6 @@ u64 js_main(void) {
 }
 
 static u64 os_time(void) {
-    return js_time();
-}
-
-static u64 os_rand(void) {
     return js_time();
 }
 

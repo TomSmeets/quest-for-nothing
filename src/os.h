@@ -41,7 +41,6 @@ static void os_main(void);
 
 // Read
 static u64 os_time(void);
-static u64 os_rand(void);
 
 // Actions
 static void os_write(File *file, u8 *data, u32 len);

@@ -36,6 +36,13 @@ void os_main_dynamic(Global *global_instance) {
     os_main();
 }
 
+static u64 linux_rand(void) {
+    u64 seed = 0;
+    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
+    assert(ret == sizeof(seed), "linux getrandom failed");
+    return seed;
+}
+
 int main(int argc, char **argv) {
     OS os = {};
     os.argc = argc;
@@ -46,7 +53,7 @@ int main(int argc, char **argv) {
     fmt.out = fd_to_file(1);
     G->fmt = &fmt;
 
-    Rand rand = rand_new(os_rand());
+    Rand rand = rand_new(linux_rand());
     G->rand = &rand;
 
     for (;;) {
@@ -61,13 +68,6 @@ static u64 os_time(void) {
     struct linux_timespec t = {};
     linux_clock_gettime(CLOCK_MONOTONIC, &t);
     return linux_time_to_us(&t);
-}
-
-static u64 os_rand(void) {
-    u64 seed = 0;
-    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
-    assert(ret == sizeof(seed), "linux getrandom failed");
-    return seed;
 }
 
 static void os_write(File *file, u8 *data, u32 len) {
