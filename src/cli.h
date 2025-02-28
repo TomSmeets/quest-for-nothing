@@ -1,5 +1,6 @@
 #pragma once
 #include "fmt.h"
+#include "global.h"
 #include "mem.h"
 #include "str.h"
 

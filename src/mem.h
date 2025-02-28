@@ -1,6 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // mem.h - Simple memory allocator
 #pragma once
+#include "global.h"
 #include "std.h"
 
 // Maximum allocation size

@@ -4,6 +4,7 @@
 #include "mem.h"
 #include "os_impl.h"
 #include "read.h"
+#include "str_mem.h"
 
 typedef struct File_Info File_Info;
 struct File_Info {

@@ -8,6 +8,7 @@
 #include "os.h"
 #include "os_impl.h"
 #include "rand.h"
+#include "str_mem.h"
 #include "types.h"
 #include "watch.h"
 

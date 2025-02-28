@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Base platform API
 #pragma once
-#include "global.h"
 #include "types.h"
 
 #if __unix__
