@@ -6,6 +6,7 @@
 #include "mat.h"
 #include "math.h"
 #include "os.h"
+#include "fmt.h"
 #include "texture_packer.h"
 #include "vec.h"
 
