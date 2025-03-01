@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// fmt_vec.h - Formatter for vector types
 #pragma once
 #include "fmt.h"
 #include "vec.h"
