@@ -222,6 +222,14 @@ static i64 linux_getdents64(i32 fd, struct linux_dirent64 *dirent, u32 count) {
     return linux_syscall3(217, fd, (i64)dirent, count);
 }
 
+static int linux_unlink(const char *path) {
+    return linux_syscall1(0x57, (i64)path);
+}
+
+static int linux_mkdir(const char *path, int mode) {
+    return linux_syscall2(0x53, (i64)path, mode);
+}
+
 #if 0
 struct linux_clone_args {
     u64 flags;

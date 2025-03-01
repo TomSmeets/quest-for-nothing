@@ -7,6 +7,7 @@
 #include "os.h"
 #include "rand.h"
 #include "str.h"
+#include "str_mem.h"
 
 static u64 linux_time_to_us(struct linux_timespec *t) {
     return t->sec * 1000 * 1000 + t->nsec / 1000;

@@ -2,6 +2,7 @@
 // build.c - Dynamically compile and reload interactive programs
 #include "cli.h"
 #include "fmt.h"
+#include "fs.h"
 #include "hot.h"
 #include "include_graph.h"
 #include "mem.h"
@@ -9,6 +10,7 @@
 #include "os_impl.h"
 #include "rand.h"
 #include "str_mem.h"
+#include "tmpfs.h"
 #include "types.h"
 #include "watch.h"
 
@@ -190,13 +192,11 @@ static char *build_and_load(Memory *tmp, char *main_path, u64 counter) {
     sdl2_download_dll();
 #endif
 
-    Fmt *out_path_fmt = fmt_memory(tmp);
 #if OS_IS_WINDOWS
-    fmt_su(out_path_fmt, "out/hot-", counter, ".dll");
+    char *out_path = tmpfs_path(tmp, "out/tmp", "hot.dll");
 #else
-    fmt_su(out_path_fmt, "/tmp/hot-", counter, ".so");
+    char *out_path = tmpfs_path(tmp, "out/tmp", "hot.so");
 #endif
-    char *out_path = fmt_close(out_path_fmt);
     bool ok = build_single(tmp, out_path, main_path, Platform_Linux, false, true);
 
     if (!ok) {
@@ -326,7 +326,11 @@ static App *build_init(void) {
 
 static void os_main(void) {
     // Call Constructor
-    if (!G->app) G->app = build_init();
+    if (!G->app) {
+        fs_mkdir("out/tmp");
+        tmpfs_clear("out/tmp");
+        G->app = build_init();
+    }
 
     App *hot = G->app;
     OS *os = G->os;

@@ -74,7 +74,7 @@ static void sound_begin(Sound *snd) {
 
 // Get a new persistent variable for this sample
 static f32 *sound_var(Sound *sound) {
-    assert(sound->phase_ix < array_count(sound->phase), "Out of sound memory");
+    assert(sound->phase_ix < array_count(sound->phase), "Out of sound memory, Increase the maximum number of phases");
     return sound->phase + sound->phase_ix++;
 }
 

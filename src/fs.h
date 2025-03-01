@@ -2,16 +2,68 @@
 #include "fmt.h"
 #include "mem.h"
 #include "rand.h"
+#include "str_mem.h"
 
-// Get a new absolute path to a temporary file
-static char *fs_tmpfile(Memory *mem, char *name) {
-    Fmt *f = fmt_memory(mem);
-    fmt_s(f, "/tmp/tmp-");
-    fmt_u(f, rand_next(G->rand));
-    fmt_s(f, "_");
-    fmt_s(f, name);
-    return fmt_close(f);
+typedef struct FS_Dir {
+    char *name;
+    bool is_dir;
+    struct FS_Dir *next;
+} FS_Dir;
+
+static FS_Dir *fs_list(struct Memory *mem, char *path);
+static void fs_remove(char *path);
+static void fs_mkdir(char *path);
+
+#if OS_IS_LINUX
+#include "linux_api.h"
+
+static void fs_remove(char *path) {
+    linux_unlink(path);
 }
 
-static void os_exec(char **cmd) {
+static FS_Dir *fs_list(Memory *mem, char *path) {
+    i32 dir = linux_open(path, O_RDONLY | O_DIRECTORY, 0);
+    if (dir < 0) return 0;
+
+    FS_Dir *first = 0;
+    FS_Dir *last = 0;
+
+    // Allocate temp buffer (it is cached)
+    void *buffer = mem_alloc_chunk();
+
+    for (;;) {
+        i64 len = linux_getdents64(dir, buffer, MEMORY_CHUNK_SIZE);
+
+        // Some Error occured
+        if (len < 0) {
+            first = last = 0;
+            break;
+        }
+
+        // Should not happen
+        assert(len <= MEMORY_CHUNK_SIZE, "getdents64 returned too many bytes");
+
+        // End of directory
+        if (len == 0) break;
+
+        for (struct linux_dirent64 *ent = buffer; (void *)ent < buffer + len; ent = (void *)ent + ent->reclen) {
+            bool is_hidden = str_starts_with(ent->name, ".");
+            if (is_hidden) continue;
+
+            FS_Dir *info = mem_struct(mem, FS_Dir);
+            info->name = str_dup(ent->name, mem);
+            info->is_dir = ent->type == DT_DIR;
+            LIST_APPEND(first, last, info);
+        }
+    }
+
+    // Release buffer back to the cache
+    mem_free_chunk(buffer);
+    linux_close(dir);
+    return first;
 }
+
+static void fs_mkdir(char *path) {
+    linux_mkdir(path, 0x777);
+}
+#endif

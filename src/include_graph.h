@@ -1,62 +1,11 @@
 #pragma once
 #if OS_IS_LINUX
+#include "fs.h"
 #include "math.h"
 #include "mem.h"
 #include "os_impl.h"
 #include "read.h"
 #include "str_mem.h"
-
-typedef struct File_Info File_Info;
-struct File_Info {
-    char *name;
-    bool is_dir;
-    File_Info *next;
-};
-
-static File_Info *os_read_dir(char *path, Memory *mem) {
-    i32 dir = linux_open(path, O_RDONLY | O_DIRECTORY, 0);
-    if (dir < 0) return 0;
-
-    File_Info *first = 0;
-    File_Info *last = 0;
-
-    // Allocate temp buffer (it is cached)
-    void *buffer = mem_alloc_chunk();
-
-    for (;;) {
-        i64 len = linux_getdents64(dir, buffer, MEMORY_CHUNK_SIZE);
-
-        // Some Error occured
-        if (len < 0) {
-            first = last = 0;
-            break;
-        }
-
-        // Should not happen
-        assert(len <= MEMORY_CHUNK_SIZE, "getdents64 returned too many bytes");
-
-        // End of directory
-        if (len == 0) break;
-
-        for (struct linux_dirent64 *ent = buffer; (void *)ent < buffer + len; ent = (void *)ent + ent->reclen) {
-            File_Info *info = mem_struct(mem, File_Info);
-            info->name = str_dup(ent->name, mem);
-            info->is_dir = ent->type == DT_DIR;
-            LIST_APPEND(first, last, info);
-        }
-    }
-
-    // Release buffer back to the cache
-    mem_free_chunk(buffer);
-    linux_close(dir);
-    return first;
-}
-
-static char *fmt_mem_ss(Memory *mem, char *s0, char *s1, char *s2) {
-    Fmt *fmt = fmt_memory(mem);
-    fmt_ss(fmt, s0, s1, s2);
-    return fmt_close(fmt);
-}
 
 // Generate Include Dot Graph
 static void include_graph(void) {
@@ -69,11 +18,7 @@ static void include_graph(void) {
     fmt_s(out, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
     fmt_s(out, "  edge[color=\"#bbbbbb\"];\n");
 
-    for (File_Info *file = os_read_dir(path, mem); file; file = file->next) {
-        // Skip '.', '..', and hidden files
-        bool is_hidden = str_starts_with(file->name, ".");
-        if (is_hidden) continue;
-
+    for (FS_Dir *file = fs_list(mem, path); file; file = file->next) {
         // Only .c and .h files
         bool is_h_file = str_ends_with(file->name, ".h");
         bool is_c_file = str_ends_with(file->name, ".c");
@@ -83,7 +28,7 @@ static void include_graph(void) {
         if (str_eq(file->name, "ogl_api.h")) continue;
 
         // Full Path
-        char *full_path = fmt_mem_ss(mem, path, "/", file->name);
+        char *full_path = str_cat3(mem, path, "/", file->name);
 
         // Read file
         Read *read = read_new(mem, full_path);

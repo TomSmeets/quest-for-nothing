@@ -22,7 +22,7 @@ struct Memory_Chunk {
 // Smaller allocations are added to a big Memory_Chunk until it is full.
 // Once full, a new chunk is allocated.
 // All allocations are freed simultaneously with mem_free
-typedef struct {
+typedef struct Memory {
     Memory_Chunk *start;
     u32 used;
     u32 size;

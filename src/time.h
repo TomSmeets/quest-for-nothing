@@ -16,9 +16,9 @@ static f32 time_begin(Time *time, u64 target_rate) {
     u64 increment = target_increment;
     while (time->compute_time > increment) increment += target_increment;
 
-    fmt_su(G->fmt, "target=", target_increment, " us");
-    fmt_su(G->fmt, " compute=", time->compute_time, " us");
-    fmt_su(G->fmt, " increment=", increment, " us\n");
+    // fmt_su(G->fmt, "target=", target_increment, " us");
+    // fmt_su(G->fmt, " compute=", time->compute_time, " us");
+    // fmt_su(G->fmt, " increment=", increment, " us\n");
 
     u64 frame_time = time->frame_end;
 

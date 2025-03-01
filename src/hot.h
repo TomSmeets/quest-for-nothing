@@ -2,7 +2,6 @@
 // hot.h - Dynamically reload interactive programs
 #pragma once
 #include "fmt.h"
-#include "fs.h"
 #include "global.h"
 #include "mem.h"
 #include "os.h"
