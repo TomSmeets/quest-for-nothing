@@ -2,8 +2,8 @@
 // mem.h - Simple memory allocator
 #pragma once
 #include "global.h"
-#include "std.h"
 #include "os.h"
+#include "std.h"
 
 // Maximum allocation size
 // The exact size of a memory "Chunk"

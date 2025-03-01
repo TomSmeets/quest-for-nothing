@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound.h - Immediate mode sound synthesis
 #pragma once
-#include "types.h"
 #include "math.h"
 #include "rand.h"
+#include "types.h"
 
 #define SOUND_SAMPLE_RATE 48000
 #define SOUND_DT (1.0f / SOUND_SAMPLE_RATE)
@@ -66,7 +66,6 @@ static f32 sound_adsr(f32 time, f32 t_attack, f32 t_decay, f32 t_sustain, f32 t_
     if (done && time >= 0) *done = true;
     return value;
 }
-
 
 // Start producing a new sound sample
 static void sound_begin(Sound *snd) {
