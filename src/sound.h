@@ -1,11 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// sound.h - Immediate mode sound synthesis and digital filters
+// sound.h - Immediate mode sound synthesis
 #pragma once
-#include "id.h"
+#include "types.h"
 #include "math.h"
 #include "rand.h"
-#include "std.h"
-#include "types.h"
 
 #define SOUND_SAMPLE_RATE 48000
 #define SOUND_DT (1.0f / SOUND_SAMPLE_RATE)
@@ -20,8 +18,6 @@ typedef struct {
     // List of 'phase' values for sine waves.
     u32 phase_ix;
     f32 phase[16];
-
-    // Optional paramters
 } Sound;
 
 typedef struct {
@@ -29,6 +25,13 @@ typedef struct {
     f32 time;
 } Sound_Parameters;
 
+// Attack-Release envelope
+//      _
+//     /.\
+//    / . \
+//   /  .  \
+// _/   .   \_____
+//  . A . R .
 static f32 sound_ar(f32 time, f32 t_attack, f32 t_release, bool *done) {
     f32 value = 0.0f;
     value += f_step_duration(time, t_attack);
@@ -40,6 +43,13 @@ static f32 sound_ar(f32 time, f32 t_attack, f32 t_release, bool *done) {
     return value;
 }
 
+// Attack-Decay-Sustain-Release envelope.
+//      _
+//     /.\
+//    / . \_______
+//   /  . .     . \
+// _/   . .     .  \___
+//  . A .D.  S  . R .
 static f32 sound_adsr(f32 time, f32 t_attack, f32 t_decay, f32 t_sustain, f32 t_release, bool *done) {
     f32 sustain_volume = 0.8;
 
@@ -57,6 +67,8 @@ static f32 sound_adsr(f32 time, f32 t_attack, f32 t_decay, f32 t_sustain, f32 t_
     return value;
 }
 
+
+// Start producing a new sound sample
 static void sound_begin(Sound *snd) {
     snd->phase_ix = 0;
 }
@@ -65,41 +77,6 @@ static void sound_begin(Sound *snd) {
 static f32 *sound_var(Sound *sound) {
     assert(sound->phase_ix < array_count(sound->phase), "Out of sound memory");
     return sound->phase + sound->phase_ix++;
-}
-
-typedef struct {
-    f32 low_pass;
-    f32 band_pass;
-    f32 high_pass;
-} Sound_Filter_Result;
-
-// Filter the incoming samples at a given cutoff frequency.
-static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sample) {
-    f32 *var0 = sound_var(sound);
-    f32 *var1 = sound_var(sound);
-
-    f32 rc = 1.0 / (cutoff_freq * PI2);
-    f32 f = SOUND_DT / (rc + SOUND_DT);
-
-    // f and fb calculation
-    f32 q = 0.9;
-    f32 fb = q + q / (1.0 - f);
-
-    // loop
-
-    // High Pass Filter
-    f32 hp = sample - *var0;
-
-    // Band Pass Filter
-    f32 bp = *var0 - *var1;
-
-    *var0 += f * (hp + fb * bp);
-    *var1 += f * (*var0 - *var1);
-
-    // Low Pass Filter
-    f32 lp = *var1;
-
-    return (Sound_Filter_Result){lp, bp, hp};
 }
 
 // Generate linear ramp from [0, 1) at a given frequency and phase offset

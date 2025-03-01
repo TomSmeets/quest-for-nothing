@@ -3,6 +3,7 @@
 #pragma once
 #include "global.h"
 #include "std.h"
+#include "os.h"
 
 // Maximum allocation size
 // The exact size of a memory "Chunk"
