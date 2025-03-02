@@ -1,6 +1,16 @@
 #pragma once
 #include "types.h"
 
+static i32 fd_from_file(File *f) {
+    if (!f) return -1;
+    return (i32)((u64)f - 1);
+}
+
+static File *fd_to_file(i32 fd) {
+    if (fd < 0) return 0;
+    return (void *)((u64)fd + 1);
+}
+
 static_assert(sizeof(long) == sizeof(i64));
 static_assert(sizeof(int) == sizeof(i32));
 static_assert(sizeof(void *) == sizeof(u64));

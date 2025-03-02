@@ -23,14 +23,6 @@ static struct linux_timespec linux_us_to_time(u64 time) {
     return ts;
 }
 
-static i32 file_to_fd(File *f) {
-    return (i32)((u64)f - 1);
-}
-
-static File *fd_to_file(i32 fd) {
-    return (File *)((u64)fd + 1);
-}
-
 // Export main, allowing us to dynamically call it
 void os_main_dynamic(Global *global_instance) {
     G = global_instance;
@@ -98,7 +90,6 @@ static void *os_alloc_raw(u32 size) {
     return alloc;
 }
 
-// ==== Desktop ====
 static File *os_open(char *path, OS_Open_Type type) {
     i32 fd = -1;
     if (type == Open_Write) {

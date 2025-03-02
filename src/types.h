@@ -15,6 +15,9 @@ typedef signed long long i64;
 typedef float f32;
 typedef double f64;
 
+// File handle
+typedef struct File File;
+
 #define U32_MAX 0xffffffff
 
 #if true

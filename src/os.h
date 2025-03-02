@@ -36,6 +36,14 @@ struct OS {
 
 typedef struct File File;
 
+static i32 file_to_fd(File *f) {
+    return (u64)f - 1;
+}
+
+static File *file_from_fd(i32 fd) {
+    return (File *)((u64)fd + 1);
+}
+
 // Callbacks
 static void os_main(void);
 

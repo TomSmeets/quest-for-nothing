@@ -2,30 +2,34 @@
 // watch.h - Simple linux inotify wrapper
 #pragma once
 #include "fmt.h"
+#include "os.h"
 #include "types.h"
 
-// Include implementation code becase we depend on platform spesific code
-#include "linux_api.h"
+typedef struct {
+    File *handle;
+} Watch;
+
+static void watch_init(Watch *watch, char *path);
+static bool watch_changed(Watch *watch);
 
 #if OS_IS_LINUX
-typedef struct {
-    i32 fd;
-} Watch;
+#include "linux_api.h"
 
 static void watch_init(Watch *watch, char *path) {
     i32 fd = linux_inotify_init(O_NONBLOCK);
     assert(fd >= 0, "Could not init inotify");
-    watch->fd = fd;
+    watch->handle = file_from_fd(fd);
 
-    i32 wd = linux_inotify_add_watch(watch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
+    i32 wd = linux_inotify_add_watch(fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
     assert(wd >= 0, "inotify_add_watch");
 }
 
 static bool watch_changed_quick(Watch *watch) {
+    int fd = file_to_fd(watch->handle);
     for (;;) {
         u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 
-        i64 length = linux_read(watch->fd, buffer, sizeof(buffer));
+        i64 length = linux_read(fd, buffer, sizeof(buffer));
 
         // No more data
         if (length == -EAGAIN) {
@@ -60,12 +64,7 @@ static bool watch_changed(Watch *watch) {
         while (watch_changed_quick(watch));
     }
 }
-
 #elif OS_IS_WINDOWS
-typedef struct {
-    HANDLE handle;
-} Watch;
-
 static void watch_init(Watch *watch, char *path) {
     HANDLE handle = FindFirstChangeNotification(path, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE);
     assert(handle != INVALID_HANDLE_VALUE, "Could not init FindFirstChangeNotification");

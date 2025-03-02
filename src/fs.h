@@ -1,7 +1,7 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// fs.h: Platform independent filesystem
 #pragma once
-#include "fmt.h"
 #include "mem.h"
-#include "rand.h"
 #include "str_mem.h"
 
 typedef struct FS_Dir {
