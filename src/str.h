@@ -11,6 +11,7 @@ static u32 str_len(char *s) {
 }
 
 static bool str_eq(char *s1, char *s2) {
+    if (s1 == s2) return true;
     for (;;) {
         if (*s1 != *s2) return false;
         if (*s1 == 0) return true;
