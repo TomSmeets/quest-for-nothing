@@ -19,6 +19,7 @@ struct Edge {
 struct Node {
     char *name;
     u32 size;
+    u32 rank;
     Edge *edges;
     Node *next;
 };
@@ -54,6 +55,26 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "  layout=dot;\n");
     fmt_s(fmt, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
     fmt_s(fmt, "  edge[color=\"#bbbbbb\"];\n");
+
+    {
+        u32 max_rank = 0;
+        for (Node *node = graph->nodes; node; node = node->next) {
+            if (max_rank < node->rank) max_rank = node->rank;
+        }
+
+        for (u32 i = 0; i < max_rank + 1; ++i) {
+            fmt_s(fmt, "  { rank=same;");
+
+            for (Node *node = graph->nodes; node; node = node->next) {
+                if (node->rank != i) continue;
+                fmt_s(fmt, node->name);
+                fmt_s(fmt, "; ");
+            }
+
+            fmt_s(fmt, "}\n");
+        }
+    }
+
     for (Node *node = graph->nodes; node; node = node->next) {
         f32 size = (f32)f_sqrt(node->size) * 2;
         if (size < 14) size = 14;
@@ -61,15 +82,23 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
         fmt_s(fmt, "  ");
         fmt_s(fmt, node->name);
         fmt_s(fmt, "[");
-        fmt_sf(fmt, "fontsize=", size, "");
+        // fmt_sf(fmt, "fontsize=", size, "");
         fmt_s(fmt, "];\n");
 
         if (node->edges) {
             for (Edge *edge = node->edges; edge; edge = edge->next) {
+                if (edge->transitive) continue;
+
                 fmt_s(fmt, "  ");
                 fmt_s(fmt, node->name);
                 fmt_s(fmt, " -> ");
                 fmt_s(fmt, edge->link->name);
+
+                if (edge->transitive) {
+                    fmt_s(fmt, "[");
+                    fmt_s(fmt, "constraint=false,style=dotted");
+                    fmt_s(fmt, "]");
+                };
                 fmt_s(fmt, ";\n");
             }
         }
@@ -87,9 +116,54 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
 
 // D(A,C)
 // 1. Fill
-// for (a,b) in graph
+// for a in graph
+//   for b in a.eges
 //     for n in dfs(b)
 //         del(a,n)
+//
+//
+
+// Mark link as transitive
+static void graph_unlink(Node *src, Node *dst) {
+    for (Edge *edge = src->edges; edge; edge = edge->next) {
+        if (edge->link == dst) edge->transitive = true;
+    }
+}
+
+static void graph_tred_dfs(Node *src, Node *node) {
+    for (Edge *edge = node->edges; edge; edge = edge->next) {
+        Node *dst = edge->link;
+        graph_unlink(src, dst);
+
+        if (!edge->transitive) graph_tred_dfs(src, dst);
+    }
+}
+
+static void graph_tred(Graph *graph) {
+    for (Node *node = graph->nodes; node; node = node->next) {
+        for (Edge *edge = node->edges; edge; edge = edge->next) {
+            if (edge->transitive) continue;
+            graph_tred_dfs(node, edge->link);
+        }
+    }
+}
+
+static void graph_rank(Graph *graph) {
+    for (;;) {
+        bool changed = false;
+        for (Node *node = graph->nodes; node; node = node->next) {
+            for (Edge *edge = node->edges; edge; edge = edge->next) {
+                Node *other = edge->link;
+                u32 rank = other->rank + 1;
+                if (node->rank < rank) {
+                    node->rank = rank;
+                    changed = true;
+                }
+            }
+        }
+        if (!changed) break;
+    }
+}
 
 // Generate Include Dot Graph
 static void include_graph(void) {
@@ -151,6 +225,8 @@ static void include_graph(void) {
         node->size = line_count;
         read_close(read);
     }
+    graph_tred(graph);
+    graph_rank(graph);
     graph_fmt(graph, G->fmt);
     mem_free(mem);
 }
