@@ -102,22 +102,11 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "}\n");
 }
 
-// A -> B -> C -> D
-//  \____________/
-
-// A->B
-// A->D
-// B->C
-// C->D
-
-// D(A,C)
-// 1. Fill
-// for a in graph
-//   for b in a.eges
-//     for n in dfs(b)
-//         del(a,n)
+// Transitive Reduction:
 //
-//
+// for (a, b) in edges
+//   for n in dfs(b)
+//       del(a,n)
 
 // Mark link as transitive
 static void graph_unlink(Node *src, Node *dst) {
