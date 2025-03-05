@@ -53,6 +53,7 @@ static void graph_link(Graph *graph, Node *src, Node *dst) {
 static void graph_fmt(Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "digraph {\n");
     fmt_s(fmt, "  layout=dot;\n");
+    fmt_s(fmt, "  ranksep=1.0;\n");
     fmt_s(fmt, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
     fmt_s(fmt, "  edge[color=\"#bbbbbb\"];\n");
 
@@ -188,7 +189,6 @@ static void graph_read_dir(Graph *graph, char *path) {
         bool is_c_file = str_ends_with(file->name, ".c");
         if (!is_c_file && !is_h_file) continue;
 
-        fmt_ss(G->fmt, file->name, "\n", "");
         // Don't scan opengl api, it is quite big.
         if (str_eq(file->name, "ogl_api.h")) continue;
 
