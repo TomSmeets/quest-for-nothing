@@ -26,6 +26,7 @@ struct Node {
 
 struct Graph {
     Memory *mem;
+    u32 rank_count;
     Node *nodes;
 };
 
@@ -56,23 +57,16 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
     fmt_s(fmt, "  edge[color=\"#bbbbbb\"];\n");
 
-    {
-        u32 max_rank = 0;
+    for (u32 i = 0; i < graph->rank_count; ++i) {
+        fmt_s(fmt, "  { rank=same;");
+
         for (Node *node = graph->nodes; node; node = node->next) {
-            if (max_rank < node->rank) max_rank = node->rank;
+            if (node->rank != i) continue;
+            fmt_s(fmt, node->name);
+            fmt_s(fmt, "; ");
         }
 
-        for (u32 i = 0; i < max_rank + 1; ++i) {
-            fmt_s(fmt, "  { rank=same;");
-
-            for (Node *node = graph->nodes; node; node = node->next) {
-                if (node->rank != i) continue;
-                fmt_s(fmt, node->name);
-                fmt_s(fmt, "; ");
-            }
-
-            fmt_s(fmt, "}\n");
-        }
+        fmt_s(fmt, "}\n");
     }
 
     for (Node *node = graph->nodes; node; node = node->next) {
@@ -81,22 +75,20 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
         fmt_s(fmt, "[");
         fmt_s(fmt, "];\n");
 
-        if (node->edges) {
-            for (Edge *edge = node->edges; edge; edge = edge->next) {
-                if (edge->transitive) continue;
+        for (Edge *edge = node->edges; edge; edge = edge->next) {
+            if (edge->transitive) continue;
 
-                fmt_s(fmt, "  ");
-                fmt_s(fmt, node->name);
-                fmt_s(fmt, " -> ");
-                fmt_s(fmt, edge->link->name);
+            fmt_s(fmt, "  ");
+            fmt_s(fmt, node->name);
+            fmt_s(fmt, " -> ");
+            fmt_s(fmt, edge->link->name);
 
-                if (edge->transitive) {
-                    fmt_s(fmt, "[");
-                    fmt_s(fmt, "constraint=false,style=dotted");
-                    fmt_s(fmt, "]");
-                };
-                fmt_s(fmt, ";\n");
-            }
+            if (edge->transitive) {
+                fmt_s(fmt, "[");
+                fmt_s(fmt, "constraint=false,style=dotted");
+                fmt_s(fmt, "]");
+            };
+            fmt_s(fmt, ";\n");
         }
     }
     fmt_s(fmt, "}\n");
@@ -140,9 +132,12 @@ static void graph_rank(Graph *graph) {
             for (Edge *edge = node->edges; edge; edge = edge->next) {
                 Node *other = edge->link;
                 u32 rank = other->rank + 1;
-                if (node->rank < rank) {
+                if (rank > node->rank) {
                     node->rank = rank;
                     changed = true;
+                }
+                if (rank + 1 > graph->rank_count) {
+                    graph->rank_count = rank + 1;
                 }
             }
         }
