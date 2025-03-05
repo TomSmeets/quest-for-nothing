@@ -1,7 +1,6 @@
 #pragma once
 #include "fmt.h"
 #include "fs.h"
-#include "math.h"
 #include "mem.h"
 #include "read.h"
 #include "str_mem.h"
@@ -189,6 +188,7 @@ static void graph_read_dir(Graph *graph, char *path) {
         bool is_c_file = str_ends_with(file->name, ".c");
         if (!is_c_file && !is_h_file) continue;
 
+        fmt_ss(G->fmt, file->name, "\n", "");
         // Don't scan opengl api, it is quite big.
         if (str_eq(file->name, "ogl_api.h")) continue;
 

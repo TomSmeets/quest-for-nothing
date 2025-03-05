@@ -1,25 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Base platform API
 #pragma once
+#include "fmt.h"
+#include "global.h"
+#include "os_desktop.h"
+#include "rand.h"
 #include "types.h"
-
-#if __unix__
-#define OS_IS_LINUX 1
-#else
-#define OS_IS_LINUX 0
-#endif
-
-#if _WIN32
-#define OS_IS_WINDOWS 1
-#else
-#define OS_IS_WINDOWS 0
-#endif
-
-#if __wasm__
-#define OS_IS_WASM 1
-#else
-#define OS_IS_WASM 0
-#endif
 
 typedef struct OS OS;
 struct OS {
@@ -27,53 +13,12 @@ struct OS {
     u32 argc;
     char **argv;
 
-    // Was the application reloaded
-    bool reloaded;
-
     // Time to sleep until next call
     u64 sleep_time;
 };
 
-typedef struct File File;
-
-static i32 file_to_fd(File *f) {
-    return (u64)f - 1;
-}
-
-static File *file_from_fd(i32 fd) {
-    return (File *)((u64)fd + 1);
-}
-
 // Callbacks
 static void os_main(void);
-
-// Read
-static u64 os_time(void);
-
-// Actions
-static void os_write(File *file, u8 *data, u32 len);
-static void os_exit(i32 code);
-static void os_fail(char *message);
-static void *os_alloc_raw(u32 size);
-
-// === Desktop API ===
-typedef enum {
-    Open_Write,
-    Open_Read,
-    Open_Dir,
-} OS_Open_Type;
-
-static File *os_open(char *path, OS_Open_Type type);
-static void os_close(File *file);
-
-static u32 os_read(File *file, u8 *data, u32 len);
-static void os_sleep(u64 time);
-
-static File *os_dlopen(char *path);
-static void *os_dlsym(File *handle, char *name);
-static char *os_dlerror(void);
-
-static bool os_system(char *command);
 
 // Set maximum wait time between os_main calls
 static void os_set_update_time(OS *os, u64 wake_time) {
@@ -81,3 +26,73 @@ static void os_set_update_time(OS *os, u64 wake_time) {
         os->sleep_time = wake_time;
     }
 }
+
+#if OS_IS_LINUX
+// Export main, allowing us to dynamically call it
+void os_main_dynamic(Global *global_instance) {
+    G = global_instance;
+    os_main();
+}
+
+int main(int argc, char **argv) {
+    OS os = {};
+    os.argc = argc;
+    os.argv = argv;
+    G->os = &os;
+
+    Fmt fmt = {};
+    fmt.out = fd_to_file(1);
+    G->fmt = &fmt;
+
+    Rand rand = rand_new(linux_rand());
+    G->rand = &rand;
+
+    for (;;) {
+        os.sleep_time = 1000 * 1000;
+        os_main();
+        os_sleep(os.sleep_time);
+    }
+}
+#elif OS_IS_WINDOWS
+// Export main, allowing us to dynamically call it
+__declspec(dllexport) void os_main_dynamic(Global *global_instance) {
+    G = global_instance;
+    os_main();
+}
+
+int main(int argc, char **argv) {
+    OS os = {};
+    os.argc = argc;
+    os.argv = argv;
+    G->os = &os;
+
+    Fmt fmt = {};
+    fmt.out = GetStdHandle(STD_OUTPUT_HANDLE);
+    G->fmt = &fmt;
+
+    Rand rand = rand_new(os_time());
+    G->rand = &rand;
+    for (;;) {
+        os.sleep_time = 1000 * 1000;
+        os_main();
+        os_sleep(os.sleep_time);
+    }
+}
+#elif OS_IS_WASM
+static OS G_OS;
+static Fmt G_FMT;
+static Rand G_RAND;
+
+u64 js_main(void) {
+    if (!G->os) {
+        G->os = &G_OS;
+        G_FMT.out = (void *)1;
+        G_RAND.seed = js_time();
+        G->rand = &G_RAND;
+        G->fmt = &G_FMT;
+    }
+    G->os->sleep_time = 1000 * 1000;
+    os_main();
+    return G->os->sleep_time;
+}
+#endif

@@ -7,7 +7,6 @@
 #include "include_graph.h"
 #include "mem.h"
 #include "os.h"
-#include "os_impl.h"
 #include "rand.h"
 #include "str_mem.h"
 #include "tmpfs.h"
@@ -275,7 +274,7 @@ static App *build_init(void) {
     Memory *mem = mem_new();
     Memory *tmp = mem_new();
     App *hot = mem_struct(mem, App);
-    Cli *cli = cli_new(tmp, os);
+    Cli *cli = cli_new(tmp, os->argc, os->argv);
 
     if (cli_action(cli, "run", "<main> [args]...", "Build and run with hot reloading")) {
         if (os->argc < 3) {

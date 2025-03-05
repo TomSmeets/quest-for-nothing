@@ -8,7 +8,6 @@
 #include "input.h"
 #include "math.h"
 #include "os.h"
-#include "os_impl.h"
 
 typedef struct App App;
 struct App {

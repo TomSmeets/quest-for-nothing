@@ -1,5 +1,5 @@
 #pragma once
-#include "types.h"
+#include "std.h"
 
 static i32 fd_from_file(File *f) {
     if (!f) return -1;
@@ -264,7 +264,28 @@ static i64 linux_clone3(struct linux_clone_args *args){
 static void linux_spawn(u32 argc, char *argv) {
     struct linux_clone_args args = {};
     args.flags = CLONE_VM | CLONE_VFORK | SIGCHLD;
-    arg.stack = mmap(0, 36*1024, 
-    linux_clone3(args)
+    arg.stack = mmap(0, 36*1024, )
+    linux_clone3(args);
 }
 #endif
+
+static u64 linux_time_to_us(struct linux_timespec *t) {
+    return t->sec * 1000 * 1000 + t->nsec / 1000;
+}
+
+static struct linux_timespec linux_us_to_time(u64 time) {
+    u64 sec = time / (1000 * 1000);
+    u64 nsec = (time - sec * 1000 * 1000) * 1000;
+
+    struct linux_timespec ts;
+    ts.sec = sec;
+    ts.nsec = nsec;
+    return ts;
+}
+
+static u64 linux_rand(void) {
+    u64 seed = 0;
+    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
+    assert(ret == sizeof(seed), "linux getrandom failed");
+    return seed;
+}

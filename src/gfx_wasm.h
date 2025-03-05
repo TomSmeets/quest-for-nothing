@@ -2,7 +2,6 @@
 // gfx_wasm.h - GFX Platform implementation using WebGL2
 #pragma once
 #include "gfx.h"
-#include "os_wasm.h"
 WASM_IMPORT(gfx_js_grab) void gfx_js_grab(bool grab);
 WASM_IMPORT(gfx_js_fullscreen) void gfx_js_fullscreen(bool fullscreen);
 WASM_IMPORT(gfx_js_begin) void gfx_js_begin(void);

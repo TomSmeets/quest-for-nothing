@@ -2,7 +2,7 @@
 // mem.h - Simple memory allocator
 #pragma once
 #include "global.h"
-#include "os.h"
+#include "os_base.h"
 #include "std.h"
 
 // Maximum allocation size

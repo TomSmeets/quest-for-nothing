@@ -18,14 +18,14 @@ static bool watch_changed(Watch *watch);
 static void watch_init(Watch *watch, char *path) {
     i32 fd = linux_inotify_init(O_NONBLOCK);
     assert(fd >= 0, "Could not init inotify");
-    watch->handle = file_from_fd(fd);
+    watch->handle = fd_to_file(fd);
 
     i32 wd = linux_inotify_add_watch(fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
     assert(wd >= 0, "inotify_add_watch");
 }
 
 static bool watch_changed_quick(Watch *watch) {
-    int fd = file_to_fd(watch->handle);
+    int fd = fd_from_file(watch->handle);
     for (;;) {
         u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
 

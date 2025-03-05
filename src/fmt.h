@@ -4,7 +4,7 @@
 
 // This formatter has very little dependiecies
 #include "mem.h"
-#include "os.h"
+#include "os_desktop.h"
 #include "std.h"
 
 // Simple flexible buffered string formatter and printer

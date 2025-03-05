@@ -68,10 +68,10 @@ static void cli_show_help(Cli *cli) {
     }
 }
 
-static Cli *cli_new(Memory *mem, OS *os) {
+static Cli *cli_new(Memory *mem, u32 argc, char **argv) {
     Cli *cli = mem_struct(mem, Cli);
     cli->mem = mem;
-    cli->argc = os->argc;
-    cli->argv = os->argv;
+    cli->argc = argc;
+    cli->argv = argv;
     return cli;
 }
