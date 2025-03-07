@@ -36,7 +36,7 @@ static void *mem_push_uninit(Memory *mem, u32 size) {
     //
     // SIMD registers should also be aligned
     //   float4 -> 16 byte alignment
-    // 
+    //
     // Assuming 16 byte alignment for all allocations
     u32 align = 16;
     u32_align(&mem->used, align);
@@ -57,7 +57,7 @@ static void *mem_push_uninit(Memory *mem, u32 size) {
         mem->used = CHUNK_HEADER_SIZE;
 
         // Redo the alignment
-        u32_align(&mem->used,align);
+        u32_align(&mem->used, align);
 
         // This allocation does not fit
         if (mem->used + size > mem->size) {

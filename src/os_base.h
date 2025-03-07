@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Base platform API
 #pragma once
+#include "os_api.h"
 #include "str.h"
 #include "types.h"
-#include "os_api.h"
 
 typedef struct File File;
 
@@ -126,7 +126,6 @@ static void os_fail(char *message) {
     js_write((u8 *)message, str_len(message));
     os_exit(0);
 }
-
 
 // we need to implement these if we don't use stdlib
 // C wil very "helpfully" detect memcpy and memset for loops.

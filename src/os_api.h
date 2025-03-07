@@ -19,7 +19,6 @@
 #define OS_IS_WASM 0
 #endif
 
-
 #if OS_IS_LINUX
 #include "linux_api.h"
 #elif OS_IS_WINDOWS

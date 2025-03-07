@@ -3,7 +3,7 @@
 
 #define WASM_IMPORT(name) __attribute((import_module("env"), import_name(#name)))
 
-WASM_IMPORT(js_time)  u64  js_time(void);
+WASM_IMPORT(js_time) u64 js_time(void);
 WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 
 #define WASM_PAGE_SIZE 65536
