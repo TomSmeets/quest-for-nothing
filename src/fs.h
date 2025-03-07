@@ -29,10 +29,11 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
     FS_Dir *last = 0;
 
     // Allocate temp buffer (it is cached)
-    void *buffer = mem_alloc_chunk();
+    Chunk *chunk = (void *)chunk_alloc();
+    void *buffer = (void *)chunk;
 
     for (;;) {
-        i64 len = linux_getdents64(dir, buffer, MEMORY_CHUNK_SIZE);
+        i64 len = linux_getdents64(dir, buffer, CHUNK_SIZE);
 
         // Some Error occured
         if (len < 0) {
@@ -41,7 +42,7 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
         }
 
         // Should not happen
-        assert(len <= MEMORY_CHUNK_SIZE, "getdents64 returned too many bytes");
+        assert(len <= CHUNK_SIZE, "getdents64 returned too many bytes");
 
         // End of directory
         if (len == 0) break;
@@ -57,8 +58,12 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
         }
     }
 
-    // Release buffer back to the cache
-    mem_free_chunk(buffer);
+    // Restore the chunk header
+    chunk->next = 0;
+
+    // Release the chunk
+    chunk_free(chunk);
+
     linux_close(dir);
     return first;
 }

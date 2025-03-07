@@ -2,7 +2,7 @@
 // chunk.h - Chunk allocator
 #pragma once
 
-// chunck_cache is a global variable
+// chunk_cache is a global variable
 #include "global.h"
 
 // Memory can be requested from the operating system at any time.
@@ -14,24 +14,25 @@
 // Memory is allocaed from the operating system in big fixed-size Chunks.
 // - Every chunk is the same and can be reused anywehre
 // - Every chunk should be big enough to hold the biggest structure.
-// - Every chunck is eitehr 'free' or 'used'.
+// - Every chunk is eitehr 'free' or 'used'.
 
 // Every `Chunk` has a fixed size of exactly 1 MB
 #define CHUNK_SIZE (1 * 1024 * 1024)
+#define CHUNK_HEADER_SIZE (sizeof(void*))
 
 typedef struct Chunk Chunk;
 
 struct Chunk {
     // Each chunk has a small header that can point to the next chunk, creating a linked-list.
-    // The next pointer is embedded in the chunck memory.
+    // The next pointer is embedded in the chunk memory.
     Chunk *next;
 
-    // The rest of the chunck is memory used or free memory
-    u8 data[];
+    // The rest of the chunk is memory, used or free
+    // ...
 };
 
-// Allocate a new chunck
-static Chunk *chunck_alloc(void) {
+// Allocate a new chunk
+static Chunk *chunk_alloc(void) {
     // Check if there are free chunks
     if (G->chunk_cache) {
         // Remove the free chunk from the cache
@@ -48,12 +49,12 @@ static Chunk *chunck_alloc(void) {
 }
 
 // Free all used chunks in this list and add the to the cache
-static void chunck_free(Chunk *first) {
+static void chunk_free(Chunk *first) {
     // Find last element in the list
     Chunk *last = first;
     while (last->next) last = last->next;
 
-    // Prepend the chuncks to the cache
+    // Prepend the chunks to the cache
     last->next = G->chunk_cache;
     G->chunk_cache = first;
 }

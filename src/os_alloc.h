@@ -45,7 +45,7 @@ static void *os_alloc(u32 size) {
 static void *os_alloc(u32 size) {
     // Calculate the number of pages to allocate (by rounding up)
     i32 pages = (size + WASM_PAGE_SIZE - 1) / WASM_PAGE_SIZE;
-    u32 addr = (u64) wasm_memory_grow(0, pages) * WASM_PAGES;
+    u32 addr = (u64) wasm_memory_grow(pages) * WASM_PAGE_SIZE;
     return (void *) addr;
 }
 
