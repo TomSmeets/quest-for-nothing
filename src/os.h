@@ -34,6 +34,12 @@ void os_main_dynamic(Global *global_instance) {
     os_main();
 }
 
+static u64 linux_rand(void) {
+    u64 seed = 0;
+    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
+    assert(ret == sizeof(seed), "linux getrandom failed");
+    return seed;
+}
 int main(int argc, char **argv) {
     OS os = {};
     os.argc = argc;

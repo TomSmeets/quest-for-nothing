@@ -3,11 +3,6 @@
 #pragma once
 #include "types.h"
 
-static void os_fail(char *message);
-
-#define assert(cond, msg)                                                                                                                            \
-    if (!(cond)) os_fail("Assertion failed: " #cond " " msg "\n")
-
 // Append an element to a singly linked list with first and last pointers
 #define LIST_APPEND(first, last, el)                                                                                                                 \
     do {                                                                                                                                             \

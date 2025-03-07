@@ -1,7 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os.h - Base platform API
 #pragma once
-#include "os_api.h"
+#include "os_alloc.h"
+#include "os_fail.h"
+#include "std.h"
 #include "str.h"
 #include "types.h"
 
@@ -10,7 +12,6 @@ typedef struct File File;
 static u64 os_time(void);
 static void os_write(File *file, u8 *data, u32 len);
 static void os_exit(i32 code);
-static void os_fail(char *message);
 static void *os_alloc_raw(u32 size);
 
 #if OS_IS_LINUX
@@ -35,12 +36,6 @@ static void os_exit(i32 status) {
     linux_exit_group(status);
 }
 
-static void os_fail(char *message) {
-    linux_write(1, message, str_len(message));
-    __builtin_trap();
-    linux_exit_group(1);
-}
-
 static void *os_alloc_raw(u32 size) {
     i32 prot = PROT_READ | PROT_WRITE;
     i32 flags = MAP_PRIVATE | MAP_ANONYMOUS;
@@ -50,8 +45,6 @@ static void *os_alloc_raw(u32 size) {
 }
 
 #elif OS_IS_WINDOWS
-#include "windows_api.h"
-
 static u64 os_time(void) {
     LARGE_INTEGER big_freq, big_count;
     assert(QueryPerformanceFrequency(&big_freq), "Failed to get performance frequency");
@@ -81,22 +74,6 @@ static void windows_print(char *message) {
     WriteFile(out, message, str_len(message), 0, 0);
 }
 
-static void os_fail(char *message) {
-    windows_print(message);
-    windows_print("\n");
-
-    // check windows error
-    DWORD last_error = GetLastError();
-    char *last_error_msg = 0;
-    FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, 0, last_error, 0, (LPTSTR)&last_error_msg, 0, 0);
-    windows_print("Windows Error Code: ");
-    windows_print(last_error_msg);
-    windows_print("\n");
-
-    // Exit
-    os_exit(1);
-}
-
 static void *os_alloc_raw(u32 size) {
     void *alloc = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
     assert(alloc, "Failed to allocate memory");
@@ -104,7 +81,8 @@ static void *os_alloc_raw(u32 size) {
 }
 
 #elif OS_IS_WASM
-#include "wasm_api.h"
+WASM_IMPORT(js_time) u64 js_time(void);
+WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
 
 static u64 os_time(void) {
     return js_time();
@@ -120,11 +98,6 @@ static void os_write(File *file, u8 *data, u32 len) {
 
 static void os_exit(i32 code) {
     __builtin_trap();
-}
-
-static void os_fail(char *message) {
-    js_write((u8 *)message, str_len(message));
-    os_exit(0);
 }
 
 // we need to implement these if we don't use stdlib

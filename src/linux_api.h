@@ -1,5 +1,5 @@
 #pragma once
-#include "std.h"
+#include "types.h"
 
 static i32 fd_from_file(File *f) {
     if (!f) return -1;
@@ -11,6 +11,7 @@ static File *fd_to_file(i32 fd) {
     return (void *)((u64)fd + 1);
 }
 
+// Assumptions
 static_assert(sizeof(long) == sizeof(i64));
 static_assert(sizeof(int) == sizeof(i32));
 static_assert(sizeof(void *) == sizeof(u64));
@@ -281,11 +282,4 @@ static struct linux_timespec linux_us_to_time(u64 time) {
     ts.sec = sec;
     ts.nsec = nsec;
     return ts;
-}
-
-static u64 linux_rand(void) {
-    u64 seed = 0;
-    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
-    assert(ret == sizeof(seed), "linux getrandom failed");
-    return seed;
 }

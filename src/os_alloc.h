@@ -3,8 +3,10 @@
 #pragma once
 #include "os_api.h"
 
-#if OS_IS_LINUX
+// Allocate memory from the system
+static void *os_alloc(u32 size);
 
+#if OS_IS_LINUX
 // On Linux, we can use the 'mmap' system-call.
 // mmap can also map files to memory, which is not used in this case.
 static void *os_alloc(u32 size) {
@@ -21,9 +23,9 @@ static void *os_alloc(u32 size) {
         -1, 0
     );
 }
+#endif
 
-#elif OS_IS_WINDOWS
-
+#if OS_IS_WINDOWS
 // On Windows has a simmilar call called 'VirtualAlloc'
 static void *os_alloc(u32 size) {
     return VirtualAlloc(
@@ -37,15 +39,16 @@ static void *os_alloc(u32 size) {
         PAGE_READWRITE
     );
 }
+#endif
 
-#elif OS_IS_WASM
 
+#if OS_IS_WASM
 // Webassembly can only grow a linear heap
 // This is fine as long as we only allocate
 static void *os_alloc(u32 size) {
     // Calculate the number of pages to allocate (by rounding up)
     i32 pages = (size + WASM_PAGE_SIZE - 1) / WASM_PAGE_SIZE;
-    u32 addr = (u64)wasm_memory_grow(pages) * WASM_PAGE_SIZE;
+    u32 addr = (u64)__builtin_wasm_memory_grow(0, pages) * WASM_PAGE_SIZE;
     return (void *)addr;
 }
 
