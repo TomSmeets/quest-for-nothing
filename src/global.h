@@ -7,7 +7,7 @@ typedef struct App App;
 typedef struct Fmt Fmt;
 typedef struct Rand Rand;
 typedef struct OS OS;
-typedef struct Memory_Chunk Memory_Chunk;
+typedef struct Chunk Chunk;
 
 typedef struct {
     bool reloaded;
@@ -16,7 +16,8 @@ typedef struct {
     Fmt *fmt;
     Rand *rand;
     OS *os;
-    Memory_Chunk *mem_cache;
+
+    Chunk *chunk_cache;
 } Global;
 
 static Global _GLOBAL_INSTANCE;

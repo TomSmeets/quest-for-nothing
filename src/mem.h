@@ -1,69 +1,32 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // mem.h - Simple memory allocator
 #pragma once
-#include "global.h"
-#include "os_base.h"
-#include "std.h"
+#include "chunk.h"
 
-// Maximum allocation size
-// The exact size of a memory "Chunk"
-#define MEMORY_CHUNK_SIZE (1 * 1024 * 1024)
+typedef struct Memory Memory;
 
-#define mem_struct(mem, type) ((type *)mem_push_zero((mem), sizeof(type)))
-#define mem_array_uninit(mem, type, count) ((type *)mem_push_uninit((mem), sizeof(type) * (count)))
+// A stack allocator for variable size allocations.
+// Each allocation should be smaller than the chunk size.
+struct Memory {
+    // A list of used chunks.
+    // The first entry is still being used for new allocations.
+    Chunk *chunk;
 
-// A big chunk of memory of exactly MEMORY_CHUNK_SIZE bytes
-typedef struct Memory_Chunk Memory_Chunk;
-struct Memory_Chunk {
-    Memory_Chunk *next;
-};
-
-// A push-based memory allocator.
-// Smaller allocations are added to a big Memory_Chunk until it is full.
-// Once full, a new chunk is allocated.
-// All allocations are freed simultaneously with mem_free
-typedef struct Memory {
-    Memory_Chunk *start;
+    // Bytes used in the current chunck
+    // This includes the chunk header
     u32 used;
+
+    // Total size of the first chunk (always 1 MB)
     u32 size;
-} Memory;
+};
 
 // Align the next allocation to 16 bytes
 static void _mem_align(Memory *mem) {
     mem->used = (mem->used + 15) & ~15;
 }
 
-// Allocate a chunk of exactly MEMORY_CHUNK_SIZE bytes
-static void *mem_alloc_chunk(void) {
-    // Return cached chunk (if present)
-    if (G->mem_cache) {
-        Memory_Chunk *alloc = G->mem_cache;
-        G->mem_cache = alloc->next;
-        return alloc;
-    }
-
-    // Get new memory from OS
-    return os_alloc_raw(MEMORY_CHUNK_SIZE);
-}
-
-// Free a list of memory chunks allocated by mem_alloc_chunk
-static void mem_free_chunk_list(Memory_Chunk *chunk) {
-    // Find last element in the list
-    Memory_Chunk *last = chunk;
-    while (last->next) last = last->next;
-
-    // Add it to the free chunk list
-    last->next = G->mem_cache;
-    G->mem_cache = last;
-}
-
-// Free memory allocated by mem_alloc_chunk
-static void mem_free_chunk(void *mem) {
-    Memory_Chunk *chunk = mem;
-    // Add it to the free chunk list
-    chunk->next = G->mem_cache;
-    G->mem_cache = chunk;
-}
+#define mem_struct(mem, type) ((type *)mem_push_zero((mem), sizeof(type)))
+#define mem_array_uninit(mem, type, count) ((type *)mem_push_uninit((mem), sizeof(type) * (count)))
 
 // Allocate 'size' bytes of uninitialized memory
 static void *mem_push_uninit(Memory *mem, u32 size) {
@@ -71,12 +34,12 @@ static void *mem_push_uninit(Memory *mem, u32 size) {
 
     // Out of memory
     if (mem->used + size > mem->size) {
-        Memory_Chunk *alloc = mem_alloc_chunk();
+        Chunk *alloc = mem_alloc_chunk();
         alloc->next = mem->start;
 
         mem->start = alloc;
-        mem->size = MEMORY_CHUNK_SIZE;
-        mem->used = sizeof(Memory_Chunk);
+        mem->size = CHUNK_SIZE;
+        mem->used = sizeof(Chunk);
         _mem_align(mem);
 
         assert(mem->used + size <= mem->size, "This allocation does not fit!");

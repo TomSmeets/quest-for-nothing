@@ -3,24 +3,7 @@
 #pragma once
 #include "str.h"
 #include "types.h"
-
-#if __unix__
-#define OS_IS_LINUX 1
-#else
-#define OS_IS_LINUX 0
-#endif
-
-#if _WIN32
-#define OS_IS_WINDOWS 1
-#else
-#define OS_IS_WINDOWS 0
-#endif
-
-#if __wasm__
-#define OS_IS_WASM 1
-#else
-#define OS_IS_WASM 0
-#endif
+#include "os_api.h"
 
 typedef struct File File;
 
@@ -123,9 +106,6 @@ static void *os_alloc_raw(u32 size) {
 #elif OS_IS_WASM
 #include "wasm_api.h"
 
-WASM_IMPORT(js_time) u64 js_time(void);
-WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
-
 static u64 os_time(void) {
     return js_time();
 }
@@ -147,13 +127,6 @@ static void os_fail(char *message) {
     os_exit(0);
 }
 
-#define WASM_PAGE_SIZE 65536
-
-static void *os_alloc_raw(u32 size) {
-    u64 addr = __builtin_wasm_memory_size(0) * WASM_PAGE_SIZE;
-    __builtin_wasm_memory_grow(0, size / WASM_PAGE_SIZE);
-    return (void *)addr;
-}
 
 // we need to implement these if we don't use stdlib
 // C wil very "helpfully" detect memcpy and memset for loops.
