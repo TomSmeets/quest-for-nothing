@@ -2,7 +2,6 @@
 // os.h - Base platform API
 #pragma once
 #include "os_alloc.h"
-#include "os_fail.h"
 #include "std.h"
 #include "str.h"
 #include "types.h"
@@ -12,7 +11,6 @@ typedef struct File File;
 static u64 os_time(void);
 static void os_write(File *file, u8 *data, u32 len);
 static void os_exit(i32 code);
-static void *os_alloc_raw(u32 size);
 
 #if OS_IS_LINUX
 #include "linux_api.h"
@@ -34,14 +32,6 @@ static void os_write(File *file, u8 *data, u32 len) {
 
 static void os_exit(i32 status) {
     linux_exit_group(status);
-}
-
-static void *os_alloc_raw(u32 size) {
-    i32 prot = PROT_READ | PROT_WRITE;
-    i32 flags = MAP_PRIVATE | MAP_ANONYMOUS;
-    void *alloc = linux_mmap(0, size, prot, flags, -1, 0);
-    assert(alloc && alloc != MAP_FAILED, "Failed to allocate memory");
-    return alloc;
 }
 
 #elif OS_IS_WINDOWS

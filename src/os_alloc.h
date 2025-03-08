@@ -6,11 +6,17 @@
 // Allocate memory from the system
 static void *os_alloc(u32 size);
 
+// Kill the current process with an error message
+static void os_fail(char *message);
+
+#define assert(cond, msg)                                                                                                                            \
+    if (!(cond)) os_fail("Assertion failed: " #cond " " msg "\n")
+
 #if OS_IS_LINUX
 // On Linux, we can use the 'mmap' system-call.
 // mmap can also map files to memory, which is not used in this case.
 static void *os_alloc(u32 size) {
-    return linux_mmap(
+    void *ret = linux_mmap(
         // Let the system choose a starting address for us
         0,
         // Allocation size
@@ -22,7 +28,15 @@ static void *os_alloc(u32 size) {
         // File descriptor and offset are not used
         -1, 0
     );
+    if(ret == MAP_FAILED) return 0;
+    return ret;
 }
+
+static void os_fail(char *message) {
+    linux_write(1, message, str_len(message));
+    linux_exit_group(1);
+}
+
 #endif
 
 #if OS_IS_WINDOWS
@@ -39,6 +53,10 @@ static void *os_alloc(u32 size) {
         PAGE_READWRITE
     );
 }
+
+static void os_fail(char *message) {
+    MessageBox(NULL, message, "Error", MB_ICONERROR | MB_OK);
+}
 #endif
 
 
@@ -52,4 +70,8 @@ static void *os_alloc(u32 size) {
     return (void *)addr;
 }
 
+WASM_IMPORT(wasm_fail) void wasm_fail(char *);
+static void os_fail(char *message) {
+    wasm_fail(message);
+}
 #endif
