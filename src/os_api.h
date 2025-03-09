@@ -9,7 +9,6 @@
 #include "linux_api.h"
 #endif
 
-
 #if _WIN32
 #define OS_IS_LINUX 0
 #define OS_IS_WINDOWS 1

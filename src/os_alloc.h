@@ -28,7 +28,7 @@ static void *os_alloc(u32 size) {
         // File descriptor and offset are not used
         -1, 0
     );
-    if(ret == MAP_FAILED) return 0;
+    if (ret == MAP_FAILED) return 0;
     return ret;
 }
 
@@ -58,7 +58,6 @@ static void os_fail(char *message) {
     MessageBox(NULL, message, "Error", MB_ICONERROR | MB_OK);
 }
 #endif
-
 
 #if OS_IS_WASM
 // Webassembly can only grow a linear heap
