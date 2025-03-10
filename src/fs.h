@@ -69,6 +69,6 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
 }
 
 static void fs_mkdir(char *path) {
-    linux_mkdir(path, 0x777);
+    linux_mkdir(path, 0777);
 }
 #endif
