@@ -11,14 +11,19 @@ typedef struct Chunk Chunk;
 
 typedef struct {
     bool reloaded;
+
+    // id.h
     u32 id;
+
+    // app.h
     App *app;
     Fmt *fmt;
     Rand *rand;
     OS *os;
-
     Chunk *chunk_cache;
 } Global;
 
 static Global _GLOBAL_INSTANCE;
 static Global *G = &_GLOBAL_INSTANCE;
+
+

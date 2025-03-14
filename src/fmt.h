@@ -16,7 +16,6 @@ typedef struct Fmt {
     u32 used;
     u8 data[1024];
 } Fmt;
-
 // Create a new formatter that optionally writes to a file
 static Fmt *fmt_new(Memory *mem, File *out) {
     Fmt *fmt = mem_struct(mem, Fmt);

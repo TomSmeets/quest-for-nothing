@@ -8,7 +8,6 @@
 #include "mem.h"
 #include "os.h"
 #include "rand.h"
-#include "str_mem.h"
 #include "tmpfs.h"
 #include "types.h"
 #include "watch.h"
@@ -237,35 +236,6 @@ static void exit_with_help(Cli *cli) {
     fmt_ss(G->fmt, "  ", name, " release\n");
     fmt_ss(G->fmt, "  ", name, " asset\n");
     os_exit(1);
-}
-
-// build release all
-// build all release
-// build linux windows wasm release
-// build format
-// build run src/main.c
-// build release watch all
-// build watch
-
-static void build_parse(int argc, char **argv) {
-    // Build in release mode
-    bool release = 0;
-
-    // Platform
-    bool wasm = 0;
-    bool windows = 0;
-    // bool linux = 0;
-
-    // Application
-    bool main = 0;
-    bool build = 0;
-
-    // Other actions
-    bool format = 0;
-    char *run = 0;
-    bool watch = 0;
-    bool graph = 0;
-    bool serve = 0;
 }
 
 static App *build_init(void) {
