@@ -25,5 +25,3 @@ typedef struct {
 
 static Global _GLOBAL_INSTANCE;
 static Global *G = &_GLOBAL_INSTANCE;
-
-
