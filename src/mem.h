@@ -84,6 +84,9 @@ static void *mem_push_zero(Memory *mem, u32 size) {
 // Allocate an un-initialised array of types
 #define mem_array_uninit(mem, type, count) ((type *)mem_push_uninit((mem), sizeof(type) * (count)))
 
+// Allocate a zero-initialised array of types
+#define mem_array_zero(mem, type, count) ((type *)mem_push_zero((mem), sizeof(type) * (count)))
+
 // Create a memory allocator.
 // The returned structure is allocaed in the first chunk.
 static Memory *mem_new(void) {

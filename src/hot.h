@@ -51,6 +51,7 @@ static bool hot_load(Hot *hot, char *path) {
 
 // Call child main function
 static void hot_update(Hot *hot) {
+    hot->child_os.sleep_time = G->os->sleep_time;
     if (!hot->child_main) return;
     hot->child_main(&hot->child_global);
     hot->child_global.reloaded = false;
