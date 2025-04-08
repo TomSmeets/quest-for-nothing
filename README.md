@@ -76,40 +76,19 @@ For GDB, launch with `gdb --args ./out/build run ./src/main.c` and use the `dir`
 # Version 1.0
 I'd like to release this someday, so keeping it very simple!
 
-- Simplify Rand
-- Simplify/Fix 'animate'
+- [x] FPS movement
+- [x] Random Aliens
+- [x] Random Level
+- [x] Sound effects
+- [ ] Score
+- [ ] Death
+- [ ] Music
+- [ ] Write Description
+- [ ] Publish Promo Images
+- [ ] Publish Promo Youtube video (how to play, and how to edit)
+- [ ] Publish 1.0 on Itch
 
-- Think: Global context for evertyhing??
-  - Rand
-  - Format
-  - Graphics
-  - Should be just an incetace, a pointer.
-    // rand_f32(G.rand)
-    // fmt_s(G.fmt, "blah")
-    // fmt_s(G.gfx, )
-    // fmt_s(G.app, )
-    // fmt_s(G.os, )
-  
-
-- split into init and update?
-  void *os_init(void);
-  void os_update(void *app);
-
-- M4 is always scaled and centered. Always TRS
-  - Shapes are m4
-  - Quad is m4
-- Create overdraw shader: https://discussions.unity.com/t/how-to-build-or-where-to-get-the-overdraw-shader-used-in-the-scene-view/433807/9
-- Create a UI system
-- Aliens can attack
-- Player can Die
-- Level Generation
-- Music
-- Write a good description
-- Create Gameplay Video
-- Create Development Video
-- First 1.0 release on Itch.IO
-
-# Version 2.0 (ideas)
+# Ideas for Version 2.0
 - [ ] Android
 - [ ] Publish on Play Store
 - [ ] Time travel effects?
@@ -117,7 +96,6 @@ I'd like to release this someday, so keeping it very simple!
 
 
 # Design
-
 Why only headers and static functions?
 
 - All dependency management is done with `#include`'s.
