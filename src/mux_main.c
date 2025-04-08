@@ -2,10 +2,10 @@
 // mux_main.c - Everything App: tmux + vifm + helix + shell
 //
 // Lets start with a vifm clone
-#include "global.h"
-#include "os.h"
 #include "fs.h"
+#include "global.h"
 #include "mem.h"
+#include "os.h"
 
 typedef struct Screen {
     u32 sx;
@@ -14,7 +14,7 @@ typedef struct Screen {
 } Screen;
 
 static void screen_clear(Screen *screen) {
-    u32 center = screen->sx/2;
+    u32 center = screen->sx / 2;
     for (u32 y = 0; y < screen->sy; ++y) {
         for (u32 x = 0; x < screen->sx; ++x) {
             u32 c = ' ';
@@ -68,20 +68,20 @@ static void os_main(void) {
     screen_clear(scr);
 
     u32 y = 1;
-    for(FS_Dir *dir = fs_list(tmp, "."); dir; dir = dir->next) {
+    for (FS_Dir *dir = fs_list(tmp, "."); dir; dir = dir->next) {
         u32 x = 2;
 
         char *name = dir->name;
-        for(;;) {
-            if(*name == 0) break;
-            if(x >= 32) break;
-            scr->data[y*scr->sx + x] = *name;
+        for (;;) {
+            if (*name == 0) break;
+            if (x >= 32) break;
+            scr->data[y * scr->sx + x] = *name;
             name++;
             x++;
         }
 
-        if(dir->is_dir) {
-            scr->data[y*scr->sx + x] = '/';
+        if (dir->is_dir) {
+            scr->data[y * scr->sx + x] = '/';
         }
 
         y++;
@@ -89,6 +89,6 @@ static void os_main(void) {
 
     screen_draw(scr);
 
-    G->os->sleep_time = 1*1000*1000;
+    G->os->sleep_time = 1 * 1000 * 1000;
     mem_free(tmp);
 }
