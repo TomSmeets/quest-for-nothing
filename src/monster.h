@@ -249,6 +249,7 @@ static void monster_update(Entity *mon, Entity *player, Image *gun, Sparse_Set *
         m4_rotate_y(&mtx, R1 * .8 * aliveness);
         m4_translate_y(&mtx, (f32)(mon->sprite.image->size.y - mon->sprite.hand[0].y) / 32.0);
         m4_translate_x(&mtx, -(f32)mon->sprite.hand[0].x / 32.0 * 0.5f * 0.9);
+        m4_translate_z(&mtx, MONSTER_OFFSET);
         m4_apply(&mtx, mon->mtx);
         // gfx_draw_mtx(eng, mtx);
         gfx_quad_3d(eng->gfx, mtx, gun);
