@@ -18,7 +18,6 @@
 #include "sparse_set.h"
 #include "types.h"
 #include "vec.h"
-#include "wall.h"
 
 /*
 Game Design V1.0
@@ -50,7 +49,6 @@ typedef struct {
 
     Sparse_Set *sparse;
     Music music;
-    Wall *walls;
 } Game;
 
 static Image *gen_cursor(Memory *mem) {
@@ -123,7 +121,6 @@ static Game *game_new(Rand *rng) {
     Image *img = image_new(mem, (v2u){32, 32});
     image_fill(img, (v4){1, 0, 1, 1});
     m4 mtx = m4_id();
-    game->walls = wall2_new(mem, mtx, img);
     return game;
 }
 
@@ -350,15 +347,6 @@ static f32 game_audio(Game *game, Engine *eng) {
 
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
-
-    for (Wall *wall = game->walls; wall; wall = wall->next) {
-        // Collision
-        Box box = wall_box(wall);
-        sparse_set_add(game->sparse, box, wall);
-
-        gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
-        gfx_debug_mtx(eng->gfx_dbg, wall->mtx);
-    }
 
     // Debug draw sparse data
     if (game->debug == DBG_Collision) {

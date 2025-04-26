@@ -155,7 +155,7 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
         }
 
         // Draw colliding box
-        gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
+        // gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
         if (ent->type == Entity_Wall) {
             m4 wall_inv = m4_invert_tr(ent->mtx);
             v3 p_local = m4_mul_pos(wall_inv, mon->pos);
