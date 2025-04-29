@@ -1,3 +1,6 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// os_base_wasm.h - Base OS implementation for WASM
+#pragma once
 #include "os_alloc.h"
 #include "std.h"
 #include "str.h"

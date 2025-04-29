@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// os_base_linux.h - Base OS implementation for Linux
 #pragma once
 #include "os_alloc.h"
 #include "std.h"
@@ -24,4 +26,3 @@ static void os_write(File *file, u8 *data, u32 len) {
 static void os_exit(i32 status) {
     linux_exit_group(status);
 }
-

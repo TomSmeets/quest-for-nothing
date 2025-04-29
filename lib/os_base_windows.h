@@ -1,7 +1,11 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// os_base_windows.h - Base OS implementation for Windows
+#pragma once
 #include "os_alloc.h"
 #include "std.h"
 #include "str.h"
 #include "types.h"
+
 static u64 os_time(void) {
     LARGE_INTEGER big_freq, big_count;
     assert(QueryPerformanceFrequency(&big_freq), "Failed to get performance frequency");
@@ -36,4 +40,3 @@ static void *os_alloc_raw(u32 size) {
     assert(alloc, "Failed to allocate memory");
     return alloc;
 }
-
