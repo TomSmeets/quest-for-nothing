@@ -2,7 +2,7 @@
 // read.h - A simple line reader
 #pragma once
 #include "mem.h"
-#include "os.h"
+#include "os_main.h"
 
 typedef struct {
     // Input file

@@ -4,9 +4,9 @@
 #include "fmt.h"
 #include "global.h"
 #include "os_desktop.h"
+#include "os_main_types.h"
 #include "rand.h"
 #include "types.h"
-#include "os_main_types.h"
 
 // Set maximum wait time between os_main calls
 static void os_set_update_time(OS *os, u64 wake_time) {

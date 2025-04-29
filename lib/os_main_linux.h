@@ -1,13 +1,13 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_main_linux.h - Main entry point
 #pragma once
+#include "fmt.h"
 #include "global.h"
 #include "os_api.h"
 #include "os_base.h"
-#include "std.h"
-#include "rand.h"
-#include "fmt.h"
 #include "os_main_types.h"
+#include "rand.h"
+#include "std.h"
 
 // Export main, allowing us to dynamically call it
 void os_main_dynamic(Global *global_instance) {

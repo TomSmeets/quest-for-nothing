@@ -4,7 +4,7 @@
 #include "fmt.h"
 #include "global.h"
 #include "mem.h"
-#include "os.h"
+#include "os_main.h"
 
 typedef void os_main_t(Global *global_instance);
 

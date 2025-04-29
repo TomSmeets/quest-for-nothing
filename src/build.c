@@ -6,7 +6,7 @@
 #include "hot.h"
 #include "include_graph.h"
 #include "mem.h"
-#include "os.h"
+#include "os_main.h"
 #include "rand.h"
 #include "tmpfs.h"
 #include "types.h"

@@ -1,3 +1,4 @@
 #include "os_desktop.h"
 
-void os_main(void) {}
+void os_main(void) {
+}
