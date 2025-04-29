@@ -2,8 +2,8 @@
 // fs.h: Platform independent filesystem
 #pragma once
 #include "mem.h"
-#include "str_mem.h"
 #include "os_api.h"
+#include "str_mem.h"
 
 typedef struct FS_Dir {
     char *name;

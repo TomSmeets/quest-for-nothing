@@ -3,8 +3,8 @@
 #pragma once
 #include "fmt.h"
 #include "os.h"
-#include "types.h"
 #include "os_api.h"
+#include "types.h"
 
 typedef struct {
     File *handle;
