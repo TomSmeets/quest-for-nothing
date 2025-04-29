@@ -40,7 +40,11 @@ static u64 linux_rand(void) {
     assert(ret == sizeof(seed), "linux getrandom failed");
     return seed;
 }
+
 int main(int argc, char **argv) {
+    Global global = {};
+    G = &global;
+
     OS os = {};
     os.argc = argc;
     os.argv = argv;
@@ -67,6 +71,9 @@ __declspec(dllexport) void os_main_dynamic(Global *global_instance) {
 }
 
 int main(int argc, char **argv) {
+    Global global = {};
+    G = &global;
+
     OS os = {};
     os.argc = argc;
     os.argv = argv;
@@ -88,9 +95,11 @@ int main(int argc, char **argv) {
 static OS G_OS;
 static Fmt G_FMT;
 static Rand G_RAND;
+static Global global;
 
 u64 js_main(void) {
-    if (!G->os) {
+    if (!G) {
+        G = &global;
         G->os = &G_OS;
         G_FMT.out = (void *)1;
         G_RAND.seed = js_time();

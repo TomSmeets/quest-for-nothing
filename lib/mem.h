@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // mem.h - Simple memory allocator
 #pragma once
-#include "types.h"
 #include "chunk.h"
+#include "types.h"
 
 typedef struct Memory Memory;
 
