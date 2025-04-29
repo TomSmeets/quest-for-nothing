@@ -1,6 +1,6 @@
 // sdl_api.h - SDL2 api header, only what we use to improve compilation speed
 #pragma once
-#include "os.h"
+#include "os_main.h"
 #include "types.h"
 
 #if 0

@@ -13,6 +13,11 @@ static u64 os_time(void) {
     return js_time();
 }
 
+static u64 os_rand(void) {
+    // TODO: implement a better random
+    return js_time();
+}
+
 static File *os_stdout(void) {
     return (File *)1;
 }

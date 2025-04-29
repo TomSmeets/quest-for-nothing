@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// os_main_linux.h - Main entry point
+// os_main_linux.h - Main entry point for linux
 #pragma once
 #include "fmt.h"
 #include "global.h"
@@ -15,14 +15,6 @@ void os_main_dynamic(Global *global_instance) {
     os_main();
 }
 
-// TODO: move back to os_random()
-static u64 linux_rand(void) {
-    u64 seed = 0;
-    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
-    assert(ret == sizeof(seed), "linux getrandom failed");
-    return seed;
-}
-
 int main(int argc, char **argv) {
     Global global = {};
     G = &global;
@@ -36,7 +28,7 @@ int main(int argc, char **argv) {
     fmt.out = fd_to_file(1);
     G->fmt = &fmt;
 
-    Rand rand = rand_new(linux_rand());
+    Rand rand = rand_new(os_rand());
     G->rand = &rand;
 
     for (;;) {

@@ -29,14 +29,3 @@ static void os_write(File *file, u8 *data, u32 len) {
 static void os_exit(i32 code) {
     ExitProcess(code);
 }
-
-static void windows_print(char *message) {
-    HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
-    WriteFile(out, message, str_len(message), 0, 0);
-}
-
-static void *os_alloc_raw(u32 size) {
-    void *alloc = VirtualAlloc(0, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-    assert(alloc, "Failed to allocate memory");
-    return alloc;
-}

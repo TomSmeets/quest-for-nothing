@@ -2,7 +2,7 @@
 // time.h - Accurate frame timing calcuation
 #pragma once
 #include "fmt.h"
-#include "os.h"
+#include "os_main.h"
 #include "types.h"
 
 typedef struct {

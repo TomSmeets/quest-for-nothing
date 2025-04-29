@@ -7,7 +7,7 @@
 #include "global.h"
 #include "input.h"
 #include "math.h"
-#include "os.h"
+#include "os_main.h"
 
 typedef struct App App;
 struct App {

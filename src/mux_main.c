@@ -5,7 +5,7 @@
 #include "fs.h"
 #include "global.h"
 #include "mem.h"
-#include "os.h"
+#include "os_main.h"
 
 typedef struct Screen {
     u32 sx;

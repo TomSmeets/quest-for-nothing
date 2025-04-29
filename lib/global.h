@@ -6,7 +6,7 @@
 // Forward declare types
 // The definitions are defined in each module
 typedef struct App App;     // Defined in "main.c"
-typedef struct OS OS;       // Defined in "os.h"
+typedef struct OS OS;       // Defined in "os_main.h"
 typedef struct Fmt Fmt;     // Defined in "fmt.h"
 typedef struct Rand Rand;   // Defined in "rand.h"
 typedef struct Chunk Chunk; // Defined in "chunk.h"
@@ -20,7 +20,7 @@ typedef struct {
 
     // Handle to operating system specific state
     // Is only used by OS spesific code
-    // Defined in "os.h"
+    // Defined in "os_main.h"
     OS *os;
 
     // Latest Unique ID counter, starts at 0 and increments forever

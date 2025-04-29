@@ -18,12 +18,8 @@ static void os_fail(char *message);
 // Platform Implementations
 #if OS_IS_LINUX
 #include "os_alloc_linux.h"
-#endif
-
-#if OS_IS_WINDOWS
+#elif OS_IS_WINDOWS
 #include "os_alloc_windows.h"
-#endif
-
-#if OS_IS_WASM
+#elif OS_IS_WASM
 #include "os_alloc_wasm.h"
 #endif

@@ -13,6 +13,13 @@ static u64 os_time(void) {
     return linux_time_to_us(&t);
 }
 
+static u64 os_rand(void) {
+    u64 seed = 0;
+    i64 ret = linux_getrandom(&seed, sizeof(seed), 0);
+    assert(ret == sizeof(seed), "linux getrandom failed");
+    return seed;
+}
+
 static void os_write(File *file, u8 *data, u32 len) {
     u32 written = 0;
     while (written < len) {

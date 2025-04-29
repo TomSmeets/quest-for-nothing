@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// os.h - Base platform API
+// os_main.h - Main entry point
 #pragma once
 #include "fmt.h"
 #include "global.h"

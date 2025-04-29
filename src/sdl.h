@@ -5,7 +5,7 @@
 #include "input.h"
 #include "math.h"
 #include "mem.h"
-#include "os.h"
+#include "os_main.h"
 #include "sdl_api.h"
 #include "vec.h"
 
