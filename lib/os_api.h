@@ -1,8 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_api.h - Platform syscall headers and platform detection
 #pragma once
-#include "std.h"
-#include "str.h"
 
 // Linux
 #if __unix__
