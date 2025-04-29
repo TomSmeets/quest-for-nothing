@@ -2,11 +2,10 @@
 // os_base_linux.h - Base OS implementation for Linux
 #pragma once
 #include "os_alloc.h"
+#include "os_api.h"
 #include "std.h"
 #include "str.h"
 #include "types.h"
-
-#include "linux_api.h"
 
 static u64 os_time(void) {
     struct linux_timespec t = {};

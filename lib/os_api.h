@@ -1,26 +1,29 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// os_api.h - Platform syscall headers and platform detection
 #pragma once
 #include "std.h"
 #include "str.h"
 
+// Linux
 #if __unix__
 #define OS_IS_LINUX 1
 #define OS_IS_WINDOWS 0
 #define OS_IS_WASM 0
-#include "linux_api.h"
+#include "os_api_linux.h"
 #endif
 
+// Windows
 #if _WIN32
 #define OS_IS_LINUX 0
 #define OS_IS_WINDOWS 1
 #define OS_IS_WASM 0
-#include <windows.h>
+#include "os_api_windows.h"
 #endif
 
+// Webassembly
 #if __wasm__
 #define OS_IS_LINUX 0
 #define OS_IS_WINDOWS 0
 #define OS_IS_WASM 1
-
-#define WASM_IMPORT(name) __attribute((import_module("env"), import_name(#name)))
-#define WASM_PAGE_SIZE 65536
+#include "os_api_wasm.h"
 #endif

@@ -3,6 +3,7 @@
 #pragma once
 #include "mem.h"
 #include "str_mem.h"
+#include "os_api.h"
 
 typedef struct FS_Dir {
     char *name;
@@ -15,8 +16,6 @@ static void fs_remove(char *path);
 static void fs_mkdir(char *path);
 
 #if OS_IS_LINUX
-#include "linux_api.h"
-
 static void fs_remove(char *path) {
     linux_unlink(path);
 }

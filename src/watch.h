@@ -4,6 +4,7 @@
 #include "fmt.h"
 #include "os.h"
 #include "types.h"
+#include "os_api.h"
 
 typedef struct {
     File *handle;
@@ -13,8 +14,6 @@ static void watch_init(Watch *watch, char *path);
 static bool watch_changed(Watch *watch);
 
 #if OS_IS_LINUX
-#include "linux_api.h"
-
 static void watch_init(Watch *watch, char *path) {
     i32 fd = linux_inotify_init(O_NONBLOCK);
     assert(fd >= 0, "Could not init inotify");
