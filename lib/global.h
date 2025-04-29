@@ -5,10 +5,10 @@
 
 // Forward declare types
 // The definitions are defined in each module
-typedef struct App App; // Defined in "main.c"
-typedef struct OS OS; // Defined in "os.h"
-typedef struct Fmt Fmt; // Defined in "fmt.h"
-typedef struct Rand Rand; // Defined in "rand.h"
+typedef struct App App;     // Defined in "main.c"
+typedef struct OS OS;       // Defined in "os.h"
+typedef struct Fmt Fmt;     // Defined in "fmt.h"
+typedef struct Rand Rand;   // Defined in "rand.h"
 typedef struct Chunk Chunk; // Defined in "chunk.h"
 
 typedef struct {
