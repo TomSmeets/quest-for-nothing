@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_alloc.h - Minimal OS functinality, allocate memory, and crash the program
 #pragma once
+#include "os_api.h"
 #include "std.h"
 #include "str.h"
-#include "os_api.h"
 #include "types.h"
 
 // Allocate memory from the system
