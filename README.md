@@ -2,6 +2,10 @@
 
 ![](screenshot.png)
 
+- [ ] Move generic files to lib
+- [ ] Fix Hot
+- [ ] Fix wasm
+
 
 # Building
 
