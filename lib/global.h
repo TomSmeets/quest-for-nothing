@@ -3,21 +3,43 @@
 #pragma once
 #include "types.h"
 
-typedef struct App App;
-typedef struct Fmt Fmt;
-typedef struct Rand Rand;
-typedef struct OS OS;
-typedef struct Chunk Chunk;
+// Forward declare types
+// The definitions are defined in each module
+typedef struct App App; // Defined in "main.c"
+typedef struct OS OS; // Defined in "os.h"
+typedef struct Fmt Fmt; // Defined in "fmt.h"
+typedef struct Rand Rand; // Defined in "rand.h"
+typedef struct Chunk Chunk; // Defined in "chunk.h"
 
 typedef struct {
     bool reloaded;
 
-    u32 id;             // id.h
-    App *app;           // app.h
-    Fmt *fmt;           // fmt.h
-    Rand *rand;         // rand.h
-    OS *os;             // os.h
-    Chunk *chunk_cache; // chunk.h
+    // Handle to the main application
+    // Should be defined in "main.c"
+    App *app;
+
+    // Handle to operating system specific state
+    // Is only used by OS spesific code
+    // Defined in "os.h"
+    OS *os;
+
+    // Latest Unique ID counter, starts at 0 and increments forever
+    // Used in "id.h"
+    u32 id;
+
+    // Formatter for stdout,
+    // Should be initialized by the OS
+    // Defined in "fmt.h"
+    Fmt *fmt;
+
+    // Random number generator
+    // Defined in "rand.h"
+    Rand *rand;
+
+    // Memory chunck cache. Used internally to track free memory.
+    // Used in "chunk.h"
+    Chunk *chunk_cache;
 } Global;
 
+// Global handle, should be initailized by the OS
 static Global *G;
