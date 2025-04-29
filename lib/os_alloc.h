@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_alloc.h - os_alloc implmentation
 #pragma once
-#include "types.h"
 #include "os_api.h"
+#include "types.h"
 
 // Allocate memory from the system
 static void *os_alloc(u32 size);
