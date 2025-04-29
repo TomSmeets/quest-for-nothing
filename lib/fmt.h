@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// fmt.h - A simple text formatter
+// fmt.h - String formatting
 #pragma once
 
 // This formatter has very little dependiecies

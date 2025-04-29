@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// os_alloc_windows.h - Minimal OS functinality implemented for Windows
 #pragma once
 #include "os_api.h"
 

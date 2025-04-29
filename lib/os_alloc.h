@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// os_alloc.h - os_alloc implmentation
+// os_alloc.h - Minimal OS functinality, allocate memory, and crash the program
 #pragma once
 #include "os_api.h"
 #include "types.h"
@@ -13,6 +13,7 @@ static void os_fail(char *message);
 #define assert(cond, msg)                                                                                                                            \
     if (!(cond)) os_fail("Assertion failed: " #cond " " msg "\n")
 
+// Platform Implementations
 #if OS_IS_LINUX
 #include "os_alloc_linux.h"
 #endif

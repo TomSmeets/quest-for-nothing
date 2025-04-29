@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// os_alloc_wasm.h - Minimal OS functinality implemented for WASM
 #pragma once
 #include "os_api.h"
 

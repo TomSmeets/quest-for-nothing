@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// chunk.h - Chunk allocator
+// chunk.h - Memory allocator in big chunks
 #pragma once
 
 // chunk_cache is a global variable

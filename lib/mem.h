@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// mem.h - Simple memory allocator
+// mem.h - Memory allocator
 #pragma once
 #include "chunk.h"
 #include "types.h"
