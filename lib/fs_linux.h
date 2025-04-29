@@ -1,21 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// fs.h: Platform independent filesystem
+// fs_linux.h: Platform independent filesystem
 #pragma once
-#include "mem.h"
-#include "os_api.h"
 #include "str_mem.h"
+#include "fs_types.h"
+#include "os_api.h"
+#include "mem.h"
 
-typedef struct FS_Dir {
-    char *name;
-    bool is_dir;
-    struct FS_Dir *next;
-} FS_Dir;
-
-static FS_Dir *fs_list(struct Memory *mem, char *path);
-static void fs_remove(char *path);
-static void fs_mkdir(char *path);
-
-#if OS_IS_LINUX
 static void fs_remove(char *path) {
     linux_unlink(path);
 }
@@ -70,4 +60,3 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
 static void fs_mkdir(char *path) {
     linux_mkdir(path, 0777);
 }
-#endif
