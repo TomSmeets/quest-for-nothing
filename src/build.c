@@ -93,6 +93,7 @@ static bool build_single(Memory *tmp, char *output, char *input, Platform plat, 
     fmt_s(fmt, " -Wno-unused-variable");
     fmt_s(fmt, " -Wno-unused-but-set-variable");
     fmt_s(fmt, " -Wno-format");
+    fmt_s(fmt, " -Ilib");
 
     fmt_s(fmt, " -std=c23");
 
@@ -276,7 +277,7 @@ static App *build_init(void) {
         assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
-        assert(os_system("clang-format --verbose -i src/*"), "Format failed!");
+        assert(os_system("clang-format --verbose -i src/* lib/*"), "Format failed!");
         os_exit(0);
     } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
         include_graph();
