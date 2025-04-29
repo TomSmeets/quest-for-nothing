@@ -1,7 +1,0 @@
-/out
-/prv
-/.vscode
-/SDL2.dll
-/.vs
-*.stackdump
-/*.bin
