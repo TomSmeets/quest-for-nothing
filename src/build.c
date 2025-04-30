@@ -234,7 +234,7 @@ static App *build_init(void) {
         assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
-        assert(os_system("clang-format --verbose -i src/* lib/*"), "Format failed!");
+        assert(os_system("clang-format --verbose -i {src,lib}/*.{h,c}"), "Format failed!");
         os_exit(0);
     } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
         include_graph();
