@@ -210,6 +210,7 @@ static void include_graph(void) {
     Graph *graph = mem_struct(mem, Graph);
     graph->mem = mem;
     graph_read_dir(graph, "src");
+    graph_read_dir(graph, "lib");
     graph_tred(graph);
     graph_rank(graph);
     graph_fmt(graph, G->fmt);
