@@ -2,11 +2,6 @@
 
 ![](screenshot.png)
 
-- [ ] Move generic files to lib
-- [ ] Fix Hot
-- [ ] Fix wasm
-
-
 # Building
 
 Install `clang` and `sdl2`, then run the build script.

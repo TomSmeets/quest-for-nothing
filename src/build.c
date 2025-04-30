@@ -132,6 +132,7 @@ static bool build_release(Memory *tmp, bool release) {
     if (!os_system("COPY out\\SDL2.dll out\\release\\SDL2.dll")) return 0;
 #else
     if (!os_system("cp src/os_wasm.html out/release/index.html")) return 0;
+    if (!os_system("cp lib/*.js out/release/")) return 0;
     if (!os_system("cp out/SDL2.dll out/release/SDL2.dll")) return 0;
 #endif
     return 1;

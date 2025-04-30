@@ -10,49 +10,13 @@
         background-color: #cccccc;
     }
 </style>
+<script src="os_api_wasm.js"></script>
+<script src="os_alloc_wasm.js"></script>
+<script src="os_base_wasm.js"></script>
 <script>
 
-// Global state
-var ctx = {
-    // Wasm memory
-    memory: null,
-
-    // External symbols defined in c
-    exports: null
-};
-
-// Time in micro seconds
-function js_time() {
-    return BigInt(new Date().getTime()*1000)
-}
-
-// Write utf8 text to the console
-function js_write(data, len) {
-    // data is a pointer in wasm memory
-    var bytes = new Uint8Array(ctx.memory.buffer, data, len)
-
-    // Convert utf8 bytes array to a js string
-    var string = new TextDecoder('utf8').decode(bytes)
-
-    // Log to the console.
-    console.log(string)
-}
-
-// Write utf8 text to the console
-function wasm_fail(data, len) {
-    // data is a pointer in wasm memory
-    var bytes = new Uint8Array(ctx.memory.buffer, data, len)
-
-    // Convert utf8 bytes array to a js string
-    var string = new TextDecoder('utf8').decode(bytes)
-
-    // Log to the console.
-    console.log(string)
-    alert(string)
-}
-
 // Grab the mouse
-function gfx_js_grab(grab) {
+ctx.exports.gfx_js_grab = (grab) => {
     if(grab) {
         canvas.requestPointerLock()
     } else {
@@ -61,7 +25,7 @@ function gfx_js_grab(grab) {
 }
 
 // Grab the mouse
-function gfx_js_fullscreen(full) {
+ctx.exports.gfx_js_fullscreen = (full) => {
     if(full) {
         canvas.requestFullscreen()
     } else {
@@ -71,7 +35,7 @@ function gfx_js_fullscreen(full) {
 
 function js_loop() {
     try {
-        let result = ctx.exports.js_main()
+        let result = ctx.imports.js_main()
         let timeout = Number(result) / 1000
         window.setTimeout(js_loop, timeout)
     } catch(error) {
@@ -80,25 +44,25 @@ function js_loop() {
     }
 }
 
-function gfx_js_init() {
+ctx.exports.gfx_js_init = () => {
     const multisample_scaling = 2
     ctx.canvas = document.getElementById('canvas')
 
-    document.addEventListener("keydown",   (ev) => { ctx.exports.gfx_js_key_down(ev.keyCode, true) }, true)
-    document.addEventListener("keyup",     (ev) => { ctx.exports.gfx_js_key_down(ev.keyCode, false) }, true)
-    document.addEventListener("mousemove", (ev) => { ctx.exports.gfx_js_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
-    document.addEventListener("mousedown", (ev) => { ctx.exports.gfx_js_mouse_down(ev.button, true) }, true)
-    document.addEventListener("mouseup",   (ev) => { ctx.exports.gfx_js_mouse_down(ev.button, false) }, true)
+    document.addEventListener("keydown",   (ev) => { ctx.imports.gfx_js_key_down(ev.keyCode, true) }, true)
+    document.addEventListener("keyup",     (ev) => { ctx.imports.gfx_js_key_down(ev.keyCode, false) }, true)
+    document.addEventListener("mousemove", (ev) => { ctx.imports.gfx_js_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
+    document.addEventListener("mousedown", (ev) => { ctx.imports.gfx_js_mouse_down(ev.button, true) }, true)
+    document.addEventListener("mouseup",   (ev) => { ctx.imports.gfx_js_mouse_down(ev.button, false) }, true)
     window.addEventListener("resize",      (ev) => {
         canvas.width = window.innerWidth*multisample_scaling;
         canvas.height = window.innerHeight*multisample_scaling;
-        ctx.exports.gfx_js_resize(window.innerWidth, window.innerHeight);
+        ctx.imports.gfx_js_resize(window.innerWidth, window.innerHeight);
     }, false);
 
     // Send initial size to wasm
     canvas.width = window.innerWidth*multisample_scaling;
     canvas.height = window.innerHeight*multisample_scaling;
-    ctx.exports.gfx_js_resize(window.innerWidth, window.innerHeight);
+    ctx.imports.gfx_js_resize(window.innerWidth, window.innerHeight);
 
     // # Load Opengl
     const texture_size = 4096;
@@ -251,7 +215,7 @@ function gfx_js_init() {
     ctx.audio_processor = ctx.audio.createScriptProcessor(sample_count, 2, 2);
     ctx.audio_processor.onaudioprocess = function (ev) {
         output = ev.outputBuffer;
-        const sample_list_c = ctx.exports.js_audio_callback(sample_count);
+        const sample_list_c = ctx.imports.js_audio_callback(sample_count);
         const sample_list = new Float32Array(ctx.memory.buffer, sample_list_c, sample_count*2);
 
         const chan_0 = output.getChannelData(0);
@@ -264,7 +228,7 @@ function gfx_js_init() {
     ctx.audio_processor.connect(ctx.audio.destination);
 }
 
-function gfx_js_begin() {
+ctx.exports.gfx_js_begin = () => {
     var gl = ctx.gl;
     var canvas = ctx.canvas;
     ctx.audio.resume();
@@ -274,13 +238,13 @@ function gfx_js_begin() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-function gfx_js_texture(x, y, sx, sy, pixels) {
+ctx.exports.gfx_js_texture = (x, y, sx, sy, pixels) => {
     const gl = ctx.gl;
     const pixel_array = new Float32Array(ctx.memory.buffer, pixels, sx*sy*4);
     gl.texSubImage2D( gl.TEXTURE_2D, 0,  x,  y,  sx,  sy,  gl.RGBA,  gl.FLOAT,  pixel_array);
 }
 
-function gfx_js_draw(projection, depth, quad_count, quad_list) {
+ctx.exports.gfx_js_draw = (projection, depth, quad_count, quad_list) => {
     const gl = ctx.gl;
     const quad_array = new Float32Array(ctx.memory.buffer, quad_list, quad_count*16);
     const projection_array = new Float32Array(ctx.memory.buffer, projection, 4*4);
@@ -305,25 +269,14 @@ function gfx_js_draw(projection, depth, quad_count, quad_list) {
     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, quad_count);
 }
 
-function gfx_js_end() {
-}
+ctx.exports.gfx_js_end = () => {}
 
-fetch('quest-for-nothing.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
-    env: {
-        wasm_fail,
-        js_time,
-        js_write,
-        gfx_js_grab,
-        gfx_js_fullscreen,
-        gfx_js_init,
-        gfx_js_begin,
-        gfx_js_texture,
-        gfx_js_draw,
-        gfx_js_end,
-    },
-})).then(ret => {
+fetch('quest-for-nothing.wasm')
+.then(re => re.arrayBuffer())
+.then(data => WebAssembly.instantiate(data, { env: ctx.exports }))
+.then(ret => {
     ctx.memory  = ret.instance.exports.memory;
-    ctx.exports = ret.instance.exports;
+    ctx.imports = ret.instance.exports;
     js_loop()
 });
 </script>
