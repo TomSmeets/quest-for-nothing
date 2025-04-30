@@ -6,16 +6,16 @@
 #include "str.h"
 #include "types.h"
 
-WASM_IMPORT(js_time) u64 js_time(void);
-WASM_IMPORT(js_write) void js_write(u8 *data, u32 len);
+WASM_IMPORT(wasm_time) u64 wasm_time(void);
+WASM_IMPORT(wasm_write) void wasm_write(u8 *data, u32 len);
 
 static u64 os_time(void) {
-    return js_time();
+    return wasm_time();
 }
 
 static u64 os_rand(void) {
     // TODO: implement a better random
-    return js_time();
+    return wasm_time();
 }
 
 static File *os_stdout(void) {
@@ -23,7 +23,7 @@ static File *os_stdout(void) {
 }
 
 static void os_write(File *file, u8 *data, u32 len) {
-    js_write(data, len);
+    wasm_write(data, len);
 }
 
 static void os_exit(i32 code) {

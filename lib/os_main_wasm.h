@@ -13,7 +13,7 @@ u64 js_main(void) {
         G = &global;
         G->os = &G_OS;
         G_FMT.out = (void *)1;
-        G_RAND.seed = js_time();
+        G_RAND.seed = os_time();
         G->rand = &G_RAND;
         G->fmt = &G_FMT;
     }
