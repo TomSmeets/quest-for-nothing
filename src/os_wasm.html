@@ -38,6 +38,19 @@ function js_write(data, len) {
     console.log(string)
 }
 
+// Write utf8 text to the console
+function wasm_fail(data, len) {
+    // data is a pointer in wasm memory
+    var bytes = new Uint8Array(ctx.memory.buffer, data, len)
+
+    // Convert utf8 bytes array to a js string
+    var string = new TextDecoder('utf8').decode(bytes)
+
+    // Log to the console.
+    console.log(string)
+    alert(string)
+}
+
 // Grab the mouse
 function gfx_js_grab(grab) {
     if(grab) {
@@ -297,6 +310,7 @@ function gfx_js_end() {
 
 fetch('quest-for-nothing.wasm').then(re => re.arrayBuffer()).then(data => WebAssembly.instantiate(data, {
     env: {
+        wasm_fail,
         js_time,
         js_write,
         gfx_js_grab,

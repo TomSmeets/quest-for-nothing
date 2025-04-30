@@ -2,6 +2,7 @@
 // os_alloc_wasm.h - Minimal OS functinality implemented for WASM
 #pragma once
 #include "os_api.h"
+#include "str.h"
 
 // Webassembly can only grow a linear heap
 // This is fine as long as we only allocate
@@ -12,7 +13,7 @@ static void *os_alloc(u32 size) {
     return (void *)addr;
 }
 
-WASM_IMPORT(wasm_fail) void wasm_fail(char *);
+WASM_IMPORT(wasm_fail) void wasm_fail(char *message, u32 len);
 static void os_fail(char *message) {
-    wasm_fail(message);
+    wasm_fail(message, str_len(message));
 }
