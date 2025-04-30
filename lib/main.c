@@ -1,4 +1,6 @@
-#include "os_desktop.h"
+#include "fmt.h"
+#include "os_main.h"
 
-void os_main(void) {
+static void os_main(void) {
+    fmt_s(G->fmt, "Hello World!\n");
 }
