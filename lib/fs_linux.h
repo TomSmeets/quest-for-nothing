@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs_linux.h: Platform independent filesystem
 #pragma once
-#include "str_mem.h"
 #include "fs_types.h"
-#include "os_api.h"
 #include "mem.h"
+#include "os_api.h"
+#include "str_mem.h"
 
 static void fs_remove(char *path) {
     linux_unlink(path);
