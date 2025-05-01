@@ -11,87 +11,7 @@
 #include "tmpfs.h"
 #include "types.h"
 #include "watch.h"
-
-// Target platform
-typedef enum {
-    Platform_Linux,
-    Platform_Windows,
-    Platform_Wasm,
-} Platform;
-
-// Build single executable using clang
-// This will become a single 'clang' call
-static bool build_single(Memory *tmp, char *output, char *input, Platform plat, bool release, bool dynamic) {
-    bool debug = !release;
-
-    fmt_sss(G->fmt, "Compiling ", input, " to ", output, " in");
-    if (dynamic) fmt_s(G->fmt, " Dynamic");
-    fmt_s(G->fmt, release ? " Release" : " Debug");
-    fmt_s(G->fmt, " mode");
-    fmt_s(G->fmt, " for");
-    if (plat == Platform_Linux) fmt_s(G->fmt, " Linux");
-    if (plat == Platform_Windows) fmt_s(G->fmt, " Windows");
-    if (plat == Platform_Wasm) fmt_s(G->fmt, " WASM");
-    fmt_s(G->fmt, "\n");
-
-    if (plat == Platform_Linux && OS_IS_WINDOWS) {
-        fmt_s(G->fmt, "Cannot cross-compile to linux from windows.\n");
-        return true;
-    }
-
-    Fmt *fmt = fmt_memory(tmp);
-
-    fmt_s(fmt, "clang");
-
-    // Configure warning flags
-    fmt_s(fmt, " -Wall -Werror");
-    fmt_s(fmt, " -Wno-unused-function");
-    fmt_s(fmt, " -Wno-unused-variable");
-    fmt_s(fmt, " -Wno-unused-but-set-variable");
-    fmt_s(fmt, " -Wno-format");
-    fmt_s(fmt, " -Ilib");
-
-    fmt_s(fmt, " -std=c23");
-
-    // We are running on this cpu
-    // https://pkgstats.archlinux.de/compare/system-architectures/x86_64
-    if (plat != Platform_Wasm) {
-        if (debug) fmt_s(fmt, " -march=native");
-        if (release) fmt_s(fmt, " -march=x86-64-v3");
-    }
-
-    if (plat == Platform_Windows) {
-#if OS_IS_WINDOWS
-        fmt_s(fmt, " -target x86_64-unknown-windows-msvc");
-#else
-        fmt_s(fmt, " -target x86_64-unknown-windows-gnu");
-#endif
-    }
-
-    if (plat == Platform_Wasm) {
-        fmt_s(fmt, " -target wasm32");
-        fmt_s(fmt, " --no-standard-libraries");
-        fmt_s(fmt, " -Wl,--no-entry");
-        fmt_s(fmt, " -Wl,--export-all");
-        fmt_s(fmt, " -fno-builtin");
-        fmt_s(fmt, " -msimd128");
-    }
-
-    // Don't optimize, quick compile times
-    if (debug) fmt_s(fmt, " -O0 -g");
-    if (release) fmt_s(fmt, " -O3");
-    if (release && OS_IS_LINUX) fmt_s(fmt, " -Xlinker --strip-all");
-
-    // Create a '.so' file for dynamic loading
-    if (dynamic) fmt_s(fmt, " -shared");
-
-    fmt_ss(fmt, " -o ", output, "");
-    fmt_ss(fmt, " ", input, "");
-
-    char *cmd = fmt_close(fmt);
-    bool ok = os_system(cmd);
-    return ok;
-}
+#include "clang.h"
 
 // Check if file exists
 static bool os_exists(char *path) {
@@ -115,16 +35,16 @@ static void sdl2_download_dll(void) {
 }
 
 static bool build_debug(Memory *tmp) {
-    if (!build_single(tmp, "out/build", "src/build.c", Platform_Linux, false, false)) return 0;
-    if (!build_single(tmp, "out/main", "src/main.c", Platform_Linux, false, false)) return 0;
+    if (!clang_compile(tmp, (Clang_Options) { "out/build", "src/build.c", Platform_Linux, false, false})) return 0;
+    if (!clang_compile(tmp, (Clang_Options){  "out/main", "src/main.c", Platform_Linux, false, false})) return 0;
     return 1;
 }
 
 static bool build_release(Memory *tmp, bool release) {
     if (!os_system("mkdir -p out/release")) return 0;
-    if (!build_single(tmp, "out/release/quest-for-nothing.elf", "src/main.c", Platform_Linux, release, false)) return 0;
-    if (!build_single(tmp, "out/release/quest-for-nothing.exe", "src/main.c", Platform_Windows, release, false)) return 0;
-    if (!build_single(tmp, "out/release/quest-for-nothing.wasm", "src/main.c", Platform_Wasm, release, false)) return 0;
+    if (!clang_compile(tmp, (Clang_Options) { "out/release/quest-for-nothing.elf", "src/main.c", Platform_Linux, release, false })) return 0;
+    if (!clang_compile(tmp, (Clang_Options) { "out/release/quest-for-nothing.exe", "src/main.c", Platform_Windows, release, false })) return 0;
+    if (!clang_compile(tmp, (Clang_Options) { "out/release/quest-for-nothing.wasm", "src/main.c", Platform_Wasm, release, false })) return 0;
 
     sdl2_download_dll();
 #if OS_IS_WINDOWS
@@ -141,9 +61,8 @@ static bool build_release(Memory *tmp, bool release) {
 // Implementation
 // typedef void os_main_t(OS *os);
 
-static char *build_and_load(Memory *tmp, char *main_path, u64 counter) {
+static char *build_and_load(Memory *tmp, char *main_path) {
     // Generate 'asset.h'
-
 #if OS_IS_WINDOWS
     sdl2_download_dll();
 #endif
@@ -153,7 +72,17 @@ static char *build_and_load(Memory *tmp, char *main_path, u64 counter) {
 #else
     char *out_path = tmpfs_path(tmp, "out/tmp", "hot.so");
 #endif
-    bool ok = build_single(tmp, out_path, main_path, Platform_Linux, false, true);
+
+    bool ok = clang_compile(
+        tmp,
+        (Clang_Options){
+            .output_path = out_path,
+            .input_path = main_path,
+            .platform = Platform_Linux,
+            .release = false,
+            .dynamic = true,
+        }
+    );
 
     if (!ok) {
         fmt_s(G->fmt, "Compile error!\n");
@@ -240,8 +169,10 @@ static App *build_init(void) {
         Include_Graph *graph = include_graph_new(mem);
         include_graph_read_dir(graph, "src", "red");
         include_graph_read_dir(graph, "lib", "blue");
+        include_graph_read_dir(graph, "app_build", "green");
+        include_graph_read_dir(graph, "app_qfn", "green");
         include_graph_tred(graph);
-        include_graph_rank(graph);
+        // include_graph_rank(graph);
         include_graph_fmt(graph, G->fmt);
         os_exit(0);
     } else {
@@ -278,7 +209,7 @@ static void os_main(void) {
 
     if (hot->action_run) {
         if (changed) {
-            char *so_path = build_and_load(tmp, hot->main_path, rand_next(&hot->rng));
+            char *so_path = build_and_load(tmp, hot->main_path);
             hot_load(hot->hot, so_path);
         }
 
