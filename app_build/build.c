@@ -1,5 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // build.c - Dynamically compile and reload interactive programs
+#include "clang.h"
 #include "cli.h"
 #include "fmt.h"
 #include "fs.h"
@@ -11,7 +12,6 @@
 #include "tmpfs.h"
 #include "types.h"
 #include "watch.h"
-#include "clang.h"
 
 // Check if file exists
 static bool os_exists(char *path) {
@@ -35,16 +35,16 @@ static void sdl2_download_dll(void) {
 }
 
 static bool build_debug(Memory *tmp) {
-    if (!clang_compile(tmp, (Clang_Options) { "out/build", "src/build.c", Platform_Linux, false, false})) return 0;
-    if (!clang_compile(tmp, (Clang_Options){  "out/main", "src/main.c", Platform_Linux, false, false})) return 0;
+    if (!clang_compile(tmp, (Clang_Options){"out/build", "src/build.c", Platform_Linux, false, false})) return 0;
+    if (!clang_compile(tmp, (Clang_Options){"out/main", "src/main.c", Platform_Linux, false, false})) return 0;
     return 1;
 }
 
 static bool build_release(Memory *tmp, bool release) {
     if (!os_system("mkdir -p out/release")) return 0;
-    if (!clang_compile(tmp, (Clang_Options) { "out/release/quest-for-nothing.elf", "src/main.c", Platform_Linux, release, false })) return 0;
-    if (!clang_compile(tmp, (Clang_Options) { "out/release/quest-for-nothing.exe", "src/main.c", Platform_Windows, release, false })) return 0;
-    if (!clang_compile(tmp, (Clang_Options) { "out/release/quest-for-nothing.wasm", "src/main.c", Platform_Wasm, release, false })) return 0;
+    if (!clang_compile(tmp, (Clang_Options){"out/release/quest-for-nothing.elf", "src/main.c", Platform_Linux, release, false})) return 0;
+    if (!clang_compile(tmp, (Clang_Options){"out/release/quest-for-nothing.exe", "src/main.c", Platform_Windows, release, false})) return 0;
+    if (!clang_compile(tmp, (Clang_Options){"out/release/quest-for-nothing.wasm", "src/main.c", Platform_Wasm, release, false})) return 0;
 
     sdl2_download_dll();
 #if OS_IS_WINDOWS
@@ -163,7 +163,7 @@ static App *build_init(void) {
         assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
         os_exit(0);
     } else if (cli_action(cli, "format", "", "Format code")) {
-        assert(os_system("clang-format --verbose -i {src,lib}/*.{h,c}"), "Format failed!");
+        assert(os_system("clang-format --verbose -i */*.{h,c}"), "Format failed!");
         os_exit(0);
     } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
         Include_Graph *graph = include_graph_new(mem);

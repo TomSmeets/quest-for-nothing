@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // clang.h - Wrapper for invoking clang
 #pragma once
-#include "mem.h"
 #include "fmt.h"
+#include "mem.h"
 
 // Target platform
 typedef enum {
@@ -20,9 +20,9 @@ typedef struct {
 } Clang_Options;
 
 static char *platform_to_string(Platform p) {
-    if(p ==  Platform_Linux) return "Linux";
-    if(p== Platform_Windows) return "Windows";
-    if(p== Platform_Wasm) return "Wasm";
+    if (p == Platform_Linux) return "Linux";
+    if (p == Platform_Windows) return "Windows";
+    if (p == Platform_Wasm) return "Wasm";
     return 0;
 }
 
