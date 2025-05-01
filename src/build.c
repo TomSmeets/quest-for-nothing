@@ -237,7 +237,13 @@ static App *build_init(void) {
         assert(os_system("clang-format --verbose -i {src,lib}/*.{h,c}"), "Format failed!");
         os_exit(0);
     } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
-        include_graph();
+        Graph *graph = mem_struct(mem, Graph);
+        graph->mem = mem;
+        graph_read_dir(graph, "src");
+        graph_read_dir(graph, "lib");
+        graph_tred(graph);
+        graph_rank(graph);
+        graph_fmt(graph, G->fmt);
         os_exit(0);
     } else {
         exit_with_help(cli);

@@ -29,13 +29,14 @@ struct Graph {
     Node *nodes;
 };
 
+// Get existing, or insert new node with a given name
 static Node *graph_node(Graph *graph, char *name) {
-    // Search
+    // Search for the node
     for (Node *node = graph->nodes; node; node = node->next) {
         if (str_eq(node->name, name)) return node;
     }
 
-    // Insert
+    // Insert a new node
     Node *node = mem_struct(graph->mem, Node);
     node->name = name;
     node->next = graph->nodes;
@@ -43,6 +44,7 @@ static Node *graph_node(Graph *graph, char *name) {
     return node;
 }
 
+// Append a directed edge from 'src' to 'dst'
 static void graph_link(Graph *graph, Node *src, Node *dst) {
     Edge *edge = mem_struct(graph->mem, Edge);
     edge->link = dst;
@@ -50,6 +52,8 @@ static void graph_link(Graph *graph, Node *src, Node *dst) {
     src->edges = edge;
 }
 
+// Write the graph in 'dot' notation
+// to the given output stream
 static void graph_fmt(Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "digraph {\n");
     fmt_s(fmt, "  layout=dot;\n");
@@ -94,28 +98,23 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "}\n");
 }
 
-// Transitive Reduction:
-//
-// for (a, b) in edges
-//   for n in dfs(b)
-//       del(a,n)
-
-// Mark link as transitive
+// Mark edge as transitive
 static void graph_unlink(Node *src, Node *dst) {
     for (Edge *edge = src->edges; edge; edge = edge->next) {
         if (edge->link == dst) edge->transitive = true;
     }
 }
 
+// Mark all transitive links that start at 'src'
 static void graph_tred_dfs(Node *src, Node *node) {
     for (Edge *edge = node->edges; edge; edge = edge->next) {
         Node *dst = edge->link;
         graph_unlink(src, dst);
-
         if (!edge->transitive) graph_tred_dfs(src, dst);
     }
 }
 
+// Mark all transitive edges in the graph
 static void graph_tred(Graph *graph) {
     for (Node *node = graph->nodes; node; node = node->next) {
         for (Edge *edge = node->edges; edge; edge = edge->next) {
@@ -125,26 +124,40 @@ static void graph_tred(Graph *graph) {
     }
 }
 
+// Create a ranking where all nodes in a given rank only depend on nodes in a lower rank
+// For every edge (a, b) -> (a.rank > b.rank)
 static void graph_rank(Graph *graph) {
     for (;;) {
         bool changed = false;
         for (Node *node = graph->nodes; node; node = node->next) {
             for (Edge *edge = node->edges; edge; edge = edge->next) {
                 Node *other = edge->link;
+
+                // Our rank should be at least one higher than our child node's rank
                 u32 rank = other->rank + 1;
                 if (rank > node->rank) {
+                    // A child has a rank equal or higher than our rank,
+                    // Our rank should increase
                     node->rank = rank;
                     changed = true;
                 }
+
+                // Update total number of ranks (if needed)
                 if (rank + 1 > graph->rank_count) {
                     graph->rank_count = rank + 1;
                 }
             }
         }
+
+        // Just keep going until a stable configuration has been found
         if (!changed) break;
     }
 }
 
+
+// Append a new node to the graph
+// A Node is added for the file
+// An edge is added for every '#include'
 static void graph_read_file(Graph *graph, char *path, char *name) {
     // Read file
     Read *read = read_new(graph->mem, path);
@@ -180,6 +193,7 @@ static void graph_read_file(Graph *graph, char *path, char *name) {
     read_close(read);
 }
 
+// Add a node for every .h or .c file
 static void graph_read_dir(Graph *graph, char *path) {
     for (FS_Dir *file = fs_list(graph->mem, path); file; file = file->next) {
         if (file->is_dir) continue;
@@ -202,17 +216,4 @@ static void graph_read_dir(Graph *graph, char *path) {
 
         graph_read_file(graph, full_path, file->name);
     }
-}
-
-// Generate Include Dot Graph
-static void include_graph(void) {
-    Memory *mem = mem_new();
-    Graph *graph = mem_struct(mem, Graph);
-    graph->mem = mem;
-    graph_read_dir(graph, "src");
-    graph_read_dir(graph, "lib");
-    graph_tred(graph);
-    graph_rank(graph);
-    graph_fmt(graph, G->fmt);
-    mem_free(mem);
 }
