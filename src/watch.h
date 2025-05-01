@@ -21,7 +21,7 @@ struct Watch {
 };
 
 static bool watch_add(Watch *watch, char *path) {
-    if(watch->count == 0) {
+    if (watch->count == 0) {
         watch->fd = linux_inotify_init(O_NONBLOCK);
         assert(watch->fd >= 0, "Could not init inotify");
     }

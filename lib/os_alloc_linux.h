@@ -3,6 +3,7 @@
 #pragma once
 #include "os_api.h"
 #include "types.h"
+#include "str.h"
 
 // On Linux, we can use the 'mmap' system-call.
 // mmap can also map files to memory, which is not used in this case.
@@ -23,7 +24,11 @@ static void *os_alloc(u32 size) {
     return ret;
 }
 
+static void linux_puts(char *str) {
+    linux_write(1, str, str_len(str));
+}
+
 static void os_fail(char *message) {
-    linux_write(1, message, str_len(message));
+    linux_puts(message);
     linux_exit_group(1);
 }

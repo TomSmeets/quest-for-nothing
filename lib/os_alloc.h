@@ -12,8 +12,10 @@ static void *os_alloc(u32 size);
 // Kill the current process with an error message
 static void os_fail(char *message);
 
+#define TO_STRING0(x) #x
+#define TO_STRING(x) TO_STRING0(x)
 #define assert(cond, msg)                                                                                                                            \
-    if (!(cond)) os_fail("Assertion failed: " #cond " " msg "\n")
+    if (!(cond)) os_fail(__FILE__ ":" TO_STRING(__LINE__) ": assert(" #cond ") failed, " msg "\n")
 
 // Platform Implementations
 #if OS_IS_LINUX
