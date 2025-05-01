@@ -5,12 +5,14 @@
 #include "mem.h"
 #include "os_api.h"
 
-static FS_Dir *fs_list(struct Memory *mem, char *path);
-static void fs_remove(char *path);
 static void fs_mkdir(char *path);
+static void fs_remove(char *path);
+static FS_Dir *fs_list(struct Memory *mem, char *path);
 
 #if OS_IS_LINUX
 #include "fs_linux.h"
+#elif OS_IS_WINDOWS
+#include "fs_windows.h"
 #else
 #error FS is not implemented for this platform
 #endif

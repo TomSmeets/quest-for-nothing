@@ -6,6 +6,10 @@
 #include "os_api.h"
 #include "str_mem.h"
 
+static void fs_mkdir(char *path) {
+    linux_mkdir(path, 0777);
+}
+
 static void fs_remove(char *path) {
     linux_unlink(path);
 }
@@ -55,8 +59,4 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
 
     linux_close(dir);
     return first;
-}
-
-static void fs_mkdir(char *path) {
-    linux_mkdir(path, 0777);
 }
