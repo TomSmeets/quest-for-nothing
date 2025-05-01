@@ -2,8 +2,8 @@
 // os_alloc_linux.h - Minimal OS functinality implemented for Linux
 #pragma once
 #include "os_api.h"
-#include "types.h"
 #include "str.h"
+#include "types.h"
 
 // On Linux, we can use the 'mmap' system-call.
 // mmap can also map files to memory, which is not used in this case.
