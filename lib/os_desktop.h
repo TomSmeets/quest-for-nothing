@@ -6,7 +6,6 @@
 
 static File *os_open(char *path, OS_Open_Type type);
 static void os_close(File *file);
-
 static u32 os_read(File *file, u8 *data, u32 len);
 // os_write is defined in os_base
 
@@ -18,6 +17,7 @@ static File *os_dlopen(char *path);
 static void *os_dlsym(File *handle, char *name);
 static char *os_dlerror(void);
 
+// Run system command
 static bool os_system(char *command);
 
 #if OS_IS_LINUX
