@@ -5,40 +5,46 @@
 #include "read.h"
 #include "str_mem.h"
 
-typedef struct Edge Edge;
-typedef struct Graph Graph;
-typedef struct Node Node;
+typedef struct Include_Edge Include_Edge;
+typedef struct Include_Graph Include_Graph;
+typedef struct Include_Node Include_Node;
 
-struct Edge {
-    Node *link;
+struct Include_Edge {
+    Include_Node *link;
     bool transitive;
-    Edge *next;
+    Include_Edge *next;
 };
 
-struct Node {
+struct Include_Node {
     char *name;
     u32 size;
     u32 rank;
     char *color;
-    Edge *edges;
-    Node *next;
+    Include_Edge *edges;
+    Include_Node *next;
 };
 
-struct Graph {
+struct Include_Graph {
     Memory *mem;
     u32 rank_count;
-    Node *nodes;
+    Include_Node *nodes;
 };
 
+static Include_Graph *include_graph_new(Memory *mem) {
+    Include_Graph *graph = mem_struct(mem, Include_Graph);
+    graph->mem = mem;
+    return graph;
+}
+
 // Get existing, or insert new node with a given name
-static Node *graph_node(Graph *graph, char *name) {
+static Include_Node *include_graph_node(Include_Graph *graph, char *name) {
     // Search for the node
-    for (Node *node = graph->nodes; node; node = node->next) {
+    for (Include_Node *node = graph->nodes; node; node = node->next) {
         if (str_eq(node->name, name)) return node;
     }
 
     // Insert a new node
-    Node *node = mem_struct(graph->mem, Node);
+    Include_Node *node = mem_struct(graph->mem, Include_Node);
     node->name = name;
     node->next = graph->nodes;
     graph->nodes = node;
@@ -46,8 +52,8 @@ static Node *graph_node(Graph *graph, char *name) {
 }
 
 // Append a directed edge from 'src' to 'dst'
-static void graph_link(Graph *graph, Node *src, Node *dst) {
-    Edge *edge = mem_struct(graph->mem, Edge);
+static void include_graph_link(Include_Graph *graph, Include_Node *src, Include_Node *dst) {
+    Include_Edge *edge = mem_struct(graph->mem, Include_Edge);
     edge->link = dst;
     edge->next = src->edges;
     src->edges = edge;
@@ -55,7 +61,7 @@ static void graph_link(Graph *graph, Node *src, Node *dst) {
 
 // Write the graph in 'dot' notation
 // to the given output stream
-static void graph_fmt(Graph *graph, Fmt *fmt) {
+static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "digraph {\n");
     fmt_s(fmt, "  layout=dot;\n");
     fmt_s(fmt, "  ranksep=1.0;\n");
@@ -65,7 +71,7 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
     for (u32 i = 0; i < graph->rank_count; ++i) {
         fmt_s(fmt, "  { rank=same;");
 
-        for (Node *node = graph->nodes; node; node = node->next) {
+        for (Include_Node *node = graph->nodes; node; node = node->next) {
             if (node->rank != i) continue;
             fmt_s(fmt, node->name);
             fmt_s(fmt, "; ");
@@ -74,14 +80,14 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
         fmt_s(fmt, "}\n");
     }
 
-    for (Node *node = graph->nodes; node; node = node->next) {
+    for (Include_Node *node = graph->nodes; node; node = node->next) {
         fmt_s(fmt, "  ");
         fmt_s(fmt, node->name);
         fmt_s(fmt, "[");
         if (node->color) fmt_ss(fmt, "color=", node->color, "");
         fmt_s(fmt, "];\n");
 
-        for (Edge *edge = node->edges; edge; edge = edge->next) {
+        for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
             if (edge->transitive) continue;
 
             fmt_s(fmt, "  ");
@@ -101,39 +107,39 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
 }
 
 // Mark edge as transitive
-static void graph_unlink(Node *src, Node *dst) {
-    for (Edge *edge = src->edges; edge; edge = edge->next) {
+static void include_graph_unlink(Include_Node *src, Include_Node *dst) {
+    for (Include_Edge *edge = src->edges; edge; edge = edge->next) {
         if (edge->link == dst) edge->transitive = true;
     }
 }
 
 // Mark all transitive links that start at 'src'
-static void graph_tred_dfs(Node *src, Node *node) {
-    for (Edge *edge = node->edges; edge; edge = edge->next) {
-        Node *dst = edge->link;
-        graph_unlink(src, dst);
-        if (!edge->transitive) graph_tred_dfs(src, dst);
+static void include_graph_tred_dfs(Include_Node *src, Include_Node *node) {
+    for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
+        Include_Node *dst = edge->link;
+        include_graph_unlink(src, dst);
+        if (!edge->transitive) include_graph_tred_dfs(src, dst);
     }
 }
 
 // Mark all transitive edges in the graph
-static void graph_tred(Graph *graph) {
-    for (Node *node = graph->nodes; node; node = node->next) {
-        for (Edge *edge = node->edges; edge; edge = edge->next) {
+static void include_graph_tred(Include_Graph *graph) {
+    for (Include_Node *node = graph->nodes; node; node = node->next) {
+        for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
             if (edge->transitive) continue;
-            graph_tred_dfs(node, edge->link);
+            include_graph_tred_dfs(node, edge->link);
         }
     }
 }
 
 // Create a ranking where all nodes in a given rank only depend on nodes in a lower rank
 // For every edge (a, b) -> (a.rank > b.rank)
-static void graph_rank(Graph *graph) {
+static void include_graph_rank(Include_Graph *graph) {
     for (;;) {
         bool changed = false;
-        for (Node *node = graph->nodes; node; node = node->next) {
-            for (Edge *edge = node->edges; edge; edge = edge->next) {
-                Node *other = edge->link;
+        for (Include_Node *node = graph->nodes; node; node = node->next) {
+            for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
+                Include_Node *other = edge->link;
 
                 // Our rank should be at least one higher than our child node's rank
                 u32 rank = other->rank + 1;
@@ -157,12 +163,12 @@ static void graph_rank(Graph *graph) {
 }
 
 // Append a new node to the graph
-// A Node is added for the file
+// A Include_Node is added for the file
 // An edge is added for every '#include'
-static Node *graph_read_file(Graph *graph, char *path, char *name) {
+static Include_Node *include_graph_read_file(Include_Graph *graph, char *path, char *name) {
     // Read file
     Read *read = read_new(graph->mem, path);
-    Node *node = graph_node(graph, name);
+    Include_Node *node = include_graph_node(graph, name);
 
     u32 line_count = 0;
     for (;;) {
@@ -187,8 +193,8 @@ static Node *graph_read_file(Graph *graph, char *path, char *name) {
         if (str_ends_with(line, ".h") || str_ends_with(line, ".c")) {
             line[str_len(line) - 2] = 0;
         }
-        Node *dst = graph_node(graph, line);
-        graph_link(graph, node, dst);
+        Include_Node *dst = include_graph_node(graph, line);
+        include_graph_link(graph, node, dst);
     }
     node->size = line_count;
     read_close(read);
@@ -196,7 +202,7 @@ static Node *graph_read_file(Graph *graph, char *path, char *name) {
 }
 
 // Add a node for every .h or .c file
-static void graph_read_dir(Graph *graph, char *path, char *color) {
+static void include_graph_read_dir(Include_Graph *graph, char *path, char *color) {
     for (FS_Dir *file = fs_list(graph->mem, path); file; file = file->next) {
         if (file->is_dir) continue;
 
@@ -216,7 +222,7 @@ static void graph_read_dir(Graph *graph, char *path, char *color) {
             file->name[str_len(file->name) - 2] = 0;
         }
 
-        Node *node = graph_read_file(graph, full_path, file->name);
+        Include_Node *node = include_graph_read_file(graph, full_path, file->name);
         node->color = color;
     }
 }
