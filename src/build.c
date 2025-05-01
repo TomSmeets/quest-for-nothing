@@ -239,8 +239,8 @@ static App *build_init(void) {
     } else if (cli_action(cli, "include-graph", "", "Generate Include graph")) {
         Graph *graph = mem_struct(mem, Graph);
         graph->mem = mem;
-        graph_read_dir(graph, "src");
-        graph_read_dir(graph, "lib");
+        graph_read_dir(graph, "src", "red");
+        graph_read_dir(graph, "lib", "blue");
         graph_tred(graph);
         graph_rank(graph);
         graph_fmt(graph, G->fmt);

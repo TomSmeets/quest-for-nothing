@@ -19,6 +19,7 @@ struct Node {
     char *name;
     u32 size;
     u32 rank;
+    char *color;
     Edge *edges;
     Node *next;
 };
@@ -77,6 +78,7 @@ static void graph_fmt(Graph *graph, Fmt *fmt) {
         fmt_s(fmt, "  ");
         fmt_s(fmt, node->name);
         fmt_s(fmt, "[");
+        if (node->color) fmt_ss(fmt, "color=", node->color, "");
         fmt_s(fmt, "];\n");
 
         for (Edge *edge = node->edges; edge; edge = edge->next) {
@@ -154,11 +156,10 @@ static void graph_rank(Graph *graph) {
     }
 }
 
-
 // Append a new node to the graph
 // A Node is added for the file
 // An edge is added for every '#include'
-static void graph_read_file(Graph *graph, char *path, char *name) {
+static Node *graph_read_file(Graph *graph, char *path, char *name) {
     // Read file
     Read *read = read_new(graph->mem, path);
     Node *node = graph_node(graph, name);
@@ -191,10 +192,11 @@ static void graph_read_file(Graph *graph, char *path, char *name) {
     }
     node->size = line_count;
     read_close(read);
+    return node;
 }
 
 // Add a node for every .h or .c file
-static void graph_read_dir(Graph *graph, char *path) {
+static void graph_read_dir(Graph *graph, char *path, char *color) {
     for (FS_Dir *file = fs_list(graph->mem, path); file; file = file->next) {
         if (file->is_dir) continue;
 
@@ -204,7 +206,7 @@ static void graph_read_dir(Graph *graph, char *path) {
         if (!is_c_file && !is_h_file) continue;
 
         // Don't scan opengl api, it is quite big.
-        if (str_eq(file->name, "ogl_api.h")) continue;
+        // if (str_eq(file->name, "ogl_api.h")) continue;
 
         // Full Path
         char *full_path = str_cat3(graph->mem, path, "/", file->name);
@@ -214,6 +216,7 @@ static void graph_read_dir(Graph *graph, char *path) {
             file->name[str_len(file->name) - 2] = 0;
         }
 
-        graph_read_file(graph, full_path, file->name);
+        Node *node = graph_read_file(graph, full_path, file->name);
+        node->color = color;
     }
 }
