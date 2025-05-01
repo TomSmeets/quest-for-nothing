@@ -244,7 +244,8 @@ static App *build_init(void) {
     }
 
     // Init inotify
-    watch_init(&hot->watch, "src");
+    watch_add(&hot->watch, "lib");
+    watch_add(&hot->watch, "src");
     hot->first_time = 1;
     hot->rng = rand_fork(G->rand);
     mem_free(tmp);
@@ -264,7 +265,7 @@ static void os_main(void) {
 
     Memory *tmp = mem_new();
 
-    bool changed = watch_changed(&hot->watch) || hot->first_time;
+    bool changed = watch_check(&hot->watch) || hot->first_time;
     hot->first_time = 0;
 
     // Default update rate

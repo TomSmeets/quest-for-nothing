@@ -6,29 +6,36 @@
 #include "os_main.h"
 #include "types.h"
 
-typedef struct {
-    File *handle;
-} Watch;
+typedef struct Watch Watch;
 
-static void watch_init(Watch *watch, char *path);
-static bool watch_changed(Watch *watch);
+// Add file or directory to watcher
+static bool watch_add(Watch *watch, char *path);
+
+// Check for changes
+static bool watch_check(Watch *watch);
 
 #if OS_IS_LINUX
-static void watch_init(Watch *watch, char *path) {
-    i32 fd = linux_inotify_init(O_NONBLOCK);
-    assert(fd >= 0, "Could not init inotify");
-    watch->handle = fd_to_file(fd);
+struct Watch {
+    u32 count;
+    i32 fd;
+};
 
-    i32 wd = linux_inotify_add_watch(fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
-    assert(wd >= 0, "inotify_add_watch");
+static bool watch_add(Watch *watch, char *path) {
+    if(watch->count == 0) {
+        watch->fd = linux_inotify_init(O_NONBLOCK);
+        assert(watch->fd >= 0, "Could not init inotify");
+    }
+
+    i32 wd = linux_inotify_add_watch(watch->fd, path, IN_MODIFY | IN_CREATE | IN_DELETE);
+    assert(wd >= 0, "Filed to add path to watch");
+    watch->count++;
+    return true;
 }
 
-static bool watch_changed_quick(Watch *watch) {
-    int fd = fd_from_file(watch->handle);
+static bool watch_check_single(Watch *watch) {
     for (;;) {
         u8 buffer[sizeof(struct inotify_event) + NAME_MAX + 1];
-
-        i64 length = linux_read(fd, buffer, sizeof(buffer));
+        i64 length = linux_read(watch->fd, buffer, sizeof(buffer));
 
         // No more data
         if (length == -EAGAIN) {
@@ -37,19 +44,19 @@ static bool watch_changed_quick(Watch *watch) {
 
         // Some other error
         if (length < 0) {
-            fmt_s(G->fmt, "Failed to read data from watch\n");
+            fmt_s(G->fmt, "[E] Failed to read data from watch\n");
             return false;
         }
 
         // Change!
         struct inotify_event *event = (struct inotify_event *)buffer;
-        fmt_ss(G->fmt, "changed: ", event->name, "\n");
+        fmt_ss(G->fmt, "[D] changed: ", event->name, "\n");
         return true;
     }
 }
 
-static bool watch_changed(Watch *watch) {
-    if (!watch_changed_quick(watch)) return false;
+static bool watch_check(Watch *watch) {
+    if (!watch_check_single(watch)) return false;
 
     // Something changed, debounce
     for (;;) {
@@ -57,30 +64,34 @@ static bool watch_changed(Watch *watch) {
         os_sleep(50 * 1000);
 
         // No more changes
-        if (!watch_changed_quick(watch)) return true;
+        if (!watch_check_single(watch)) return true;
 
         // Something changed, clear buffer and debounce again
-        while (watch_changed_quick(watch));
+        while (watch_check_single(watch));
     }
 }
 #elif OS_IS_WINDOWS
-static void watch_init(Watch *watch, char *path) {
+struct Watch {
+    u32 count;
+    HANDLE handle[16];
+};
+
+static bool watch_add(Watch *watch, char *path) {
     HANDLE handle = FindFirstChangeNotification(path, TRUE, FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_SIZE);
     assert(handle != INVALID_HANDLE_VALUE, "Could not init FindFirstChangeNotification");
-    watch->handle = handle;
+    assert(watch->count < array_count(watch->handle), "No more space for watch handles");
+    watch->handle[watch->count++] = handle;
+    return true;
 }
 
-static bool watch_changed(Watch *watch) {
-    DWORD wait_status = WaitForSingleObject(watch->handle, 0);
+static bool watch_check_timeout(Watch *watch, u32 timeout) {
+    DWORD wait_result = WaitForMultipleObjects(watch->count, watch->handle, FALSE, timeout);
+    return wait_result >= WAIT_OBJECT_0 && wait_result < WAIT_OBJECT_0 + watch->count;
+}
 
-    if (wait_status != WAIT_OBJECT_0) return false;
-
-    for (;;) {
-        FindNextChangeNotification(watch->handle);
-        DWORD wait_status = WaitForSingleObject(watch->handle, 100);
-        if (wait_status != WAIT_OBJECT_0) break;
-    }
-
+static bool watch_check(Watch *watch) {
+    if (!watch_check_timeout(watch, 0)) return false;
+    while (watch_check_timeout(watch, 100));
     return true;
 }
 #endif
