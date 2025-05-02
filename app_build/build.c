@@ -14,7 +14,7 @@
 #include "watch.h"
 
 // Check if file exists
-static bool os_exists(char *path) {
+static bool fs_exists(char *path) {
     File *f = os_open(path, Open_Read);
     if (!f) return false;
     os_close(f);
@@ -23,7 +23,7 @@ static bool os_exists(char *path) {
 
 static void sdl2_download_dll(void) {
     // Skip if already downloaded
-    if (os_exists("out/SDL2.dll")) return;
+    if (fs_exists("out/SDL2.dll")) return;
 
     // Download sdl2
     os_system("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip");
@@ -98,8 +98,6 @@ struct App {
     // Run and hot reload single executable
     bool action_run;
     char *main_path;
-    // OS *child_os;
-    // os_main_t *update;
 
     // Build everything
     bool action_build;
