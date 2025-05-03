@@ -110,6 +110,7 @@ struct App {
     bool do_hot;
     Hot *hot;
     char *hot_path;
+    char *hot_output;
     u32 hot_argc;
     char **hot_argv;
     Fmt hot_output_fmt;
@@ -218,10 +219,15 @@ static void os_main(void) {
         G->app->first = false;
         if (G->app->do_build) clang_compile(tmp, G->app->build_opts);
         if (G->app->do_hot) {
+            if(G->app->hot_output) {
+                fs_remove(G->app->hot_output);
+            }
+
             Fmt *fmt = &G->app->hot_output_fmt;
             fmt->used = 0;
             fmt_su(fmt, "out/hot_", os_time(), ".so");
             char *out_path = fmt_close(fmt);
+            G->app->hot_output = out_path;
             fmt_ss(G->fmt, "OUT: ", out_path, "\n");
             if (clang_compile(
                     tmp,
