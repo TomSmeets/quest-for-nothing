@@ -109,3 +109,7 @@ How does hot reloading work?
 
 - Don't use globals, they are reset on reload. If needed manually update the global on every reload. (See `OS_GLOBAL`)
 - Don't use libc malloc/free, it uses globals. (malloc will work, but free probably not)
+
+# Module structure
+
+![](include_graph.svg)
