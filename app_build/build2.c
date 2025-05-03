@@ -1,6 +1,7 @@
 #include "clang.h"
 #include "fmt.h"
 #include "hot.h"
+#include "include_graph.h"
 #include "os_main.h"
 #include "watch.h"
 
@@ -92,7 +93,7 @@ static void cli_show_usage(Cli *cli, Fmt *fmt) {
         fmt_s(fmt, "    ");
         u32 cur = fmt_cursor(fmt);
         fmt_s(fmt, cli->option_list[i][0]);
-        fmt_pad(fmt, cur, ' ', 12, false);
+        fmt_pad(fmt, cur, ' ', 16, false);
         fmt_s(fmt, cli->option_list[i][1]);
         fmt_s(fmt, "\n");
     }
@@ -161,6 +162,10 @@ static void os_main(void) {
 
         if (cli_flag(&cli, "run", "Run an application with dynamic hot reloading")) {
             char *input_path = cli_value(&cli, "<INPUT>", "Input file");
+            if(!input_path) {
+                cli_show_usage(&cli, G->fmt);
+                os_exit(1);
+            }
 
             G->app->hot_path = input_path;
             G->app->hot_argv = cli.argv + cli.ix - 1;
@@ -182,6 +187,16 @@ static void os_main(void) {
                 os_exit(1);
             }
             G->app->do_build = true;
+        } else if (cli_flag(&cli, "include-graph", "Generate Include graph")) {
+            Include_Graph *graph = include_graph_new(mem);
+            include_graph_read_dir(graph, "src", "red");
+            include_graph_read_dir(graph, "lib", "blue");
+            include_graph_read_dir(graph, "app_build", "green");
+            include_graph_read_dir(graph, "app_qfn", "green");
+            include_graph_tred(graph);
+            // include_graph_rank(graph);
+            include_graph_fmt(graph, G->fmt);
+            os_exit(0);
         } else {
             cli_show_usage(&cli, G->fmt);
             os_exit(1);
