@@ -50,7 +50,7 @@ static bool watch_check_single(Watch *watch) {
 
         // Change!
         struct inotify_event *event = (struct inotify_event *)buffer;
-        fmt_ss(G->fmt, "[D] changed: ", event->name, "\n");
+        // fmt_ss(G->fmt, "[D] changed: ", event->name, "\n");
         return true;
     }
 }
