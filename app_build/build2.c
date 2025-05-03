@@ -162,7 +162,7 @@ static void os_main(void) {
 
         if (cli_flag(&cli, "run", "Run an application with dynamic hot reloading")) {
             char *input_path = cli_value(&cli, "<INPUT>", "Input file");
-            if(!input_path) {
+            if (!input_path) {
                 cli_show_usage(&cli, G->fmt);
                 os_exit(1);
             }
