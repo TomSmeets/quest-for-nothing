@@ -1,103 +1,10 @@
 #include "clang.h"
+#include "cli2.h"
 #include "fmt.h"
 #include "hot.h"
 #include "include_graph.h"
 #include "os_main.h"
 #include "watch.h"
-
-typedef struct Cli Cli;
-struct Cli {
-    u32 ix;
-    u32 argc;
-    char **argv;
-
-    u32 option_count;
-    char *option_list[64][2];
-};
-
-static void cli_debug(Cli *cli, Fmt *fmt) {
-    for (u32 i = 0; i < cli->argc; ++i) {
-        fmt_su(fmt, "[", i, "] ");
-        fmt_s(fmt, cli->argv[i]);
-        fmt_s(fmt, "\n");
-    }
-}
-
-static char *cli_read(Cli *cli) {
-    if (cli->ix == cli->argc) return 0;
-    return cli->argv[cli->ix];
-}
-
-static char *cli_next(Cli *cli) {
-    if (cli->ix == cli->argc) return 0;
-    return cli->argv[cli->ix++];
-}
-
-static bool cli_flag(Cli *cli, char *name, char *description) {
-    if (cli->option_count < array_count(cli->option_list)) {
-        cli->option_list[cli->option_count][0] = name;
-        cli->option_list[cli->option_count][1] = description;
-        cli->option_count++;
-    }
-
-    char *arg = cli_read(cli);
-    if (!arg) return false;
-
-    if (str_eq(arg, name)) {
-        cli->option_count = 0;
-        cli_next(cli);
-        return true;
-    }
-
-    return false;
-}
-
-static char *cli_value(Cli *cli, char *name, char *description) {
-    cli->option_count = 1;
-    cli->option_list[0][0] = name;
-    cli->option_list[0][1] = description;
-    return cli_next(cli);
-}
-
-static void cli_show_usage(Cli *cli, Fmt *fmt) {
-    u32 pos = 0;
-    u32 len = 0;
-
-    for (u32 i = 0; i < cli->argc + 1; ++i) {
-        if (i == cli->ix) {
-            pos = fmt_cursor(fmt);
-
-            if (i < cli->argc) {
-                len = str_len(cli->argv[i]);
-            } else {
-                len = 1;
-            }
-        }
-
-        if (i < cli->argc) {
-            fmt_s(fmt, cli->argv[i]);
-            fmt_s(fmt, " ");
-        }
-    }
-    fmt_s(fmt, "\n");
-    for (u32 i = 0; i < pos; ++i) {
-        fmt_s(fmt, " ");
-    }
-    for (u32 i = 0; i < len; ++i) {
-        fmt_s(fmt, "^");
-    }
-    fmt_s(fmt, "\n");
-
-    fmt_s(fmt, "Expecting one of:\n");
-    for (u32 i = 0; i < cli->option_count; ++i) {
-        fmt_s(fmt, "    ");
-        u32 cur = fmt_cursor(fmt);
-        fmt_s(fmt, cli->option_list[i][0]);
-        fmt_pad(fmt, cur, ' ', 16, false);
-        fmt_s(fmt, cli->option_list[i][1]);
-        fmt_s(fmt, "\n");
-    }
-}
 
 struct App {
     Watch watch;
@@ -147,19 +54,12 @@ static bool build_read_opts(Cli *cli, Clang_Options *opts) {
 
 static void os_main(void) {
     Memory *tmp = mem_new();
-
-    if (!G->app) {
+    App *app = G->app;
+    if (!app) {
         Memory *mem = mem_new();
-        G->app = mem_struct(mem, App);
+        app = G->app = mem_struct(mem, App);
 
-        Cli cli = {
-            .ix = 0,
-            .argc = G->os->argc,
-            .argv = G->os->argv,
-        };
-
-        // Exe name
-        cli_next(&cli);
+        Cli cli = cli_new(G->os->argc, G->os->argv);
 
         if (cli_flag(&cli, "run", "Run an application with dynamic hot reloading")) {
             char *input_path = cli_value(&cli, "<INPUT>", "Input file");
@@ -168,11 +68,11 @@ static void os_main(void) {
                 os_exit(1);
             }
 
-            G->app->hot_path = input_path;
-            G->app->hot_argv = cli.argv + cli.ix - 1;
-            G->app->hot_argc = cli.argc - cli.ix + 1;
-            G->app->hot = hot_new(mem, G->app->hot_argc, G->app->hot_argv);
-            G->app->do_hot = true;
+            app->hot_path = input_path;
+            app->hot_argv = cli.argv + cli.ix - 1;
+            app->hot_argc = cli.argc - cli.ix + 1;
+            app->hot = hot_new(mem, app->hot_argc, app->hot_argv);
+            app->do_hot = true;
         } else if (cli_flag(&cli, "format", "Run code formatter")) {
             assert(os_system("clang-format --verbose -i */*.{h,c}"), "Format failed!");
         } else if (cli_flag(&cli, "build", "Build an executable")) {
@@ -183,11 +83,11 @@ static void os_main(void) {
             }
             clang_compile(tmp, opts);
         } else if (cli_flag(&cli, "watch", "Build an executable and watch changes")) {
-            if (!build_read_opts(&cli, &G->app->build_opts)) {
+            if (!build_read_opts(&cli, &app->build_opts)) {
                 cli_show_usage(&cli, G->fmt);
                 os_exit(1);
             }
-            G->app->do_build = true;
+            app->do_build = true;
         } else if (cli_flag(&cli, "include-graph", "Generate Include graph")) {
             Include_Graph *graph = include_graph_new(mem);
             include_graph_read_dir(graph, "src", "red");
@@ -203,47 +103,47 @@ static void os_main(void) {
             os_exit(1);
         }
 
-        if (!G->app->do_build && !G->app->do_hot) {
+        if (!app->do_build && !app->do_hot) {
             os_exit(0);
         }
 
-        G->app->first = 1;
+        app->first = 1;
 
         // We keep going, so init watch
-        watch_add(&G->app->watch, "app_build");
-        watch_add(&G->app->watch, "src");
-        watch_add(&G->app->watch, "lib");
+        watch_add(&app->watch, "app_build");
+        watch_add(&app->watch, "src");
+        watch_add(&app->watch, "lib");
     }
 
-    if (watch_check(&G->app->watch) || G->app->first) {
-        G->app->first = false;
-        if (G->app->do_build) clang_compile(tmp, G->app->build_opts);
-        if (G->app->do_hot) {
-            if(G->app->hot_output) {
-                fs_remove(G->app->hot_output);
+    if (watch_check(&app->watch) || app->first) {
+        app->first = false;
+        if (app->do_build) clang_compile(tmp, app->build_opts);
+        if (app->do_hot) {
+            if (app->hot_output) {
+                fs_remove(app->hot_output);
             }
 
-            Fmt *fmt = &G->app->hot_output_fmt;
+            Fmt *fmt = &app->hot_output_fmt;
             fmt->used = 0;
             fmt_su(fmt, "out/hot_", os_time(), ".so");
             char *out_path = fmt_close(fmt);
-            G->app->hot_output = out_path;
+            app->hot_output = out_path;
             fmt_ss(G->fmt, "OUT: ", out_path, "\n");
             if (clang_compile(
                     tmp,
                     (Clang_Options){
-                        .input_path = G->app->hot_path,
+                        .input_path = app->hot_path,
                         .output_path = out_path,
                         .dynamic = true,
                     }
                 )) {
-                hot_load(G->app->hot, out_path);
+                hot_load(app->hot, out_path);
             };
         }
     }
 
-    if (G->app->do_hot) {
-        hot_update(G->app->hot);
+    if (app->do_hot) {
+        hot_update(app->hot);
     } else {
         G->os->sleep_time = 100 * 1000;
     }
