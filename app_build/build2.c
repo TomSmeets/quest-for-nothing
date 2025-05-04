@@ -52,6 +52,22 @@ static bool build_read_opts(Cli *cli, Clang_Options *opts) {
     return true;
 }
 
+static void build_format(void) {
+    bool result = os_system("clang-format --verbose -i */*.{h,c}");
+    assert(result, "Format failed!");
+}
+
+static void build_include_graph(Memory *mem) {
+    Include_Graph *graph = include_graph_new(mem);
+    include_graph_read_dir(graph, "src", "red");
+    include_graph_read_dir(graph, "lib", "blue");
+    include_graph_read_dir(graph, "app_build", "green");
+    include_graph_read_dir(graph, "app_qfn", "green");
+    include_graph_tred(graph);
+    // include_graph_rank(graph);
+    include_graph_fmt(graph, G->fmt);
+}
+
 static void os_main(void) {
     Memory *tmp = mem_new();
     App *app = G->app;
@@ -74,7 +90,7 @@ static void os_main(void) {
             app->hot = hot_new(mem, app->hot_argc, app->hot_argv);
             app->do_hot = true;
         } else if (cli_flag(&cli, "format", "Run code formatter")) {
-            assert(os_system("clang-format --verbose -i */*.{h,c}"), "Format failed!");
+            build_format();
         } else if (cli_flag(&cli, "build", "Build an executable")) {
             Clang_Options opts = {};
             if (!build_read_opts(&cli, &opts)) {
@@ -89,14 +105,9 @@ static void os_main(void) {
             }
             app->do_build = true;
         } else if (cli_flag(&cli, "include-graph", "Generate Include graph")) {
-            Include_Graph *graph = include_graph_new(mem);
-            include_graph_read_dir(graph, "src", "red");
-            include_graph_read_dir(graph, "lib", "blue");
-            include_graph_read_dir(graph, "app_build", "green");
-            include_graph_read_dir(graph, "app_qfn", "green");
-            include_graph_tred(graph);
-            // include_graph_rank(graph);
-            include_graph_fmt(graph, G->fmt);
+            build_include_graph(mem);
+        } else if (cli_flag(&cli, "serve", "Start a simple local python http server for testing wasm builds")) {
+            assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
             os_exit(0);
         } else {
             cli_show_usage(&cli, G->fmt);
