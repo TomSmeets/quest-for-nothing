@@ -151,6 +151,12 @@ static bool build_build(App *app, Cli *cli) {
     return true;
 }
 
+static bool build_serve(App *app, Cli *cli) {
+    if (!cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) return false;
+    assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
+    os_exit(0);
+}
+
 static void build_init(App *app, Cli *cli) {
     if (build_run(app, cli)) {
     } else if (build_format(app, cli)) {
