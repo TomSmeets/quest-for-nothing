@@ -70,7 +70,7 @@ static bool build_format(App *app, Cli *cli) {
 
 static bool build_include_graph(App *app, Cli *cli) {
     bool build = cli_flag(cli, "include-graph", "Generate Include graph");
-    if(!build) return false;
+    if (!build) return false;
     Include_Graph *graph = include_graph_new(app->tmp);
     include_graph_read_dir(graph, "src", "red");
     include_graph_read_dir(graph, "lib", "blue");
@@ -108,8 +108,7 @@ static bool build_run(App *app, Cli *cli) {
         app->hot = hot_new(app->mem, hot_argc, hot_argv);
     }
 
-
-    if(app->changed) {
+    if (app->changed) {
         // Remove previous output file
         if (app->hot_output) {
             fs_remove(app->hot_output);
@@ -138,8 +137,8 @@ static bool build_run(App *app, Cli *cli) {
 static bool build_build(App *app, Cli *cli) {
     bool build = cli_flag(cli, "build", "Build an executable");
     bool watch = cli_flag(cli, "watch", "Build an executable and watch changes");
-    if(!build && !watch) return false;
-    if(watch && !app->changed) return true;
+    if (!build && !watch) return false;
+    if (watch && !app->changed) return true;
 
     Clang_Options opts = {};
     if (!build_read_opts(cli, &opts)) {
@@ -148,7 +147,7 @@ static bool build_build(App *app, Cli *cli) {
     }
 
     clang_compile(app->mem, opts);
-    if(build) os_exit(0);
+    if (build) os_exit(0);
     return true;
 }
 
@@ -157,9 +156,9 @@ static void build_init(App *app, Cli *cli) {
     } else if (build_format(app, cli)) {
     } else if (build_build(app, cli)) {
     } else if (build_include_graph(app, cli)) {
-    // } else if (cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) {
-    //     assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
-    //     os_exit(0);
+        // } else if (cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) {
+        //     assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
+        //     os_exit(0);
     } else {
         cli_show_usage(cli, G->fmt);
         os_exit(1);
