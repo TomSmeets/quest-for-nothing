@@ -41,11 +41,13 @@ static FS_Dir *fs_list(Memory *mem, char *path) {
         if (len == 0) break;
 
         for (struct linux_dirent64 *ent = buffer; (void *)ent < buffer + len; ent = (void *)ent + ent->reclen) {
-            bool is_hidden = str_starts_with(ent->name, ".");
+            String name = str_from(ent->name);
+
+            bool is_hidden = str_starts_with(name, S("."));
             if (is_hidden) continue;
 
             FS_Dir *info = mem_struct(mem, FS_Dir);
-            info->name = str_dup(ent->name, mem);
+            info->name = str_clone(mem, name);
             info->is_dir = ent->type == DT_DIR;
             LIST_APPEND(first, last, info);
         }

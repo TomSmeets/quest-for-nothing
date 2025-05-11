@@ -40,7 +40,7 @@ static Include_Graph *include_graph_new(Memory *mem) {
 static Include_Node *include_graph_node(Include_Graph *graph, char *name) {
     // Search for the node
     for (Include_Node *node = graph->nodes; node; node = node->next) {
-        if (str_eq(node->name, name)) return node;
+        if (strz_eq(node->name, name)) return node;
     }
 
     // Insert a new node
@@ -173,26 +173,19 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, char *path, c
     u32 line_count = 0;
     for (;;) {
         char *buffer = mem_push_uninit(graph->mem, 1024);
-        char *line = read_line(read, buffer, 1024);
-        if (!line) break;
+        String line = str_from(read_line(read, buffer, 1024));
+        if (!line.len) break;
         line_count++;
 
-        char *prefix = "#include \"";
-        char *suffix = "\"";
-        if (!str_starts_with(line, prefix)) continue;
-        if (!str_ends_with(line, suffix)) continue;
-
-        u32 len = str_len(line);
-        line[len - str_len(suffix)] = 0;
-        line += str_len(prefix);
+        if(!str_drop_start_matching(&line, S("#include \""))) continue;
+        if(!str_drop_end_matching(&line, S("\""))) continue;
 
         // Ignore '../' paths
-        if (line[0] == '.') continue;
+        if (str_starts_with(line, S("."))) continue;
 
         // Remove '.c' and '.h'
-        if (str_ends_with(line, ".h") || str_ends_with(line, ".c")) {
-            line[str_len(line) - 2] = 0;
-        }
+        str_drop_end_matching(&line, S(".h")) || str_drop_end_matching(&line, S(".c"));
+
         Include_Node *dst = include_graph_node(graph, line);
         include_graph_link(graph, node, dst);
     }
