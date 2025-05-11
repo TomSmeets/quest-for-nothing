@@ -17,6 +17,10 @@ static void os_fail(char *message);
 #define assert(cond, msg)                                                                                                                            \
     if (!(cond)) os_fail(__FILE__ ":" TO_STRING(__LINE__) ": assert(" #cond ") failed, " msg "\n")
 
+// Assert wihtout a message
+#define assert0(cond)                                                                                                                                \
+    if (!(cond)) os_fail(__FILE__ ":" TO_STRING(__LINE__) ": assert(" #cond ") failed\n")
+
 // Platform Implementations
 #if OS_IS_LINUX
 #include "os_alloc_linux.h"
