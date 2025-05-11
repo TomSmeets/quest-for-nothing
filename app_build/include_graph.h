@@ -73,7 +73,7 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
 
         for (Include_Node *node = graph->nodes; node; node = node->next) {
             if (node->rank != i) continue;
-            fmt_s(fmt, node->name);
+            fmt_str(fmt, node->name);
             fmt_s(fmt, "; ");
         }
 
@@ -82,18 +82,21 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
 
     for (Include_Node *node = graph->nodes; node; node = node->next) {
         fmt_s(fmt, "  ");
-        fmt_s(fmt, node->name);
+        fmt_str(fmt, node->name);
         fmt_s(fmt, "[");
-        if (node->color) fmt_ss(fmt, "color=", node->color, "");
+        if (node->color.len) {
+            fmt_s(fmt, "color=");
+            fmt_str(fmt, node->color);
+        }
         fmt_s(fmt, "];\n");
 
         for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
             if (edge->transitive) continue;
 
             fmt_s(fmt, "  ");
-            fmt_s(fmt, node->name);
+            fmt_str(fmt, node->name);
             fmt_s(fmt, " -> ");
-            fmt_s(fmt, edge->link->name);
+            fmt_str(fmt, edge->link->name);
 
             if (edge->transitive) {
                 fmt_s(fmt, "[");
@@ -209,7 +212,7 @@ static void include_graph_read_dir(Include_Graph *graph, String path, String col
         // if (str_eq(file->name, "ogl_api.h")) continue;
 
         // Full Path
-        String full_path = str_cat3(graph->mem, str_from(path), S("/"), file->name);
+        String full_path = str_cat3(graph->mem, path, S("/"), file->name);
 
         // Remove extention
         file->name = name_no_ext;

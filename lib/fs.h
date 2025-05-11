@@ -5,9 +5,9 @@
 #include "mem.h"
 #include "os_api.h"
 
-static void fs_mkdir(char *path);
-static void fs_remove(char *path);
-static FS_Dir *fs_list(struct Memory *mem, char *path);
+static void fs_mkdir(String path);
+static void fs_remove(String path);
+static FS_Dir *fs_list(struct Memory *mem, String path);
 
 #if OS_IS_LINUX
 #include "fs_linux.h"

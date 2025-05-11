@@ -31,14 +31,14 @@ static Hot *hot_new(Memory *mem, u32 argc, char **argv) {
 
 // Load child program from path
 static bool hot_load(Hot *hot, char *path) {
-    void *handle = os_dlopen(path);
+    void *handle = os_dlopen(S(path));
 
     if (!handle) {
         fmt_ss(G->fmt, "dlopen: ", os_dlerror(), "\n");
         return 0;
     }
 
-    os_main_t *child_main = os_dlsym(handle, "os_main_dynamic");
+    os_main_t *child_main = os_dlsym(handle, S("os_main_dynamic"));
     if (!child_main) {
         fmt_ss(G->fmt, "dlsym: ", os_dlerror(), "\n");
         return 0;

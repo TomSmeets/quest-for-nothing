@@ -21,7 +21,7 @@ struct App {
 
     // Hot
     Hot *hot;
-    char *hot_output;
+    String hot_output;
     Fmt hot_output_fmt;
 
     // First time?
@@ -57,7 +57,7 @@ static bool build_read_opts(Cli *cli, Clang_Options *opts) {
 
 static bool build_format(App *app, Cli *cli) {
     if (!cli_flag(cli, "format", "Run code formatter")) return false;
-    bool result = os_system("clang-format --verbose -i */*.{h,c}");
+    bool result = os_system(S("clang-format --verbose -i */*.{h,c}"));
     assert(result, "Format failed!");
     os_exit(0);
     return true;
@@ -67,10 +67,10 @@ static bool build_include_graph(App *app, Cli *cli) {
     bool build = cli_flag(cli, "include-graph", "Generate Include graph");
     if (!build) return false;
     Include_Graph *graph = include_graph_new(app->tmp);
-    include_graph_read_dir(graph, "src", "red");
-    include_graph_read_dir(graph, "lib", "blue");
-    include_graph_read_dir(graph, "app_build", "green");
-    include_graph_read_dir(graph, "app_qfn", "green");
+    include_graph_read_dir(graph, S("src"), S("red"));
+    include_graph_read_dir(graph, S("lib"), S("blue"));
+    include_graph_read_dir(graph, S("app_build"), S("green"));
+    include_graph_read_dir(graph, S("app_qfn"), S("green"));
     include_graph_tred(graph);
     // include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
@@ -105,13 +105,13 @@ static bool build_run(App *app, Cli *cli) {
 
     if (app->changed) {
         // Remove previous output file
-        if (app->hot_output) {
+        if (app->hot_output.len) {
             fs_remove(app->hot_output);
         }
 
         // Format new output file
         char *out_path = hot_fmt(&app->hot_output_fmt);
-        app->hot_output = out_path;
+        app->hot_output = str_from(out_path);
         fmt_ss(G->fmt, "OUT: ", out_path, "\n");
 
         Clang_Options opts = {
@@ -148,7 +148,7 @@ static bool build_build(App *app, Cli *cli) {
 
 static bool build_serve(App *app, Cli *cli) {
     if (!cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) return false;
-    assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
+    assert(os_system(S("cd out && python -m http.server")), "Failed to start python http server. Is python installed?");
     os_exit(0);
     return true;
 }

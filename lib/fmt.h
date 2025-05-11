@@ -83,6 +83,11 @@ static void fmt_s(Fmt *fmt, char *str) {
     while (*str) fmt_c(fmt, *str++);
 }
 
+// Append a null terminated string
+static void fmt_str(Fmt *fmt, String str) {
+    fmt_buf(fmt, str.data, str.len);
+}
+
 // Return current location
 // Used for padding and range operations
 static u32 fmt_cursor(Fmt *fmt) {

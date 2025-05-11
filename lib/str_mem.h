@@ -124,7 +124,7 @@ static void test_str(void) {
     assert(str_eq(str_take_start(S("Hello World!"), 5), S("Hello")), "Take Start");
     assert(str_eq(str_take_end(S("Hello World!"), 6), S("World!")), "Take End");
     assert(str_eq(str_drop_start(S("Hello World!"), 6), S("World!")), "Drop Start");
-    assert(str_eq(str_drop_end(S("Hello World!"), 7), S("World!")), "Drop End");
+    assert(str_eq(str_drop_end(S("Hello World!"), 7), S("Hello")), "Drop End");
 
     // str_append()
     String s_greeting = str_append(mem, s_hello, s_world);

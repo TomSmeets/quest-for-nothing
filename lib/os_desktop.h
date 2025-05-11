@@ -18,7 +18,7 @@ static void *os_dlsym(File *handle, String name);
 static char *os_dlerror(void);
 
 // Run system command
-static bool os_system(char *command);
+static bool os_system(String command);
 
 #if OS_IS_LINUX
 #include "os_desktop_linux.h"

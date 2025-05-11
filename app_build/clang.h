@@ -111,5 +111,5 @@ static bool clang_compile(Memory *tmp, Clang_Options opt) {
     Fmt *fmt = fmt_memory(tmp);
     clang_fmt(fmt, opt);
     char *cmd = fmt_close(fmt);
-    return os_system(cmd);
+    return os_system(str_from(cmd));
 }
