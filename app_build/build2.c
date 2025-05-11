@@ -141,7 +141,7 @@ static bool build_build(App *app, Cli *cli) {
         os_exit(1);
     }
 
-    if(!clang_compile(app->mem, opts)) os_exit(1);
+    if (!clang_compile(app->mem, opts)) os_exit(1);
     if (build) os_exit(0);
     return true;
 }
