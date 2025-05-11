@@ -20,17 +20,12 @@ struct App {
     Clang_Options build_opts;
 
     // Hot
-    bool do_hot;
     Hot *hot;
-    char *hot_path;
     char *hot_output;
-    u32 hot_argc;
-    char **hot_argv;
     Fmt hot_output_fmt;
 
     // First time?
     bool first;
-
     bool changed;
 };
 
@@ -146,7 +141,7 @@ static bool build_build(App *app, Cli *cli) {
         os_exit(1);
     }
 
-    clang_compile(app->mem, opts);
+    if(!clang_compile(app->mem, opts)) os_exit(1);
     if (build) os_exit(0);
     return true;
 }
@@ -155,6 +150,7 @@ static bool build_serve(App *app, Cli *cli) {
     if (!cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) return false;
     assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
     os_exit(0);
+    return true;
 }
 
 static void build_init(App *app, Cli *cli) {
