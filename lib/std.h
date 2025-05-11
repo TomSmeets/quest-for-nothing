@@ -14,16 +14,23 @@
         }                                                                                                                                            \
     } while (0)
 
-static void std_memcpy(void *restrict dst, const void *restrict src, u64 size) {
-    while (size--) *(u8 *)dst++ = *(u8 *)src++;
+static void std_memcpy(u8 *restrict dst, const u8 *restrict src, u32 size) {
+    while (size--) *dst++ = *src++;
 }
 
-static void std_memzero(void *restrict dst, u64 size) {
-    while (size--) *(u8 *)dst++ = 0;
+static void std_memzero(u8 *dst, u32 size) {
+    while (size--) *dst++ = 0;
 }
 
-static void std_memset(void *restrict dst, u8 value, u64 size) {
-    while (size--) *(u8 *)dst++ = value;
+static void std_memset(u8 *dst, u8 value, u32 size) {
+    while (size--) *dst++ = value;
+}
+
+static bool std_memcmp(const u8 *restrict a, const u8 *restrict b, u32 size) {
+    while (size--) {
+        if (*a++ != *b++) return false;
+    }
+    return true;
 }
 
 static void std_reverse(u8 *buf, u32 size) {
