@@ -84,6 +84,8 @@ static bool str_starts_with(String str, String start) {
     return str_eq(str_take_start(str, start.len), start);
 }
 
+// Check if 'str' starts with 'start' and remove it from 'str'
+// otherwise return false and keep str unchanged
 static bool str_drop_start_matching(String *str, String start) {
     if (!str_starts_with(*str, start)) return false;
     *str = str_drop_start(*str, start.len);

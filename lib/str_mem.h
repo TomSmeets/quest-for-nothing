@@ -140,9 +140,9 @@ static void test_str(void) {
     assert(str_eq(str_replace(mem, S0, 0, 0, S0), S0), "Edge case");
 
     // str_clone()
-    String s7 = str_clone(mem, s_hello);
-    assert0(str_eq(s7, s_hello));
-    assert0(s7.data != s_hello.data);
+    String s_hello2 = str_clone(mem, s_hello);
+    assert0(str_eq(s_hello2, s_hello));
+    assert0(s_hello2.data != s_hello.data);
 
     mem_free(mem);
 }
