@@ -16,10 +16,10 @@ struct Include_Edge {
 };
 
 struct Include_Node {
-    char *name;
+    String name;
     u32 size;
     u32 rank;
-    char *color;
+    String color;
     Include_Edge *edges;
     Include_Node *next;
 };
@@ -37,10 +37,10 @@ static Include_Graph *include_graph_new(Memory *mem) {
 }
 
 // Get existing, or insert new node with a given name
-static Include_Node *include_graph_node(Include_Graph *graph, char *name) {
+static Include_Node *include_graph_node(Include_Graph *graph, String name) {
     // Search for the node
     for (Include_Node *node = graph->nodes; node; node = node->next) {
-        if (strz_eq(node->name, name)) return node;
+        if (str_eq(node->name, name)) return node;
     }
 
     // Insert a new node
@@ -165,7 +165,7 @@ static void include_graph_rank(Include_Graph *graph) {
 // Append a new node to the graph
 // A Include_Node is added for the file
 // An edge is added for every '#include'
-static Include_Node *include_graph_read_file(Include_Graph *graph, char *path, char *name) {
+static Include_Node *include_graph_read_file(Include_Graph *graph, String path, String name) {
     // Read file
     Read *read = read_new(graph->mem, path);
     Include_Node *node = include_graph_node(graph, name);
@@ -195,25 +195,24 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, char *path, c
 }
 
 // Add a node for every .h or .c file
-static void include_graph_read_dir(Include_Graph *graph, char *path, char *color) {
+static void include_graph_read_dir(Include_Graph *graph, String path, String color) {
     for (FS_Dir *file = fs_list(graph->mem, path); file; file = file->next) {
         if (file->is_dir) continue;
 
         // Only .c and .h files
-        bool is_h_file = str_ends_with(file->name, ".h");
-        bool is_c_file = str_ends_with(file->name, ".c");
+        String name_no_ext = file->name;
+        bool is_h_file = str_drop_end_matching(&name_no_ext, S(".h"));
+        bool is_c_file = str_drop_end_matching(&name_no_ext, S(".c"));
         if (!is_c_file && !is_h_file) continue;
 
         // Don't scan opengl api, it is quite big.
         // if (str_eq(file->name, "ogl_api.h")) continue;
 
         // Full Path
-        char *full_path = str_cat3(graph->mem, path, "/", file->name);
+        String full_path = str_cat3(graph->mem, str_from(path), S("/"), file->name);
 
         // Remove extention
-        if (is_c_file || is_h_file) {
-            file->name[str_len(file->name) - 2] = 0;
-        }
+        file->name = name_no_ext;
 
         Include_Node *node = include_graph_read_file(graph, full_path, file->name);
         node->color = color;

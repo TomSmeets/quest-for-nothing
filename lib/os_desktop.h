@@ -4,7 +4,7 @@
 #include "os_base.h"
 #include "os_desktop_types.h"
 
-static File *os_open(char *path, OS_Open_Type type);
+static File *os_open(String path, OS_Open_Type type);
 static void os_close(File *file);
 static u32 os_read(File *file, u8 *data, u32 len);
 // os_write is defined in os_base
@@ -13,8 +13,8 @@ static u32 os_read(File *file, u8 *data, u32 len);
 static void os_sleep(u64 time);
 
 // Dynamicllay load library and applications
-static File *os_dlopen(char *path);
-static void *os_dlsym(File *handle, char *name);
+static File *os_dlopen(String path);
+static void *os_dlsym(File *handle, String name);
 static char *os_dlerror(void);
 
 // Run system command

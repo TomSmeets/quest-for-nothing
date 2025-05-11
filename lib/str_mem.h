@@ -34,11 +34,41 @@ static String str_append(Memory *mem, String s1, String s2) {
     return ret;
 }
 
+// Append two strings
+// The result is stored in a new allocated String, the original string is not modified
+static String str_cat3(Memory *mem, String s1, String s2, String s3) {
+    String ret = str_alloc(mem, s1.len + s2.len + s3.len);
+    std_memcpy(ret.data, s1.data, s1.len);
+    std_memcpy(ret.data + s1.len, s2.data, s2.len);
+    std_memcpy(ret.data + s1.len + s2.len, s3.data, s3.len);
+    return ret;
+}
+
 // Allocate a new copy of `str`
 static String str_clone(Memory *mem, String str) {
     String new = str_alloc(mem, str.len);
     std_memcpy(new.data, str.data, str.len);
     return new;
+}
+
+// Copy string and include zero terminator
+static char *str_to_c(Memory *mem, String str) {
+    char *cstr = mem_push_uninit(mem, str.len + 1);
+    std_memcpy((u8 *)cstr, str.data, str.len);
+    cstr[str.len] = 0;
+    return cstr;
+}
+
+static u8 str_buf[1024];
+
+// Copy string and include zero terminator
+// Quickly convert a 'String' to a zero terminated 'char *'
+// NOTE: this pointer is only valid until the next call! And not at all thread safe!
+static char *str_c(String str) {
+    assert(str.len < sizeof(str_buf), "String out of range");
+    std_memcpy(str_buf, str.data, str.len);
+    str_buf[str.len] = 0;
+    return (char *) str_buf;
 }
 
 static void test_str(void) {

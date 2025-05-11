@@ -15,7 +15,7 @@ typedef struct {
     u8 data[1024];
 } Read;
 
-static Read *read_new(Memory *mem, char *path) {
+static Read *read_new(Memory *mem, String path) {
     Read *read = mem_struct(mem, Read);
     read->file = os_open(path, Open_Read);
     return read;

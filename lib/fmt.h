@@ -25,7 +25,7 @@ static Fmt *fmt_new(Memory *mem, File *out) {
 
 // Create a new formatter that opens and writes to a file
 static Fmt *fmt_open(Memory *mem, char *path) {
-    return fmt_new(mem, os_open(path, Open_Write));
+    return fmt_new(mem, os_open(str_from(path), Open_Write));
 }
 
 // Create a new formatter that only writes to memory

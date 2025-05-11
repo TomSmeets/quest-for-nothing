@@ -6,16 +6,16 @@
 #include "os_api.h"
 #include "str_mem.h"
 
-static void fs_mkdir(char *path) {
-    linux_mkdir(path, 0777);
+static void fs_mkdir(String path) {
+    linux_mkdir(str_c(path), 0777);
 }
 
-static void fs_remove(char *path) {
-    linux_unlink(path);
+static void fs_remove(String path) {
+    linux_unlink(str_c(path));
 }
 
-static FS_Dir *fs_list(Memory *mem, char *path) {
-    i32 dir = linux_open(path, O_RDONLY | O_DIRECTORY, 0);
+static FS_Dir *fs_list(Memory *mem, String path) {
+    i32 dir = linux_open(str_c(path), O_RDONLY | O_DIRECTORY, 0);
     if (dir < 0) return 0;
 
     FS_Dir *first = 0;
