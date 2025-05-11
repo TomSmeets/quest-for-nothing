@@ -82,6 +82,9 @@ static void *mem_push_zero(Memory *mem, u32 size) {
 // Allocate a zero-initialised type
 #define mem_struct(mem, type) ((type *)mem_push_zero((mem), sizeof(type)))
 
+// Allocate a un-initialised type
+#define mem_struct_uninit(mem, type) ((type *)mem_push_uninit((mem), sizeof(type)))
+
 // Allocate an un-initialised array of types
 #define mem_array_uninit(mem, type, count) ((type *)mem_push_uninit((mem), sizeof(type) * (count)))
 
