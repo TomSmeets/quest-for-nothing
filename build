@@ -2,5 +2,6 @@
 #
 # Copyright (c) 2024 - Tom Smeets <tom@tsmeets.nl>
 # build.sh - Build the current project
+set -euo pipefail
 mkdir -p out
 clang -O0 -g -I lib -o out/build app_build/build2.c && exec ./out/build "${@}"
