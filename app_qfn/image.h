@@ -30,7 +30,7 @@ static Image *image_copy(Memory *mem, Image *img) {
     copy->size = img->size;
     copy->origin = img->origin;
     copy->pixels = mem_array_uninit(mem, v4, img->size.x * img->size.y);
-    std_memcpy(copy->pixels, img->pixels, img->size.x * img->size.y * sizeof(v4));
+    std_memcpy((u8 *)copy->pixels, (u8 *)img->pixels, img->size.x * img->size.y * sizeof(v4));
     return copy;
 }
 

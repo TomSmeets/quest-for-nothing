@@ -109,7 +109,7 @@ static Gfx_Imp *gfx_imp_init(Memory *mem, char *title) {
     OGL_Api *gl = &gfx->gl;
 
     // Load SDL2
-    File *lib = os_dlopen(OS_IS_LINUX ? "libSDL2.so" : "SDL2.dll");
+    File *lib = os_dlopen(OS_IS_LINUX ? S("libSDL2.so") : S("SDL2.dll"));
     gfx->sdl = sdl_load(mem, lib, title);
 
     // Load OpenGL function pointers

@@ -336,29 +336,29 @@ typedef struct {
 
 static void sdl_api_load(Sdl_Api *api, File *handle) {
     // Core
-    api->SDL_Init = os_dlsym(handle, "SDL_Init");
-    api->SDL_PollEvent = os_dlsym(handle, "SDL_PollEvent");
-    api->SDL_Quit = os_dlsym(handle, "SDL_Quit");
-    api->SDL_GetError = os_dlsym(handle, "SDL_GetError");
+    api->SDL_Init = os_dlsym(handle, S("SDL_Init"));
+    api->SDL_PollEvent = os_dlsym(handle, S("SDL_PollEvent"));
+    api->SDL_Quit = os_dlsym(handle, S("SDL_Quit"));
+    api->SDL_GetError = os_dlsym(handle, S("SDL_GetError"));
 
     // Window
-    api->SDL_CreateWindow = os_dlsym(handle, "SDL_CreateWindow");
-    api->SDL_GetWindowDisplayMode = os_dlsym(handle, "SDL_GetWindowDisplayMode");
-    api->SDL_GetWindowSize = os_dlsym(handle, "SDL_GetWindowSize");
-    api->SDL_SetHint = os_dlsym(handle, "SDL_SetHint");
-    api->SDL_SetRelativeMouseMode = os_dlsym(handle, "SDL_SetRelativeMouseMode");
-    api->SDL_SetWindowFullscreen = os_dlsym(handle, "SDL_SetWindowFullscreen");
+    api->SDL_CreateWindow = os_dlsym(handle, S("SDL_CreateWindow"));
+    api->SDL_GetWindowDisplayMode = os_dlsym(handle, S("SDL_GetWindowDisplayMode"));
+    api->SDL_GetWindowSize = os_dlsym(handle, S("SDL_GetWindowSize"));
+    api->SDL_SetHint = os_dlsym(handle, S("SDL_SetHint"));
+    api->SDL_SetRelativeMouseMode = os_dlsym(handle, S("SDL_SetRelativeMouseMode"));
+    api->SDL_SetWindowFullscreen = os_dlsym(handle, S("SDL_SetWindowFullscreen"));
 
     // OpenGL
-    api->SDL_GL_CreateContext = os_dlsym(handle, "SDL_GL_CreateContext");
-    api->SDL_GL_GetProcAddress = os_dlsym(handle, "SDL_GL_GetProcAddress");
-    api->SDL_GL_SetAttribute = os_dlsym(handle, "SDL_GL_SetAttribute");
-    api->SDL_GL_SetSwapInterval = os_dlsym(handle, "SDL_GL_SetSwapInterval");
-    api->SDL_GL_SwapWindow = os_dlsym(handle, "SDL_GL_SwapWindow");
+    api->SDL_GL_CreateContext = os_dlsym(handle, S("SDL_GL_CreateContext"));
+    api->SDL_GL_GetProcAddress = os_dlsym(handle, S("SDL_GL_GetProcAddress"));
+    api->SDL_GL_SetAttribute = os_dlsym(handle, S("SDL_GL_SetAttribute"));
+    api->SDL_GL_SetSwapInterval = os_dlsym(handle, S("SDL_GL_SetSwapInterval"));
+    api->SDL_GL_SwapWindow = os_dlsym(handle, S("SDL_GL_SwapWindow"));
 
     // Audio
-    api->SDL_LockAudio = os_dlsym(handle, "SDL_LockAudio");
-    api->SDL_OpenAudio = os_dlsym(handle, "SDL_OpenAudio");
-    api->SDL_PauseAudio = os_dlsym(handle, "SDL_PauseAudio");
-    api->SDL_UnlockAudio = os_dlsym(handle, "SDL_UnlockAudio");
+    api->SDL_LockAudio = os_dlsym(handle, S("SDL_LockAudio"));
+    api->SDL_OpenAudio = os_dlsym(handle, S("SDL_OpenAudio"));
+    api->SDL_PauseAudio = os_dlsym(handle, S("SDL_PauseAudio"));
+    api->SDL_UnlockAudio = os_dlsym(handle, S("SDL_UnlockAudio"));
 }

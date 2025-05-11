@@ -3,13 +3,14 @@
 #pragma once
 #include "os_base.h"
 #include "os_desktop_types.h"
+#include "str_mem.h"
 
-static File *os_open(char *path, OS_Open_Type type) {
+static File *os_open(String path, OS_Open_Type type) {
     HANDLE handle = 0;
     if (type == Open_Write) {
-        handle = CreateFile(path, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(str_c(path), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     } else if (type == Open_Read) {
-        handle = CreateFile(path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(str_c(path), GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     }
 
     if (handle == INVALID_HANDLE_VALUE) handle = 0;
@@ -30,19 +31,19 @@ static void os_sleep(u64 time) {
     Sleep(time / 1000);
 }
 
-static File *os_dlopen(char *path) {
-    return (File *)LoadLibrary(path);
+static File *os_dlopen(String path) {
+    return (File *)LoadLibrary(str_c(path));
 }
 
-static void *os_dlsym(File *file, char *name) {
-    return GetProcAddress((void *)file, name);
+static void *os_dlsym(File *file, String name) {
+    return GetProcAddress((void *)file, str_c(name));
 }
 
 static char *os_dlerror(void) {
     return 0;
 }
 
-static bool os_system(char *cmd) {
-    int ret = system(cmd);
+static bool os_system(String cmd) {
+    int ret = system(str_c(cmd));
     return ret == 0;
 }
