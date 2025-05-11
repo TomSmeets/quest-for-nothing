@@ -180,8 +180,8 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
         if (!line.len) break;
         line_count++;
 
-        if(!str_drop_start_matching(&line, S("#include \""))) continue;
-        if(!str_drop_end_matching(&line, S("\""))) continue;
+        if (!str_drop_start_matching(&line, S("#include \""))) continue;
+        if (!str_drop_end_matching(&line, S("\""))) continue;
 
         // Ignore '../' paths
         if (str_starts_with(line, S("."))) continue;

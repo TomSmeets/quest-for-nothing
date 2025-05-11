@@ -68,7 +68,7 @@ static char *str_c(String str) {
     assert(str.len < sizeof(str_buf), "String out of range");
     std_memcpy(str_buf, str.data, str.len);
     str_buf[str.len] = 0;
-    return (char *) str_buf;
+    return (char *)str_buf;
 }
 
 static void test_str(void) {

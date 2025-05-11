@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // str.h - simple string handling functions
 #pragma once
-#include "types.h"
 #include "std.h"
+#include "types.h"
 
 // utf8 encoded string datatype
 // String is NOT zero terminated
@@ -22,7 +22,7 @@ typedef struct {
 
 // Number of chars in a zero terminated string
 static u32 str_len(char *s) {
-    if(!s) return 0;
+    if (!s) return 0;
     u32 n = 0;
     while (*s++) n++;
     return n;
@@ -30,7 +30,7 @@ static u32 str_len(char *s) {
 
 // Convert a dynamic zero terminated string to a String
 static String str_from(char *data) {
-    if(!data) return S0;
+    if (!data) return S0;
     return (String){str_len(data), (u8 *)data};
 }
 
@@ -54,19 +54,19 @@ static String str_slice(String str, u32 offset, u32 size) {
 
 // Take n chars from the start
 static String str_take_start(String str, u32 n) {
-    if(n > str.len) return str;
+    if (n > str.len) return str;
     return str_slice(str, 0, n);
 }
 
 // Take n chars from the end
 static String str_take_end(String str, u32 n) {
-    if(n > str.len) return str;
+    if (n > str.len) return str;
     return str_slice(str, str.len - n, n);
 }
 
 // Take n chars from the start
 static String str_drop_start(String str, u32 n) {
-    if(n >= str.len) return S0;
+    if (n >= str.len) return S0;
     return str_slice(str, n, str.len - n);
 }
 

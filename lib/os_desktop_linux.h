@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_desktop_linux.h - Desktop functionality for Linux
 #pragma once
+#include "mem.h"
 #include "os_base.h"
 #include "os_desktop_types.h"
-#include "mem.h"
 #include "str_mem.h"
 
 static File *os_open(String path, OS_Open_Type type) {
