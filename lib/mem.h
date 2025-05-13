@@ -5,6 +5,18 @@
 #include "types.h"
 
 typedef struct Memory Memory;
+typedef struct FreeItem FreeItem;
+typedef struct FreeList FreeList;
+
+struct FreeList {
+    u32 size;
+    FreeItem *items;
+    FreeList *next;
+};
+
+struct FreeItem {
+    FreeItem *next;
+};
 
 // A stack allocator for variable size allocations.
 // Each allocation should be smaller than the chunk size.
@@ -19,6 +31,9 @@ struct Memory {
 
     // Total size of the first chunk (always 1 MB)
     u32 size;
+
+    // A common Freelist to recycle some regions
+    FreeList *free_list;
 };
 
 // Align the next allocation to 16 bytes
@@ -108,4 +123,40 @@ static Memory *mem_new(void) {
 static void mem_free(Memory *mem) {
     // Free all chunks in this memory arena
     chunk_free(mem->chunk);
+}
+
+// Find freelist with items of exact size
+static FreeList *freelist_find(Memory *mem, u32 size) {
+    for (FreeList *item = mem->free_list; item; item = item->next) {
+        if (item->size == size) return item;
+    }
+    return 0;
+}
+
+static void freelist_put(Memory *mem, void *data, u32 size) {
+    if(size < sizeof(FreeItem)) return;
+
+    // Get or add a new freelist
+    FreeList *list = freelist_find(mem, size);
+    if (!list) {
+        list = mem_struct(mem, FreeList);
+        list->size = size;
+        list->next = mem->free_list;
+        mem->free_list = list;
+    }
+
+    // Insert Item
+    FreeItem *item = data;
+    item->next = list->items;
+    list->items = item;
+}
+
+static void *freelist_get(Memory *mem, u32 size) {
+    FreeList *list = freelist_find(mem, size);
+    if(!list) return 0;
+    if(!list->items) return 0;
+
+    FreeItem *item = list->items;
+    list->items = item->next;
+    return item;
 }
