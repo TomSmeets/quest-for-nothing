@@ -42,8 +42,24 @@ static void u32_align(u32 *addr, u32 bytes) {
     *addr = (*addr + mask) & ~mask;
 }
 
+// Find freelist with items of exact size
+static FreeList *freelist_find_list(Memory *mem, u32 size) {
+    for (FreeList *item = mem->free_list; item; item = item->next) {
+        if (item->size == size) return item;
+    }
+    return 0;
+}
+
 // Allocate 'size' bytes of uninitialized memory
 static void *mem_push_uninit(Memory *mem, u32 size) {
+    // Check freelist
+    FreeList *list = freelist_find_list(mem, size);
+    if (list && list->items) {
+        FreeItem *item = list->items;
+        list->items = item->next;
+        return (void *)item;
+    }
+
     // Primitives should be aligned to their own size.
     //   int8 -> no alignment needed
     //   int32 -> 4 byte alignment
@@ -125,19 +141,10 @@ static void mem_free(Memory *mem) {
     chunk_free(mem->chunk);
 }
 
-// Find freelist with items of exact size
-static FreeList *freelist_find(Memory *mem, u32 size) {
-    for (FreeList *item = mem->free_list; item; item = item->next) {
-        if (item->size == size) return item;
-    }
-    return 0;
-}
+static void mem_recycle(Memory *mem, void *data, u32 size) {
+    if (size < sizeof(FreeItem)) return;
 
-static void freelist_put(Memory *mem, void *data, u32 size) {
-    if(size < sizeof(FreeItem)) return;
-
-    // Get or add a new freelist
-    FreeList *list = freelist_find(mem, size);
+    FreeList *list = freelist_find_list(mem, size);
     if (!list) {
         list = mem_struct(mem, FreeList);
         list->size = size;
@@ -151,12 +158,4 @@ static void freelist_put(Memory *mem, void *data, u32 size) {
     list->items = item;
 }
 
-static void *freelist_get(Memory *mem, u32 size) {
-    FreeList *list = freelist_find(mem, size);
-    if(!list) return 0;
-    if(!list->items) return 0;
-
-    FreeItem *item = list->items;
-    list->items = item->next;
-    return item;
-}
+#define mem_free_struct(mem, item) (mem_recycle((mem), (item), sizeof(*(item))))
