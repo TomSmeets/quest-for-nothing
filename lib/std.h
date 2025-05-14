@@ -18,6 +18,10 @@ static void std_memcpy(u8 *restrict dst, const u8 *restrict src, u32 size) {
     while (size--) *dst++ = *src++;
 }
 
+static void std_memmove(u8 *dst, const u8 *src, u32 size) {
+    while (size--) *dst++ = *src++;
+}
+
 static void std_memzero(u8 *dst, u32 size) {
     while (size--) *dst++ = 0;
 }
