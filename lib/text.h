@@ -2,76 +2,174 @@
 #include "fmt.h"
 #include "mem.h"
 #include "str_mem.h"
+#include "os_alloc.h"
 #include "types.h"
 
 // A "Rope" is just a linked list of Strings
 // NOTE: this is not (yet) implemented as a rope datastructure
 // TODO: implmeent skiplist, this seems like a good structure for this
-typedef struct Rope Rope;
-struct Rope {
-    Rope *next;
+//
+// Always N/2 - N data items
+// insert c -> add if fits, other wise split, then add
+// 
+typedef struct Part Part;
+struct Part {
+    Part *next;
+    Part *prev;
     u8 len;
     u8 data[255];
 };
 
 // Create a new and empty rope node
-static Rope *rope_new(Memory *mem) {
-    Rope *rope = mem_struct_uninit(mem, Rope);
-    rope->next = 0;
-    rope->len = 0;
-    return rope;
+static Part *part_new(Memory *mem) {
+    Part *part = mem_struct_uninit(mem, Part);
+    part->next = 0;
+    part->len = 0;
+    return part;
 }
 
-// Consume data from 'str' and put into rope
-// the string is consumed until this rope instance is full
-static void rope_fill_one(Rope *rope, String *str) {
+// Remove part from list and free it
+// Pass the next pointer of the previous part
+static void part_free(Memory *mem, Part *part) {
+    mem_free_struct(mem, part);
+}
+
+// Fill part with data from str, reducing str size
+static void part_fill(Part *part, String *str) {
     u32 len = str->len;
-    u32 size_left = array_count(rope->data) - rope->len;
+    u32 size_left = array_count(part->data) - part->len;
     if (len > size_left) len = size_left;
 
-    std_memcpy(rope->data + rope->len, str->data, len);
-    rope->len += len;
+    std_memcpy(part->data + part->len, str->data, len);
+    part->len += len;
 
     // Reduce string size
     str->data += len;
     str->len -= len;
 }
 
-// Append entire string
-static void rope_append(Memory *mem, Rope **node, String str) {
-    for (;;) {
-        rope_fill_one(*node, &str);
-        if (str.len == 0) break;
+// Split part at index
+// Reduces 'left' size to match offset
+// moves data to a new allocated 'right' part
+// Returns 'right' part
+static Part *part_split(Memory *mem, Part *left, u32 offset) {
+    u32 len_left  = offset;
+    u32 len_right = left->len - offset;
 
-        Rope *next = rope_new(mem);
-        next->next = (*node)->next;
-        (*node)->next = next;
-        *node = next;
-    }
+    Part *right = part_new(mem);
+    std_memcpy(right->data, left->data + len_left, len_right);
+    left->len = len_left;
+    right->len = len_right;
+    return right;
 }
 
-static String rope_to_str(Rope *rope) {
-    return (String) { rope->len, rope->data };
+// Move all data from right to left, if it fits
+// Otherwise don't move and return false
+// This is the inverse of 'split'
+static bool part_join(Part *left, Part *right) {
+    if(left->len + right->len > sizeof(left->data)) return false;
+    std_memcpy(left->data + left->len, right->data, right->len);
+    left->len += right->len;
+    right->len = 0;
+    return true;
+}
+
+static void part_delete(Part *part, u32 start, u32 count) {
+    u32 end = start + count;
+    std_memmove(part->data + start, part->data + end, part->len - end);
+    part->len -= count;
+}
+
+static String part_to_str(Part *part) {
+    return (String){part->len, part->data};
 }
 
 typedef struct Text Text;
 struct Text {
     Memory *mem;
-    Rope *first;
-    Rope *last;
-    u32 cursor;
+    Part *part;
 };
 
 static Text *text_new(Memory *mem) {
     Text *text = mem_struct(mem, Text);
     text->mem = mem;
-    text->first = text->last = rope_new(mem);
     return text;
 }
 
+static void text_insert(Text *text, u32 position, String str) {
+    // Ensure there is at least one part
+    if(!text->part) text->part = part_new(text->mem);
+
+    // Find part that contains our position
+    // position is in range [0, left->len]
+    Part *left = text->part;
+    while(position > left->len) {
+        position -= left->len;
+        left = left->next;
+    }
+
+    // If we are in the middle of a part
+    // split the part into two
+    //             v
+    // left = | A B C D | -> ..
+    // 
+    // left = | A B . . | -> | C D . . | -> ..
+    if(position < left->len) {
+        Part *right = part_split(text->mem, left, position);
+        right->next = left->next;
+        left->next = right;
+    }
+
+    assert0(position == left->len);
+
+    // Fill left part as much as possible
+    part_fill(left, &str);
+
+    // Continue adding more parts until entire string is written
+    while (str.len > 0) {
+        // Append part
+        Part *right = part_new(text->mem);
+        right->next = left->next;
+        left->next = right;
+
+        // Switch to the new part
+        left = right;
+
+        // Fill the part
+        part_fill(left, &str);
+    }
+
+    // Join previously split right part at the end (if possible)
+    Part *right = left->next;
+    if (part_join(left, right)) {
+        left->next = right->next;
+        part_free(text->mem, right);
+    }
+}
+
+
+static void text_delete(Text *text, u32 start, u32 count) {
+    Part *part = text->part;
+    if(!part) return;
+
+    // Find part
+    while(start > part->len) {
+        part = part->next;
+        start -= part->len;
+    }
+
+    for(;;) {
+        u32 part_count = count;
+        u32 max_count = part->len - start;
+        if (part_count > max_count) part_count = max_count;
+        part_delete(part, start, count);
+        // ...
+    }
+}
+
 // Append entire string
-static void text_append(Text *text, String str) {
-    rope_append(text->mem, &text->last, str);
+static void text_insert(Text *text, u32 position, String str) {
+    part_fill(text->last, &str);
 }
 
 static Text *text_from(Memory *mem, String str) {
