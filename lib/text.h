@@ -1,211 +1,115 @@
 #pragma once
 #include "fmt.h"
 #include "mem.h"
-#include "str_mem.h"
 #include "os_alloc.h"
-#include "types.h"
 #include "part.h"
-
-// A "Rope" is just a linked list of Strings
-// NOTE: this is not (yet) implemented as a rope datastructure
-// TODO: implmeent skiplist, this seems like a good structure for this
-//
-// Always N/2 - N data items
-// insert c -> add if fits, other wise split, then add
-// 
+#include "str_mem.h"
+#include "types.h"
 
 typedef struct Text Text;
 struct Text {
     Memory *mem;
-
-    // Absoulte byte position
-    u32 pos;
-    u32 line;
-    u32 col;
-
-    // Byte position in part
-    u32 part_index;
     Part *part;
 };
 
 static Text *text_new(Memory *mem) {
     Text *text = mem_struct(mem, Text);
     text->mem = mem;
-    text->part = part_new(mem);
     return text;
 }
 
-
-static void text_seek(Text *text, u32 pos) {
-    text->pos -= text->part_index;
-    text->part_index = 0;
-    while (pos <= text->pos && text->pos != 0) {
-        text->part = text->part->prev;
-        text->pos -= text->part->len;
-    }
-    while (pos > text->pos + text->part->len) {
-        text->part = text->part->next;
-        text->pos += text->part->len;
-    }
-    text->part_index = pos - text->pos;
-    text->pos = pos;
-}
-
-// Split part at current position
-static void _text_split(Text *text) {
-    Part *left = text->part;
-    Part *right = part_split(text->mem, text->part, text->part_index);
-    Part *other = left->next;
-
-    if (other) {
-        right->next = other;
-        other->prev = right;
-    }
-
-    left->next = right;
-    right->prev = left;
-
-    assert0(text->part->len == text->part_index);
-}
-
-static void _text_fill(Text *text, String *str) {
-    String added = part_fill(text->part, *str);
-    *str = str_drop_start(*str, added.len);
-    text->part_index += added.len;
-    text->pos += added.len;
-}
-
-static void _text_new_part(Text *text) {
-    assert0(text->part_index == text->part->len);
-
-    Part *part = part_new(text->mem);
-    Part *left = text->part;
-    Part *right = left->next;
-
-    if(right) {
-        part->next = right;
-        right->prev = part;
-    }
-
-    left->next = part;
-    part->prev = left;
-
-    text->part = right;
-    text->part_index = 0;
-}
-
-static void text_insert(Text *text, String str) {
-    _text_split(text);
-    _text_fill(text, &str);
-
-    while(str.len > 0) {
-        _text_new_part(text);
-        _text_fill(text, &str);
-    }
-}
-
 static void text_append(Text *text, String str) {
-    if(str.len == 0) return;
+    if (str.len == 0) return;
+    if (!text->part) text->part = part_new(text->mem);
 
-    if(!text->part) text->part = part_new(text->mem);
+    Part *last = text->part;
+    while (last->next) last = last->next;
 
-    Part *left = text->part;
-    while(left->next) left = left->next;
-
-    // Fill first part
-    part_fill(left, &str);
-
-    // Continue adding more parts until entire string is written
-    while (str.len > 0) {
-        // Append part
-        Part *right = part_new(text->mem);
-        left->next = right;
-
-        // Switch to the new part
-        left = right;
-
-        // Fill the part
-        part_fill(left, &str);
+    for (;;) {
+        u32 added = part_fill(last, str).len;
+        str.data += added;
+        str.len -= added;
+        if (str.len == 0) break;
+        Part *next = part_new(text->mem);
+        last->next = next;
+        last = next;
     }
 }
 
-static void text_insert(Text *text, u32 position, String str) {
-    if(str.len == 0) return;
+// Return right part
+static Text text_split(Text *text, u32 pos) {
+    Text ret = {};
+    ret.mem = text->mem;
 
-    // Ensure there is at least one part
-    if(!text->part) text->part = part_new(text->mem);
-
-    // Find part that contains our position
-    // position is in range [0, left->len]
     Part *left = text->part;
-    while(position > left->len) {
-        position -= left->len;
+    while (pos > left->len) {
+        pos -= left->len;
         left = left->next;
     }
 
-    // If we are in the middle of a part
-    // split the part into two
-    //             v
-    // left = | A B C D | -> ..
-    // 
-    // left = | A B . . | -> | C D . . | -> ..
-    if(position < left->len) {
-        Part *right = part_split(text->mem, left, position);
+    // Split
+    if (pos == left->len) {
+        ret.part = left->next;
+        left->next = 0;
+    } else {
+        Part *right = part_split(text->mem, left, pos);
         right->next = left->next;
-        left->next = right;
+        left->next = 0;
+        ret.part = right;
     }
-
-    assert0(position == left->len);
-
-    // Fill left part as much as possible
-    part_fill(left, &str);
-
-    // Continue adding more parts until entire string is written
-    while (str.len > 0) {
-        // Append part
-        Part *right = part_new(text->mem);
-        right->next = left->next;
-        left->next = right;
-
-        // Switch to the new part
-        left = right;
-
-        // Fill the part
-        part_fill(left, &str);
-    }
-
-    // Join previously split right part at the end (if possible)
-    Part *right = left->next;
-    if (part_join(left, right)) {
-        left->next = right->next;
-        part_free(text->mem, right);
-    }
+    return ret;
 }
 
+static void text_join(Text *text, Text *right) {
+    if (!text->part) {
+        text->part = right->part;
+        return;
+    }
 
-static void text_delete(Text *text, u32 start, u32 count) {
+    if (!right->part) {
+        return;
+    }
+
+    // Find last part in 'text'
+    Part *left_part = text->part;
+    while (left_part->next) left_part = left_part->next;
+
+    // Join into left
+    Part *right_part = right->part;
+
+    // Join parts
+    if (part_join(left_part, right_part)) {
+        Part *next = right_part->next;
+        part_free(text->mem, right_part);
+        right_part = next;
+    }
+
+    left_part->next = right_part;
+    right->part = 0;
+}
+
+static void text_free(Text *text) {
     Part *part = text->part;
-    if(!part) return;
-
-    // Find part
-    while(start > part->len) {
-        part = part->next;
-        start -= part->len;
-    }
-
-    for(;;) {
-        u32 part_count = count;
-        u32 max_count  = part->len - start;
-        if (part_count > max_count) part_count = max_count;
-        part_delete(part, start, part_count);
-
-        start = 0;
-        count -= part_count;
-        part = part->next;
-        if(count == 0) break;
+    while (part) {
+        Part *next = part->next;
+        part_free(text->mem, part);
+        part = next;
     }
 }
 
+static void text_insert(Text *text, u32 pos, String str) {
+    if (str.len == 0) return;
+    Text right = text_split(text, pos);
+    text_append(text, str);
+    text_join(text, &right);
+}
+
+static void text_delete(Text *text, u32 pos, u32 size) {
+    Text mid = text_split(text, pos);
+    Text right = text_split(&mid, size);
+    text_join(text, &right);
+    text_free(&mid);
+}
 
 static Text *text_from(Memory *mem, String str) {
     Text *text = text_new(mem);
@@ -216,12 +120,12 @@ static Text *text_from(Memory *mem, String str) {
 static bool text_eq(Text *text, String str) {
     // For every piece check that the string starts with it
     // then remove that piece from the string until no piecers are left
-    for (Part *part = text->part; part;part =part->next) {
+    for (Part *part = text->part; part; part = part->next) {
         if (!str_drop_start_matching(&str, part_to_str(part))) return false;
     }
 
     // String was longer than the text
-    if(str.len > 0) return false;
+    if (str.len > 0) return false;
     return true;
 }
 
@@ -229,29 +133,91 @@ static void text_debug(Text *text, Fmt *fmt) {
     fmt_s(fmt, "Text:\n");
     u32 index = 0;
     for (Part *part = text->part; part; part = part->next) {
-        fmt_su(fmt, "=== Part Index ", index++, " ===\n");
+        fmt_suu(fmt, "=== Part Index ", index++, " len=", part->len, " ===\n");
         fmt_buf(fmt, (u8 *)part->data, part->len);
         fmt_s(fmt, "\n");
     }
+}
+
+static void text_fmt(Text *text, Fmt *fmt) {
+    for (Part *part = text->part; part; part = part->next) {
+        fmt_buf(fmt, (u8 *)part->data, part->len);
+    }
+}
+
+static u32 text_len(Text *text) {
+    u32 len = 0;
+    Part *part = text->part;
+    while (part) {
+        len += part->len;
+        part = part->next;
+    }
+    return len;
+}
+
+static u8 text_index(Text *text, u32 pos) {
+    Part *part = text->part;
+    while (pos >= part->len) {
+        pos -= part->len;
+        part = part->next;
+    }
+    return part->data[pos];
+}
+
+// Slow, but works
+static bool text_find(Text *text, u32 start, String key, u32 *result) {
+    u32 len = text_len(text);
+    if (key.len > len) return false;
+    if (key.len == 0) {
+        *result = start;
+        return true;
+    }
+    for (u32 i = start; i < len - key.len + 1; ++i) {
+        bool matches = true;
+        for (u32 j = 0; j < key.len; ++j) {
+            u8 left = text_index(text, i + j);
+            u8 right = key.data[j];
+            if (left != right) {
+                matches = false;
+                break;
+            }
+        }
+        if (matches) {
+            *result = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 // TODO: Text
 static void test_text(void) {
     Memory *mem = mem_new();
 
-
     Text *text = text_from(mem, S0);
     assert0(text->mem == mem);
     assert0(text->part == 0);
 
+    // Join
+    Text *text0 = text_from(mem, S("Hello"));
+    Text *text1 = text_from(mem, S(" "));
+    Text *text2 = text_from(mem, S("World"));
+    text_join(text0, text1);
+    text_join(text0, text2);
+    text_debug(text0, G->fmt);
+    assert0(text_eq(text0, S("Hello World")));
+
+    Text text3 = text_split(text0, 6);
+    assert0(text_eq(text0, S("Hello ")));
+    assert0(text_eq(&text3, S("World")));
+
     // Append
     String hello = S("Hello");
     String world = S(" World!");
-
     text_append(text, hello);
     text_debug(text, G->fmt);
     assert0(text_eq(text, S("Hello!")) == 0); // (too long)
-    assert0(text_eq(text, S("Hello")) == 1); // OK!
+    assert0(text_eq(text, S("Hello")) == 1);  // OK!
 
     text_append(text, world);
     text_debug(text, G->fmt);
@@ -262,84 +228,61 @@ static void test_text(void) {
     text_debug(text, G->fmt);
     assert0(text_eq(text, S("Hello AWESOME World!")));
 
+    u32 pos = 0;
+    assert0(text_find(text, 0, S("Hello"), &pos));
+    assert0(pos == 0);
+    assert0(text_find(text, 0, S("AWESOME"), &pos));
+    assert0(pos == 6);
+    assert0(text_find(text, 0, S("World!"), &pos));
+    assert0(pos == 14);
+    assert0(text_find(text, 0, S(" "), &pos));
+    assert0(pos == 5);
+    assert0(text_find(text, 5, S(" "), &pos));
+    assert0(pos == 5);
+    assert0(text_find(text, 6, S(" "), &pos));
+    assert0(pos == 13);
+    assert0(text_find(text, 14, S(" "), &pos) == false);
+
     text_append(text, S("\n"));
-    for(u32 i = 0; i < 26 * 2; ++i) {
+    for (u32 i = 0; i < 26 * 2; ++i) {
         char c = ('A' + (i % 26));
         text_append(text, S("Hello World: "));
-        text_append(text, (String){1, (u8*) &c});
+        text_append(text, (String){1, (u8 *)&c});
         text_append(text, S("\n"));
     }
     text_debug(text, G->fmt);
-
-
     text_append(text, S("\n"));
 
-    // TODO: FIX!
     u32 len = 15;
     u32 cursor = 21;
-    for(u32 i = 0; i < 26 * 2; ++i) {
+    fmt_s(G->fmt, "\n=== Add Numbers ===\n");
+    for (u32 i = 0; i < 26 * 2; ++i) {
         text_insert(text, cursor++, S("0"));
         text_insert(text, cursor++, S("1"));
         text_insert(text, cursor++, S("2"));
         text_insert(text, cursor++, S("3"));
         cursor += len;
     }
+    text_fmt(text, G->fmt);
+
+    fmt_s(G->fmt, "\n=== DELETE Numbers ===\n");
     cursor = 21;
-    for(u32 i = 0; i < 26 * 2; ++i) {
+    for (u32 i = 0; i < 26 * 2; ++i) {
         text_delete(text, cursor, 4);
         cursor += len;
     }
-    text_debug(text, G->fmt);
+    text_fmt(text, G->fmt);
 
-    mem_free(mem);
-}
-
-#if 0
-typedef struct {
-    Memory *mem;
-    String str;
-    u32 cursor;
-} Text;
-
-// Compress text representation and free unused memory
-static Text text_clone(Memory *mem, Text *txt) {
-    Text txt2 = *txt;
-    txt2.mem = mem;
-    txt2.str = str_clone(mem, txt2.str);
-    return txt2;
-}
-
-static void text_replace(Text *txt, u32 pos, u32 del, String new) {
-    txt->str = str_replace(txt->mem, txt->str, pos, del, new);
-
-    // xx___yyy
-    // xxnyyy
-    // pos: 2
-    // del: 3
-    if (txt->cursor > pos + del) {
-        // After deleted region
-        txt->cursor -= del;
-        txt->cursor += new.len;
-    } else if (txt->cursor > pos) {
-        // In deleted region
-        txt->cursor = pos;
+    fmt_s(G->fmt, "\n=== Replace world -> WORLD ===\n");
+    String rem = S(" World");
+    while (text_find(text, 0, rem, &pos)) {
+        text_delete(text, pos, rem.len);
     }
-}
+    text_fmt(text, G->fmt);
 
-static void test_text(void) {
-    Memory *mem = mem_new();
-    Text text = {
-        .mem = mem,
-        .str = S("Hello World!"),
-        .cursor = 0,
-    };
+    fmt_s(G->fmt, "\n=== DELETE ALL ===\n");
+    text_delete(text, 0, text_len(text));
+    text_fmt(text, G->fmt);
 
-    text.cursor = 6;
-    assert1(text.str.data[text.cursor] == 'W');
-    text_replace(&text, 1, 4, S("ii"));
-    assert1(string_eq(text.str, S("Hii World!")));
-    assert1(text.cursor == 4);
-    assert1(text.str.data[text.cursor] == 'W');
     mem_free(mem);
 }
-#endif

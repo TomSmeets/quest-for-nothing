@@ -1,13 +1,12 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // part.h - Text part
 #pragma once
-#include "types.h"
 #include "mem.h"
+#include "types.h"
 
 typedef struct Part Part;
 struct Part {
     Part *next;
-    Part *prev;
     u8 len;
     u8 data[128];
 };
@@ -15,7 +14,6 @@ struct Part {
 static Part *part_new(Memory *mem) {
     Part *part = mem_struct_uninit(mem, Part);
     part->next = 0;
-    part->prev = 0;
     part->len = 0;
     return part;
 }
@@ -45,7 +43,7 @@ static String part_fill(Part *part, String str) {
 // moves data to a new allocated 'right' part
 // Returns 'right' part
 static Part *part_split(Memory *mem, Part *left, u32 offset) {
-    u32 len_left  = offset;
+    u32 len_left = offset;
     u32 len_right = left->len - offset;
 
     Part *right = part_new(mem);
@@ -59,7 +57,7 @@ static Part *part_split(Memory *mem, Part *left, u32 offset) {
 // Otherwise don't move and return false
 // This is the inverse of 'split'
 static bool part_join(Part *left, Part *right) {
-    if(left->len + right->len > sizeof(left->data)) return false;
+    if (left->len + right->len > sizeof(left->data)) return false;
     std_memcpy(left->data + left->len, right->data, right->len);
     left->len += right->len;
     right->len = 0;
@@ -84,9 +82,8 @@ static void test_part(void) {
 
     String str = S("Hello World");
 
-    String buf = str;
-    part_fill(left, &buf);
-    assert0(buf.len == 0);
+    String buf = part_fill(left, str);
+    assert0(buf.len == str.len);
     assert0(left->len == str.len);
     assert0(str_eq(str, part_to_str(left)));
 
