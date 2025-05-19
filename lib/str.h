@@ -15,7 +15,7 @@ typedef struct {
 
 // Construct a String from a constant expression
 // NOTE: Only use with constant string literals
-#define S(x) ((String){sizeof(x) - 1, (u8 *)x})
+#define S(x) ((String){sizeof(x "") - 1, (u8 *)x})
 
 // A Zero/Null/Empty String
 #define S0 ((String){0})
