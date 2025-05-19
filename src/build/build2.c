@@ -150,11 +150,16 @@ static bool build_serve(App *app, Cli *cli) {
     return true;
 }
 
+static bool fs_exists(String path) {
+    File *f = os_open(path, Open_Read);
+    if (!f) return false;
+    os_close(f);
+    return true;
+}
+
 static bool build_all(App *app, Cli *cli) {
     bool build = cli_flag(cli, "release", "Build qfn release");
-    bool watch = cli_flag(cli, "release-watch", "Build an executable and watch changes");
-    if (!build && !watch) return false;
-    if (watch && !app->changed) return true;
+    if (!build) return false;
 
     Clang_Options opts = {};
     opts.input_path = "src/qfn/main.c";
@@ -171,6 +176,15 @@ static bool build_all(App *app, Cli *cli) {
     opts.platform = Platform_Wasm;
     opts.output_path = "out/release/quest_for_nothing.wasm";
     if (!clang_compile(app->mem, opts)) os_exit(1);
+
+    // Download sdl2
+    if (!fs_exists(S("out/SDL2.dll"))) {
+        os_system(S("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip"));
+        os_system(S("cd out/ && unzip SDL2.zip SDL2.dll"));
+    }
+    os_system(S("cp out/SDL2.dll out/release/SDL2.dll"));
+    os_system(S("cp src/lib/*.js out/release/"));
+    os_system(S("cp src/lib/os_wasm.html out/release/index.html"));
     os_exit(0);
     return true;
 }
