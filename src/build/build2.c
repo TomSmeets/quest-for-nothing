@@ -159,7 +159,8 @@ static bool fs_exists(String path) {
 
 static bool build_all(App *app, Cli *cli) {
     bool build = cli_flag(cli, "release", "Build qfn release");
-    if (!build) return false;
+    bool upload = cli_flag(cli, "publish", "Upload archive");
+    if (!build && !upload) return false;
 
     Clang_Options opts = {};
     opts.input_path = "src/qfn/main.c";
@@ -185,9 +186,16 @@ static bool build_all(App *app, Cli *cli) {
     os_system(S("cp out/SDL2.dll out/release/SDL2.dll"));
     os_system(S("cp src/lib/*.js out/release/"));
     os_system(S("cp src/lib/os_wasm.html out/release/index.html"));
+
+    if(upload) {
+        os_system(S("butler push out/release tsmeets/quest-for-nothing:release --userversion $(date +'%F')"));
+        os_system(S("butler push out/release tsmeets/quest-for-nothing:release-web --userversion $(date +'%F')"));
+        os_system(S("rclone copy out/release fastmail:tsmeets.fastmail.com/files/tsmeets.nl/qfn/"));
+    }
     os_exit(0);
     return true;
 }
+
 
 static void build_init(App *app, Cli *cli) {
     if (build_run(app, cli)) {

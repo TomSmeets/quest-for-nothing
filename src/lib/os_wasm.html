@@ -271,7 +271,7 @@ ctx.exports.gfx_js_draw = (projection, depth, quad_count, quad_list) => {
 
 ctx.exports.gfx_js_end = () => {}
 
-fetch('main.wasm')
+fetch('quest_for_nothing.wasm')
 .then(re => re.arrayBuffer())
 .then(data => WebAssembly.instantiate(data, { env: ctx.exports }))
 .then(ret => {
