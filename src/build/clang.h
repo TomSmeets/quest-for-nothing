@@ -37,7 +37,8 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
     fmt_s(fmt, " -Wno-format");
 
     // Inlcude paths
-    fmt_s(fmt, " -Ilib");
+    fmt_s(fmt, " -Isrc");
+    fmt_s(fmt, " -Isrc/lib");
 
     // Language flags
     fmt_s(fmt, " -std=c23");

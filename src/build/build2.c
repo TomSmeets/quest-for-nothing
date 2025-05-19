@@ -68,9 +68,6 @@ static bool build_include_graph(App *app, Cli *cli) {
     if (!build) return false;
     Include_Graph *graph = include_graph_new(app->tmp);
     include_graph_read_dir(graph, S("src"), S("red"));
-    include_graph_read_dir(graph, S("lib"), S("blue"));
-    include_graph_read_dir(graph, S("app_build"), S("green"));
-    include_graph_read_dir(graph, S("app_qfn"), S("green"));
     include_graph_tred(graph);
     // include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
@@ -168,9 +165,7 @@ static void build_init(App *app, Cli *cli) {
 
     // We keep going, so init watch
     if (!app->watch.count) {
-        watch_add(&app->watch, "app_build");
         watch_add(&app->watch, "src");
-        watch_add(&app->watch, "lib");
     }
     app->changed = watch_check(&app->watch);
 }

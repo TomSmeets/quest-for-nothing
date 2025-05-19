@@ -2,6 +2,7 @@
 // watch.h - Simple linux inotify wrapper
 #pragma once
 #include "fmt.h"
+#include "fs.h"
 #include "os_api.h"
 #include "os_main.h"
 #include "types.h"
@@ -21,6 +22,15 @@ struct Watch {
 };
 
 static bool watch_add(Watch *watch, char *path) {
+    fmt_ss(G->fmt, "Watch: ", path, "\n");
+    Memory *mem = mem_new();
+    for (FS_Dir *dir = fs_list(mem, str_from(path)); dir; dir = dir->next) {
+        if (!dir->is_dir) continue;
+        String path2 = str_cat3(mem, str_from(path), S("/"), dir->name);
+        watch_add(watch, (char *)path2.data);
+    }
+    mem_free(mem);
+
     if (watch->count == 0) {
         watch->fd = linux_inotify_init(O_NONBLOCK);
         assert(watch->fd >= 0, "Could not init inotify");

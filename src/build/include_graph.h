@@ -200,19 +200,19 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
 // Add a node for every .h or .c file
 static void include_graph_read_dir(Include_Graph *graph, String path, String color) {
     for (FS_Dir *file = fs_list(graph->mem, path); file; file = file->next) {
-        if (file->is_dir) continue;
+        String full_path = str_cat3(graph->mem, path, S("/"), file->name);
+
+        if (file->is_dir) {
+            // Recurse
+            include_graph_read_dir(graph, path, color);
+            continue;
+        }
 
         // Only .c and .h files
         String name_no_ext = file->name;
         bool is_h_file = str_drop_end_matching(&name_no_ext, S(".h"));
         bool is_c_file = str_drop_end_matching(&name_no_ext, S(".c"));
         if (!is_c_file && !is_h_file) continue;
-
-        // Don't scan opengl api, it is quite big.
-        // if (str_eq(file->name, "ogl_api.h")) continue;
-
-        // Full Path
-        String full_path = str_cat3(graph->mem, path, S("/"), file->name);
 
         // Remove extention
         file->name = name_no_ext;
