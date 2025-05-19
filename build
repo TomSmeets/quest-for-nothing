@@ -4,4 +4,4 @@
 # build.sh - Build the current project
 set -euo pipefail
 mkdir -p out
-clang -O0 -g -I src/lib -o out/build src/build/build2.c && exec ./out/build "${@}"
+clang -O0 -g -I src/lib -o out/build src/build/build.c && exec ./out/build "${@}"
