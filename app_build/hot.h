@@ -31,7 +31,7 @@ static Hot *hot_new(Memory *mem, u32 argc, char **argv) {
 
 // Load child program from path
 static bool hot_load(Hot *hot, char *path) {
-    void *handle = os_dlopen(S(path));
+    void *handle = os_dlopen(str_from(path));
 
     if (!handle) {
         fmt_ss(G->fmt, "dlopen: ", os_dlerror(), "\n");
