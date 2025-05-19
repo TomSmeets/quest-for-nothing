@@ -150,14 +150,38 @@ static bool build_serve(App *app, Cli *cli) {
     return true;
 }
 
+static bool build_all(App *app, Cli *cli) {
+    bool build = cli_flag(cli, "release", "Build qfn release");
+    bool watch = cli_flag(cli, "release-watch", "Build an executable and watch changes");
+    if (!build && !watch) return false;
+    if (watch && !app->changed) return true;
+
+    Clang_Options opts = {};
+    opts.input_path = "app_qfn/main.c";
+    opts.release = true;
+
+    opts.platform = Platform_Linux;
+    opts.output_path = "out/release/quest_for_nothing.elf";
+    if(!clang_compile(app->mem, opts)) os_exit(1);
+
+    opts.platform = Platform_Windows;
+    opts.output_path = "out/release/quest_for_nothing.exe";
+    if(!clang_compile(app->mem, opts)) os_exit(1);
+
+    opts.platform = Platform_Wasm;
+    opts.output_path = "out/release/quest_for_nothing.wasm";
+    if(!clang_compile(app->mem, opts)) os_exit(1);
+    os_exit(0);
+    return true;
+}
+
 static void build_init(App *app, Cli *cli) {
     if (build_run(app, cli)) {
     } else if (build_format(app, cli)) {
     } else if (build_build(app, cli)) {
     } else if (build_include_graph(app, cli)) {
-        // } else if (cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) {
-        //     assert(os_system("cd out && python -m http.server"), "Failed to start python http server. Is python installed?");
-        //     os_exit(0);
+    } else if (build_serve(app, cli)) {
+    } else if (build_all(app, cli)) {
     } else {
         cli_show_usage(cli, G->fmt);
         os_exit(1);
