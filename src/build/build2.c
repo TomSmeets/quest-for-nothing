@@ -162,15 +162,15 @@ static bool build_all(App *app, Cli *cli) {
 
     opts.platform = Platform_Linux;
     opts.output_path = "out/release/quest_for_nothing.elf";
-    if(!clang_compile(app->mem, opts)) os_exit(1);
+    if (!clang_compile(app->mem, opts)) os_exit(1);
 
     opts.platform = Platform_Windows;
     opts.output_path = "out/release/quest_for_nothing.exe";
-    if(!clang_compile(app->mem, opts)) os_exit(1);
+    if (!clang_compile(app->mem, opts)) os_exit(1);
 
     opts.platform = Platform_Wasm;
     opts.output_path = "out/release/quest_for_nothing.wasm";
-    if(!clang_compile(app->mem, opts)) os_exit(1);
+    if (!clang_compile(app->mem, opts)) os_exit(1);
     os_exit(0);
     return true;
 }
