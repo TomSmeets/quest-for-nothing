@@ -52,5 +52,5 @@ static char *os_dlerror(void) {
 
 static bool os_system(String cmd) {
     i32 ret = system(str_c(cmd));
-    return ret >= 0;
+    return ret == 0;
 }
