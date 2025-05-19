@@ -67,7 +67,7 @@ static bool build_include_graph(App *app, Cli *cli) {
     bool build = cli_flag(cli, "include-graph", "Generate Include graph");
     if (!build) return false;
     Include_Graph *graph = include_graph_new(app->tmp);
-    include_graph_read_dir(graph, S("src"), S("red"));
+    include_graph_read_dir(graph, S("src"));
     include_graph_tred(graph);
     // include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);

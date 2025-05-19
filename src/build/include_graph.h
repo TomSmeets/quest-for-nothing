@@ -19,7 +19,7 @@ struct Include_Node {
     String name;
     u32 size;
     u32 rank;
-    String color;
+    u32 color;
     Include_Edge *edges;
     Include_Node *next;
 };
@@ -28,6 +28,7 @@ struct Include_Graph {
     Memory *mem;
     u32 rank_count;
     Include_Node *nodes;
+    u32 color_ix;
 };
 
 static Include_Graph *include_graph_new(Memory *mem) {
@@ -65,7 +66,7 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
     fmt_s(fmt, "digraph {\n");
     fmt_s(fmt, "  layout=dot;\n");
     fmt_s(fmt, "  ranksep=1.0;\n");
-    fmt_s(fmt, "  node[style=filled,fillcolor=\"#ffffff\"];\n");
+    fmt_s(fmt, "  node[style=filled,fillcolor=\"#ffffff\",colorscheme=set19];\n");
     fmt_s(fmt, "  edge[color=\"#bbbbbb\"];\n");
 
     for (u32 i = 0; i < graph->rank_count; ++i) {
@@ -84,10 +85,8 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
         fmt_s(fmt, "  ");
         fmt_str(fmt, node->name);
         fmt_s(fmt, "[");
-        if (node->color.len) {
-            fmt_s(fmt, "color=");
-            fmt_str(fmt, node->color);
-        }
+        fmt_s(fmt, "color=");
+        fmt_u(fmt, node->color);
         fmt_s(fmt, "];\n");
 
         for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
@@ -176,8 +175,9 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
     u32 line_count = 0;
     for (;;) {
         char *buffer = mem_push_uninit(graph->mem, 1024);
-        String line = str_from(read_line(read, buffer, 1024));
-        if (!line.len) break;
+        char *line_read = read_line(read, buffer, 1024);
+        if (!line_read) break;
+        String line = str_from(line_read);
         line_count++;
 
         if (!str_drop_start_matching(&line, S("#include \""))) continue;
@@ -198,13 +198,15 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
 }
 
 // Add a node for every .h or .c file
-static void include_graph_read_dir(Include_Graph *graph, String path, String color) {
+static void include_graph_read_dir(Include_Graph *graph, String path) {
+    u32 color = graph->color_ix++;
+
     for (FS_Dir *file = fs_list(graph->mem, path); file; file = file->next) {
         String full_path = str_cat3(graph->mem, path, S("/"), file->name);
 
         if (file->is_dir) {
             // Recurse
-            include_graph_read_dir(graph, path, color);
+            include_graph_read_dir(graph, full_path);
             continue;
         }
 
