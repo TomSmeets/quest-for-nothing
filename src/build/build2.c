@@ -57,7 +57,7 @@ static bool build_read_opts(Cli *cli, Clang_Options *opts) {
 
 static bool build_format(App *app, Cli *cli) {
     if (!cli_flag(cli, "format", "Run code formatter")) return false;
-    bool result = os_system(S("clang-format --verbose -i */*.{h,c}"));
+    bool result = os_system(S("clang-format --verbose -i src/*/*.{h,c}"));
     assert(result, "Format failed!");
     os_exit(0);
     return true;
