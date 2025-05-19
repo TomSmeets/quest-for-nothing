@@ -157,7 +157,7 @@ static bool build_all(App *app, Cli *cli) {
     if (watch && !app->changed) return true;
 
     Clang_Options opts = {};
-    opts.input_path = "app_qfn/main.c";
+    opts.input_path = "src/qfn/main.c";
     opts.release = true;
 
     opts.platform = Platform_Linux;
