@@ -1,5 +1,7 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// build.c - Build tool for runing and building applications
 #include "clang.h"
-#include "cli2.h"
+#include "cli.h"
 #include "fmt.h"
 #include "hot.h"
 #include "include_graph.h"

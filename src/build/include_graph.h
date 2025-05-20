@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// include_graph.h - Generate a dependency graph from includes
 #pragma once
 #include "fmt.h"
 #include "fs.h"

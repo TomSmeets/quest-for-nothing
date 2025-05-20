@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// cli2.h: Command line argument reader
+// cli.h: Command line argument reader
 #pragma once
 #include "fmt.h"
 #include "types.h"
