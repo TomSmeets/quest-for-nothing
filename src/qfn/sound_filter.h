@@ -18,7 +18,7 @@ static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sampl
     f32 f = SOUND_DT / (rc + SOUND_DT);
 
     // f and fb calculation
-    f32 q = 0.9;
+    f32 q = 0.8;
     f32 fb = q + q / (1.0 - f);
 
     // loop

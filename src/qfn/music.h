@@ -10,7 +10,22 @@
 // | 0123 | 4567 | 89ab | cdef |
 typedef struct {
     f32 sleep_time;
-    i32 note;
+    f32 t;
+    u32 beat;
+
+    f32 f1;
+    f32 f2;
+    f32 f3;
+    f32 f4;
+    f32 f5;
+    f32 f6;
+
+    f32 v1;
+    f32 v2;
+    f32 v3;
+    f32 v4;
+    f32 v5;
+    f32 v6;
 } Music;
 
 typedef struct {
@@ -75,37 +90,38 @@ static void music_play(Music *music, Engine *eng) {
     music->sleep_time -= eng->dt;
     if (music->sleep_time > 0) return;
 
-    u32 beat_count = 4;
-    f32 beat_per_second = 60.0f / 60.0f;
+    u32 beat = music->beat++;
+    f32 beat_per_second = 2 * 60.0f / 60.0f;
     f32 dt = 1.0f / beat_per_second;
-    music->sleep_time += dt * beat_count;
+    music->sleep_time += dt;
 
-    // Enqueue new music
+    f32 v = 0.0f;
+    v += f_sin2pi(music->t*1)  / 1 * music->v1;
+    v += f_sin2pi(music->t*2)  / 2 * music->v2;
+    v += f_sin2pi(music->t*3)  / 4 * music->v3;
+    v += f_sin2pi(music->t*4)  / 8 * music->v4;
+    v += f_sin2pi(music->t*5) / 16 * music->v5;
+    v += f_sin2pi(music->t*6) / 32 * music->v6;
+    i32 note = v;
 
-    f32 time = 0;
-    for (u32 i = 0; i < beat_count; ++i) {
-        // {
-        //     Voice snd = {};
-        //     snd.freq = music_note_to_freq(music->note + 3 * 7);
-        //     snd.time = time;
-        //     snd.kind = 2;
-
-        //     gfx_audio_lock(eng->gfx);
-        //     audio_play(eng->audio, snd);
-        //     gfx_audio_unlock(eng->gfx);
-        // }
-
-        time -= 1.0f * dt;
-
-        if (rand_choice(&eng->rng, 0.5)) {
-            music->note += 1;
-        } else {
-            music->note -= 1;
-        }
-
-        if (music->note > 7) music->note = 6;
-        if (music->note < -7) music->note = -6;
+    music->t += 1.0f / 16.0f;
+    if(music->t > 1.0f) {
+        music->t -= 1.0f;
+        music->v1 = rand_f32(G->rand, 0, 1);
+        music->v2 = rand_f32(G->rand, 0, 1);
+        music->v3 = rand_f32(G->rand, 0, 1);
+        music->v4 = rand_f32(G->rand, 0, 1);
+        music->v5 = rand_f32(G->rand, 0, 1);
+        music->v6 = rand_f32(G->rand, 0, 1);
     }
+
+    Voice snd = {};
+    snd.freq = music_note_to_freq(3 * 7 + note);
+    snd.time = 0;
+    snd.kind = 2;
+    // gfx_audio_lock(eng->gfx);
+    // audio_play(eng->audio, snd);
+    // gfx_audio_unlock(eng->gfx);
 }
 
 #if 0

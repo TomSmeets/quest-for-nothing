@@ -5,6 +5,7 @@
 #include "mem.h"
 #include "rand.h"
 #include "sound.h"
+#include "sound_filter.h"
 #include "types.h"
 
 typedef struct {
@@ -35,14 +36,14 @@ static f32 voice_noise(Voice *voice) {
 
 static f32 voice_note(Voice *voice) {
     Sound *sound = &voice->sound;
-    f32 volume = sound_ar(voice->time, 0.08, 1.0, &voice->done);
+    f32 volume = sound_adsr(voice->time, 0.01, 0.01, 0.0f, 4.0f, &voice->done);
     f32 sample = 0;
-    f32 offset = sound_sine(sound, 4, 0);
 
-    f32 phase = volume * sound_sine(sound, voice->freq, offset * 0.1);
-    sample += volume * sound_sine(sound, voice->freq, phase * 0.2);
-    // sample = f_clamp(sample*4, -1.0f, 1.0f);
-    // sample = sound_filter(sound, voice->freq, sample).low_pass;
+    f32 offset = sound_sine(sound, 1, 0);
+    f32 phase = volume * sound_sine(sound, voice->freq, offset * 0.05);
+    sample += volume * sound_sine(sound, voice->freq, phase * 0.8);
+    // sample = f_clamp(sample*2, -1.0f, 1.0f);
+    sample = sound_filter(sound, voice->freq, sample).low_pass;
     // sample *= 4;
     return sample;
 }
