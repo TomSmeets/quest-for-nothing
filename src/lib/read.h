@@ -36,6 +36,13 @@ static u32 read_u32be(String *read) {
     return result;
 }
 
+static u16 read_u16be(String *read) {
+    u16 result = 0;
+    result |= read_u8(read) << (8 * 1);
+    result |= read_u8(read) << (8 * 0);
+    return result;
+}
+
 static u32 read_varint(String *read) {
     u32 result = 0;
     for (;;) {
@@ -57,4 +64,8 @@ static String read_line(String *read) {
     read->len -= shrink;
     read->data += shrink;
     return result;
+}
+
+static bool read_match(String *read, String match) {
+    return str_eq(read_buf(read, 4), match);
 }
