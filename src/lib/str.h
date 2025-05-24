@@ -97,3 +97,10 @@ static bool str_drop_end_matching(String *str, String end) {
     *str = str_drop_end(*str, end.len);
     return true;
 }
+
+static u32 str_find(String str, u8 chr) {
+    for (u32 i = 0; i < str.len; ++i) {
+        if (str.data[i] == chr) return i;
+    }
+    return str.len;
+}
