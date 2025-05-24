@@ -13,6 +13,7 @@
 
 typedef struct {
     u32 time;
+    u8 chan;
     u8 down;
     u8 note;
     u8 vel;
@@ -74,6 +75,7 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
                 .vel = vel,
                 .down = false,
                 .time = dt,
+                .chan = channel,
             };
         } else if (event == 0x9) {
             // Note on
@@ -85,6 +87,7 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
                 .vel = vel,
                 .down = true,
                 .time = dt,
+                .chan = channel,
             };
         } else if (event == 0xa) {
             // Key Pressure
@@ -105,6 +108,8 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
             u16 value = read_u16(&data);
         }
     }
+    track->note_count = note_count;
+    track->notes = note_list;
     return track;
 }
 

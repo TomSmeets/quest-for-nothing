@@ -4,18 +4,17 @@
 #include "audio.h"
 #include "engine.h"
 #include "sound.h"
+#include "midi.h"
 #include "types.h"
 
 typedef struct {
-    u8 delta_time;
-    u8 status;
-    u8 note;
-} Note;
+    u32 index;
+    u64 time;
+} Music_Track;
 
 typedef struct {
-    u32 index;
-    u32 count;
-    Note notes[64];
+    Midi *midi;
+    Music_Track tracks[32];
 } Music;
 
 // Midi note to freq
@@ -55,4 +54,64 @@ static f32 music_note_to_freq(u8 note) {
 }
 
 static void music_play(Music *music, Engine *eng) {
+    if(!music->midi) {
+        *music = (Music) {};
+        Memory *mem = mem_new();
+        String file = os_readfile(mem, S("test3.mid"));
+        music->midi = midi_read(mem, &file);
+        assert0(music->midi);
+    }
+
+    f32 speed = 0.5f;
+    u32 track_ix = 0;
+    bool all_done = true;
+    for( Midi_Track *track = music->midi->tracks; track; track = track->next) {
+        assert0(track_ix < array_count(music->tracks));
+        Music_Track *mtrack = music->tracks + track_ix++;
+
+        if(track_ix >= 10) continue;
+
+        for (;;) {
+            if (mtrack->index == track->note_count) break;
+            if (track->note_count == 0) break;
+            all_done = false;
+
+            Midi_Note *note = track->notes + mtrack->index;
+            u64 dt = note->time;
+            // fmt_su(G->fmt, "Index: ", music->index, "\n");
+            // fmt_su(G->fmt, "Time: ", music->time, "\n");
+            if (mtrack->time < dt) break;
+            mtrack->index++;
+            mtrack->time -= dt;
+
+            if (!note->down) continue;
+
+            u32 duration = 0;
+            for (u32 i = mtrack->index; i < track->note_count; ++i) {
+                Midi_Note *next = track->notes + i;
+                duration += next->time;
+                if (next->note == note->note && !next->down) break;
+            }
+
+            fmt_su(G->fmt, "Track: ",track_ix, " ");
+            fmt_su(G->fmt, "Ix: ",mtrack->index, " ");
+            fmt_su(G->fmt, "Note: ", note->note, " ");
+            fmt_su(G->fmt, "Vel: ", note->vel, " ");
+            fmt_su(G->fmt, "Duration: ", duration, "\n");
+
+            Voice voice = {
+                .freq = music_note_to_freq(note->note),
+                .time = 0,
+                .kind = 2,
+                .velocity = 0.1,
+                .duration = duration / 1000.0f * 4 / speed,
+            };
+            audio_play(eng->audio, voice);
+        }
+        mtrack->time += eng->dt*1000*speed;
+    }
+
+    if(all_done) {
+        std_memzero((u8 *)music->tracks, sizeof(music->tracks));
+    }
 }
