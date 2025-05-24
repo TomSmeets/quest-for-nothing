@@ -17,6 +17,11 @@ static u8 read_u8(String *read) {
     return byte;
 }
 
+static u8 read_peek_u8(String *read) {
+    if (read->len == 0) return 0;
+    return read->data[0];
+}
+
 static String read_buf(String *read, u32 len) {
     if (len > read->len) len = read->len;
     if (len == 0) return S0;
@@ -40,6 +45,13 @@ static u16 read_u16be(String *read) {
     u16 result = 0;
     result |= read_u8(read) << (8 * 1);
     result |= read_u8(read) << (8 * 0);
+    return result;
+}
+
+static u16 read_u16(String *read) {
+    u16 result = 0;
+    result |= read_u8(read) << (8 * 0);
+    result |= read_u8(read) << (8 * 1);
     return result;
 }
 

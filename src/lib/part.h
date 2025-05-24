@@ -19,7 +19,7 @@ static Part *part_new(Memory *mem) {
 }
 
 static void part_free(Memory *mem, Part *part) {
-    mem_free_struct(mem, part);
+    // mem_free_struct(mem, part);
 }
 
 // Fill part with data from str
