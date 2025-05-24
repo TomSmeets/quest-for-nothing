@@ -178,7 +178,7 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
     String read = file;
     for (;;) {
         String line = read_line(&read);
-        if(line.len == 0) break;
+        if (line.len == 0) break;
 
         if (!str_drop_start_matching(&line, S("#include \""))) continue;
         if (!str_drop_end_matching(&line, S("\""))) continue;

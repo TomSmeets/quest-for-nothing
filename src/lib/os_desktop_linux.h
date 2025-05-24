@@ -36,13 +36,13 @@ static u32 os_read(File *file, u8 *data, u32 len) {
 // Simple read/write
 static String os_readfile(Memory *mem, String path) {
     i32 fd = linux_open(str_c(path), O_RDONLY, 0);
-    if(fd < 0) return S0;
+    if (fd < 0) return S0;
 
     struct linux_stat sb = {};
     linux_fstat(fd, &sb);
 
     // Does not fit memory
-    if(sb.st_size > U32_MAX) {
+    if (sb.st_size > U32_MAX) {
         linux_close(fd);
         return S0;
     }
@@ -67,7 +67,7 @@ static String os_readfile(Memory *mem, String path) {
 
     linux_close(fd);
 
-    return (String) { file_size, file_buf };
+    return (String){file_size, file_buf};
 }
 
 static void os_sleep(u64 us) {

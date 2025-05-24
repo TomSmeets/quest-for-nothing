@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_desktop.h - Desktop functionality: files, commands
 #pragma once
-#include "os_base.h"
 #include "mem.h"
+#include "os_base.h"
 #include "os_desktop_types.h"
 
 static File *os_open(String path, OS_Open_Type type);
