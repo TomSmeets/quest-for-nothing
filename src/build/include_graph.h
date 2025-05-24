@@ -170,17 +170,15 @@ static void include_graph_rank(Include_Graph *graph) {
 // A Include_Node is added for the file
 // An edge is added for every '#include'
 static Include_Node *include_graph_read_file(Include_Graph *graph, String path, String name) {
-    // Read file
-    Read *read = read_new(graph->mem, path);
+    String file = os_readfile(graph->mem, path);
     Include_Node *node = include_graph_node(graph, name);
 
     u32 line_count = 0;
+
+    String read = file;
     for (;;) {
-        char *buffer = mem_push_uninit(graph->mem, 1024);
-        char *line_read = read_line(read, buffer, 1024);
-        if (!line_read) break;
-        String line = str_from(line_read);
-        line_count++;
+        String line = read_line(&read);
+        if(line.len == 0) break;
 
         if (!str_drop_start_matching(&line, S("#include \""))) continue;
         if (!str_drop_end_matching(&line, S("\""))) continue;
@@ -195,7 +193,6 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
         include_graph_link(graph, node, dst);
     }
     node->size = line_count;
-    read_close(read);
     return node;
 }
 

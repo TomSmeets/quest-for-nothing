@@ -33,6 +33,43 @@ static u32 os_read(File *file, u8 *data, u32 len) {
     return result;
 }
 
+// Simple read/write
+static String os_readfile(Memory *mem, String path) {
+    i32 fd = linux_open(str_c(path), O_RDONLY, 0);
+    if(fd < 0) return S0;
+
+    struct linux_stat sb = {};
+    linux_fstat(fd, &sb);
+
+    // Does not fit memory
+    if(sb.st_size > U32_MAX) {
+        linux_close(fd);
+        return S0;
+    }
+
+    u32 file_size = sb.st_size;
+    u8 *file_buf = mem_push_uninit(mem, file_size);
+    assert0(file_buf);
+
+    u32 bytes_read = 0;
+    while (bytes_read < file_size) {
+        // Should be able to read everything at once
+        i64 result = linux_read(fd, file_buf + bytes_read, file_size - bytes_read);
+
+        // Something went wrong
+        if (result <= 0) {
+            linux_close(fd);
+            return S0;
+        }
+
+        bytes_read += result;
+    }
+
+    linux_close(fd);
+
+    return (String) { file_size, file_buf };
+}
+
 static void os_sleep(u64 us) {
     struct linux_timespec time = linux_us_to_time(us);
     linux_nanosleep(&time, 0);
