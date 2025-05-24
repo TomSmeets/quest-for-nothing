@@ -5,18 +5,6 @@
 #include "types.h"
 
 typedef struct Memory Memory;
-typedef struct FreeItem FreeItem;
-typedef struct FreeList FreeList;
-
-struct FreeList {
-    u32 size;
-    FreeItem *items;
-    FreeList *next;
-};
-
-struct FreeItem {
-    FreeItem *next;
-};
 
 // A stack allocator for variable size allocations.
 // Each allocation should be smaller than the chunk size.
@@ -31,9 +19,6 @@ struct Memory {
 
     // Total size of the first chunk (always 1 MB)
     u32 size;
-
-    // A common Freelist to recycle some regions
-    FreeList *free_list;
 };
 
 // Align the next allocation to 16 bytes
@@ -41,25 +26,8 @@ static void u32_align(u32 *addr, u32 bytes) {
     u32 mask = bytes - 1;
     *addr = (*addr + mask) & ~mask;
 }
-
-// Find freelist with items of exact size
-static FreeList *freelist_find_list(Memory *mem, u32 size) {
-    for (FreeList *item = mem->free_list; item; item = item->next) {
-        if (item->size == size) return item;
-    }
-    return 0;
-}
-
 // Allocate 'size' bytes of uninitialized memory
 static void *mem_push_uninit(Memory *mem, u32 size) {
-    // Check freelist
-    FreeList *list = freelist_find_list(mem, size);
-    if (list && list->items) {
-        FreeItem *item = list->items;
-        list->items = item->next;
-        return (void *)item;
-    }
-
     // Primitives should be aligned to their own size.
     //   int8 -> no alignment needed
     //   int32 -> 4 byte alignment
@@ -140,22 +108,3 @@ static void mem_free(Memory *mem) {
     // Free all chunks in this memory arena
     chunk_free(mem->chunk);
 }
-
-static void mem_recycle(Memory *mem, void *data, u32 size) {
-    if (size < sizeof(FreeItem)) return;
-
-    FreeList *list = freelist_find_list(mem, size);
-    if (!list) {
-        list = mem_struct(mem, FreeList);
-        list->size = size;
-        list->next = mem->free_list;
-        mem->free_list = list;
-    }
-
-    // Insert Item
-    FreeItem *item = data;
-    item->next = list->items;
-    list->items = item;
-}
-
-#define mem_free_struct(mem, item) (mem_recycle((mem), (item), sizeof(*(item))))
