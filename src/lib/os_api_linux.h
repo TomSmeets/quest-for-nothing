@@ -156,8 +156,35 @@ static i32 linux_open(const char *path, i32 flags, u32 mode) {
     return linux_syscall3(0x02, (i64)path, flags, mode);
 }
 
+struct linux_stat {
+    u64 st_dev;
+    u64 st_ino;
+    u64 st_nlink;
+
+    u32 st_mode;
+    u32 st_uid;
+    u32 st_gid;
+    u32 __pad0;
+    u64 st_rdev;
+    i64 st_size;
+    i64 st_blksize;
+    i64 st_blocks;
+
+    u64 st_atime;
+    u64 st_atime_nsec;
+    u64 st_mtime;
+    u64 st_mtime_nsec;
+    u64 st_ctime;
+    u64 st_ctime_nsec;
+    i64 __unused[3];
+};
+
 static i32 linux_close(i32 fd) {
     return linux_syscall1(0x03, fd);
+}
+
+static i32 linux_fstat(i32 fd, struct linux_stat *buf) {
+    return linux_syscall2(0x05, fd, (i64)buf);
 }
 
 static i64 linux_getrandom(void *buf, u64 size, u32 flags) {
