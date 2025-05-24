@@ -8,10 +8,21 @@
 // NOTE: (to self) Embrace mem type, just grow fmt, don't care
 
 // https://www.youtube.com/watch?v=P27ml4M3V7A
+//
+
+
+typedef struct {
+    u32 time;
+    u8 down;
+    u8 note;
+    u8 vel;
+} Midi_Note;
 
 typedef struct Midi_Track Midi_Track;
 struct Midi_Track {
     Midi_Track *next;
+    u32 note_count;
+    Midi_Note *notes;
 };
 
 typedef struct {
@@ -28,26 +39,53 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
 
     Midi_Track *track = mem_struct(mem, Midi_Track);
     u8 status = 0;
+
+    u32 note_cap = size / 3;
+    u32 note_count = 0;
+    Midi_Note *note_list = mem_array_uninit(mem, Midi_Note, note_cap);
     for(;;) {
         if(data.len == 0) break;
+        // MTrk  event
         u32 dt = read_varint(&data);
+
+        // Midi event
         bool has_status = read_peek_u8(&data) >= 0x80;
-        if (has_status) {
-            status = read_u8(&data);
-        }
+        if (has_status)  status = read_u8(&data);
 
         u8 event = status >> 4;
         u8 channel = status & 0xf;
-        if (event == 0x8) {
+
+        if(status == 0xf0 || status == 0xf7) {
+            // Sysex event
+            u32 len = read_varint(&data);
+            String data = read_buf(&data, len);
+        } else if (status == 0xff) {
+            // Meta Event
+            u8 type = read_u8(&data);
+            u32 len = read_varint(&data);
+            String data = read_buf(&data, len);
+        } else if (event == 0x8) {
             // Note off
             u8 note = read_u8(&data);
             u8 vel = read_u8(&data);
-            fmt_su(G->fmt, "U: ", note, "\n");
+            assert0(note_count < note_cap);
+            note_list[note_count++] = (Midi_Note){
+                .note = note,
+                .vel = vel,
+                .down = false,
+                .time = dt,
+            };
         } else if (event == 0x9) {
             // Note on
             u8 note = read_u8(&data);
             u8 vel = read_u8(&data);
-            fmt_su(G->fmt, "D: ", note, "\n");
+            assert0(note_count < note_cap);
+            note_list[note_count++] = (Midi_Note){
+                .note = note,
+                .vel = vel,
+                .down = true,
+                .time = dt,
+            };
         } else if (event == 0xa) {
             // Key Pressure
             u8 note = read_u8(&data);
@@ -65,35 +103,8 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
         } else if (event == 0xe) {
             // Pitch Wheel
             u16 value = read_u16(&data);
-        } else if (event == 0xf) {
-            // system event
-            if(status == 0xff && read_peek_u8(&data) > 0) {
-                // Meta Event
-                u8 type = read_u8(&data);
-                u32 len = read_varint(&data);
-                String msg = read_buf(&data, len);
-                fmt_str(G->fmt, S("Meta["));
-                fmt_u(G->fmt, type);
-                fmt_str(G->fmt, S("]"));
-                if(type >= 1 && type <= 7) {
-                fmt_str(G->fmt, S("  "));
-                    fmt_str(G->fmt, msg);
-                }
-                fmt_str(G->fmt, S("\n"));
-            } else {
-                // Control Event
-                u32 len = read_varint(&data);
-                String msg = read_buf(&data, len);
-                // fmt_str(G->fmt, S("Control: "));
-                // fmt_str(G->fmt, msg);
-                // fmt_str(G->fmt, S("\n"));
-            }
         }
     }
-    // delta_time
-    // status   xx
-    // note     0-127
-    // velocity 0-127
     return track;
 }
 
