@@ -116,7 +116,6 @@ static Game *game_new(Rand *rng) {
     game->camera.target = game->player;
 
     game->sparse = sparse_set_new(mem);
-    music_init(&game->music);
 
     Image *img = image_new(mem, (v2u){32, 32});
     image_fill(img, (v4){1, 0, 1, 1});
