@@ -10,7 +10,6 @@
 // https://www.youtube.com/watch?v=P27ml4M3V7A
 //
 
-
 typedef struct {
     u32 time;
     u8 chan;
@@ -44,19 +43,19 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
     u32 note_cap = size / 3;
     u32 note_count = 0;
     Midi_Note *note_list = mem_array_uninit(mem, Midi_Note, note_cap);
-    for(;;) {
-        if(data.len == 0) break;
+    for (;;) {
+        if (data.len == 0) break;
         // MTrk  event
         u32 dt = read_varint(&data);
 
         // Midi event
         bool has_status = read_peek_u8(&data) >= 0x80;
-        if (has_status)  status = read_u8(&data);
+        if (has_status) status = read_u8(&data);
 
         u8 event = status >> 4;
         u8 channel = status & 0xf;
 
-        if(status == 0xf0 || status == 0xf7) {
+        if (status == 0xf0 || status == 0xf7) {
             // Sysex event
             u32 len = read_varint(&data);
             String data = read_buf(&data, len);
