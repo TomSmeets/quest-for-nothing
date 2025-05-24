@@ -62,14 +62,12 @@ static void music_play(Music *music, Engine *eng) {
         assert0(music->midi);
     }
 
-    f32 speed = 0.5f;
+    f32 speed = 0.35f;
     u32 track_ix = 0;
     bool all_done = true;
     for( Midi_Track *track = music->midi->tracks; track; track = track->next) {
         assert0(track_ix < array_count(music->tracks));
         Music_Track *mtrack = music->tracks + track_ix++;
-
-        if(track_ix >= 10) continue;
 
         for (;;) {
             if (mtrack->index == track->note_count) break;
@@ -103,8 +101,8 @@ static void music_play(Music *music, Engine *eng) {
                 .freq = music_note_to_freq(note->note),
                 .time = 0,
                 .kind = 2,
-                .velocity = 0.1,
-                .duration = duration / 1000.0f * 4 / speed,
+                .velocity = note->vel,
+                .duration = duration / 1000.0f * 8 / speed,
             };
             audio_play(eng->audio, voice);
         }

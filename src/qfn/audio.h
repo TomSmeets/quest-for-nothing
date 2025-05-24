@@ -38,14 +38,13 @@ static f32 voice_noise(Voice *voice) {
 
 static f32 voice_note(Voice *voice) {
     Sound *sound = &voice->sound;
-    f32 volume = sound_ar(voice->time, 0.01, voice->duration, &voice->done);
+    f32 volume = sound_ar(voice->time, 0.02 * 50.0f / voice->velocity, voice->duration, &voice->done);
     f32 sample = 0;
 
     f32 offset = (1.0f-volume) * sound_sine(sound, 4, 0);
     f32 phase = volume * sound_sine(sound, voice->freq, 0);
     sample += volume * sound_sine(sound, voice->freq, phase * .25 + offset * .25);
     sample *= 0.4;
-    // sample = f_clamp(sample*2.0f, -1.0f, 1.0f)/2.0f;
     // sample = sound_filter(sound, voice->freq, sample).low_pass;
     // sample *= 4;
     return sample;
