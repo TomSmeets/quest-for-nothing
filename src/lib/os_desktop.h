@@ -2,11 +2,17 @@
 // os_desktop.h - Desktop functionality: files, commands
 #pragma once
 #include "os_base.h"
+#include "mem.h"
 #include "os_desktop_types.h"
 
 static File *os_open(String path, OS_Open_Type type);
 static void os_close(File *file);
 static u32 os_read(File *file, u8 *data, u32 len);
+
+// Simple read/write
+static String os_readfile(Memory *mem, String path);
+static void os_writefile(String path, String data);
+
 // os_write is defined in os_base
 
 // Block thread for some number of microseconds
