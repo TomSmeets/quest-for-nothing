@@ -51,6 +51,8 @@ static u32 read_varint(String *read) {
 
 static String read_line(String *read) {
     u32 index = str_find(*read, '\n');
+    if(index < read->len) index += 1;
+
     String result = {.data = read->data, .len = index};
 
     read->len -= index;
