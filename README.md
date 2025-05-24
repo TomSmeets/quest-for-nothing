@@ -87,13 +87,6 @@ I'd like to release this someday, so keeping it very simple!
 - [ ] Publish Promo Youtube video (how to play, and how to edit)
 - [ ] Publish 1.0 on Itch
 
-# Ideas for Version 2.0
-- [ ] Android
-- [ ] Publish on Play Store
-- [ ] Time travel effects?
-- Missions: Alien hitman, Show sprite in ui, find and kill in secret.
-
-
 # Design
 Why only headers and static functions?
 
