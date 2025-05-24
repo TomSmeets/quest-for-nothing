@@ -41,7 +41,7 @@ static f32 voice_note(Voice *voice) {
     f32 volume = sound_ar(voice->time, 0.02 * 50.0f / voice->velocity, voice->duration, &voice->done);
     f32 sample = 0;
 
-    f32 offset = (1.0f-volume) * sound_sine(sound, 4, 0);
+    f32 offset = (1.0f - volume) * sound_sine(sound, 4, 0);
     f32 phase = volume * sound_sine(sound, voice->freq, 0);
     sample += volume * sound_sine(sound, voice->freq, phase * .25 + offset * .25);
     sample *= 0.4;
