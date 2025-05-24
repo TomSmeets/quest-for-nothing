@@ -18,7 +18,6 @@ typedef struct {
     Note notes[64];
 } Music;
 
-
 // Midi note to freq
 static f32 music_note_to_freq(u8 note) {
     f32 octave_list[] = {
