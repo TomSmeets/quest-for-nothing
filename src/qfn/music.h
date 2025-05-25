@@ -88,7 +88,7 @@ static void music_play(Music *music, Engine *eng) {
             for (u32 i = mtrack->index; i < track->note_count; ++i) {
                 Midi_Note *next = track->notes + i;
                 duration += next->time;
-                if (next->note == note->note && !next->down) break;
+                if (next->note == note->note && next->chan == note->chan && !next->down) break;
             }
 
             fmt_su(G->fmt, "Track: ", track_ix, " ");
