@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
+#include "cursor.h"
 #include "engine.h"
 #include "game.h"
-#include "cursor.h"
 #include "gfx.h"
 #include "gfx_impl.h"
 #include "global.h"
