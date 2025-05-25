@@ -112,17 +112,17 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
     track->notes = note_list;
 
     // Compute duration
-    for(u32 i = 0; i < note_count; ++i) {
+    for (u32 i = 0; i < note_count; ++i) {
         Midi_Note *note = note_list + i;
-        if(!note->down) continue;
+        if (!note->down) continue;
 
         note->duration = 0;
-        for(u32 j = i; j < note_count; ++j) {
+        for (u32 j = i; j < note_count; ++j) {
             Midi_Note *other = note_list + j;
             note->duration += other->time;
-            if(other->down) continue;
-            if(other->note != note->note) continue;
-            if(other->chan != note->chan) continue;
+            if (other->down) continue;
+            if (other->note != note->note) continue;
+            if (other->chan != note->chan) continue;
             break;
         }
     }
@@ -130,9 +130,9 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
     // Remove up events
     u32 j = 0;
     u32 t = 0;
-    for(u32 i = 0; i < note_count; ++i) {
+    for (u32 i = 0; i < note_count; ++i) {
         Midi_Note *note = note_list + i;
-        if(note->down) {
+        if (note->down) {
             note->time += t;
             t = 0;
             note_list[j++] = *note;
