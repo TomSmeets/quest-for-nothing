@@ -63,7 +63,6 @@ static void music_play(Music *music, Engine *eng) {
     }
 
     f32 speed = 0.35f;
-    // f32 speed = 0.20f;
     u32 track_ix = 0;
     bool all_done = true;
     for (Midi_Track *track = music->midi->tracks; track; track = track->next) {

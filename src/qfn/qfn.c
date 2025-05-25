@@ -106,23 +106,7 @@ static void os_main(void) {
     draw_cursor(app);
     game_update(app->game, eng);
 
-    if (app->game->debug == DBG_Texture) {
-        *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (Gfx_Quad){
-            .x = {400, 0, 0},
-            .y = {0, 400, 0},
-            .z = {0, 0, 1},
-            .w = {0, 0, 0},
-            .uv_pos = {0, 0},
-            .uv_size = {1, 1},
-        };
-
-        // Text
-        m4 mtx = m4_id();
-        m4_translate_x(&mtx, -eng->input->window_size.x * .5 + 3 * 4);
-        m4_translate_y(&mtx, eng->input->window_size.y * .5 - 3 * 4);
-        gfx_quad_ui(eng->gfx, mtx, eng->ui->image);
-        ui_text(eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
-    }
+    if (app->game->debug == DBG_Texture) debug_draw_texture(eng);
 
     engine_end(app->eng, app->game->camera.mtx);
 }

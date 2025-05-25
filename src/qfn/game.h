@@ -31,21 +31,13 @@ Game Design V1.0
 - walls can be painted
 */
 
-typedef enum {
-    DBG_None,
-    DBG_Entity,
-    DBG_Texture,
-    DBG_Collision,
-    DBG_COUNT,
-} Game_Debug;
-
 typedef struct {
     Memory *mem;
     Entity *player;
     Entity *monsters;
     Image *gun;
     Camera camera;
-    u32 debug;
+    Game_Debug debug;
 
     Sparse_Set *sparse;
     Music music;
@@ -337,7 +329,7 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
     if (ent->type == Entity_Player) player_update(ent, game, eng);
     if (ent->type == Entity_Wall) wall_update(game, eng, ent);
-    if (game->debug == DBG_Entity) gfx_debug_mtx(eng->gfx_dbg, ent->image_mtx);
+    if (game->debug == DBG_Entity) debug_draw_entity(eng, ent);
 }
 
 static f32 game_audio(Game *game, Engine *eng) {
@@ -349,7 +341,7 @@ static void game_update(Game *game, Engine *eng) {
 
     // Debug draw sparse data
     if (game->debug == DBG_Collision) {
-        sparse_debug_draw(eng, game->sparse, game->player);
+        debug_draw_collisions(eng, game->sparse, game->player);
     }
 
     // Toggle freecam
@@ -359,7 +351,7 @@ static void game_update(Game *game, Engine *eng) {
 
     // Toggle debug drawing
     if (key_click(eng->input, KEY_4)) {
-        game->debug = (game->debug + 1) % DBG_COUNT;
+        debug_next(&game->debug);
     }
 
     camera_input(&game->camera, &input, eng->dt);
