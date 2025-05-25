@@ -2,6 +2,7 @@
 // main.c - Quest For Nothing main entry point
 #include "engine.h"
 #include "game.h"
+#include "cursor.h"
 #include "gfx.h"
 #include "gfx_impl.h"
 #include "global.h"
@@ -20,7 +21,7 @@ struct App {
     Game *game;
 
     // Mouse cursor
-    Image *cursor;
+    Cursor cursor;
 };
 
 static App *app_init(void) {
@@ -30,7 +31,7 @@ static App *app_init(void) {
     app->mem = mem;
     app->eng = engine_new(mem, G->os, *G->rand, "Quest For Nothing");
     app->game = game_new(&app->eng->rng);
-    app->cursor = gen_cursor(mem);
+    cursor_load(&app->cursor, mem);
     return app;
 }
 
@@ -64,21 +65,6 @@ static void handle_basic_input(App *app, Input *input, Engine *eng) {
         os_exit(0);
     }
 
-    // Capture Mouse
-    if (key_click(input, KEY_MOUSE_LEFT)) {
-        gfx_set_grab(eng->gfx, true);
-    }
-
-    // Release Grab on focus lost or Esc
-    if ((input->focus_lost || key_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
-        gfx_set_grab(eng->gfx, false);
-    }
-
-    // Grab with G
-    if (key_click(input, KEY_G)) {
-        gfx_set_grab(eng->gfx, !input->mouse_is_grabbed);
-    }
-
     // Toggle fullscreen
     if (key_click(input, KEY_F)) {
         gfx_set_fullscreen(eng->gfx, !input->is_fullscreen);
@@ -89,20 +75,6 @@ static void handle_basic_input(App *app, Input *input, Engine *eng) {
         mem_free(app->game->mem);
         app->game = game_new(&eng->rng);
     }
-}
-
-static void draw_cursor(App *app) {
-    Engine *eng = app->eng;
-    Image *cursor = app->cursor;
-    Input *input = eng->input;
-    Gfx *gfx = eng->gfx;
-
-    m4 mtx = m4_id();
-    m4_image_ui(&mtx, cursor);
-    if (!input->mouse_is_grabbed) {
-        m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
-    }
-    gfx_quad_ui(gfx, mtx, cursor);
 }
 
 static void os_main(void) {
@@ -116,7 +88,7 @@ static void os_main(void) {
     engine_begin(eng);
 
     handle_basic_input(app, eng->input, eng);
-    draw_cursor(app);
+    cursor_draw(&app->cursor, eng);
     game_update(app->game, eng);
 
     if (app->game->debug == DBG_Texture) debug_draw_texture(eng);

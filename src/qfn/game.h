@@ -43,17 +43,6 @@ typedef struct {
     Music music;
 } Game;
 
-static Image *gen_cursor(Memory *mem) {
-    u32 size = 5;
-    Image *img = image_new(mem, (v2u){size, size});
-    for (u32 i = 0; i < size; ++i) {
-        v4 col = color_alpha(WHITE, 1);
-        image_write4(img, (v2i){i, i}, col);
-        image_write4(img, (v2i){i, size - 1 - i}, col);
-    }
-    return img;
-}
-
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
