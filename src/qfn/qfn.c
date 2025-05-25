@@ -9,16 +9,17 @@
 #include "math.h"
 #include "os_main.h"
 
-typedef struct App App;
 struct App {
+    // Permanent Game memory (allocate only)
     Memory *mem;
-
-    // Entire game state
-    Game *game;
 
     // Game engine, audio, video, input, timing
     Engine *eng;
 
+    // Entire game state
+    Game *game;
+
+    // Mouse cursor
     Image *cursor;
 };
 
@@ -37,10 +38,22 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     App *app = G->app;
     if (!app) return;
 
+    // Sample audio
+    //   Sound: Sound Synthesis
+    //   Audio: Sequencer, enquey sounds
+    //   Music: Parse or generate music and send to sequencer
+    //
+    // TODO: to cleanup we could reduce dependencies between sound, audio and music
+    // TODO: Split The synth from the game
     for (u32 i = 0; i < sample_count; ++i) {
+        // Currently only mono audio
         f32 sample = game_audio(app->game, app->eng);
+
+        // Reduce volume and clamp to a maximum
         sample *= 0.25;
         sample = f_clamp(sample, -1, 1);
+
+        // Convert to stereo sound
         samples[i] = (v2){sample, sample};
     }
 }
