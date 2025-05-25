@@ -12,10 +12,11 @@
 
 typedef struct {
     u32 time;
-    u8 chan;
-    u8 down;
+    u32 duration;
     u8 note;
+    u8 chan;
     u8 vel;
+    bool down;
 } Midi_Note;
 
 typedef struct Midi_Track Midi_Track;
@@ -109,6 +110,38 @@ static Midi_Track *midi_read_track(Memory *mem, String *read) {
     }
     track->note_count = note_count;
     track->notes = note_list;
+
+    // Compute duration
+    for(u32 i = 0; i < note_count; ++i) {
+        Midi_Note *note = note_list + i;
+        if(!note->down) continue;
+
+        note->duration = 0;
+        for(u32 j = i; j < note_count; ++j) {
+            Midi_Note *other = note_list + j;
+            note->duration += other->time;
+            if(other->down) continue;
+            if(other->note != note->note) continue;
+            if(other->chan != note->chan) continue;
+            break;
+        }
+    }
+
+    // Remove up events
+    u32 j = 0;
+    u32 t = 0;
+    for(u32 i = 0; i < note_count; ++i) {
+        Midi_Note *note = note_list + i;
+        if(note->down) {
+            note->time += t;
+            t = 0;
+            note_list[j++] = *note;
+        } else {
+            t += note->time;
+        }
+    }
+    track->note_count = j;
+
     return track;
 }
 

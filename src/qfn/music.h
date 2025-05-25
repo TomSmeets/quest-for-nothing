@@ -57,12 +57,13 @@ static void music_play(Music *music, Engine *eng) {
     if (!music->midi) {
         *music = (Music){};
         Memory *mem = mem_new();
-        String file = os_readfile(mem, S("test3.mid"));
+        String file = os_readfile(mem, S("test.mid"));
         music->midi = midi_read(mem, &file);
         assert0(music->midi);
     }
 
     f32 speed = 0.35f;
+    // f32 speed = 0.20f;
     u32 track_ix = 0;
     bool all_done = true;
     for (Midi_Track *track = music->midi->tracks; track; track = track->next) {
@@ -82,14 +83,7 @@ static void music_play(Music *music, Engine *eng) {
             mtrack->index++;
             mtrack->time -= dt;
 
-            if (!note->down) continue;
-
-            u32 duration = 0;
-            for (u32 i = mtrack->index; i < track->note_count; ++i) {
-                Midi_Note *next = track->notes + i;
-                duration += next->time;
-                if (next->note == note->note && next->chan == note->chan && !next->down) break;
-            }
+            u32 duration = note->duration;
 
             fmt_su(G->fmt, "Track: ", track_ix, " ");
             fmt_su(G->fmt, "Ix: ", mtrack->index, " ");
