@@ -17,13 +17,9 @@ typedef struct {
 
     // List of 'phase' values for sine waves.
     u32 phase_ix;
-    f32 phase[16];
+    f32 phase[32];
 } Sound;
 
-typedef struct {
-    f32 freq;
-    f32 time;
-} Sound_Parameters;
 
 // Attack-Release envelope
 //      _
@@ -88,7 +84,8 @@ static f32 sound_ramp(Sound *sound, f32 freq, f32 offset) {
 
     // Compute next variable
     *phase = f_fract(*phase + SOUND_DT * freq);
-    return f_fract(out + offset);
+
+    return out;
 }
 
 // Saw wave (rising)
@@ -143,4 +140,40 @@ static f32 sound_noise_freq(Sound *sound, f32 freq, f32 duty) {
     }
 
     return ret;
+}
+
+// Midi note to freq
+static f32 sound_note(u8 note) {
+    f32 octave_list[] = {
+        1.0f / 32.0f, // -1
+        1.0f / 16.0f, // 0
+        1.0f / 8.0f,  // 1
+        1.0f / 4.0f,  // 2
+        1.0f / 2.0f,  // 3
+        1.0f,         // 4
+        2.0f,         // 5
+        4.0f,         // 6
+        8.0f,         // 7
+        16.0f,        // 8
+        32.0f,        // 9
+    };
+
+    f32 note_list[] = {
+        261.62556530059860, // C
+        277.18263097687210, // C#
+        293.66476791740760, // D
+        311.12698372208090, // D#
+        329.62755691286990, // E
+        349.22823143300390, // F
+        369.99442271163440, // F#
+        391.99543598174927, // G
+        415.30469757994510, // G#
+        440.00000000000000, // A
+        466.16376151808990, // A#
+        493.88330125612410, // B
+    };
+
+    u8 note_ix = note % 12;
+    u8 octave_ix = note / 12;
+    return octave_list[octave_ix] * note_list[note_ix];
 }
