@@ -57,6 +57,20 @@ static f32 f_step(f32 x) {
     return x;
 }
 
+// Exponential approximation
+static f32 f_exp(f32 x) {
+    // Exp(x) = (1 + X/N)^N
+    f32 v = 1 + x / 32.0f;
+    if (v < 0) return 0;
+    v *= v; // v^2
+    v *= v; // v^4
+    v *= v; // v^8
+    v *= v; // v^16
+    v *= v; // v^32
+    return v;
+}
+
+
 static f32 f_step_duration(f32 t, f32 duration) {
     if (duration == 0) {
         return t >= 0 ? 1 : 0;
