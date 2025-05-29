@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_filter.h - Sound filters
 #pragma once
-#include "sound.h"
+#include "sound_var.h"
 
 typedef struct {
     f32 low_pass;
@@ -11,14 +11,14 @@ typedef struct {
 
 // Filter the incoming samples at a given cutoff frequency.
 static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sample) {
-    f32 *var0 = sound_var(sound);
-    f32 *var1 = sound_var(sound);
+    f32 *var0 = sound_var(sound, f32);
+    f32 *var1 = sound_var(sound, f32);
 
     f32 rc = 1.0 / (cutoff_freq * PI2);
     f32 f = SOUND_DT / (rc + SOUND_DT);
 
     // f and fb calculation
-    f32 q = 0.8;
+    f32 q = 0.9;
     f32 fb = q + q / (1.0 - f);
 
     // loop
@@ -39,5 +39,9 @@ static Sound_Filter_Result sound_filter(Sound *sound, f32 cutoff_freq, f32 sampl
 }
 
 static f32 sound_lowpass(Sound *sound, f32 cutoff_freq, f32 sample) {
-    return sound_filter(sound, cutoff_freq, sample).low_pass;
+    f32 *value = sound_var(sound, f32);
+    f32 a = 1.0f - f_exp(-SOUND_DT * PI2 * cutoff_freq);
+    f32 ret = *value;
+    *value += (sample - ret) * a;
+    return ret;
 }

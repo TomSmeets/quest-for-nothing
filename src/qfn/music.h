@@ -15,6 +15,7 @@ typedef struct {
 typedef struct {
     Midi *midi;
     Music_Track tracks[32];
+    bool playing;
 } Music;
 
 // Midi note to freq
@@ -54,55 +55,13 @@ static f32 music_note_to_freq(u8 note) {
 }
 
 static void music_play(Music *music, Engine *eng) {
-    if (!music->midi) {
-        *music = (Music){};
-        Memory *mem = mem_new();
-        String file = os_readfile(mem, S("test.mid"));
-        music->midi = midi_read(mem, &file);
-        assert0(music->midi);
-    }
-
-    f32 speed = 0.35f;
-    u32 track_ix = 0;
-    bool all_done = true;
-    for (Midi_Track *track = music->midi->tracks; track; track = track->next) {
-        assert0(track_ix < array_count(music->tracks));
-        Music_Track *mtrack = music->tracks + track_ix++;
-
-        for (;;) {
-            if (mtrack->index == track->note_count) break;
-            if (track->note_count == 0) break;
-            all_done = false;
-
-            Midi_Note *note = track->notes + mtrack->index;
-            u64 dt = note->time;
-            // fmt_su(G->fmt, "Index: ", music->index, "\n");
-            // fmt_su(G->fmt, "Time: ", music->time, "\n");
-            if (mtrack->time < dt) break;
-            mtrack->index++;
-            mtrack->time -= dt;
-
-            u32 duration = note->duration;
-
-            fmt_su(G->fmt, "Track: ", track_ix, " ");
-            fmt_su(G->fmt, "Ix: ", mtrack->index, " ");
-            fmt_su(G->fmt, "Note: ", note->note, " ");
-            fmt_su(G->fmt, "Vel: ", note->vel, " ");
-            fmt_su(G->fmt, "Duration: ", duration, "\n");
-
-            Voice voice = {
-                .freq = music_note_to_freq(note->note),
-                .time = 0,
-                .kind = 2,
-                .velocity = note->vel,
-                .duration = duration / 1000.0f * 8 / speed,
-            };
-            audio_play(eng->audio, voice);
-        }
-        mtrack->time += eng->dt * 1000 * speed;
-    }
-
-    if (all_done) {
-        std_memzero((u8 *)music->tracks, sizeof(music->tracks));
+    if(!music->playing) {
+        Voice voice = {
+            .time = 0,
+            .kind = 3,
+            .done = false,
+        };
+        audio_play(eng->audio, voice);
+        music->playing = true;
     }
 }
