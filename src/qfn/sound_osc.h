@@ -51,15 +51,26 @@ static f32 sound_noise_white(Sound *sound) {
 typedef struct {
     f32 phase;
     bool trigger;
+    u32 index;
 } Clock;
 
-static Clock sound_clock(Sound *sound, f32 freq) {
-    Clock ret = {};
+static Clock sound_clock(Sound *sound, f32 freq, u32 cycle) {
     f32 *value = sound_var(sound, f32);
-    ret.trigger = *value >= 1.0f;
-    *value = f_fract(*value);
-    ret.phase = *value;
+    u32 *index = sound_var(sound, u32);
+
     *value += freq * SOUND_DT;
+    bool trigger = false;
+    while(*value >= 1.0f) {
+        *value -= 1.0;
+        *index += 1;
+        *index %= cycle;
+        trigger = true;
+    }
+
+    Clock ret = {};
+    ret.trigger = trigger;
+    ret.phase = *value;
+    ret.index = *index;
     return ret;
 }
 
@@ -68,7 +79,7 @@ static Clock sound_clock(Sound *sound, f32 freq) {
 static f32 sound_noise_freq(Sound *sound, f32 freq, f32 duty) {
     // Current sample
     f32 *value = sound_var(sound, f32);
-    Clock clk = sound_clock(sound, freq);
+    Clock clk = sound_clock(sound, freq, 1);
     if (clk.trigger) *value = rand_f32(&sound->rand, -1, 1);
     f32 ret = clk.phase < duty ? *value : 0.0;
     return ret;

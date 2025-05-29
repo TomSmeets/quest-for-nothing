@@ -4,7 +4,7 @@
 #pragma once
 #include "sound_var.h"
 
-static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustain, f32 release) {
+static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustain) {
     // State | Down |
     //     _ |    0 | T=0.0     Release
     //     0 |    1 | T=1.0     (Attack)
@@ -19,7 +19,7 @@ static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustai
         // Release
         *attack_done  = 0;
         target = 0.0f;
-        speed  = release;
+        speed  = decay;
     } else if(*attack_done) {
         // Sustain
         target = sustain;
