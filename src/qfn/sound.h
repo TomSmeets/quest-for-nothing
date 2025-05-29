@@ -19,34 +19,16 @@
 // ============== Filter ==============
 
 static f32 sound_piano_key(Sound *sound, f32 freq, bool down) {
-    f32 volume = sound_adsr(sound, down, 4.0f, 1.0f, 0.5f, 1.0f);
-    f32 v2 = sound_adsr(sound, down, 80.0f, 8.0f, 0.5f, 8.0f);
-    f32 out = 0.0f;
-    f32 s1 = volume * sound_sine(sound, freq, 0);
-    f32 s2 = v2 * sound_sine(sound, freq, 0);
-    out += volume * sound_sine(sound, freq, s2) *s1;
+    f32 s0 = sound_adsr(sound, down, 8.0f, 1.0f, 0.5f, 1.0f) * sound_sine(sound, 4, 0);
+    f32 s1 = sound_adsr(sound, down, 2.0f, 1.0f, 0.5f, 1.0f) * sound_sine(sound, freq, s0*.2);
+    f32 s2 = sound_adsr(sound, down, 16.0f, 1.0f, 0.5f, 1.0f) * sound_sine(sound, freq, s1+s0*.0);
+    f32 s3 = sound_adsr(sound, down, 100.0f, 40.0f, 0.0f, 40.0f) * sound_noise_white(sound);
     // out = sound_lowpass(sound, freq, out);
 
     // out += volume*sound_sine(sound, freq, s1*s1*.4);
     // out += volume*sound_sine(sound, freq, s1*s1*s1*.5);
     // out = volume*sound_saw(sound, freq, sound_sine(sound, freq, 0)*volume*.5);
-    return out;
-}
-
-static bool sound_every(Sound *sound, f32 rate) {
-    f32 *var = sound_var(sound, f32);
-    *var += SOUND_DT * rate;
-    if (*var >= 1.0f) {
-        *var = f_fract(*var);
-        return true;
-    }
-    return false;
-}
-
-static u32 sound_rnote(Sound *sound, bool next) {
-    u32 *note = (u32 *)sound_var(sound, u32);
-    if (next) *note = rand_u32(&sound->rand, 0, 7);
-    return *note;
+    return s2 + s3;
 }
 
 typedef struct {
@@ -73,14 +55,14 @@ static f32 sound_music(Sound *sound) {
     f32 out = 0.0f;
 
     Poly *poly = sound_var(sound, Poly);
-    Clock clk = sound_clock(sound, 1.0f / 1);
+    Clock clk = sound_clock(sound, 1.0f / 2);
     if (clk.trigger) {
-        u32 note = rand_u32(&sound->rand, 35, 35 + 7);
+        u32 note = rand_u32(&sound->rand, 35-7 , 35+7);
         f32 freq = sound_scale(note);
         poly_play(poly, freq);
     }
 
-    bool down = clk.phase < 0.9;
+    bool down = f_fract(clk.phase * 2) < 0.5;
 
     // Delay_Buffer *buf = sound_var(sound, Delay_Buffer);
     // out += 0.8 * delay_read(buf, 63.0f / SOUND_SAMPLE_RATE);
@@ -88,8 +70,10 @@ static f32 sound_music(Sound *sound) {
     // clk.phase < 0.25f;
     for (u32 i = 0; i < 8; ++i) {
         Poly_Voice *voice = poly->voices + i;
-        out += 0.1 * sound_piano_key(sound, voice->note, voice->down && down);
+        out += 0.5 * sound_piano_key(sound, voice->note, voice->down && down);
     }
+    out += 0.5 * sound_piano_key(sound, OCT_4 * NOTE_C, clk.phase < 0.5);
+    out += 0.5 * sound_piano_key(sound, OCT_3 * NOTE_F, clk.phase > 0.5);
     // delay_write(buf, out);
     return out;
 }

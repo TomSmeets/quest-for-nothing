@@ -123,11 +123,7 @@ static f32 voice_sample(Voice *voice) {
 // Inspiration
 //   - https://www.youtube.com/watch?v=J_FCCvNzbiY
 typedef struct {
-    f32 dt;
-    Rand rand;
-
-    u32 voice_count;
-    Voice voices[64];
+    Sound snd;
 } Audio;
 
 static Audio *audio_new(Memory *mem) {
@@ -135,23 +131,11 @@ static Audio *audio_new(Memory *mem) {
 }
 
 static void audio_play(Audio *audio, Voice voice) {
-    if (audio->voice_count == array_count(audio->voices)) return;
-    audio->voices[audio->voice_count++] = voice;
 }
 
 static f32 audio_sample(Audio *audio) {
-    f32 res = 0.0f;
-    for (u32 i = 0; i < audio->voice_count;) {
-        Voice *voice = audio->voices + i;
-        res += voice_sample(voice);
-
-        if (voice->done) {
-            // Swap remove
-            audio->voices[i] = audio->voices[--audio->voice_count];
-        } else {
-            // Go to next
-            i++;
-        }
-    }
-    return res;
+    sound_begin(&audio->snd);
+    f32 ret = 0.0f;
+    ret += sound_music(&audio->snd);
+    return ret;
 }
