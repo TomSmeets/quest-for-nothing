@@ -12,7 +12,6 @@
 #include "level.h"
 #include "mem.h"
 #include "monster.h"
-#include "music.h"
 #include "player.h"
 #include "rand.h"
 #include "sparse_set.h"
@@ -38,9 +37,7 @@ typedef struct {
     Image *gun;
     Camera camera;
     Game_Debug debug;
-
     Sparse_Set *sparse;
-    Music music;
 } Game;
 
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {

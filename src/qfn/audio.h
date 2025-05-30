@@ -19,6 +19,9 @@
 //   - https://www.youtube.com/watch?v=J_FCCvNzbiY
 typedef struct {
     Sound snd;
+
+    bool play_shoot;
+    bool play_jump;
 } Audio;
 
 static Audio *audio_new(Memory *mem) {
@@ -26,6 +29,47 @@ static Audio *audio_new(Memory *mem) {
 }
 
 static v2 audio_sample(Audio *audio) {
-    sound_begin(&audio->snd);
-    return sound_music(&audio->snd);
+    Sound *sound = &audio->snd;
+
+    v2 out = {0, 0};
+    Clock clk = sound_clock(sound, 1.0f, 32);
+
+    sound_begin(sound);
+    f32 base = 0.2f * music_base(sound, clk.index);
+    f32 melo = 0.3f * music_melody(sound, clk.index);
+    // melo += 0.1 * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
+    f32 chance = 1.0f / 64.0f;
+    f32 volume = 0.04f;
+
+    bool play_noise0 = clk.trigger && rand_choice(G->rand, chance);
+    bool play_noise1 = clk.trigger && rand_choice(G->rand, chance);
+    bool play_noise2 = clk.trigger && rand_choice(G->rand, chance);
+    bool play_noise3 = clk.trigger && rand_choice(G->rand, chance);
+    bool play_noise4 = clk.trigger && rand_choice(G->rand, chance);
+
+    melo += volume * sound_adsr(sound, play_noise0, 400, 1.0, 0) * sound_noise_white(sound);
+    melo += volume * sound_adsr(sound, play_noise1, 2, 1.0, 0) * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
+    melo += volume * sound_adsr(sound, play_noise2, 0.5, 0.5, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 4, 0) * .5f), 0);
+    melo += volume * sound_adsr(sound, play_noise3, 1, 0.5, 0) * sound_sine(sound, NOTE_F * (1 + sound_sine(sound, 2, 0) * .5f), 0);
+    melo += volume * sound_adsr(sound, play_noise4, 4, 1, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 8, 0) * .5f), 0);
+
+    f32 jump_vol = sound_adsr(sound, audio->play_jump, 400, 4.0, 0);
+    melo += 0.1 * jump_vol * sound_saw(sound, NOTE_C * (1 + 0.2 * sound_sine(sound, 8, 0)), 0);
+    melo += 2.0 * sound_lowpass(
+                      sound, NOTE_C,
+                      sound_adsr(sound, audio->play_shoot, 8000, 16.0, 0) * (sound_noise_white(sound) + sound_noise_freq(sound, NOTE_C / 4, 1.0f))
+                  );
+    audio->play_jump = 0;
+    audio->play_shoot = 0;
+
+    melo += base;
+    // melo *= 0.5f;
+    out.x += melo;
+    out.y += melo;
+    out *= 0.5f;
+    out += sound_reverb2(sound, out);
+    out *= 2.0f;
+    // out2.x = out;
+    // out2.y = out;
+    return out;
 }

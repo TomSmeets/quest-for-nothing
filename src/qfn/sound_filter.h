@@ -82,15 +82,14 @@ static f32 sound_reverb(Sound *sound, u32 spread, f32 feedback, f32 damp, f32 in
     f32 a = (f32)SOUND_SAMPLE_RATE / 44100.0f;
 
     f32 out = 0.0f;
-    out += sound_comb(sound, (1116 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1188 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1277 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1356 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1422 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1491 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1557 + spread) * a, feedback, damp, input);
-    out += sound_comb(sound, (1617 + spread) * a, feedback, damp, input);
-    // out /= 8;
+    out += sound_comb(sound, (1116 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1188 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1277 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1356 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1422 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1491 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1557 + spread) * a, damp, feedback, input);
+    out += sound_comb(sound, (1617 + spread) * a, damp, feedback, input);
 
     out = sound_allpass(sound, (556 + spread) * a, 0.5, out);
     out = sound_allpass(sound, (441 + spread) * a, 0.5, out);
@@ -108,14 +107,18 @@ static v2 sound_reverb2(Sound *sound, v2 input) {
     f32 width = 1.0f;
     f32 gain = 0.015f;
 
-    init_room = 0.95;
-    init_wet = 1.0f;
-    init_dry = 0.5f;
-  
+    init_room = 0.98;
+    init_wet = 0.8f;
+    init_dry = 1.0f;
+
     f32 room = init_room * 0.28f + 0.7f;
+
     f32 damp = init_damp * 0.40f;
     f32 wet = init_wet * 3.0f;
     f32 dry = init_dry * 2.0f;
+
+    // room = 1.00f;
+    // damp = 0.2f;
 
     f32 wet_1 = wet * 0.5 * (width + 1);
     f32 wet_2 = wet * 0.5 * (1 - width);

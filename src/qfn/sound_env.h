@@ -9,11 +9,10 @@ static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustai
     //     0 | Release
     //     1 | Attack
     //     2 | Sustain
-    // 
+    //
     f32 *value = sound_var(sound, f32);
     u32 *state = sound_var(sound, u32);
-    if(*state > 2)    *state = 0;
-
+    if (*state > 2) *state = 0;
 
     // Release -> Attack
     if (*state == 0 && down) *state = 1;
@@ -27,15 +26,15 @@ static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustai
     // Exponential target and speed
     f32 speed = 0.0f;
     f32 target = 0.0f;
-    if(*state == 0) {
+    if (*state == 0) {
         // Release
         speed = decay;
         target = 0.0f;
-    } else  if(*state == 1) {
+    } else if (*state == 1) {
         // Attack
         speed = attack;
         target = 1.5f;
-    } else  if(*state == 2) {
+    } else if (*state == 2) {
         // Release
         speed = decay;
         target = sustain;
@@ -44,6 +43,6 @@ static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustai
     // Actual value should be this:
     float a = 1 - f_exp(-speed * SOUND_DT);
     *value += a * (target - *value);
-    if(*value > 1.0f) *value = 1.0f;
+    if (*value > 1.0f) *value = 1.0f;
     return *value;
 }

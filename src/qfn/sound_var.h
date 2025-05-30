@@ -18,7 +18,7 @@ typedef struct {
 
     // Immediate mode memory
     u32 index;
-    u32 data[1024*32];
+    u32 data[1024 * 32];
 } Sound;
 
 // Start producing a new sound sample

@@ -1,9 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound.h - Immediate mode sound synthesis
 #pragma once
-#include "math.h"
-#include "vec.h"
 #include "fmt.h"
+#include "math.h"
 #include "rand.h"
 #include "sound_effect.h"
 #include "sound_env.h"
@@ -12,6 +11,7 @@
 #include "sound_osc.h"
 #include "sound_var.h"
 #include "types.h"
+#include "vec.h"
 
 // https://www.eetimes.com/making-sounds-with-analogue-electronics-part-1-before-the-synthesizer/
 // FM: https://www.youtube.com/watch?v=DD0UpZ5uGAo
@@ -53,21 +53,16 @@ static void poly_play(Poly *poly, f32 note) {
     poly->index %= array_count(poly->voices);
 }
 
-static f32 music_note(Sound *sound, bool down, f32 freq) {
+static f32 music_note(Sound *sound, bool extra, bool down, f32 freq) {
     float a = 0.5f;
     float d = 0.5f;
     float s = 0.5f;
 
     f32 volume = sound_adsr(sound, down, a, d, s);
     f32 out = 0.0f;
-    if(1) {
-        out += volume * sound_saw(sound, freq, 0);
-        out += volume * sound_saw(sound, freq * 1.001, 0);
-    } else {
-        out += volume * sound_sine(sound, freq, sound_sine(sound, freq, 0)*0.4);
-        out += volume * sound_sine(sound, freq*1.001, sound_sine(sound, freq*1.001, 0)*0.4);
-    }
-    out = sound_lowpass(sound, 100.0f, out);
+    out += volume * sound_saw(sound, freq, 0);
+    if (extra) out += volume * sound_saw(sound, freq * 1.001, 0);
+    out = sound_lowpass(sound, 50.0f, out);
     return out;
 }
 
@@ -77,8 +72,8 @@ static f32 music_base(Sound *sound, u32 beat) {
     u32 note = (beat / 8) % 2;
 
     float out = 0.0f;
-    out += music_note(sound, note == 0, base_c);
-    out += music_note(sound, note == 1, base_f);
+    out += music_note(sound, false, note == 0, base_c);
+    out += music_note(sound, false, note == 1, base_f);
     return out;
 }
 
@@ -88,37 +83,14 @@ static f32 music_melody(Sound *sound, u32 beat) {
 
     u32 voice_ix = note % 2;
     f32 *voice_freq = sound_vars(sound, f32, 2);
-    if(sound_changed(sound, note)) {
+    if (sound_changed(sound, note)) {
         fmt_su(G->fmt, "V: ", voice_ix, "\n");
-        f32 freq = sound_scale(rand_u32(&sound->rand, 7 * 5, 7 * 6 + 1));
+        f32 freq = sound_scale(rand_u32(&sound->rand, 7 * 3, 7 * 5 + 1));
         voice_freq[voice_ix] = freq;
     }
 
     f32 out = 0.0f;
-    out += music_note(sound, voice_ix == 0, voice_freq[0]);
-    out += music_note(sound, voice_ix == 1, voice_freq[1]);
-    return out;
-}
-
-static v2 sound_music(Sound *sound) {
-    v2 out = { 0, 0 };
-
-    Clock clk = sound_clock(sound, 1.0f, 32);
-    if (clk.trigger) fmt_su(G->fmt, "IX: ", clk.index, "\n");
-
-    {
-        f32 music = 0.0f;
-        music += music_base(sound, clk.index);
-        music += music_melody(sound, clk.index)*.5;
-
-        music += 0.1 * (clk.index / 8 == 0) * ((f32)(clk.index % 8) / 8) * 0.5 * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
-        music = sound_lowpass(sound, 100.0f, music);
-        out.x += music;
-        out.y += music;
-    }
-    out = sound_reverb2(sound, out)*2;
-    // out *= 0.5f;
-    // out2.x = out;
-    // out2.y = out;
+    out += music_note(sound, true, voice_ix == 0, voice_freq[0]);
+    out += music_note(sound, true, voice_ix == 1, voice_freq[1]);
     return out;
 }
