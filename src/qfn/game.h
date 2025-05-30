@@ -321,7 +321,7 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (game->debug == DBG_Entity) debug_draw_entity(eng, ent);
 }
 
-static f32 game_audio(Game *game, Engine *eng) {
+static v2 game_audio(Game *game, Engine *eng) {
     return audio_sample(eng->audio);
 }
 
@@ -350,7 +350,6 @@ static void game_update(Game *game, Engine *eng) {
     }
 
     camera_update(&game->camera, eng->dt);
-    music_play(&game->music, eng);
 
     // Update bvh
     sparse_set_swap(game->sparse);

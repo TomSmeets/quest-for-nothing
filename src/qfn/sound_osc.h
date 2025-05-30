@@ -19,7 +19,7 @@ static f32 sound_phase(Sound *sound, f32 freq, f32 offset) {
 
 // Saw wave (rising)
 static f32 sound_saw(Sound *sound, f32 freq, f32 offset) {
-    return sound_phase(sound, freq, offset) * 2.0f - 1.0f;
+    return sound_phase(sound, freq, offset + 0.5f) * 2.0f - 1.0f;
 }
 
 // Pulse wave

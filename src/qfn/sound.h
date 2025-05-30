@@ -2,6 +2,8 @@
 // sound.h - Immediate mode sound synthesis
 #pragma once
 #include "math.h"
+#include "vec.h"
+#include "fmt.h"
 #include "rand.h"
 #include "sound_effect.h"
 #include "sound_env.h"
@@ -51,31 +53,72 @@ static void poly_play(Poly *poly, f32 note) {
     poly->index %= array_count(poly->voices);
 }
 
-static f32 sound_music(Sound *sound) {
+static f32 music_note(Sound *sound, bool down, f32 freq) {
+    float a = 0.5f;
+    float d = 0.5f;
+    float s = 0.5f;
+
+    f32 volume = sound_adsr(sound, down, a, d, s);
     f32 out = 0.0f;
-
-    Clock clk = sound_clock(sound, 1.0f, 4);
-    f32 *note0 = sound_var(sound, f32);
-    f32 *note1 = sound_var(sound, f32);
-    f32 *note2 = sound_var(sound, f32);
-    f32 *note3 = sound_var(sound, f32);
-    if (clk.trigger) {
-        u32 note_min = 35;
-        u32 note_max = 40;
-        if (clk.index == 0) *note0 = sound_scale(rand_u32(&sound->rand, note_min, note_max));
-        if (clk.index == 1) *note1 = sound_scale(rand_u32(&sound->rand, note_min, note_max));
-        if (clk.index == 2) *note2 = sound_scale(rand_u32(&sound->rand, note_min, note_max));
-        if (clk.index == 3) *note3 = sound_scale(rand_u32(&sound->rand, note_min, note_max));
+    if(1) {
+        out += volume * sound_saw(sound, freq, 0);
+        out += volume * sound_saw(sound, freq * 1.001, 0);
+    } else {
+        out += volume * sound_sine(sound, freq, sound_sine(sound, freq, 0)*0.4);
+        out += volume * sound_sine(sound, freq*1.001, sound_sine(sound, freq*1.001, 0)*0.4);
     }
-    out += 0.5 * sound_adsr(sound, !clk.trigger, 80, 40, 0) * sound_noise_white(sound);
+    out = sound_lowpass(sound, 100.0f, out);
+    return out;
+}
 
-    f32 offset = sound_sine(sound, 4, 0);
-    out += 0.5 * sound_adsr(sound, clk.index == 0, 8, 1, 0.8) * sound_sine(sound, *note0 * (1 + offset * 0.01), sound_sine(sound, *note0, 0) * .5);
-    out += 0.5 * sound_adsr(sound, clk.index == 1, 8, 1, 0.8) * sound_sine(sound, *note1 * (1 + offset * 0.01), sound_sine(sound, *note1, 0) * .5);
-    out += 0.5 * sound_adsr(sound, clk.index == 2, 8, 1, 0.8) * sound_sine(sound, *note2 * (1 + offset * 0.01), sound_sine(sound, *note2, 0) * .5);
-    out += 0.5 * sound_adsr(sound, clk.index == 3, 8, 1, 0.8) * sound_sine(sound, *note3 * (1 + offset * 0.01), sound_sine(sound, *note3, 0) * .5);
+static f32 music_base(Sound *sound, u32 beat) {
+    float base_c = OCT_3 * NOTE_C;
+    float base_f = OCT_2 * NOTE_F;
+    u32 note = (beat / 8) % 2;
 
-    out += 0.5 * sound_adsr(sound, clk.index / 2 == 0, 8, 1, 0.8) * sound_sine(sound, OCT_4 * NOTE_C, 0);
-    out += 0.5 * sound_adsr(sound, clk.index / 2 == 1, 8, 1, 0.8) * sound_sine(sound, OCT_3 * NOTE_F, 0);
+    float out = 0.0f;
+    out += music_note(sound, note == 0, base_c);
+    out += music_note(sound, note == 1, base_f);
+    return out;
+}
+
+static f32 music_melody(Sound *sound, u32 beat) {
+    // Every whole note
+    u32 note = beat / 4;
+
+    u32 voice_ix = note % 2;
+    f32 *voice_freq = sound_vars(sound, f32, 2);
+    if(sound_changed(sound, note)) {
+        fmt_su(G->fmt, "V: ", voice_ix, "\n");
+        f32 freq = sound_scale(rand_u32(&sound->rand, 7 * 5, 7 * 6 + 1));
+        voice_freq[voice_ix] = freq;
+    }
+
+    f32 out = 0.0f;
+    out += music_note(sound, voice_ix == 0, voice_freq[0]);
+    out += music_note(sound, voice_ix == 1, voice_freq[1]);
+    return out;
+}
+
+static v2 sound_music(Sound *sound) {
+    v2 out = { 0, 0 };
+
+    Clock clk = sound_clock(sound, 1.0f, 32);
+    if (clk.trigger) fmt_su(G->fmt, "IX: ", clk.index, "\n");
+
+    {
+        f32 music = 0.0f;
+        music += music_base(sound, clk.index);
+        music += music_melody(sound, clk.index)*.5;
+
+        music += 0.1 * (clk.index / 8 == 0) * ((f32)(clk.index % 8) / 8) * 0.5 * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
+        music = sound_lowpass(sound, 100.0f, music);
+        out.x += music;
+        out.y += music;
+    }
+    out = sound_reverb2(sound, out)*2;
+    // out *= 0.5f;
+    // out2.x = out;
+    // out2.y = out;
     return out;
 }

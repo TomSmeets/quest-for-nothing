@@ -53,15 +53,3 @@ static f32 music_note_to_freq(u8 note) {
     u8 octave_ix = note / 12;
     return octave_list[octave_ix] * note_list[note_ix];
 }
-
-static void music_play(Music *music, Engine *eng) {
-    if (!music->playing) {
-        Voice voice = {
-            .time = 0,
-            .kind = 3,
-            .done = false,
-        };
-        audio_play(eng->audio, voice);
-        music->playing = true;
-    }
-}

@@ -6,33 +6,44 @@
 
 static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustain) {
     // State | Down |
-    //     _ |    0 | T=0.0     Release
-    //     0 |    1 | T=1.0     (Attack)
-    //     1 |    1 | T=Sustain (Decay/Sustain)
+    //     0 | Release
+    //     1 | Attack
+    //     2 | Sustain
+    // 
     f32 *value = sound_var(sound, f32);
-    bool *attack_done = sound_var(sound, bool);
+    u32 *state = sound_var(sound, u32);
+    if(*state > 2)    *state = 0;
+
+
+    // Release -> Attack
+    if (*state == 0 && down) *state = 1;
+
+    // Attack -> Sustain
+    if (*state == 1 && *value >= 1.0f) *state = 2;
+
+    // Sustain -> Release
+    if (*state == 2 && !down) *state = 0;
 
     // Exponential target and speed
-    f32 speed;
-    f32 target;
-    if (!down) {
+    f32 speed = 0.0f;
+    f32 target = 0.0f;
+    if(*state == 0) {
         // Release
-        *attack_done = 0;
+        speed = decay;
         target = 0.0f;
-        speed = decay;
-    } else if (*attack_done) {
-        // Sustain
-        target = sustain;
-        speed = decay;
-    } else {
-        // Attack (target a bit higher so that 1.0 is actually reached)
-        target = 1.5f;
+    } else  if(*state == 1) {
+        // Attack
         speed = attack;
-        if (*value >= 1.0f) *attack_done = 1;
+        target = 1.5f;
+    } else  if(*state == 2) {
+        // Release
+        speed = decay;
+        target = sustain;
     }
 
     // Actual value should be this:
     float a = 1 - f_exp(-speed * SOUND_DT);
     *value += a * (target - *value);
+    if(*value > 1.0f) *value = 1.0f;
     return *value;
 }

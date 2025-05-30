@@ -48,14 +48,15 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     // TODO: Split The synth from the game
     for (u32 i = 0; i < sample_count; ++i) {
         // Currently only mono audio
-        f32 sample = game_audio(app->game, app->eng);
+        v2 sample = game_audio(app->game, app->eng);
 
         // Reduce volume and clamp to a maximum
+        sample.x = f_clamp(sample.x, -1, 1);
+        sample.y = f_clamp(sample.y, -1, 1);
         sample *= 0.25;
-        sample = f_clamp(sample, -1, 1);
 
         // Convert to stereo sound
-        samples[i] = (v2){sample, sample};
+        samples[i] = sample;
     }
 }
 

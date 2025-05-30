@@ -48,3 +48,10 @@ static f32 delay_read(Delay_Buffer *buf, f32 time) {
     index %= array_count(buf->values); // Wrap around if needed
     return buf->values[index];
 }
+
+static bool sound_changed(Sound *sound, u32 value) {
+    u32 *prev = sound_var(sound, u32);
+    bool ret = *prev != value;
+    *prev = value;
+    return ret || (sound->sample == 1);
+}
