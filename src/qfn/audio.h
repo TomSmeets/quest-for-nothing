@@ -37,8 +37,7 @@ static v2 audio_sample(Audio *audio) {
     sound_begin(sound);
     f32 base = 0.2f * music_base(sound, clk.index);
     f32 melo = 0.3f * music_melody(sound, clk.index);
-    // melo += 0.1 * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
-    f32 chance = 1.0f / 64.0f;
+    f32 chance = 1.0f / 128.0f;
     f32 volume = 0.04f;
 
     bool play_noise0 = clk.trigger && rand_choice(G->rand, chance);
