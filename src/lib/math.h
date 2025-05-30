@@ -70,7 +70,6 @@ static f32 f_exp(f32 x) {
     return v;
 }
 
-
 static f32 f_step_duration(f32 t, f32 duration) {
     if (duration == 0) {
         return t >= 0 ? 1 : 0;
