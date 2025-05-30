@@ -84,7 +84,6 @@ static f32 music_melody(Sound *sound, u32 beat) {
     u32 voice_ix = note % 2;
     f32 *voice_freq = sound_vars(sound, f32, 2);
     if (sound_changed(sound, note)) {
-        fmt_su(G->fmt, "V: ", voice_ix, "\n");
         f32 freq = sound_scale(rand_u32(&sound->rand, 7 * 3, 7 * 5 + 1));
         voice_freq[voice_ix] = freq;
     }

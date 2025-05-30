@@ -53,7 +53,7 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
         // Reduce volume and clamp to a maximum
         sample.x = f_clamp(sample.x, -1, 1);
         sample.y = f_clamp(sample.y, -1, 1);
-        sample *= 0.25;
+        // sample *= 0.50;
 
         // Convert to stereo sound
         samples[i] = sample;

@@ -55,7 +55,7 @@ static v2 audio_sample(Audio *audio) {
 
     f32 jump_vol = sound_adsr(sound, audio->play_jump, 400, 4.0, 0);
     melo += 0.1 * jump_vol * sound_saw(sound, NOTE_C * (1 + 0.2 * sound_sine(sound, 8, 0)), 0);
-    melo += 2.0 * sound_lowpass(
+    melo += 1.0 * sound_lowpass(
                       sound, NOTE_C,
                       sound_adsr(sound, audio->play_shoot, 8000, 16.0, 0) * (sound_noise_white(sound) + sound_noise_freq(sound, NOTE_C / 4, 1.0f))
                   );
@@ -66,9 +66,9 @@ static v2 audio_sample(Audio *audio) {
     // melo *= 0.5f;
     out.x += melo;
     out.y += melo;
-    out *= 0.5f;
+    out *= 0.25f;
     out += sound_reverb2(sound, out);
-    out *= 2.0f;
+    out *= 1.0f;
     // out2.x = out;
     // out2.y = out;
     return out;
