@@ -16,7 +16,6 @@ typedef struct {
     // Immediate mode memory
     u32 index;
 
-    
     u32 data[1024];
 } Sound;
 
@@ -26,7 +25,7 @@ static void sound_begin(Sound *snd) {
 }
 
 static void sound_reset(Sound *snd) {
-    *snd = (Sound) {};
+    *snd = (Sound){};
 }
 
 // Get a new persistent variable for this sample
@@ -40,4 +39,4 @@ static void *sound_push(Sound *sound, u32 size) {
     return ret;
 }
 
-#define sound_var(sound, T) ((T*) sound_push((sound), sizeof(T)))
+#define sound_var(sound, T) ((T *)sound_push((sound), sizeof(T)))

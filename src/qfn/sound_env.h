@@ -15,19 +15,19 @@ static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustai
     // Exponential target and speed
     f32 speed;
     f32 target;
-    if(!down) {
+    if (!down) {
         // Release
-        *attack_done  = 0;
+        *attack_done = 0;
         target = 0.0f;
-        speed  = decay;
-    } else if(*attack_done) {
+        speed = decay;
+    } else if (*attack_done) {
         // Sustain
         target = sustain;
-        speed  = decay;
+        speed = decay;
     } else {
         // Attack (target a bit higher so that 1.0 is actually reached)
         target = 1.5f;
-        speed  = attack;
+        speed = attack;
         if (*value >= 1.0f) *attack_done = 1;
     }
 

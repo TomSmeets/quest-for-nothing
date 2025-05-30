@@ -63,13 +63,13 @@ static f32 sound_scale(u8 note) {
     };
 
     f32 note_list[] = {
-        NOTE_C,  // C
-        NOTE_D,  // D
-        NOTE_E,  // E
-        NOTE_F,  // F
-        NOTE_G,  // G
-        NOTE_A,  // A
-        NOTE_B,  // B
+        NOTE_C, // C
+        NOTE_D, // D
+        NOTE_E, // E
+        NOTE_F, // F
+        NOTE_G, // G
+        NOTE_A, // A
+        NOTE_B, // B
     };
 
     u8 note_ix = note % array_count(note_list);

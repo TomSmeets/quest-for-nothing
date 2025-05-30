@@ -60,7 +60,7 @@ static Clock sound_clock(Sound *sound, f32 freq, u32 cycle) {
 
     *value += freq * SOUND_DT;
     bool trigger = false;
-    while(*value >= 1.0f) {
+    while (*value >= 1.0f) {
         *value -= 1.0;
         *index += 1;
         *index %= cycle;

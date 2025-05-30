@@ -55,7 +55,7 @@ static f32 music_note_to_freq(u8 note) {
 }
 
 static void music_play(Music *music, Engine *eng) {
-    if(!music->playing) {
+    if (!music->playing) {
         Voice voice = {
             .time = 0,
             .kind = 3,
