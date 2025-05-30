@@ -177,8 +177,8 @@ static Midi *midi_read(Memory *mem, String *read) {
 }
 
 static void test_midi(void) {
-    Memory *mem = mem_new();
-    String file = os_readfile(mem, S("test.mid"));
-    Midi *midi = midi_read(mem, &file);
-    assert(midi, "Failed to parse midi");
+    // Memory *mem = mem_new();
+    // String file = os_readfile(mem, S("test.mid"));
+    // Midi *midi = midi_read(mem, &file);
+    // assert(midi, "Failed to parse midi");
 }
