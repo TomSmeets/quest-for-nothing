@@ -105,4 +105,4 @@ How does hot reloading work?
 
 # Module structure
 
-![](include_graph.svg)
+![](include-graph.svg)
