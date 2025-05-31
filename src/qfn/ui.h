@@ -11,7 +11,6 @@ typedef struct {
     v2 pos;
     v2 size;
 
-    Audio *audio;
     Input *input;
     Gfx *gfx;
 
@@ -23,9 +22,8 @@ typedef struct {
     Image *chars[256];
 } UI;
 
-static UI *ui_new(Memory *mem, Audio *audio, Input *input, Gfx *gfx) {
+static UI *ui_new(Memory *mem, Input *input, Gfx *gfx) {
     UI *ui = mem_struct(mem, UI);
-    ui->audio = audio;
     ui->input = input;
     ui->gfx = gfx;
     ui->mem = mem;

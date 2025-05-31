@@ -39,24 +39,12 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     App *app = G->app;
     if (!app) return;
 
-    // Sample audio
-    //   Sound: Sound Synthesis
-    //   Audio: Sequencer, enquey sounds
-    //   Music: Parse or generate music and send to sequencer
-    //
+    Audio *audio = &app->game->audio;
+
     // TODO: to cleanup we could reduce dependencies between sound, audio and music
     // TODO: Split The synth from the game
     for (u32 i = 0; i < sample_count; ++i) {
-        // Currently only mono audio
-        v2 sample = game_audio(app->game, app->eng);
-
-        // Reduce volume and clamp to a maximum
-        sample.x = f_clamp(sample.x, -1, 1);
-        sample.y = f_clamp(sample.y, -1, 1);
-        // sample *= 0.50;
-
-        // Convert to stereo sound
-        samples[i] = sample;
+        samples[i] = sound_clip2(audio_sample(audio));
     }
 }
 

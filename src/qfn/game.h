@@ -38,6 +38,7 @@ typedef struct {
     Camera camera;
     Game_Debug debug;
     Sparse_Set *sparse;
+    Audio audio;
 } Game;
 
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
@@ -101,7 +102,7 @@ static Game *game_new(Rand *rng) {
     return game;
 }
 
-static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
+static void player_apply_input(Game *game, Engine *eng, Entity *ent, Player_Input *in) {
     // Update player head rotation
     // x -> pitch
     // y -> yaw
@@ -121,7 +122,8 @@ static void player_apply_input(Engine *eng, Entity *ent, Player_Input *in) {
     if (in->jump && ent->on_ground && ent->health > 0) {
         ent->pos_old.y = ent->pos.y;
         ent->pos.y += 4 * eng->dt;
-        game_audio_jump(eng);
+        audio_jump(&game->audio);
+        gfx_audio_unlock(eng->gfx);
     }
 
     // Flying
@@ -198,7 +200,7 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
         in = player_parse_input(eng->input);
     }
     entity_update_movement(pl, eng);
-    player_apply_input(eng, pl, &in);
+    player_apply_input(game, eng, pl, &in);
 
     entity_collide(eng, game->sparse, pl);
     if (camera->target == pl) {
@@ -224,7 +226,7 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
     if (in.shoot && pl->recoil_animation == 0) {
         pl->recoil_animation = 1;
         camera_shake(&game->camera, 0.5);
-        game_audio_shoot(eng);
+        audio_shoot(&game->audio);
 
         for (u32 i = 0; i < 32; ++i) {
             v3 ray_pos = pl->head_mtx.w;
@@ -316,10 +318,6 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
     if (ent->type == Entity_Player) player_update(ent, game, eng);
     if (ent->type == Entity_Wall) wall_update(game, eng, ent);
     if (game->debug == DBG_Entity) debug_draw_entity(eng, ent);
-}
-
-static v2 game_audio(Game *game, Engine *eng) {
-    return audio_sample(eng->audio);
 }
 
 static void game_update(Game *game, Engine *eng) {

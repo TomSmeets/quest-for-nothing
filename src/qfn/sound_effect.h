@@ -2,11 +2,18 @@
 // sound_effect.h - Sound effects
 #pragma once
 #include "sound_var.h"
+#include "vec.h"
 
 // Clip volume in range -1 to 1
 static f32 sound_clip(f32 sample) {
     if (sample > 1.0f) sample = 1.0f;
     if (sample < -1.0f) sample = -1.0f;
+    return sample;
+}
+
+static v2 sound_clip2(v2 sample) {
+    sample.x = sound_clip(sample.x);
+    sample.y = sound_clip(sample.y);
     return sample;
 }
 

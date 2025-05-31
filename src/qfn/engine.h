@@ -26,7 +26,6 @@ typedef struct {
     Rand rng;
     Gfx *gfx;
     Gfx_Debug *gfx_dbg;
-    Audio *audio;
     Input *input;
     UI *ui;
 } Engine;
@@ -39,10 +38,9 @@ static Engine *engine_new(Memory *mem, OS *os, Rand rng, char *title) {
 
     eng->gfx = gfx_new(mem, title);
     eng->gfx_dbg = gfx_debug_new(eng->gfx, mem);
-    eng->audio = audio_new(mem);
     eng->input = 0;
 
-    eng->ui = ui_new(mem, eng->audio, 0, eng->gfx);
+    eng->ui = ui_new(mem, 0, eng->gfx);
     return eng;
 }
 
