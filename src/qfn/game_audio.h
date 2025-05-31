@@ -33,6 +33,46 @@ static void audio_shoot(Audio *audio) {
     audio->play_shoot = 1;
 }
 
+static f32 music_note(Sound *sound, bool extra, bool down, f32 freq) {
+    float a = 0.5f;
+    float d = 0.5f;
+    float s = 0.5f;
+
+    f32 volume = sound_adsr(sound, down, a, d, s);
+    f32 out = 0.0f;
+    out += volume * sound_saw(sound, freq, 0);
+    if (extra) out += volume * sound_saw(sound, freq * 1.001, 0);
+    out = sound_lowpass(sound, 50.0f, out);
+    return out;
+}
+
+static f32 music_base(Sound *sound, u32 beat) {
+    float base_c = OCT_3 * NOTE_C;
+    float base_f = OCT_2 * NOTE_F;
+    u32 note = (beat / 8) % 2;
+
+    float out = 0.0f;
+    out += music_note(sound, false, note == 0, base_c);
+    out += music_note(sound, false, note == 1, base_f);
+    return out;
+}
+
+static f32 music_melody(Sound *sound, u32 beat) {
+    // Every whole note
+    u32 note = beat / 4;
+    u32 voice_ix = note % 2;
+    f32 *voice_freq = sound_vars(sound, f32, 2);
+    if (sound_changed(sound, note)) {
+        f32 freq = sound_scale(rand_u32(&sound->rand, 7 * 3, 7 * 5 + 1));
+        voice_freq[voice_ix] = freq;
+    }
+
+    f32 out = 0.0f;
+    out += music_note(sound, true, voice_ix == 0, voice_freq[0]);
+    out += music_note(sound, true, voice_ix == 1, voice_freq[1]);
+    return out;
+}
+
 static v2 audio_sample(Audio *audio) {
     Sound *sound = &audio->snd;
     sound_begin(sound);
