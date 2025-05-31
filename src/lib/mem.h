@@ -26,6 +26,7 @@ static void u32_align(u32 *addr, u32 bytes) {
     u32 mask = bytes - 1;
     *addr = (*addr + mask) & ~mask;
 }
+
 // Allocate 'size' bytes of uninitialized memory
 static void *mem_push_uninit(Memory *mem, u32 size) {
     // Primitives should be aligned to their own size.

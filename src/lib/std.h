@@ -44,3 +44,9 @@ static void std_reverse(u8 *buf, u32 size) {
         buf[size - i - 1] = c;
     }
 }
+
+// Return number of bytes needed to achive the alignment
+static u32 std_align_offset(void *ptr, u32 align) {
+    u32 mask = align-1;
+    return ((u64)ptr + mask) & mask - (u64)ptr;
+}

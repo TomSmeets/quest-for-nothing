@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // game.h - Game data structures and implementation
 #pragma once
-#include "audio.h"
 #include "camera.h"
 #include "collision.h"
 #include "engine.h"
