@@ -35,11 +35,11 @@ static void audio_shoot(Audio *audio) {
 
 static v2 audio_sample(Audio *audio) {
     Sound *sound = &audio->snd;
+    sound_begin(sound);
 
     v2 out = {0, 0};
     Clock clk = sound_clock(sound, 1.0f, 32);
 
-    sound_begin(sound);
     f32 base = 0.2f * music_base(sound, clk.index);
     f32 melo = 0.3f * music_melody(sound, clk.index);
     f32 chance = 1.0f / 128.0f;

@@ -60,5 +60,5 @@ static bool sound_changed(Sound *sound, u32 value) {
     u32 *prev = sound_var(sound, u32);
     bool ret = *prev != value;
     *prev = value;
-    return ret || (sound->sample == 1);
+    return ret || sound_first(sound);
 }

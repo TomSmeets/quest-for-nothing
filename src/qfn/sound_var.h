@@ -1,7 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_var.h - Immediate mode sound synthesis
 #pragma once
+#include "imm.h"
 #include "math.h"
+#include "mem.h"
 #include "rand.h"
 #include "types.h"
 
@@ -10,37 +12,30 @@
 
 // ==== SOUND TYPE ====
 typedef struct {
-    // Is this the very first sample?
-    u32 sample;
-
     // For noise
     Rand rand;
 
     // Immediate mode memory
-    u32 index;
-    u32 data[1024 * 32];
+    Imm imm;
 } Sound;
+
+static Sound sound_init(Memory *mem) {
+    u32 size = 8 * 32 * 1024;
+    u8 *buffer = mem_push_zero(mem, size);
+    return (Sound){
+        .imm = imm_new(buffer, size),
+    };
+}
 
 // Start producing a new sound sample
 static void sound_begin(Sound *snd) {
-    snd->index = 0;
-    snd->sample++;
+    imm_begin(&snd->imm);
 }
 
-static void sound_reset(Sound *snd) {
-    *snd = (Sound){};
+// Is this the first iteration?
+static bool sound_first(Sound *snd) {
+    return imm_first(&snd->imm);
 }
 
-// Get a new persistent variable for this sample
-static void *sound_push(Sound *sound, u32 size) {
-    // Align up to 4 bytes
-    size = (size + 3) & ~3;
-    assert0(sound->index + size <= sizeof(sound->data));
-    void *ret = (u8 *)sound->data + sound->index;
-    assert0((u64)ret % 4 == 0);
-    sound->index += size;
-    return ret;
-}
-
-#define sound_var(sound, type) ((type *)sound_push((sound), sizeof(type)))
-#define sound_vars(sound, type, count) ((type *)sound_push((sound), sizeof(type) * (count)))
+#define sound_vars(snd, type, count) imm_array(&(snd)->imm, type, count)
+#define sound_var(snd, type) imm_struct(&(snd)->imm, type)
