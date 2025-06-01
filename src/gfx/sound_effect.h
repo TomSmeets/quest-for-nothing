@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_effect.h - Sound effects
 #pragma once
-#include "sound_var.h"
-#include "vec.h"
+#include "gfx/sound_var.h"
+#include "lib/vec.h"
 
 // Clip volume in range -1 to 1
 static f32 sound_clip(f32 sample) {

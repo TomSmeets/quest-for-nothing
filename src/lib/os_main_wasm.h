@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_main_wasm.h - Main entry point for WASM
 #pragma once
-#include "os_main_types.h"
+#include "lib/os_main_types.h"
 
 static OS G_OS;
 static Fmt G_FMT;

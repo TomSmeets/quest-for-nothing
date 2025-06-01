@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_alloc.h - Minimal OS functinality, allocate memory, and crash the program
 #pragma once
-#include "os_api.h"
-#include "std.h"
-#include "str.h"
-#include "types.h"
+#include "lib/os_api.h"
+#include "lib/std.h"
+#include "lib/str.h"
+#include "lib/types.h"
 
 // Allocate memory from the system
 static void *os_alloc(u32 size);
@@ -23,9 +23,9 @@ static void os_fail(char *message);
 
 // Platform Implementations
 #if OS_IS_LINUX
-#include "os_alloc_linux.h"
+#include "lib/os_alloc_linux.h"
 #elif OS_IS_WINDOWS
-#include "os_alloc_windows.h"
+#include "lib/os_alloc_windows.h"
 #elif OS_IS_WASM
-#include "os_alloc_wasm.h"
+#include "lib/os_alloc_wasm.h"
 #endif

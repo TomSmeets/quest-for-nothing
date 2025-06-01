@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_alloc_windows.h - Minimal OS functinality implemented for Windows
 #pragma once
-#include "os_api.h"
+#include "lib/os_api.h"
 
 // On Windows has a simmilar call called 'VirtualAlloc'
 static void *os_alloc(u32 size) {

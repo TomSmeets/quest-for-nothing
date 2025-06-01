@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // str_mem.h - String functions that allocate
 #pragma once
-#include "mem.h"
-#include "str.h"
+#include "lib/mem.h"
+#include "lib/str.h"
 
 // Allocate a new and empty string
 static String str_alloc(Memory *mem, u32 len) {

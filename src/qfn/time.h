@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // time.h - Accurate frame timing calcuation
 #pragma once
-#include "fmt.h"
-#include "os_main.h"
-#include "types.h"
+#include "lib/fmt.h"
+#include "lib/os_main.h"
+#include "lib/types.h"
 
 typedef struct {
     u64 frame_start;

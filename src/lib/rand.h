@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // rand.h - Fast and random number generator
 #pragma once
-#include "types.h"
+#include "lib/types.h"
 
 typedef struct Rand Rand;
 

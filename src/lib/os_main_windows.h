@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_main_windows.h - Main entry point for Windows
 #pragma once
-#include "os_main_types.h"
+#include "lib/os_main_types.h"
 
 // Export main, allowing us to dynamically call it
 __declspec(dllexport) void os_main_dynamic(Global *global_instance) {

@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_var.h - Immediate mode sound synthesis
 #pragma once
-#include "imm.h"
-#include "math.h"
-#include "mem.h"
-#include "rand.h"
-#include "types.h"
+#include "gfx/imm.h"
+#include "lib/math.h"
+#include "lib/mem.h"
+#include "lib/rand.h"
+#include "lib/types.h"
 
 #define SOUND_SAMPLE_RATE 48000
 #define SOUND_DT (1.0f / SOUND_SAMPLE_RATE)

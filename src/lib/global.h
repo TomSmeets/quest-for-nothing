@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // global.h - Global state that is preserved between hot-reloads
 #pragma once
-#include "types.h"
+#include "lib/types.h"
 
 // Forward declare types
 // The definitions are defined in each module

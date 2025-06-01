@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // cli.h: Command line argument reader
 #pragma once
-#include "fmt.h"
-#include "types.h"
+#include "lib/fmt.h"
+#include "lib/types.h"
 
 typedef struct Cli Cli;
 struct Cli {

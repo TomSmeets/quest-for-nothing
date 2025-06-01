@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // hot.h - Dynamically reload interactive programs
 #pragma once
-#include "fmt.h"
-#include "global.h"
-#include "mem.h"
-#include "os_main.h"
+#include "lib/fmt.h"
+#include "lib/global.h"
+#include "lib/mem.h"
+#include "lib/os_main.h"
 
 typedef void os_main_t(Global *global_instance);
 

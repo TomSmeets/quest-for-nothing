@@ -1,17 +1,17 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_desktop.h - GFX Platform implementation for Windows and Linux
 #pragma once
-#include "gfx.h"
-#include "ogl_api.h"
-#include "sdl.h"
+#include "qfn/gfx.h"
+#include "qfn/ogl_api.h"
+#include "qfn/sdl.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
-#embed "gl_shader.vert"
+#embed "qfn/gl_shader.vert"
     , 0
 };
 
 static unsigned char ASSET_SHADER_FRAG[] = {
-#embed "gl_shader.frag"
+#embed "qfn/gl_shader.frag"
     , 0
 };
 

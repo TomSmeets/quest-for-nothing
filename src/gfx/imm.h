@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // imm.h - Immediate mode variables
 #pragma once
-#include "os_alloc.h"
-#include "str.h"
+#include "lib/os_alloc.h"
+#include "lib/str.h"
 
 typedef struct {
     u32 iteration;

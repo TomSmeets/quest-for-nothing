@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // str.h - simple string handling functions
 #pragma once
-#include "std.h"
-#include "types.h"
+#include "lib/std.h"
+#include "lib/types.h"
 
 // utf8 encoded string datatype
 // String is NOT zero terminated

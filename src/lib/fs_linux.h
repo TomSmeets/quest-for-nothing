@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs_linux.h: Platform independent filesystem
 #pragma once
-#include "fs_types.h"
-#include "mem.h"
-#include "os_api.h"
-#include "str_mem.h"
+#include "lib/fs_types.h"
+#include "lib/mem.h"
+#include "lib/os_api.h"
+#include "lib/str_mem.h"
 
 static void fs_mkdir(String path) {
     linux_mkdir(str_c(path), 0777);

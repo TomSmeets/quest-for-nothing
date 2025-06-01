@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // color.h - Color types and math
 #pragma once
-#include "vec.h"
+#include "lib/vec.h"
 
 #define WHITE ((v3){1, 1, 1})
 #define BLACK ((v3){0, 0, 0})

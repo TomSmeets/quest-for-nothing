@@ -1,14 +1,14 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx.h - Graphics, Audio, and Input handling abstraction implementation
 #pragma once
-#include "fmt.h"
-#include "image.h"
-#include "input.h"
-#include "mat.h"
-#include "math.h"
-#include "os_main.h"
-#include "texture_packer.h"
-#include "vec.h"
+#include "lib/fmt.h"
+#include "lib/math.h"
+#include "lib/os_main.h"
+#include "qfn/texture_packer.h"
+#include "lib/vec.h"
+#include "qfn/image.h"
+#include "qfn/input.h"
+#include "qfn/mat.h"
 
 #define GFX_ATLAS_SIZE 4096
 #define AUDIO_SAMPLE_RATE 48000

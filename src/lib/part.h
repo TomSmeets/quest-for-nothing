@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // part.h - Text part
 #pragma once
-#include "mem.h"
-#include "types.h"
+#include "lib/mem.h"
+#include "lib/types.h"
 
 typedef struct Part Part;
 struct Part {

@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fmt_vec.h - Formatter for vector types
 #pragma once
-#include "fmt.h"
-#include "vec.h"
+#include "lib/fmt.h"
+#include "lib/vec.h"
 
 static void fmt_v3i(Fmt *fmt, v3i value) {
     fmt_siii(fmt, "v3i(", value.x, ", ", value.y, ", ", value.z, ")");

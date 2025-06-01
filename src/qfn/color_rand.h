@@ -1,6 +1,6 @@
 #pragma once
-#include "color.h"
-#include "rand.h"
+#include "qfn/color.h"
+#include "lib/rand.h"
 
 static v3 color_rand(Rand *rand) {
     return (v3){

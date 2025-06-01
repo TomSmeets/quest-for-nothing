@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_music.h - Everything for nice music
 #pragma once
-#include "sound_var.h"
+#include "gfx/sound_var.h"
 
 // Octave
 #define OCT_N1 (1.0f / 32.0f)

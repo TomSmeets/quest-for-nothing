@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_filter.h - Sound filters
 #pragma once
-#include "sound_var.h"
-#include "vec.h"
+#include "gfx/sound_var.h"
+#include "lib/vec.h"
 
 typedef struct {
     f32 low_pass;

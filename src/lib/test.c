@@ -1,8 +1,8 @@
-#include "midi.h"
-#include "os_main.h"
-#include "part.h"
-#include "str_mem.h"
-#include "text.h"
+#include "lib/midi.h"
+#include "lib/os_main.h"
+#include "lib/part.h"
+#include "lib/str_mem.h"
+#include "lib/text.h"
 
 static void os_main(void) {
     test_str();

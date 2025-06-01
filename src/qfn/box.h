@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // box.h - A 3d axis aligned bounding box
 #pragma once
-#include "vec.h"
+#include "lib/vec.h"
 
 typedef struct {
     v3 min;

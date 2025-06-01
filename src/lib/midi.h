@@ -1,14 +1,12 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // midi.h - Midi file reading and writing
 #pragma once
-#include "error.h"
-#include "fmt.h"
-#include "read.h"
+#include "lib/error.h"
+#include "lib/fmt.h"
+#include "lib/read.h"
 
 // NOTE: (to self) Embrace mem type, just grow fmt, don't care
-
 // https://www.youtube.com/watch?v=P27ml4M3V7A
-//
 
 typedef struct {
     u32 time;

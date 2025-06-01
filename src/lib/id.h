@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // id.h - Generate unique ids for fast comparisons
 #pragma once
-#include "global.h"
+#include "lib/global.h"
 
 // Comparing images is expensive because they contain a lot of data. Using an
 // unique id allows for quick equality comparison. Just increment the id when

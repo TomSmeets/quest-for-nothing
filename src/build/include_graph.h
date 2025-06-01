@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // include_graph.h - Generate a dependency graph from includes
 #pragma once
-#include "fmt.h"
-#include "fs.h"
-#include "mem.h"
-#include "read.h"
-#include "str_mem.h"
+#include "lib/fmt.h"
+#include "lib/fs.h"
+#include "lib/mem.h"
+#include "lib/read.h"
+#include "lib/str_mem.h"
 
 typedef struct Include_Edge Include_Edge;
 typedef struct Include_Graph Include_Graph;
@@ -177,7 +177,9 @@ static void include_graph_rank(Include_Graph *graph) {
 // An edge is added for every '#include'
 static Include_Node *include_graph_read_file(Include_Graph *graph, String path, String name) {
     String file = os_readfile(graph->mem, path);
-    Include_Node *node = include_graph_node(graph, name);
+    String name2 = path;
+    str_drop_start_matching(&name2, S("src/"));
+    Include_Node *node = include_graph_node(graph, name2);
 
     u32 line_count = 0;
 

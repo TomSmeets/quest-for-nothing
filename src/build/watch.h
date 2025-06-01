@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // watch.h - Simple linux inotify wrapper
 #pragma once
-#include "fmt.h"
-#include "fs.h"
-#include "os_api.h"
-#include "os_main.h"
-#include "types.h"
+#include "lib/fmt.h"
+#include "lib/fs.h"
+#include "lib/os_api.h"
+#include "lib/os_main.h"
+#include "lib/types.h"
 
 typedef struct Watch Watch;
 

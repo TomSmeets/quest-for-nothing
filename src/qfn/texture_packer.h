@@ -1,10 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // texture_packer.h - Simple texture packer
 #pragma once
-
-#include "image.h"
-#include "mem.h"
-#include "vec.h"
+#include "qfn/image.h"
+#include "lib/mem.h"
+#include "lib/vec.h"
 
 // A region in a texture atlas
 typedef struct Packer_Area {

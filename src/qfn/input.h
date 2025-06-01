@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // input.h - User input types
 #pragma once
-#include "types.h"
-#include "vec.h"
+#include "lib/types.h"
+#include "lib/vec.h"
 
 typedef enum {
     KEY_NONE,

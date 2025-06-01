@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_base_wasm.h - Base OS implementation for WASM
 #pragma once
-#include "os_alloc.h"
-#include "std.h"
-#include "str.h"
-#include "types.h"
+#include "lib/os_alloc.h"
+#include "lib/std.h"
+#include "lib/str.h"
+#include "lib/types.h"
 
 WASM_IMPORT(wasm_time) u64 wasm_time(void);
 WASM_IMPORT(wasm_write) void wasm_write(u8 *data, u32 len);

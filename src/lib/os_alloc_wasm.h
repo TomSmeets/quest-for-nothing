@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_alloc_wasm.h - Minimal OS functinality implemented for WASM
 #pragma once
-#include "os_api.h"
-#include "str.h"
+#include "lib/os_api.h"
+#include "lib/str.h"
 
 // Webassembly can only grow a linear heap
 // This is fine as long as we only allocate

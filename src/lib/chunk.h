@@ -3,10 +3,10 @@
 #pragma once
 
 // chunk_cache is a global variable
-#include "global.h"
+#include "lib/global.h"
 
 // Memory can be requested from the operating system at any time.
-#include "os_alloc.h"
+#include "lib/os_alloc.h"
 
 // This memory is never given back to the operating system.
 // We are managing it ourselves.

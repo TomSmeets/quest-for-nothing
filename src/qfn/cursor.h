@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // cursor.h - Mouse cursor handling
 #pragma once
-#include "gfx.h"
-#include "image.h"
-#include "math.h"
-#include "monster.h"
-#include "ui.h"
+#include "lib/math.h"
+#include "qfn/gfx.h"
+#include "qfn/image.h"
+#include "qfn/monster.h"
+#include "qfn/ui.h"
 
 typedef struct {
     // Mouse cursor

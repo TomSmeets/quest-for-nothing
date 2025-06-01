@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_main_types.h - Type definitions for os_main
 #pragma once
-#include "fmt.h"
-#include "global.h"
-#include "os_desktop.h"
-#include "rand.h"
-#include "types.h"
+#include "lib/fmt.h"
+#include "lib/global.h"
+#include "lib/os_desktop.h"
+#include "lib/rand.h"
+#include "lib/types.h"
 
 typedef struct OS OS;
 struct OS {

@@ -7,7 +7,7 @@
 #define OS_IS_LINUX 1
 #define OS_IS_WINDOWS 0
 #define OS_IS_WASM 0
-#include "os_api_linux.h"
+#include "lib/os_api_linux.h"
 #endif
 
 // Windows
@@ -15,7 +15,7 @@
 #define OS_IS_LINUX 0
 #define OS_IS_WINDOWS 1
 #define OS_IS_WASM 0
-#include "os_api_windows.h"
+#include "lib/os_api_windows.h"
 #endif
 
 // Webassembly
@@ -23,5 +23,5 @@
 #define OS_IS_LINUX 0
 #define OS_IS_WINDOWS 0
 #define OS_IS_WASM 1
-#include "os_api_wasm.h"
+#include "lib/os_api_wasm.h"
 #endif

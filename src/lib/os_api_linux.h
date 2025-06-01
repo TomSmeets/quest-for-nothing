@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_api_linux.h - Platform syscall headers for Linux
 #pragma once
-#include "types.h"
+#include "lib/types.h"
 
 static i32 fd_from_file(File *f) {
     if (!f) return -1;

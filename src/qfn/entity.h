@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // entity.h - Generic object that exists in the game
 #pragma once
-#include "collision.h"
-#include "image.h"
-#include "mat.h"
-#include "monster_sprite.h"
+#include "qfn/collision.h"
+#include "qfn/image.h"
+#include "qfn/mat.h"
+#include "qfn/monster_sprite.h"
 
 typedef enum {
     Entity_None,

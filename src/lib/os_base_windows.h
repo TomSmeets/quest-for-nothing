@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_base_windows.h - Base OS implementation for Windows
 #pragma once
-#include "os_alloc.h"
-#include "std.h"
-#include "str.h"
-#include "types.h"
+#include "lib/os_alloc.h"
+#include "lib/std.h"
+#include "lib/str.h"
+#include "lib/types.h"
 
 static u64 os_time(void) {
     LARGE_INTEGER big_freq, big_count;

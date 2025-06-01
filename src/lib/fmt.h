@@ -3,9 +3,9 @@
 #pragma once
 
 // This formatter has very little dependiecies
-#include "mem.h"
-#include "os_desktop.h"
-#include "std.h"
+#include "lib/mem.h"
+#include "lib/os_desktop.h"
+#include "lib/std.h"
 
 // Simple flexible buffered string formatter and printer
 typedef struct Fmt {

@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // mat.h - Math for 4d matrices on homogeneous coordinates
 #pragma once
-#include "vec.h"
+#include "lib/vec.h"
 
 // 4x4 matrix in column-major order (OpenGL style)
 // Columns can be directly extracted:

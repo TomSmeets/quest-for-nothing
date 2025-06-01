@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sparse_set.h - Incremental BVH
 #pragma once
-#include "sparse.h"
+#include "qfn/sparse.h"
 
 typedef struct {
     Sparse *new;

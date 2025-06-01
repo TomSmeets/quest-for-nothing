@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // read.h - A simple line reader
 #pragma once
-#include "str.h"
-#include "types.h"
+#include "lib/str.h"
+#include "lib/types.h"
 
 // Check if the read is done
 static bool read_eof(String *read) {

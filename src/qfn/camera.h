@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // camera.h - Camera
 #pragma once
-#include "engine.h"
-#include "input.h"
-#include "mat.h"
-#include "player.h"
+#include "qfn/engine.h"
+#include "qfn/input.h"
+#include "qfn/mat.h"
+#include "qfn/player.h"
 
 typedef struct {
     v3 pos;

@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // ui.h - Immediate mode UI
 #pragma once
-#include "gfx.h"
-#include "str.h"
-#include "vec.h"
+#include "qfn/gfx.h"
+#include "lib/str.h"
+#include "lib/vec.h"
 
 typedef struct {
     v2 pos;

@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_debug.h - Debug primitives for visualising vectors and matricies
 #pragma once
-#include "box.h"
-#include "gfx.h"
-#include "image.h"
+#include "qfn/box.h"
+#include "qfn/gfx.h"
+#include "qfn/image.h"
 
 typedef struct {
     // X,Y and Z colors

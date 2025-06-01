@@ -1,10 +1,10 @@
 #pragma once
-#include "fmt.h"
-#include "mem.h"
-#include "os_alloc.h"
-#include "part.h"
-#include "str_mem.h"
-#include "types.h"
+#include "lib/fmt.h"
+#include "lib/mem.h"
+#include "lib/os_alloc.h"
+#include "lib/part.h"
+#include "lib/str_mem.h"
+#include "lib/types.h"
 
 typedef struct Text Text;
 struct Text {

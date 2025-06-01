@@ -1,13 +1,13 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sdl.h - SDL2 wrapper for a single window with both audio and OpenGL
 #pragma once
-#include "fmt.h"
-#include "input.h"
-#include "math.h"
-#include "mem.h"
-#include "os_main.h"
-#include "sdl_api.h"
-#include "vec.h"
+#include "lib/fmt.h"
+#include "qfn/input.h"
+#include "lib/math.h"
+#include "lib/mem.h"
+#include "lib/os_main.h"
+#include "qfn/sdl_api.h"
+#include "lib/vec.h"
 
 #define AUDIO_SAMPLE_RATE 48000
 

@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // maze.h - Generic Maze generator
 #pragma once
-#include "rand.h"
-#include "types.h"
+#include "lib/rand.h"
+#include "lib/types.h"
 
 typedef enum {
     // Outsdie the maze, don't generate here

@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // clang.h - Wrapper for invoking clang
 #pragma once
-#include "fmt.h"
-#include "mem.h"
+#include "lib/fmt.h"
+#include "lib/mem.h"
 
 // Target platform
 typedef enum {
@@ -38,7 +38,7 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
 
     // Inlcude paths
     fmt_s(fmt, " -Isrc");
-    fmt_s(fmt, " -Isrc/lib");
+    fmt_s(fmt, " --embed-dir=src");
 
     // Language flags
     fmt_s(fmt, " -std=c23");

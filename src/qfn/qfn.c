@@ -1,14 +1,14 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
-#include "cursor.h"
-#include "engine.h"
-#include "game.h"
-#include "gfx.h"
-#include "gfx_impl.h"
-#include "global.h"
-#include "input.h"
-#include "math.h"
-#include "os_main.h"
+#include "lib/global.h"
+#include "lib/math.h"
+#include "lib/os_main.h"
+#include "qfn/cursor.h"
+#include "qfn/engine.h"
+#include "qfn/game.h"
+#include "qfn/gfx.h"
+#include "qfn/gfx_impl.h"
+#include "qfn/input.h"
 
 struct App {
     // Permanent Game memory (allocate only)

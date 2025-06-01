@@ -1,7 +1,7 @@
 #pragma once
-#include "engine.h"
-#include "entity.h"
-#include "sparse_set.h"
+#include "qfn/engine.h"
+#include "qfn/entity.h"
+#include "qfn/sparse_set.h"
 
 // List of debug visulisation modes
 typedef enum {

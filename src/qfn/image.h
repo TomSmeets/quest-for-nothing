@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // image.h - Image type
 #pragma once
-#include "color.h"
-#include "id.h"
-#include "mem.h"
-#include "vec.h"
+#include "qfn/color.h"
+#include "lib/id.h"
+#include "lib/mem.h"
+#include "lib/vec.h"
 
 typedef struct {
     // Unique id, update on every change

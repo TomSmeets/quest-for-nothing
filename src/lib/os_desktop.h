@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // os_desktop.h - Desktop functionality: files, commands
 #pragma once
-#include "mem.h"
-#include "os_base.h"
-#include "os_desktop_types.h"
+#include "lib/mem.h"
+#include "lib/os_base.h"
+#include "lib/os_desktop_types.h"
 
 static File *os_open(String path, OS_Open_Type type);
 static void os_close(File *file);
@@ -27,9 +27,9 @@ static char *os_dlerror(void);
 static bool os_system(String command);
 
 #if OS_IS_LINUX
-#include "os_desktop_linux.h"
+#include "lib/os_desktop_linux.h"
 #elif OS_IS_WINDOWS
-#include "os_desktop_windows.h"
+#include "lib/os_desktop_windows.h"
 #else
-#include "os_desktop_none.h"
+#include "lib/os_desktop_none.h"
 #endif

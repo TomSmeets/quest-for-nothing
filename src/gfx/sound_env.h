@@ -2,7 +2,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_env.h - Sound Envelopes
 #pragma once
-#include "sound_var.h"
+#include "gfx/sound_var.h"
 
 static f32 sound_adsr(Sound *sound, bool down, f32 attack, f32 decay, f32 sustain) {
     // State | Down |

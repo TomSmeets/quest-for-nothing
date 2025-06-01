@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_osc.h - Sound Signal sources
 #pragma once
-#include "sound_var.h"
+#include "gfx/sound_var.h"
 
 // Generate linear ramp from [0, 1) at a given frequency and phase offset
 static f32 sound_phase(Sound *sound, f32 freq, f32 offset) {
