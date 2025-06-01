@@ -4,6 +4,10 @@
 #include "lib/os_api.h"
 #include "lib/str.h"
 
+#if 0
+#include "lib/os_alloc_wasm.js"
+#endif
+
 // Webassembly can only grow a linear heap
 // This is fine as long as we only allocate
 static void *os_alloc(u32 size) {

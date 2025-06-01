@@ -6,6 +6,10 @@
 #include "lib/str.h"
 #include "lib/types.h"
 
+#if 0
+#include "lib/os_base_wasm.js"
+#endif
+
 WASM_IMPORT(wasm_time) u64 wasm_time(void);
 WASM_IMPORT(wasm_write) void wasm_write(u8 *data, u32 len);
 

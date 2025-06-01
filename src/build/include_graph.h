@@ -90,7 +90,7 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
         fmt_s(fmt, "\"");
         fmt_s(fmt, "[");
         fmt_s(fmt, "color=");
-        fmt_u(fmt, node->color);
+        fmt_u(fmt, node->color + 1);
         fmt_s(fmt, "];\n");
 
         for (Include_Edge *edge = node->edges; edge; edge = edge->next) {
@@ -188,14 +188,10 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
         if (read.len == 0) break;
         String line = read_line(&read);
 
-        if (!str_drop_start_matching(&line, S("#include \"")) && !str_drop_start_matching(&line, S("#embed \""))) continue;
-        if (!str_drop_end_matching(&line, S("\""))) continue;
-
-        // Ignore '../' paths
-        if (str_starts_with(line, S("."))) continue;
-
-        // Remove '.c' and '.h'
-        // str_drop_end_matching(&line, S(".h")) || str_drop_end_matching(&line, S(".c"));
+        bool has_include = str_drop_start_matching(&line, S("#include \"")) && str_drop_end_matching(&line, S("\""));
+        bool has_embed   = str_drop_start_matching(&line, S("#embed \"")) && str_drop_end_matching(&line, S("\""));
+        // bool has_script = str_drop_start_matching(&line, S("<script src=\"")) && str_drop_end_matching(&line, S("\"></script>"));
+        if(!(has_include || has_embed)) continue;
 
         Include_Node *dst = include_graph_node(graph, line);
         include_graph_link(graph, node, dst);
@@ -216,12 +212,6 @@ static void include_graph_read_dir(Include_Graph *graph, String path) {
             include_graph_read_dir(graph, full_path);
             continue;
         }
-
-        // Only .c and .h files
-        String name_no_ext = file->name;
-
-        // Remove extention
-        file->name = name_no_ext;
 
         Include_Node *node = include_graph_read_file(graph, full_path, file->name);
         node->color = color;
