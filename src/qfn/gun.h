@@ -1,8 +1,8 @@
 #pragma once
-#include "qfn/color_rand.h"
-#include "qfn/image.h"
 #include "lib/mem.h"
 #include "lib/rand.h"
+#include "qfn/color_rand.h"
+#include "qfn/image.h"
 
 static Image *gun_new(Memory *mem, Rand *rng) {
     u32 length = 8;

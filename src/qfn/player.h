@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // player.h - The player character
 #pragma once
+#include "lib/vec.h"
 #include "qfn/entity.h"
 #include "qfn/input.h"
-#include "lib/vec.h"
 
 typedef struct {
     v3 move;

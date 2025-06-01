@@ -1,15 +1,15 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // level.h - Game level
 #pragma once
-#include "qfn/image.h"
-#include "qfn/level_sprite.h"
-#include "qfn/maze.h"
 #include "lib/mem.h"
-#include "qfn/monster.h"
-#include "qfn/player.h"
 #include "lib/rand.h"
 #include "lib/types.h"
 #include "lib/vec.h"
+#include "qfn/image.h"
+#include "qfn/level_sprite.h"
+#include "qfn/maze.h"
+#include "qfn/monster.h"
+#include "qfn/player.h"
 
 // Ideas
 //   Generate in layers, layers give depth

@@ -4,11 +4,11 @@
 #include "lib/fmt.h"
 #include "lib/math.h"
 #include "lib/os_main.h"
-#include "qfn/texture_packer.h"
 #include "lib/vec.h"
 #include "qfn/image.h"
 #include "qfn/input.h"
 #include "qfn/mat.h"
+#include "qfn/texture_packer.h"
 
 #define GFX_ATLAS_SIZE 4096
 #define AUDIO_SAMPLE_RATE 48000

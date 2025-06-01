@@ -1,6 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // game.h - Game data structures and implementation
 #pragma once
+#include "lib/mem.h"
+#include "lib/rand.h"
+#include "lib/types.h"
+#include "lib/vec.h"
 #include "qfn/camera.h"
 #include "qfn/collision.h"
 #include "qfn/engine.h"
@@ -9,13 +13,9 @@
 #include "qfn/gun.h"
 #include "qfn/image.h"
 #include "qfn/level.h"
-#include "lib/mem.h"
 #include "qfn/monster.h"
 #include "qfn/player.h"
-#include "lib/rand.h"
 #include "qfn/sparse_set.h"
-#include "lib/types.h"
-#include "lib/vec.h"
 
 /*
 Game Design V1.0

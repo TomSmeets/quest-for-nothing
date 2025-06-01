@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sparse.h - Incremental BVH
 #pragma once
-#include "qfn/box.h"
 #include "lib/mem.h"
+#include "qfn/box.h"
 
 // Immediate Bounding Volume Hirachy
 typedef struct Sparse Sparse;

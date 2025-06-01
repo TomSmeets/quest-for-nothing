@@ -1,6 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // monster.h - Monster logic and AI
 #pragma once
+#include "lib/rand.h"
+#include "lib/vec.h"
 #include "qfn/collision.h"
 #include "qfn/color.h"
 #include "qfn/engine.h"
@@ -10,9 +12,7 @@
 #include "qfn/image.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/player.h"
-#include "lib/rand.h"
 #include "qfn/sparse_set.h"
-#include "lib/vec.h"
 
 #define GFX_PIXEL_SCALE_UI 4.0f
 #define GFX_PIXEL_SCALE_3D (1.0f / 32.0f)
