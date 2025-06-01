@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // game_audio.h - Audio effects and Music
 #pragma once
-#include "rand.h"
-#include "sound.h"
-#include "sound_filter.h"
-#include "types.h"
+#include "gfx/sound.h"
+#include "gfx/sound_filter.h"
+#include "lib/rand.h"
+#include "lib/types.h"
 
 // Sound System
 

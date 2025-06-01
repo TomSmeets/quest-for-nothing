@@ -85,7 +85,9 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
 
     for (Include_Node *node = graph->nodes; node; node = node->next) {
         fmt_s(fmt, "  ");
+        fmt_s(fmt, "\"");
         fmt_str(fmt, node->name);
+        fmt_s(fmt, "\"");
         fmt_s(fmt, "[");
         fmt_s(fmt, "color=");
         fmt_u(fmt, node->color);
@@ -95,9 +97,13 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
             if (edge->transitive) continue;
 
             fmt_s(fmt, "  ");
+            fmt_s(fmt, "\"");
             fmt_str(fmt, node->name);
+            fmt_s(fmt, "\"");
             fmt_s(fmt, " -> ");
+            fmt_s(fmt, "\"");
             fmt_str(fmt, edge->link->name);
+            fmt_s(fmt, "\"");
 
             if (edge->transitive) {
                 fmt_s(fmt, "[");
@@ -180,14 +186,14 @@ static Include_Node *include_graph_read_file(Include_Graph *graph, String path, 
         if (read.len == 0) break;
         String line = read_line(&read);
 
-        if (!str_drop_start_matching(&line, S("#include \""))) continue;
+        if (!str_drop_start_matching(&line, S("#include \"")) && !str_drop_start_matching(&line, S("#embed \""))) continue;
         if (!str_drop_end_matching(&line, S("\""))) continue;
 
         // Ignore '../' paths
         if (str_starts_with(line, S("."))) continue;
 
         // Remove '.c' and '.h'
-        str_drop_end_matching(&line, S(".h")) || str_drop_end_matching(&line, S(".c"));
+        // str_drop_end_matching(&line, S(".h")) || str_drop_end_matching(&line, S(".c"));
 
         Include_Node *dst = include_graph_node(graph, line);
         include_graph_link(graph, node, dst);
@@ -211,9 +217,6 @@ static void include_graph_read_dir(Include_Graph *graph, String path) {
 
         // Only .c and .h files
         String name_no_ext = file->name;
-        bool is_h_file = str_drop_end_matching(&name_no_ext, S(".h"));
-        bool is_c_file = str_drop_end_matching(&name_no_ext, S(".c"));
-        if (!is_c_file && !is_h_file) continue;
 
         // Remove extention
         file->name = name_no_ext;
