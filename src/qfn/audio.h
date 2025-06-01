@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// game_audio.h - Audio effects and Music
+// audio.h - Audio effects and Music
 #pragma once
 #include "gfx/sound.h"
 #include "gfx/sound_filter.h"

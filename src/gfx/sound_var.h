@@ -2,7 +2,6 @@
 // sound_var.h - Immediate mode sound synthesis
 #pragma once
 #include "gfx/imm.h"
-#include "lib/math.h"
 #include "lib/mem.h"
 #include "lib/rand.h"
 #include "lib/types.h"
