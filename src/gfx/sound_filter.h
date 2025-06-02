@@ -100,26 +100,19 @@ static f32 sound_reverb(Sound *sound, u32 spread, f32 feedback, f32 damp, f32 in
 }
 
 static v2 sound_reverb2(Sound *sound, v2 input) {
-    f32 init_room = 0.5f;
-    f32 init_damp = 0.5f;
-    f32 init_wet = 0.3f;
-    f32 init_dry = 0.0f;
+    f32 init_room = 0.9f;
+    f32 init_damp = 0.9f;
+    f32 init_wet = 0.8f;
+    f32 init_dry = 0.8f;
     u32 stero_spread = 23;
     f32 width = 1.0f;
     f32 gain = 0.015f;
-
-    init_room = 0.98;
-    init_wet = 0.8f;
-    init_dry = 1.0f;
 
     f32 room = init_room * 0.28f + 0.7f;
 
     f32 damp = init_damp * 0.40f;
     f32 wet = init_wet * 3.0f;
     f32 dry = init_dry * 2.0f;
-
-    // room = 1.00f;
-    // damp = 0.2f;
 
     f32 wet_1 = wet * 0.5 * (width + 1);
     f32 wet_2 = wet * 0.5 * (1 - width);

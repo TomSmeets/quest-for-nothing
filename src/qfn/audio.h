@@ -83,7 +83,7 @@ static v2 audio_sample(Audio *audio) {
     f32 base = 0.2f * music_base(sound, clk.index);
     f32 melo = 0.3f * music_melody(sound, clk.index);
     f32 chance = 1.0f / 128.0f;
-    f32 volume = 0.04f;
+    f32 volume = 0.02f;
 
     bool play_noise0 = clk.trigger && rand_choice(G->rand, chance);
     bool play_noise1 = clk.trigger && rand_choice(G->rand, chance);
@@ -98,10 +98,10 @@ static v2 audio_sample(Audio *audio) {
     melo += volume * sound_adsr(sound, play_noise4, 4, 1, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 8, 0) * .5f), 0);
 
     f32 jump_vol = sound_adsr(sound, audio->play_jump, 400, 4.0, 0);
-    melo += 0.1 * jump_vol * sound_saw(sound, NOTE_C * (1 + 0.2 * sound_sine(sound, 8, 0)), 0);
+    melo += 0.1 * jump_vol * sound_sine(sound, NOTE_C * (1 + 0.8 * sound_sine(sound, 8, 0)), 0);
     melo += 1.0 * sound_lowpass(
                       sound, NOTE_C,
-                      sound_adsr(sound, audio->play_shoot, 8000, 16.0, 0) * (sound_noise_white(sound) + sound_noise_freq(sound, NOTE_C / 4, 1.0f))
+                      sound_adsr(sound, audio->play_shoot, 400, 16.0, 0) * (sound_noise_white(sound)*.8 + sound_noise_freq(sound, NOTE_C / 4, 0.5f))
                   );
     audio->play_jump = 0;
     audio->play_shoot = 0;
@@ -110,7 +110,7 @@ static v2 audio_sample(Audio *audio) {
     // melo *= 0.5f;
     out.x += melo;
     out.y += melo;
-    // out = sound_reverb2(sound, out * 0.25f) * 1.0f;
-    out = sound_reverb3(sound, out * 0.5f) * 1.0f;
+    out = sound_reverb2(sound, out * 0.25f) * 1.0f;
+    // out = sound_reverb3(sound, out * 0.5f) * 1.0f;
     return out;
 }
