@@ -147,7 +147,7 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
         // Skip collisions with myself
         if (ent == mon) continue;
 
-        if (ent->type == Entity_Monster) {
+        if (ent->type == Entity_Monster || ent->type == Entity_Player) {
             Shape other = monster_shape(ent);
             Collision_Result res = collide_shape(shape, other);
             if (!res.collision) break;
@@ -157,6 +157,7 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
         // Draw colliding box
         // gfx_debug_box(eng->gfx_dbg, col->node->box, 1);
         if (ent->type == Entity_Wall) {
+            // Monster collides with wall
             m4 wall_inv = m4_invert_tr(ent->mtx);
             v3 p_local = m4_mul_pos(wall_inv, mon->pos);
             f32 rx = ent->size.x * .5;
@@ -171,12 +172,8 @@ static void entity_collide(Engine *eng, Sparse_Set *sparse, Entity *mon) {
             v3 dir = p_global - mon->pos;
             f32 dist = v3_length(dir);
             f32 pen = (box.max.x - box.min.x) * .5;
-            // fmt_sf(G->fmt, "D: ", dist, "\n");
             if (dist < pen) {
                 mon->pos -= dir / dist * (pen - dist);
-                // m4 hit = m4_id();
-                // m4_translate(&hit, p_global);
-                // gfx_debug_mtx(eng->gfx_dbg, hit);
             }
         }
     }

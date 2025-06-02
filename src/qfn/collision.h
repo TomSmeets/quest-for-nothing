@@ -198,6 +198,6 @@ static void collide_push(Collision_Result res, v3 *a, v3 *b) {
     // From A -> B
     v3 dir = (res.pos_b - res.pos_a) * 0.5f;
     // dir = v3_limit(dir, 0, 0.05f);
-    *a += dir * .5;
-    *b -= dir * .5;
+    *a += dir * .5 * .1;
+    *b -= dir * .5 * .1;
 }
