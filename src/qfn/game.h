@@ -295,10 +295,6 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
     }
 
     if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
-    if (pl->image) {
-        gfx_quad_3d(eng->gfx, pl->mtx, pl->image);
-    }
-    // gfx_draw_mtx(eng, pl->head_mtx);
 }
 
 static void wall_update(Game *game, Engine *eng, Entity *ent) {
