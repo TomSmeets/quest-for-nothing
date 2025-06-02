@@ -61,8 +61,9 @@ static void handle_basic_input(App *app, Input *input, Engine *eng) {
 
     // Reload level with 'R'
     if (key_click(input, KEY_R)) {
-        mem_free(app->game->mem);
+        Memory *old = app->game->mem;
         app->game = game_new(&eng->rng);
+        mem_free(old);
     }
 }
 
