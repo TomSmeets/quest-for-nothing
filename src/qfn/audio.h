@@ -80,8 +80,8 @@ static v2 audio_sample(Audio *audio) {
     v2 out = {0, 0};
     Clock clk = sound_clock(sound, 1.0f, 32);
 
-    f32 base = 0.2f * music_base(sound, clk.index);
-    f32 melo = 0.3f * music_melody(sound, clk.index);
+    f32 base = 0.1f * music_base(sound, clk.index);
+    f32 melo = 0.1f * music_melody(sound, clk.index);
     f32 chance = 1.0f / 128.0f;
     f32 volume = 0.02f;
 
@@ -110,7 +110,14 @@ static v2 audio_sample(Audio *audio) {
     // melo *= 0.5f;
     out.x += melo;
     out.y += melo;
-    out = sound_reverb2(sound, out * 0.25f) * 1.0f;
+
+    Freeverb_Config cfg = {
+        .room = 0.9f,
+        .damp = 0.2f,
+        .wet = 0.9f,
+        .dry = 1.0f,
+    };
+    out = sound_freeverb2(sound, cfg, out * 0.5f) * 1.0f;
     // out = sound_reverb3(sound, out * 0.5f) * 1.0f;
     return out;
 }

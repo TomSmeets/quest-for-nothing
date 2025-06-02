@@ -78,7 +78,7 @@ static f32 sound_allpass(Sound *sound, u32 size, f32 feedback, f32 input) {
     return output - input;
 }
 
-static f32 sound_reverb(Sound *sound, u32 spread, f32 feedback, f32 damp, f32 input) {
+static f32 sound_freeverb(Sound *sound, u32 spread, f32 feedback, f32 damp, f32 input) {
     // Rescale factor for 44.1 KHz to 48 KHz
     f32 a = (f32)SOUND_SAMPLE_RATE / 44100.0f;
 
@@ -99,40 +99,54 @@ static f32 sound_reverb(Sound *sound, u32 spread, f32 feedback, f32 damp, f32 in
     return out;
 }
 
-static v2 sound_reverb2(Sound *sound, v2 input) {
-    f32 init_room = 0.9f;
-    f32 init_damp = 0.9f;
-    f32 init_wet = 0.8f;
-    f32 init_dry = 0.8f;
+typedef struct {
+    // Room size
+    f32 room;
+
+    // Sound Damping
+    f32 damp;
+
+    // How much of the reverb sound to mix in
+    f32 wet;
+
+    // How much of the original sound to mix in
+    f32 dry;
+} Freeverb_Config;
+
+// Full freeverb implementation
+static v2 sound_freeverb2(Sound *sound, Freeverb_Config cfg, v2 input) {
     u32 stero_spread = 23;
     f32 width = 1.0f;
     f32 gain = 0.015f;
 
-    f32 room = init_room * 0.28f + 0.7f;
-
-    f32 damp = init_damp * 0.40f;
-    f32 wet = init_wet * 3.0f;
-    f32 dry = init_dry * 2.0f;
+    // Tuned params
+    f32 room = cfg.room * 0.28f + 0.7f;
+    f32 damp = cfg.damp * 0.40f;
+    f32 wet = cfg.wet * 3.0f;
+    f32 dry = cfg.dry * 2.0f;
 
     f32 wet_1 = wet * 0.5 * (width + 1);
     f32 wet_2 = wet * 0.5 * (1 - width);
 
     f32 real_input = (input.x + input.y) * gain;
-    f32 l = sound_reverb(sound, 0, room, damp, real_input);
-    f32 r = sound_reverb(sound, stero_spread, room, damp, real_input);
+    f32 l = sound_freeverb(sound, 0, room, damp, real_input);
+    f32 r = sound_freeverb(sound, stero_spread, room, damp, real_input);
 
     f32 out_l = l * wet_1 + r * wet_2 + input.x * dry;
     f32 out_r = r * wet_1 + l * wet_2 + input.y * dry;
     return (v2){out_l, out_r};
 }
 
-__attribute__((aligned(4))) static const u8 SOUND_REVERB_IR[] = {
-#embed "gfx/sound_ir.i16"
+// NOTE: This is too slow, things i can try:
+// - Store as f32
+// - Decrease IR tail resolution 
+__attribute__((aligned(8))) static const u8 SOUND_REVERB_IR[] = {
+#embed "gfx/sound_ir.f32"
 };
 
 static v2 sound_reverb3(Sound *sound, v2 sample) {
-    const i16 *buffer = (i16 *)SOUND_REVERB_IR;
-    const u32 count = sizeof(SOUND_REVERB_IR) / (sizeof(i16) * 2);
+    const f32 *buffer = (f32 *)SOUND_REVERB_IR;
+    const u32 count = sizeof(SOUND_REVERB_IR) / (sizeof(f32) * 2);
 
     f32 *samples_l = sound_vars(sound, f32, count);
     f32 *samples_r = sound_vars(sound, f32, count);
@@ -140,18 +154,21 @@ static v2 sound_reverb3(Sound *sound, v2 sample) {
     if (*ix > count) *ix = 0;
 
     v2 out = 0;
-    // Skip 20, because it is too slow otherwise
-    for (u32 i = 0; i < count; i += 20) {
+    f32 resolution = 1.0f;
+    for (u32 i = 0; i < count; i += (u32)resolution) {
         // New -> Old
         f32 samp_l = samples_l[(*ix + count - i) % count];
         f32 samp_r = samples_r[(*ix + count - i) % count];
 
         // New -> old
-        f32 ir_l = (f32)buffer[i * 2 + 0] / 32768.0f;
-        f32 ir_r = (f32)buffer[i * 2 + 1] / 32768.0f;
+        f32 ir_l = (f32)buffer[i * 2 + 0];
+        f32 ir_r = (f32)buffer[i * 2 + 1];
 
         out.x += samp_l * ir_l;
         out.y += samp_r * ir_r;
+
+        // Decrease resolution
+        resolution *= 1.04;
     }
 
     // Write sample
