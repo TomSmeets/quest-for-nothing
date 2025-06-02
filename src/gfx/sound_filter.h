@@ -2,6 +2,7 @@
 // sound_filter.h - Sound filters
 #pragma once
 #include "gfx/sound_var.h"
+#include "lib/fmt.h"
 #include "lib/vec.h"
 
 typedef struct {
@@ -130,4 +131,41 @@ static v2 sound_reverb2(Sound *sound, v2 input) {
     f32 out_l = l * wet_1 + r * wet_2 + input.x * dry;
     f32 out_r = r * wet_1 + l * wet_2 + input.y * dry;
     return (v2){out_l, out_r};
+}
+
+__attribute__((aligned(4))) static const u8 SOUND_REVERB_IR[] = {
+#embed "gfx/sound_ir.i16"
+};
+
+static v2 sound_reverb3(Sound *sound, v2 sample) {
+    const i16 *buffer = (i16 *)SOUND_REVERB_IR;
+    const u32 count = sizeof(SOUND_REVERB_IR) / (sizeof(i16) * 2);
+
+    f32 *samples_l = sound_vars(sound, f32, count);
+    f32 *samples_r = sound_vars(sound, f32, count);
+    u32 *ix = sound_var(sound, u32);
+    if (*ix > count) *ix = 0;
+
+    v2 out = 0;
+    // Skip 20, because it is too slow otherwise
+    for (u32 i = 0; i < count; i += 20) {
+        // New -> Old
+        f32 samp_l = samples_l[(*ix + count - i) % count];
+        f32 samp_r = samples_r[(*ix + count - i) % count];
+
+        // New -> old
+        f32 ir_l = (f32)buffer[i * 2 + 0] / 32768.0f;
+        f32 ir_r = (f32)buffer[i * 2 + 1] / 32768.0f;
+
+        out.x += samp_l * ir_l;
+        out.y += samp_r * ir_r;
+    }
+
+    // Write sample
+    samples_l[*ix] = sample.x;
+    samples_r[*ix] = sample.y;
+
+    (*ix)++;
+    // out = sample;
+    return out;
 }

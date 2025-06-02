@@ -19,10 +19,8 @@ typedef struct {
 } Sound;
 
 static Sound sound_init(Memory *mem) {
-    u32 size = 8 * 32 * 1024;
-    u8 *buffer = mem_push_zero(mem, size);
     return (Sound){
-        .imm = imm_new(buffer, size),
+        .imm = imm_new(mem, 8 * 1024),
     };
 }
 

@@ -110,10 +110,7 @@ static v2 audio_sample(Audio *audio) {
     // melo *= 0.5f;
     out.x += melo;
     out.y += melo;
-    out *= 0.25f;
-    out += sound_reverb2(sound, out);
-    out *= 1.0f;
-    // out2.x = out;
-    // out2.y = out;
+    // out = sound_reverb2(sound, out * 0.25f) * 1.0f;
+    out = sound_reverb3(sound, out * 0.5f) * 1.0f;
     return out;
 }
