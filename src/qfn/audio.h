@@ -101,7 +101,7 @@ static v2 audio_sample(Audio *audio) {
     melo += 0.1 * jump_vol * sound_sine(sound, NOTE_C * (1 + 0.8 * sound_sine(sound, 8, 0)), 0);
     melo += 1.0 * sound_lowpass(
                       sound, NOTE_C,
-                      sound_adsr(sound, audio->play_shoot, 400, 16.0, 0) * (sound_noise_white(sound)*.8 + sound_noise_freq(sound, NOTE_C / 4, 0.5f))
+                      sound_adsr(sound, audio->play_shoot, 400, 16.0, 0) * (sound_noise_white(sound) * .8 + sound_noise_freq(sound, NOTE_C / 4, 0.5f))
                   );
     audio->play_jump = 0;
     audio->play_shoot = 0;
