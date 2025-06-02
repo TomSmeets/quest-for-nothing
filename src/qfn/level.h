@@ -33,10 +33,12 @@ static void level_add_wall(Memory *mem, Entity **level, Image *img, v3i pos, m4 
 // Generate an empty level
 static void level_generate(Entity **level, Memory *mem, Rand *rng, v2i size) {
     i32 cell_scale = 4;
+    f32 adjust = 0.99;
 
     m4 mtx_yn = m4_id();
     m4_translate_y(&mtx_yn, (f32)cell_scale / 2);
     m4_translate_z(&mtx_yn, -(f32)cell_scale / 2);
+    m4_scale(&mtx_yn, adjust);
 
     m4 mtx_xn = mtx_yn;
     m4 mtx_yp = mtx_yn;
@@ -49,9 +51,11 @@ static void level_generate(Entity **level, Memory *mem, Rand *rng, v2i size) {
     m4 mtx_zp = m4_id();
     m4_rotate_x(&mtx_zp, R1);
     m4_translate_y(&mtx_zp, cell_scale);
+    m4_scale(&mtx_zp, adjust);
 
     m4 mtx_zn = m4_id();
     m4_rotate_x(&mtx_zn, -R1);
+    m4_scale(&mtx_zn, adjust);
 
     Memory *tmp = mem_new();
     Maze maze = {size, mem_push_uninit(tmp, size.x * size.y)};
