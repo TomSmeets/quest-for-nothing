@@ -139,7 +139,7 @@ static v2 sound_freeverb2(Sound *sound, Freeverb_Config cfg, v2 input) {
 
 // NOTE: This is too slow, things i can try:
 // - Store as f32
-// - Decrease IR tail resolution 
+// - Decrease IR tail resolution
 __attribute__((aligned(8))) static const u8 SOUND_REVERB_IR[] = {
 #embed "gfx/sound_ir.f32"
 };
