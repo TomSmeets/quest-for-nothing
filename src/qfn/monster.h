@@ -54,7 +54,7 @@ static Entity *monster_new(Memory *mem, Rand *rng, v3 pos, Sprite_Properties pro
     mon->pos_old = pos;
     mon->size.x = (f32)mon->image->size.x / 32.0f;
     mon->size.y = (f32)mon->image->size.y / 32.0f;
-    mon->health = 1 + mon->size.x * mon->size.y * 4;
+    mon->health = (1 + mon->size.x * mon->size.y * 4) * 8;
     mon->shadow = monster_gen_shadow(mem, mon->image->size.x * .8);
     return mon;
 }

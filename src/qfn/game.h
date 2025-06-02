@@ -228,14 +228,14 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
         camera_shake(&game->camera, 0.5);
         audio_shoot(&game->audio);
 
-        for (u32 i = 0; i < 32; ++i) {
+        for (u32 i = 0; i < 16; ++i) {
             v3 ray_pos = pl->head_mtx.w;
             v3 ray_dir = pl->head_mtx.z;
 
             f32 a = rand_f32(&eng->rng, -1, 1);
-            f32 r = rand_f32(&eng->rng, -0.1, 0.1);
-            f32 ox = f_cos2pi(a) * r;
-            f32 oy = f_sin2pi(a) * r;
+            f32 r = rand_f32(&eng->rng, -1, 1);
+            f32 ox = f_cos2pi(a) * r * 0.1;
+            f32 oy = f_sin2pi(a) * r * 0.1;
 
             ray_dir += pl->head_mtx.x * ox;
             ray_dir += pl->head_mtx.y * oy;
