@@ -2,9 +2,9 @@
 // monster2.h - Monster (but new)
 #pragma once
 #include "lib/vec.h"
-#include "qfn/mat.h"
-#include "qfn/image.h"
 #include "qfn/engine.h"
+#include "qfn/image.h"
+#include "qfn/mat.h"
 #include "qfn/monster_sprite.h"
 
 typedef struct Monster Monster;
@@ -26,7 +26,7 @@ static Monster *monster2_new(Memory *mem, v3 pos) {
     Monster *mon = mem_struct(mem, Monster);
     mon->pos = pos;
     mon->sprite = monster_sprite_generate(mem, prop, G->rand);
-    mon->size = (v2) { mon->sprite.image->size.x, mon->sprite.image->size.y } / 32.0f;
+    mon->size = (v2){mon->sprite.image->size.x, mon->sprite.image->size.y} / 32.0f;
     return mon;
 }
 
@@ -43,13 +43,13 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     if (player_dist < 2) scared = 1 - player_dist / 2;
     if (player_dist < 1) dead = 1;
 
-    if(dead) scared = 0;
-    if(dead) mon->death = f_min(mon->death + eng->dt, 1.0f);
+    if (dead) scared = 0;
+    if (dead) mon->death = f_min(mon->death + eng->dt, 1.0f);
     f32 alive = 1 - mon->death;
 
     // Look around
     f32 look_chance = 0.20f;
-    if(scared) look_chance *= 8;
+    if (scared) look_chance *= 8;
     if (alive && rand_choice(&eng->rng, eng->dt * look_chance)) {
         monster_sprite_update_eyes(&mon->sprite, &eng->rng);
     }
@@ -62,7 +62,6 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     if (dead) m4_rotate_x(&mtx_rotated, -R1 * mon->death);
     m4_apply(&mtx_rotated, mtx_monster);
     m4_translate_y(&mtx_rotated, 2e-3f);
-
 
     m4 mtx_sprite = m4_id();
     m4_scale_image(&mtx_sprite, mon->sprite.image);
