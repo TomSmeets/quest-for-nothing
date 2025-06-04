@@ -60,7 +60,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     if (player_dist < 2) monster2_set_state(mon, Monster_State_Scared);
     if (player_dist < 1) monster2_set_state(mon, Monster_State_Dead);
 
-    bool idle   = mon->state == Monster_State_Idle;
+    bool idle = mon->state == Monster_State_Idle;
     bool attack = mon->state == Monster_State_Attack;
     f32 dead = mon->state == Monster_State_Dead ? mon->state_time : 0;
     f32 scared = mon->state == Monster_State_Scared ? (1 - player_dist / 2) : 0;
@@ -71,7 +71,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     // Look around
     f32 look_chance = 0.20f;
     if (scared) look_chance = 2.0f;
-    if (dead)   look_chance = 0;
+    if (dead) look_chance = 0;
     if (look_chance && rand_choice(rng, dt * look_chance)) {
         monster_sprite_update_eyes(&mon->sprite, rng);
     }
@@ -92,7 +92,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     // if (!dead) m4_rotate_z(&mtx_rotated, f_sin(mon->state_time*R4) * R1 * 0.3);
     if (scared) m4_rotate_z(&mtx_rotated, rand_f32(rng, -1, 1) * .08 * scared);
     if (dead) m4_rotate_x(&mtx_rotated, -R1 * dead);
-    m4_rotate_y(&mtx_rotated, R1-f_atan2(player_dir.z, player_dir.x));
+    m4_rotate_y(&mtx_rotated, R1 - f_atan2(player_dir.z, player_dir.x));
     m4_apply(&mtx_rotated, mtx_monster);
     m4_translate_y(&mtx_rotated, 2e-3f);
 
