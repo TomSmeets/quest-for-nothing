@@ -14,6 +14,7 @@
 #include "qfn/image.h"
 #include "qfn/level.h"
 #include "qfn/monster.h"
+#include "qfn/monster2.h"
 #include "qfn/player.h"
 #include "qfn/sparse_set.h"
 
@@ -33,6 +34,7 @@ typedef struct {
     Memory *mem;
     Entity *player;
     Entity *monsters;
+    Monster *monster2_list;
     Image *gun;
     Camera camera;
     Game_Debug debug;
@@ -93,12 +95,18 @@ static Game *game_new(Rand *rng) {
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
     game->camera.target = game->player;
 
+    {
+        Monster *mon = monster2_new(mem, (v3){spawn.x, 0, spawn.y});
+        mon->next = game->monster2_list;
+        mon->gun = game->gun;
+        game->monster2_list = mon;
+    }
+
     game->sparse = sparse_set_new(mem);
     game->audio.snd = sound_init(mem);
 
     Image *img = image_new(mem, (v2u){32, 32});
     image_fill(img, (v4){1, 0, 1, 1});
-    m4 mtx = m4_id();
     return game;
 }
 
@@ -338,6 +346,10 @@ static void game_update(Game *game, Engine *eng) {
 
     for (Entity *ent = game->monsters; ent; ent = ent->next) {
         entity_update(eng, game, ent);
+    }
+
+    for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
+        monster2_update(mon, eng, game->player->pos);
     }
 
     camera_update(&game->camera, eng->dt);

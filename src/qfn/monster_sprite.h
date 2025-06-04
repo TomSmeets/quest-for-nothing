@@ -20,6 +20,7 @@ typedef struct {
 
     // Generated image
     Image *image;
+    Image *shadow;
 } Monster_Sprite;
 
 // Update monster eye position
@@ -178,6 +179,6 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties pro
 
     // Update other eyes
     monster_sprite_update_eyes(&sprite, rng);
-    // image_write_debug_axis(image);
+    sprite.shadow = monster_gen_shadow(mem, image->size.x * 0.80f);
     return sprite;
 }
