@@ -34,7 +34,7 @@ static f32 rand_f32(Rand *rand, f32 min, f32 max) {
 
 // Random unsinged in range [min, max)
 static u32 rand_u32(Rand *rand, u32 min, u32 max) {
-    return (u32)rand_f32(rand, min, max - 1);
+    return (u32)rand_f32(rand, min, max);
 }
 
 // Random signed in range [min, max)
