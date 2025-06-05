@@ -84,7 +84,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
         mon->state = Monster_State_Move;
         f32 angle = rand_f32(rng, -1, 1);
         mon->move_direction = (v3){f_cos2pi(angle), 0, f_sin2pi(angle)};
-    if (mon->state == Monster_State_Idle && rand_choice(rng, 0.4 * dt)) {
+    } else if (mon->state == Monster_State_Idle && rand_choice(rng, 0.4 * dt)) {
         mon->state = Monster_State_Attack;
     } else if (mon->state == Monster_State_Move && rand_choice(rng, 0.5 * dt)) {
         mon->state = Monster_State_Idle;
@@ -111,7 +111,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
         mon->death_animation = f_min(mon->death_animation + dt, 1.0f);
     }
 
-    mon->wiggle_amount += (v3_length(vel) * .5 - mon->wiggle_amount) * dt;
+    mon->wiggle_amount += (v3_length(vel) * .5 - mon->wiggle_amount) * dt * 4;
     mon->wiggle_phase = f_fract(mon->wiggle_phase + dt*mon->wiggle_amount*8);
 
     f32 dead_amount = mon->death_animation;
@@ -131,8 +131,8 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     m4_translate(&mtx_monster, mon->pos);
 
     m4 mtx_rotated = m4_id();
+    if (scared_amount) m4_translate_x(&mtx_rotated, rand_f32(rng, -1, 1) * .02 * scared_amount);
     if (wiggle_amount) m4_rotate_z(&mtx_rotated, f_sin(wiggle_phase * R4) * R1 * wiggle_amount * 0.3);
-    if (scared_amount) m4_rotate_z(&mtx_rotated, rand_f32(rng, -1, 1) * .08 * scared_amount);
     if (dead_amount) m4_rotate_x(&mtx_rotated, -R1 * dead_amount);
     m4_rotate_y(&mtx_rotated, R1 - f_atan2(player_dir.z, player_dir.x));
     m4_apply(&mtx_rotated, mtx_monster);
