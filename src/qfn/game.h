@@ -349,7 +349,7 @@ static void game_update(Game *game, Engine *eng) {
     }
 
     for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
-        monster2_update(mon, eng, &game->audio, game->player->pos);
+        monster2_update(mon, eng, &game->audio, game->sparse, game->player->pos);
     }
 
     camera_update(&game->camera, eng->dt);

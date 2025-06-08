@@ -7,6 +7,7 @@
 #include "qfn/image.h"
 #include "qfn/mat.h"
 #include "qfn/monster_sprite.h"
+#include "qfn/sparse_set.h"
 
 typedef struct Monster Monster;
 
@@ -69,7 +70,7 @@ static void m4_scale_image(m4 *mtx, Image *img) {
     m4_scale(mtx, (v3){img->size.x / 32.0f, img->size.y / 32.0f, 1});
 }
 
-static void monster2_update(Monster *mon, Engine *eng, Audio *audio, v3 player_pos) {
+static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set *sparse, v3 player_pos) {
     f32 dt = eng->dt;
     Rand *rng = &eng->rng;
 
@@ -166,6 +167,12 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, v3 player_p
 
     // Movement
     mon->pos += vel * dt;
+
+    // Collision
+    f32 r = mon->size.x / 2;
+    f32 h = mon->size.y;
+    Box box = {mon->pos - (v3){r, 0, r}, mon->pos + (v3){r, h, r}};
+    gfx_debug_box(eng->gfx_dbg, box, 0);
 
     // Graphics
     m4 mtx_monster = m4_id();
