@@ -95,7 +95,7 @@ static Game *game_new(Rand *rng) {
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
     game->camera.target = game->player;
 
-    {
+    for (u32 i = 0; i < 2; ++i) {
         Monster *mon = monster2_new(mem, (v3){spawn.x, 0, spawn.y});
         mon->next = game->monster2_list;
         mon->gun = game->gun;
