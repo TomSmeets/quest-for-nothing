@@ -2,11 +2,11 @@
 // monster2.h - Monster (but new)
 #pragma once
 #include "lib/vec.h"
+#include "qfn/audio.h"
 #include "qfn/engine.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
 #include "qfn/monster_sprite.h"
-#include "qfn/audio.h"
 
 typedef struct Monster Monster;
 
@@ -131,7 +131,7 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, v3 player_p
 
     // Shoot
     else if (mon->state == Monster_State_Shoot) {
-        if(mon->shoot_timeout == 0) {
+        if (mon->shoot_timeout == 0) {
             mon->shoot_timeout = 1.0f;
             audio->play_shoot = 1;
         }
@@ -149,8 +149,8 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, v3 player_p
         mon->death_animation = f_min(mon->death_animation + dt, 1.0f);
     }
 
-    mon->shoot_timeout -= dt*2;
-    if(mon->shoot_timeout < 0) mon->shoot_timeout = 0;
+    mon->shoot_timeout -= dt * 2;
+    if (mon->shoot_timeout < 0) mon->shoot_timeout = 0;
 
     mon->wiggle_amount += (v3_length(vel) * .5 - mon->wiggle_amount) * dt * 4;
     mon->wiggle_phase = f_fract(mon->wiggle_phase + dt * mon->wiggle_amount * 8);
@@ -196,7 +196,7 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, v3 player_p
     f32 gun_x = -mon->sprite.hand[0].x / 32.0f * 0.5f * 0.9f;
     m4_scale_image(&mtx_gun, mon->gun);
     m4_translate_x(&mtx_gun, -.1);
-    m4_rotate_z(&mtx_gun, f_remap(mon->shoot_timeout, 0, 1, 0, -0.2*R1));
+    m4_rotate_z(&mtx_gun, f_remap(mon->shoot_timeout, 0, 1, 0, -0.2 * R1));
     m4_rotate_y(&mtx_gun, R1 * 0.80f * (1 - dead_amount));
     m4_translate_y(&mtx_gun, gun_y);
     m4_translate_x(&mtx_gun, gun_x);
