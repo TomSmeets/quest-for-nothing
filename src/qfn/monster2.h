@@ -9,6 +9,8 @@
 
 typedef struct Monster Monster;
 
+// Idle -> Move -> Idle
+// Idle -> Attack -> Shoot -> Flee -> Idle
 typedef enum {
     // Standing still
     Monster_State_Idle,
@@ -112,11 +114,11 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     }
 
     mon->wiggle_amount += (v3_length(vel) * .5 - mon->wiggle_amount) * dt * 4;
-    mon->wiggle_phase = f_fract(mon->wiggle_phase + dt*mon->wiggle_amount*8);
+    mon->wiggle_phase = f_fract(mon->wiggle_phase + dt * mon->wiggle_amount * 8);
 
     f32 dead_amount = mon->death_animation;
     f32 wiggle_amount = mon->wiggle_amount;
-    f32 wiggle_phase  = mon->wiggle_phase;
+    f32 wiggle_phase = mon->wiggle_phase;
 
     // Look around
     if (look_chance && rand_choice(rng, dt * look_chance)) {
@@ -131,7 +133,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     m4_translate(&mtx_monster, mon->pos);
 
     m4 mtx_rotated = m4_id();
-    if (scared_amount) m4_translate_x(&mtx_rotated, rand_f32(rng, -1, 1) * .02 * scared_amount);
+    if (scared_amount) m4_translate_x(&mtx_rotated, rand_f32(rng, -1, 1) * .01 * scared_amount);
     if (wiggle_amount) m4_rotate_z(&mtx_rotated, f_sin(wiggle_phase * R4) * R1 * wiggle_amount * 0.3);
     if (dead_amount) m4_rotate_x(&mtx_rotated, -R1 * dead_amount);
     m4_rotate_y(&mtx_rotated, R1 - f_atan2(player_dir.z, player_dir.x));
@@ -155,7 +157,7 @@ static void monster2_update(Monster *mon, Engine *eng, v3 player_pos) {
     f32 gun_x = -mon->sprite.hand[0].x / 32.0f * 0.5f * 0.9f;
     m4_scale_image(&mtx_gun, mon->gun);
     m4_translate_x(&mtx_gun, -.1);
-    m4_rotate_y(&mtx_gun, R1 * 0.80f * (1-dead_amount));
+    m4_rotate_y(&mtx_gun, R1 * 0.80f * (1 - dead_amount));
     m4_translate_y(&mtx_gun, gun_y);
     m4_translate_x(&mtx_gun, gun_x);
     if (dead_amount) m4_translate_x(&mtx_gun, -0.4 * dead_amount);
