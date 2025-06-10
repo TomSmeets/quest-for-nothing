@@ -69,10 +69,10 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
-        Entity *mon = monster_new(game->mem, rng, wall->pos, prop);
-        // Insert
-        mon->next = game->monsters;
-        game->monsters = mon;
+        Monster *mon = monster2_new(game->mem, (v3){spawn.x, 0, spawn.y}, prop);
+        mon->next = game->monster2_list;
+        mon->gun = game->gun;
+        game->monster2_list = mon;
     }
 }
 

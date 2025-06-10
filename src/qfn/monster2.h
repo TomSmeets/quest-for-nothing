@@ -55,9 +55,7 @@ struct Monster {
     Image *gun;
 };
 
-static Monster *monster2_new(Memory *mem, v3 pos) {
-    Sprite_Properties prop = sprite_new(G->rand);
-
+static Monster *monster2_new(Memory *mem, v3 pos, Sprite_Properties prop) {
     Monster *mon = mem_struct(mem, Monster);
     mon->pos = pos;
     mon->sprite = monster_sprite_generate(mem, prop, G->rand);
