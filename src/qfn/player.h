@@ -56,6 +56,13 @@ static Player *player2_new(Memory *mem, v3 pos) {
 }
 
 static void player2_update(Player *player, Engine *eng) {
+    Player_Input input = player_parse_input(eng->input);
+
+    player->look.xy += input.look.xy;
+    player->look.x = f_clamp(player->look.x, -PI / 2, PI / 2);
+    player->look.y = f_wrap(player->look.y, -PI, PI);
+    player->look.z += (input.look.z - player->look.z) * 10 * eng->dt * PI;
+
     m4 mtx_body = m4_id();
     m4_rotate_y(&mtx_body, player->look.y);
     m4_translate(&mtx_body, player->pos);
