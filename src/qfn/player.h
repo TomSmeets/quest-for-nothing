@@ -67,7 +67,7 @@ static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
 
 static void player2_update(Player *player, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
-    if(key_click(eng->input, KEY_3)) player->fly = !player->fly;
+    if (key_click(eng->input, KEY_3)) player->fly = !player->fly;
 
     player->look.xy += input.look.xy;
     player->look.x = f_clamp(player->look.x, -PI / 2, PI / 2);
