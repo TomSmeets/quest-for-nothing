@@ -55,6 +55,7 @@ typedef struct {
     f32 bob_phase;
 
     m4 camera;
+    bool fly;
 } Player;
 
 static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
@@ -66,14 +67,23 @@ static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
 
 static void player2_update(Player *player, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
+    if(key_click(eng->input, KEY_3)) player->fly = !player->fly;
 
     player->look.xy += input.look.xy;
     player->look.x = f_clamp(player->look.x, -PI / 2, PI / 2);
     player->look.y = f_wrap(player->look.y, -PI, PI);
     player->look.z += (input.look.z - player->look.z) * 10 * eng->dt * PI;
 
+    m4 mtx_yaw = m4_id();
+    m4_rotate_y(&mtx_yaw, player->look.y);
+
+    v3 move = m4_mul_dir(mtx_yaw, input.move);
+    move.xz = v2_limit(move.xz, 0, 1);
+    if (!player->fly) move.y = 0;
+    player->pos += move * 2.0 * eng->dt;
+
     m4 mtx_body = m4_id();
-    m4_rotate_y(&mtx_body, player->look.y);
+    m4_apply(&mtx_body, mtx_yaw);
     m4_translate(&mtx_body, player->pos);
 
     m4 mtx_head = m4_id();
@@ -85,14 +95,15 @@ static void player2_update(Player *player, Engine *eng) {
     m4 mtx_gun = m4_id();
     m4_scale_image(&mtx_gun, player->gun);
     m4_rotate_y(&mtx_gun, R1);
-    m4_translate_x(&mtx_gun, -.1);
+    m4_translate_x(&mtx_gun, -0.20);
+    m4_translate_z(&mtx_gun, 0.35);
+    m4_translate_y(&mtx_gun, -0.12);
     m4_rotate_z(&mtx_gun, f_remap(player->shoot_timeout, 0, 1, 0, -0.2 * R1));
     m4_translate_y(&mtx_gun, 0);
     m4_translate_x(&mtx_gun, 0);
     m4_apply(&mtx_gun, mtx_head);
-
     gfx_quad_3d(eng->gfx, mtx_gun, player->gun);
-    gfx_debug_mtx(eng->gfx_dbg, mtx_head);
+    // gfx_debug_mtx(eng->gfx_dbg, mtx_head);
 
     m4 mtx_camera = m4_id();
     if (player->screen_shake > 0) {

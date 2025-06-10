@@ -331,7 +331,7 @@ static void game_update(Game *game, Engine *eng) {
 
     // Toggle freecam
     if (key_click(eng->input, KEY_3)) {
-        camera_follow(&game->camera, game->camera.target ? 0 : game->player);
+        // camera_follow(&game->camera, game->camera.target ? 0 : game->player);
     }
 
     // Toggle debug drawing
