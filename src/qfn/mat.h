@@ -97,12 +97,11 @@ static void m4_rotate_x(m4 *m, f32 a) {
     f32 c = f_cos(a);
     f32 s = f_sin(a);
     m4_apply(
-        m,
-        (m4){
-            .x = {1, 0, 0},
-            .y = {0, c, s},
-            .z = {0, -s, c},
-        }
+        m, (m4){
+               .x = {1, 0, 0},
+               .y = {0, c, s},
+               .z = {0, -s, c},
+           }
     );
 }
 
@@ -112,12 +111,11 @@ static void m4_rotate_y(m4 *m, f32 a) {
     f32 c = f_cos(a);
     f32 s = f_sin(a);
     m4_apply(
-        m,
-        (m4){
-            .x = {c, 0, -s},
-            .y = {0, 1, 0},
-            .z = {s, 0, c},
-        }
+        m, (m4){
+               .x = {c, 0, -s},
+               .y = {0, 1, 0},
+               .z = {s, 0, c},
+           }
     );
 }
 
@@ -130,12 +128,11 @@ static void m4_rotate_z(m4 *m, f32 a) {
     f32 c = f_cos(a);
     f32 s = f_sin(a);
     m4_apply(
-        m,
-        (m4){
-            .x = {c, s, 0},
-            .y = {-s, c, 0},
-            .z = {0, 0, 1},
-        }
+        m, (m4){
+               .x = {c, s, 0},
+               .y = {-s, c, 0},
+               .z = {0, 0, 1},
+           }
     );
 }
 

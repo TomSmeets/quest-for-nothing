@@ -209,7 +209,7 @@ static i32 linux_clock_gettime(i32 clock_id, struct linux_timespec *time) {
 
 // vsyscalls are simpler than loading the vdso
 static i64 linux_gettimeofday(struct linux_timeval *time, void *tz) {
-    return ((i64(*)(struct linux_timeval *, void *))0xffffffffff600000)(time, tz);
+    return ((i64 (*)(struct linux_timeval *, void *))0xffffffffff600000)(time, tz);
 }
 
 // TODO: The libc version works in userspace using VDSO, maby cool to implement too
