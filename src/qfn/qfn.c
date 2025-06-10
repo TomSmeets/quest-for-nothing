@@ -83,5 +83,5 @@ static void os_main(void) {
 
     if (app->game->debug == DBG_Texture) debug_draw_texture(eng);
 
-    engine_end(app->eng, app->game->camera.mtx);
+    engine_end(app->eng, app->game->player2->camera);
 }

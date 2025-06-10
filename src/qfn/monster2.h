@@ -64,10 +64,6 @@ static Monster *monster2_new(Memory *mem, v3 pos, Sprite_Properties prop) {
     return mon;
 }
 
-static void m4_scale_image(m4 *mtx, Image *img) {
-    m4_scale(mtx, (v3){img->size.x / 32.0f, img->size.y / 32.0f, 1});
-}
-
 static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set *sparse, v3 player_pos) {
     f32 dt = eng->dt;
     Rand *rng = &eng->rng;

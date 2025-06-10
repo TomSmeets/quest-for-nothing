@@ -47,11 +47,20 @@ static Player_Input player_parse_input(Input *input) {
 typedef struct {
     v3 pos;
     v3 look;
+    Image *gun;
+    f32 shoot_timeout;
+
+    f32 screen_shake;
+    f32 bob_amount;
+    f32 bob_phase;
+
+    m4 camera;
 } Player;
 
-static Player *player2_new(Memory *mem, v3 pos) {
+static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
     Player *player = mem_struct(mem, Player);
     player->pos = pos;
+    player->gun = gun;
     return player;
 }
 
@@ -73,5 +82,33 @@ static void player2_update(Player *player, Engine *eng) {
     m4_translate_y(&mtx_head, 0.5f);
     m4_apply(&mtx_head, mtx_body);
 
+    m4 mtx_gun = m4_id();
+    m4_scale_image(&mtx_gun, player->gun);
+    m4_rotate_y(&mtx_gun, R1);
+    m4_translate_x(&mtx_gun, -.1);
+    m4_rotate_z(&mtx_gun, f_remap(player->shoot_timeout, 0, 1, 0, -0.2 * R1));
+    m4_translate_y(&mtx_gun, 0);
+    m4_translate_x(&mtx_gun, 0);
+    m4_apply(&mtx_gun, mtx_head);
+
+    gfx_quad_3d(eng->gfx, mtx_gun, player->gun);
     gfx_debug_mtx(eng->gfx_dbg, mtx_head);
+
+    m4 mtx_camera = m4_id();
+    if (player->screen_shake > 0) {
+        f32 shake = player->screen_shake * player->screen_shake * player->screen_shake;
+        m4_rotate_x(&mtx_camera, f_sin2pi(shake * 3 * 10) * shake * 0.5);
+        m4_rotate_z(&mtx_camera, f_sin2pi(shake * 5 * 10) * shake * 0.5);
+        m4_rotate_y(&mtx_camera, f_sin2pi(shake * 7 * 10) * shake * 0.5);
+        player->screen_shake -= eng->dt;
+    }
+
+    if (player->bob_amount > 0) {
+        m4_translate_y(&mtx_camera, f_sin2pi(player->bob_phase) * player->bob_amount * 0.01);
+        player->bob_phase += eng->dt * player->bob_amount * 1.5;
+        player->bob_phase -= (i32)player->bob_phase;
+    }
+
+    m4_apply(&mtx_camera, mtx_head);
+    player->camera = mtx_camera;
 }

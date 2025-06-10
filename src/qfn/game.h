@@ -59,7 +59,7 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     game->monsters = player;
     game->player = player;
 
-    game->player2 = player2_new(game->mem, v3i_to_v3(spawn));
+    game->player2 = player2_new(game->mem, v3i_to_v3(spawn), game->gun);
 
     for (Entity *wall = game->monsters; wall; wall = wall->next) {
         // Only consider walls
@@ -98,7 +98,7 @@ static Game *game_new(Rand *rng) {
 
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
-    game->camera.target = game->player;
+    // game->camera.target = game->player2;
 
     game->sparse = sparse_set_new(mem);
     game->audio.snd = sound_init(mem);

@@ -8,6 +8,7 @@
 #include "qfn/color.h"
 #include "qfn/color_rand.h"
 #include "qfn/image.h"
+#include "qfn/mat.h"
 
 typedef struct {
     // Left and right eye positions
@@ -181,4 +182,8 @@ static Monster_Sprite monster_sprite_generate(Memory *mem, Sprite_Properties pro
     monster_sprite_update_eyes(&sprite, rng);
     sprite.shadow = monster_gen_shadow(mem, image->size.x * 0.80f);
     return sprite;
+}
+
+static void m4_scale_image(m4 *mtx, Image *img) {
+    m4_scale(mtx, (v3){img->size.x / 32.0f, img->size.y / 32.0f, 1});
 }
