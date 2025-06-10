@@ -34,7 +34,10 @@ typedef struct {
     Memory *mem;
     Entity *player;
     Entity *monsters;
+
+    Player *player2;
     Monster *monster2_list;
+
     Image *gun;
     Camera camera;
     Game_Debug debug;
@@ -55,6 +58,8 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     player->next = game->monsters;
     game->monsters = player;
     game->player = player;
+
+    game->player2 = player2_new(game->mem, v3i_to_v3(spawn));
 
     for (Entity *wall = game->monsters; wall; wall = wall->next) {
         // Only consider walls
@@ -341,6 +346,7 @@ static void game_update(Game *game, Engine *eng) {
         entity_update(eng, game, ent);
     }
 
+    player2_update(game->player2, eng);
     for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
         monster2_update(mon, eng, &game->audio, game->sparse, game->player->pos);
     }
