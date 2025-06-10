@@ -69,7 +69,7 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
-        Monster *mon = monster2_new(game->mem, (v3){spawn.x, 0, spawn.y}, prop);
+        Monster *mon = monster2_new(game->mem, wall->pos, prop);
         mon->next = game->monster2_list;
         mon->gun = game->gun;
         game->monster2_list = mon;
@@ -94,13 +94,6 @@ static Game *game_new(Rand *rng) {
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
     game->camera.target = game->player;
-
-    for (u32 i = 0; i < 2; ++i) {
-        Monster *mon = monster2_new(mem, (v3){spawn.x, 0, spawn.y});
-        mon->next = game->monster2_list;
-        mon->gun = game->gun;
-        game->monster2_list = mon;
-    }
 
     game->sparse = sparse_set_new(mem);
     game->audio.snd = sound_init(mem);
