@@ -129,7 +129,6 @@ static void player_apply_input(Game *game, Engine *eng, Entity *ent, Player_Inpu
         ent->pos_old.y = ent->pos.y;
         ent->pos.y += 4 * eng->dt;
         audio_jump(&game->audio);
-        gfx_audio_unlock(eng->gfx);
     }
 
     // Flying
