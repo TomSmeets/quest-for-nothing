@@ -128,7 +128,7 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
     else if (mon->state == Monster_State_Shoot) {
         if (mon->shoot_timeout == 0) {
             mon->shoot_timeout = 1.0f;
-            audio->play_shoot = 1;
+            // audio->play_shoot = 1;
         }
     }
 
