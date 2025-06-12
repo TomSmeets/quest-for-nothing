@@ -210,6 +210,8 @@ static f32 f_asin(f32 x) {
 }
 
 static f32 f_remap(f32 x, f32 xl, f32 xh, f32 yl, f32 yh) {
+    if (x <= xl) return yl;
+    if (x >= xh) return yh;
     f32 y = (x - xl) / (xh - xl);
     return y * (yh - yl) + yl;
 }
