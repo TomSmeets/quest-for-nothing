@@ -81,19 +81,22 @@ static void player2_update(Player *player, Engine *eng) {
     v3 move = m4_mul_dir(mtx_yaw, input.move);
     move.xz = v2_limit(move.xz, 0, 1);
     if (!player->fly) move.y = 0;
+    player->bob_amount += (v3_length(move) * 2 - player->bob_amount) * eng->dt * 8;
+
     v3 vel = player->pos - player->old;
     player->old = player->pos;
     player->pos += move * 2.0 * eng->dt;
     player->pos.y += vel.y;
     player->pos.y -= 10 * eng->dt * eng->dt;
 
-    player->bob_amount += (v3_length(move) * 2 - player->bob_amount) * eng->dt * 8;
-
+    // Gravity
     bool on_ground = false;
     if (player->pos.y <= 0) {
         on_ground = true;
         player->pos.y = 0;
     }
+
+    // Jumping
     if (input.jump && on_ground) player->pos.y += eng->dt * 4;
 
     m4 mtx_body = m4_id();
