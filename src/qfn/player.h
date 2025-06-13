@@ -85,16 +85,16 @@ static void player2_update(Player *player, Engine *eng) {
     player->old = player->pos;
     player->pos += move * 2.0 * eng->dt;
     player->pos.y += vel.y;
-    player->pos.y -= 10*eng->dt*eng->dt; 
+    player->pos.y -= 10 * eng->dt * eng->dt;
 
-    player->bob_amount += (v3_length(move)*2 - player->bob_amount)*eng->dt*8;
+    player->bob_amount += (v3_length(move) * 2 - player->bob_amount) * eng->dt * 8;
 
     bool on_ground = false;
-    if(player->pos.y <= 0) {
+    if (player->pos.y <= 0) {
         on_ground = true;
         player->pos.y = 0;
     }
-    if(input.jump && on_ground) player->pos.y += eng->dt*4;
+    if (input.jump && on_ground) player->pos.y += eng->dt * 4;
 
     m4 mtx_body = m4_id();
     m4_apply(&mtx_body, mtx_yaw);
