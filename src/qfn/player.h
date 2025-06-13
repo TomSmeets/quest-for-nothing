@@ -81,6 +81,7 @@ static void player2_update(Player *player, Engine *eng) {
     move.xz = v2_limit(move.xz, 0, 1);
     if (!player->fly) move.y = 0;
     player->pos += move * 2.0 * eng->dt;
+    player->bob_amount += (v3_length(move)*2 - player->bob_amount)*eng->dt*8;
 
     m4 mtx_body = m4_id();
     m4_apply(&mtx_body, mtx_yaw);

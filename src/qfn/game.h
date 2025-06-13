@@ -32,7 +32,7 @@ Game Design V1.0
 
 typedef struct {
     Memory *mem;
-    Entity *player;
+    // Entity *player;
     Entity *monsters;
 
     Player *player2;
@@ -51,13 +51,13 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
 
     // Player
     Sprite_Properties s = sprite_new(rng);
-    Entity *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
-    player->type = Entity_Player;
+    // Entity *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
+    // player->type = Entity_Player;
 
     // Insert
-    player->next = game->monsters;
-    game->monsters = player;
-    game->player = player;
+    // player->next = game->monsters;
+    // game->monsters = player;
+    // game->player = player;
 
     game->player2 = player2_new(game->mem, v3i_to_v3(spawn), game->gun);
 
@@ -68,7 +68,7 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
 
         // Don't generate them too close
         f32 spawn_area = 4;
-        if (v3_distance_sq(wall->pos, player->pos) < spawn_area * spawn_area) continue;
+        if (v3_distance_sq(wall->pos, game->player2->pos) < spawn_area * spawn_area) continue;
 
         // Choose random sprite props
         Sprite_Properties prop = s1;
@@ -315,8 +315,8 @@ static void wall_update(Game *game, Engine *eng, Entity *ent) {
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
-    if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
-    if (ent->type == Entity_Player) player_update(ent, game, eng);
+    // if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
+    // if (ent->type == Entity_Player) player_update(ent, game, eng);
     if (ent->type == Entity_Wall) wall_update(game, eng, ent);
     if (game->debug == DBG_Entity) debug_draw_entity(eng, ent);
 }
@@ -326,7 +326,7 @@ static void game_update(Game *game, Engine *eng) {
 
     // Debug draw sparse data
     if (game->debug == DBG_Collision) {
-        debug_draw_collisions(eng, game->sparse, game->player);
+        // debug_draw_collisions(eng, game->sparse, game->player);
     }
 
     // Toggle freecam

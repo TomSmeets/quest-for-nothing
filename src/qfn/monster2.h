@@ -147,8 +147,8 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
     mon->shoot_timeout -= dt * 2;
     if (mon->shoot_timeout < 0) mon->shoot_timeout = 0;
 
-    mon->wiggle_amount += (v3_length(vel) * .5 - mon->wiggle_amount) * dt * 4;
-    mon->wiggle_phase = f_fract(mon->wiggle_phase + dt * mon->wiggle_amount * 8);
+    mon->wiggle_amount += (v3_length(vel) * .5 - mon->wiggle_amount) * dt * 2;
+    mon->wiggle_phase = f_fract(mon->wiggle_phase + dt * mon->wiggle_amount * 5);
 
     f32 dead_amount = mon->death_animation;
     f32 wiggle_amount = mon->wiggle_amount;
@@ -174,7 +174,7 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
 
     m4 mtx_rotated = m4_id();
     if (scared_amount) m4_translate_x(&mtx_rotated, rand_f32(rng, -1, 1) * .01 * scared_amount);
-    if (wiggle_amount) m4_rotate_z(&mtx_rotated, f_sin(wiggle_phase * R4) * R1 * wiggle_amount * 0.3);
+    if (wiggle_amount) m4_rotate_z(&mtx_rotated, f_sin(wiggle_phase * R4) * R1 * wiggle_amount * 0.2);
     if (dead_amount) m4_rotate_x(&mtx_rotated, -R1 * dead_amount);
     m4_rotate_y(&mtx_rotated, R1 - f_atan2(player_dir.z, player_dir.x));
     m4_apply(&mtx_rotated, mtx_monster);
