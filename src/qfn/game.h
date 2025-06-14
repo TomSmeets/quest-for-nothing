@@ -345,7 +345,7 @@ static void game_update(Game *game, Engine *eng) {
         entity_update(eng, game, ent);
     }
 
-    player2_update(game->player2, eng);
+    player2_update(game->player2, eng, &game->audio);
     for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
         monster2_update(mon, eng, &game->audio, game->sparse, game->player2->pos);
     }

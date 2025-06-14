@@ -2,6 +2,7 @@
 // player.h - The player character
 #pragma once
 #include "lib/vec.h"
+#include "qfn/audio.h"
 #include "qfn/engine.h"
 #include "qfn/entity.h"
 #include "qfn/input.h"
@@ -66,7 +67,7 @@ static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
     return player;
 }
 
-static void player2_update(Player *player, Engine *eng) {
+static void player2_update(Player *player, Engine *eng, Audio *audio) {
     Player_Input input = player_parse_input(eng->input);
     if (key_click(eng->input, KEY_3)) player->fly = !player->fly;
 
@@ -103,12 +104,16 @@ static void player2_update(Player *player, Engine *eng) {
         }
 
         // Jumping
-        if (input.jump && on_ground) player->pos.y += eng->dt * 4;
+        if (input.jump && on_ground) {
+            player->pos.y += eng->dt * 4;
+            audio->play_jump = 1;
+        }
     }
 
-    player->shoot_timeout = f_max(player->shoot_timeout - eng->dt*2, 0);
-    if(input.shoot && player->shoot_timeout == 0) {
+    player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);
+    if (input.shoot && player->shoot_timeout == 0) {
         player->shoot_timeout = 1;
+        audio->play_shoot = 1;
     }
 
     m4 mtx_body = m4_id();
