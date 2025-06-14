@@ -106,6 +106,11 @@ static void player2_update(Player *player, Engine *eng) {
         if (input.jump && on_ground) player->pos.y += eng->dt * 4;
     }
 
+    player->shoot_timeout = f_max(player->shoot_timeout - eng->dt*2, 0);
+    if(input.shoot && player->shoot_timeout == 0) {
+        player->shoot_timeout = 1;
+    }
+
     m4 mtx_body = m4_id();
     m4_apply(&mtx_body, mtx_yaw);
     m4_translate(&mtx_body, player->pos);
@@ -118,16 +123,14 @@ static void player2_update(Player *player, Engine *eng) {
 
     m4 mtx_gun = m4_id();
     m4_scale_image(&mtx_gun, player->gun);
+    m4_translate_x(&mtx_gun, -0.2);
+    m4_rotate_z(&mtx_gun, f_remap(player->shoot_timeout, 0, 1, 0, -0.2 * R1));
     m4_rotate_y(&mtx_gun, R1);
     m4_translate_x(&mtx_gun, -0.20);
-    m4_translate_z(&mtx_gun, 0.35);
+    m4_translate_z(&mtx_gun, 0.15);
     m4_translate_y(&mtx_gun, -0.12);
-    m4_rotate_z(&mtx_gun, f_remap(player->shoot_timeout, 0, 1, 0, -0.2 * R1));
-    m4_translate_y(&mtx_gun, 0);
-    m4_translate_x(&mtx_gun, 0);
     m4_apply(&mtx_gun, mtx_head);
     gfx_quad_3d(eng->gfx, mtx_gun, player->gun);
-    // gfx_debug_mtx(eng->gfx_dbg, mtx_head);
 
     m4 mtx_camera = m4_id();
     if (player->screen_shake > 0) {

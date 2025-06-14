@@ -166,7 +166,7 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
     f32 r = mon->size.x / 2;
     f32 h = mon->size.y;
     Box box = {mon->pos - (v3){r, 0, r}, mon->pos + (v3){r, h, r}};
-    gfx_debug_box(eng->gfx_dbg, box, 0);
+    // gfx_debug_box(eng->gfx_dbg, box, 0);
 
     // Graphics
     m4 mtx_monster = m4_id();
@@ -205,8 +205,6 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
     if (dead_amount) m4_rotate_z(&mtx_gun, -0.2 * R1 * dead_amount);
     m4_apply(&mtx_gun, mtx_rotated);
 
-    // monster_sprite_update_eyes(&mon->sprite, rng);
-    // gfx_debug_mtx(eng->gfx_dbg, mtx_rotated);
     gfx_quad_3d(eng->gfx, mtx_sprite, mon->sprite.image);
     gfx_quad_3d(eng->gfx, mtx_shadow, mon->sprite.shadow);
     gfx_quad_3d(eng->gfx, mtx_gun, mon->gun);
