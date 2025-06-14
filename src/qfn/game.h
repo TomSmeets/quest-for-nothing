@@ -33,8 +33,6 @@ Game Design V1.0
 
 typedef struct {
     Memory *mem;
-    // Entity *player;
-    Entity *monsters;
 
     Player *player2;
     Monster *monster2_list;
@@ -189,6 +187,7 @@ static Collide_Result collide_quad_ray(m4 quad_mtx, Image *img, v3 ray_pos, v3 r
     };
 }
 
+#if 0
 // Player update function
 static void player_update(Entity *pl, Game *game, Engine *eng) {
     Player_Input in = {};
@@ -293,10 +292,7 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
 
     if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
 }
-
-static void wall2_update(Wall *wall, Engine *eng) {
-    gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
-}
+#endif
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     // if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
