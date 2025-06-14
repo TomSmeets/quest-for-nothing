@@ -17,6 +17,7 @@
 #include "qfn/monster2.h"
 #include "qfn/player.h"
 #include "qfn/sparse_set.h"
+#include "qfn/wall.h"
 
 /*
 Game Design V1.0
@@ -37,6 +38,7 @@ typedef struct {
 
     Player *player2;
     Monster *monster2_list;
+    Wall *walls;
 
     Image *gun;
     Camera camera;
@@ -48,33 +50,23 @@ typedef struct {
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
-
-    // Player
-    Sprite_Properties s = sprite_new(rng);
-    // Entity *player = monster_new(game->mem, rng, v3i_to_v3(spawn), s);
-    // player->type = Entity_Player;
-
-    // Insert
-    // player->next = game->monsters;
-    // game->monsters = player;
-    // game->player = player;
-
     game->player2 = player2_new(game->mem, v3i_to_v3(spawn), game->gun);
 
-    for (Entity *wall = game->monsters; wall; wall = wall->next) {
-        // Only consider walls
-        if (wall->type != Entity_Wall) continue;
+    for (Wall *wall = game->walls; wall; wall = wall->next) {
+        // Only consider floor tiles
         if (wall->mtx.z.y < 0.5) continue;
+
+        v3 pos = wall->mtx.w;
 
         // Don't generate them too close
         f32 spawn_area = 4;
-        if (v3_distance_sq(wall->pos, game->player2->pos) < spawn_area * spawn_area) continue;
+        if (v3_distance_sq(pos, game->player2->pos) < spawn_area * spawn_area) continue;
 
         // Choose random sprite props
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
-        Monster *mon = monster2_new(game->mem, wall->pos, prop);
+        Monster *mon = monster2_new(game->mem, pos, prop);
         mon->next = game->monster2_list;
         mon->gun = game->gun;
         game->monster2_list = mon;
@@ -91,7 +83,7 @@ static Game *game_new(Rand *rng) {
     game->mem = mem;
 
     // Create Level
-    level_generate(&game->monsters, mem, rng, level_size);
+    game->walls = level_generate(mem, rng, level_size);
 
     // Generate player
     game->gun = gun_new(mem, rng);
@@ -302,22 +294,13 @@ static void player_update(Entity *pl, Game *game, Engine *eng) {
     if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
 }
 
-static void wall_update(Game *game, Engine *eng, Entity *ent) {
-    v2 size = v2u_to_v2(ent->image->size) / 32.0f;
-    m4 mtx = m4_id();
-    m4_image_3d(&mtx, ent->image);
-    m4_apply(&mtx, ent->mtx);
-    gfx_quad_3d(eng->gfx, mtx, ent->image);
-    ent->image_mtx = mtx;
-
-    Box box = box_from_quad((Quad){ent->mtx, size * .5});
-    sparse_set_add(game->sparse, box, ent);
+static void wall2_update(Wall *wall, Engine *eng) {
+    gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
 }
 
 static void entity_update(Engine *eng, Game *game, Entity *ent) {
     // if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
     // if (ent->type == Entity_Player) player_update(ent, game, eng);
-    if (ent->type == Entity_Wall) wall_update(game, eng, ent);
     if (game->debug == DBG_Entity) debug_draw_entity(eng, ent);
 }
 
@@ -341,8 +324,8 @@ static void game_update(Game *game, Engine *eng) {
 
     camera_input(&game->camera, &input, eng->dt);
 
-    for (Entity *ent = game->monsters; ent; ent = ent->next) {
-        entity_update(eng, game, ent);
+    for (Wall *wall = game->walls; wall; wall = wall->next) {
+        wall2_update(wall, eng);
     }
 
     player2_update(game->player2, eng, &game->audio);

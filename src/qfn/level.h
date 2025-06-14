@@ -10,28 +10,24 @@
 #include "qfn/maze.h"
 #include "qfn/monster.h"
 #include "qfn/player.h"
+#include "qfn/wall.h"
 
 // Ideas
 //   Generate in layers, layers give depth
 //   Pure white noise is boring, but by layering at different scales sometihng interesting is created.
 // Referneces
 
-static void level_add_wall(Memory *mem, Entity **level, Image *img, v3i pos, m4 mtx) {
+static void level_add_wall(Memory *mem, Wall **level, Image *img, v3i pos, m4 mtx) {
     v3 pos_f = v3i_to_v3(pos);
     m4_translate(&mtx, pos_f);
 
-    Entity *ent = mem_struct(mem, Entity);
-    ent->type = Entity_Wall;
-    ent->mtx = mtx;
-    ent->image = image_copy(mem, img);
-    ent->size = (v2){4, 4};
+    Wall *ent = wall2_new(mem, mtx, img);
     ent->next = *level;
-    ent->pos = pos_f;
     *level = ent;
 }
 
 // Generate an empty level
-static void level_generate(Entity **level, Memory *mem, Rand *rng, v2i size) {
+static Wall *level_generate(Memory *mem, Rand *rng, v2i size) {
     i32 cell_scale = 4;
     f32 adjust = 0.99;
 
@@ -68,6 +64,7 @@ static void level_generate(Entity **level, Memory *mem, Rand *rng, v2i size) {
     // Generate Maze
     maze_generate(&maze, rng);
 
+    Wall *level = 0;
     Image *wall = level_sprite_generate(mem, rng);
     Image *window = level_sprite_generate(mem, rng);
     Image *floor = level_sprite_generate(mem, rng);
@@ -95,14 +92,15 @@ static void level_generate(Entity **level, Memory *mem, Rand *rng, v2i size) {
             bool window_yn = cell_yn == Maze_Cell_Empty;
 
             v3i wall_pos = (v3i){pos.x, 0, pos.y} * cell_scale;
-            if (!door_xp) level_add_wall(mem, level, window_xp ? window : wall, wall_pos, mtx_xp);
-            if (!door_xn) level_add_wall(mem, level, window_xn ? window : wall, wall_pos, mtx_xn);
-            if (!door_yp) level_add_wall(mem, level, window_yp ? window : wall, wall_pos, mtx_yp);
-            if (!door_yn) level_add_wall(mem, level, window_yn ? window : wall, wall_pos, mtx_yn);
+            if (!door_xp) level_add_wall(mem, &level, window_xp ? window : wall, wall_pos, mtx_xp);
+            if (!door_xn) level_add_wall(mem, &level, window_xn ? window : wall, wall_pos, mtx_xn);
+            if (!door_yp) level_add_wall(mem, &level, window_yp ? window : wall, wall_pos, mtx_yp);
+            if (!door_yn) level_add_wall(mem, &level, window_yn ? window : wall, wall_pos, mtx_yn);
 
-            level_add_wall(mem, level, floor, wall_pos, mtx_zn);
-            level_add_wall(mem, level, floor, wall_pos, mtx_zp);
+            level_add_wall(mem, &level, floor, wall_pos, mtx_zn);
+            level_add_wall(mem, &level, floor, wall_pos, mtx_zp);
         }
     }
     mem_free(tmp);
+    return level;
 }

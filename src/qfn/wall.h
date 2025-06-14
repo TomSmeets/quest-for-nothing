@@ -7,7 +7,6 @@
 
 typedef struct Wall Wall;
 struct Wall {
-    Entity_Type type;
     Wall *next;
     m4 mtx;
     Image *image;
@@ -15,12 +14,12 @@ struct Wall {
 
 static Wall *wall2_new(Memory *mem, m4 mtx, Image *image) {
     Wall *wall = mem_struct(mem, Wall);
-    wall->type = Entity_Wall;
-    wall->mtx = mtx;
+
+    m4 mtx2 = m4_id();
+    m4_scale_image(&mtx2, image);
+    m4_apply(&mtx2, mtx);
+
+    wall->mtx = mtx2;
     wall->image = image;
     return wall;
-}
-
-static Box wall_box(Wall *wall) {
-    return box_from_quad2(wall->mtx);
 }
