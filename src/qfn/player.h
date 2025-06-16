@@ -4,8 +4,10 @@
 #include "lib/vec.h"
 #include "qfn/audio.h"
 #include "qfn/engine.h"
-#include "qfn/entity.h"
 #include "qfn/input.h"
+#include "qfn/collision.h"
+#include "qfn/monster2.h"
+#include "qfn/wall.h"
 
 typedef struct {
     v3 move;
@@ -67,7 +69,7 @@ static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
     return player;
 }
 
-static void player2_update(Player *player, Engine *eng, Audio *audio) {
+static void player2_update(Player *player, Wall *walls, Monster *monsters,Engine *eng, Audio *audio) {
     Player_Input input = player_parse_input(eng->input);
     if (key_click(eng->input, KEY_3)) player->fly = !player->fly;
 
@@ -116,6 +118,7 @@ static void player2_update(Player *player, Engine *eng, Audio *audio) {
         audio->play_shoot = 1;
     }
 
+    
     m4 mtx_body = m4_id();
     m4_apply(&mtx_body, mtx_yaw);
     m4_translate(&mtx_body, player->pos);
@@ -154,4 +157,37 @@ static void player2_update(Player *player, Engine *eng, Audio *audio) {
 
     m4_apply(&mtx_camera, mtx_head);
     player->camera = mtx_camera;
+
+    f32 dist = 1000.0f;
+    Wall *hit_wall = 0;
+    Monster *hit_monster = 0;
+    Collide_Result hit_res;
+    for (Wall *wall = walls; wall; wall = wall->next) {
+        Collide_Result res;
+        if (collide_quad_ray(&res, wall->mtx, mtx_camera.w, mtx_camera.z)) {
+            if(res.distance < dist) {
+                dist = res.distance;
+                hit_wall = wall;
+                hit_res = res;
+            }
+        }
+    }
+
+    for (Monster *monster = monsters; monster; monster = monster->next) {
+        Collide_Result res;
+        if (collide_quad_ray(&res, monster->sprite_mtx, mtx_camera.w, mtx_camera.z)) {
+            if(res.distance < dist) {
+                dist = res.distance;
+                hit_monster = monster;
+                hit_res = res;
+            }
+        }
+    }
+
+    if(hit_monster || hit_wall)  {
+        m4 mtx = m4_id();
+        m4_translate(&mtx, hit_res.pos);
+        gfx_debug_mtx(eng->gfx_dbg, mtx);
+    }
+
 }

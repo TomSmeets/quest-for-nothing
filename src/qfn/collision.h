@@ -4,6 +4,7 @@
 #include "lib/vec.h"
 #include "qfn/box.h"
 #include "qfn/mat.h"
+#include "qfn/image.h"
 
 // Centered quad facing +z
 typedef struct {
@@ -200,4 +201,40 @@ static void collide_push(Collision_Result res, v3 *a, v3 *b) {
     // dir = v3_limit(dir, 0, 0.05f);
     *a += dir * .5 * .1;
     *b -= dir * .5 * .1;
+}
+
+
+
+typedef struct {
+    v3 pos;
+    v2 uv;
+    f32 distance;
+} Collide_Result;
+
+static bool collide_quad_ray(Collide_Result *res, m4 quad_mtx, v3 ray_pos, v3 ray_dir) {
+    // Matrix inverse, can calculate points from Global to Local
+    m4 mtx_inv = m4_invert_tr(quad_mtx);
+
+    // Compute Ray position and direction in quad local space
+    v3 ray_pos_local = m4_mul_pos(mtx_inv, ray_pos);
+    v3 ray_dir_local = m4_mul_dir(mtx_inv, ray_dir);
+
+    // Total distance to the plane along the ray
+    f32 distance = ray_pos_local.z / -ray_dir_local.z;
+
+    // Ray moves away from plane
+    if (distance < 0) return false;
+
+    // Compute ray hit position
+    v3 hit_local = ray_pos_local + ray_dir_local * distance;
+    v3 hit_global = ray_pos + ray_dir * distance;
+
+    if (hit_local.x > 0.5) return false;
+    if (hit_local.x < -0.5) return false;
+    if (hit_local.y > 0.5) return false;
+    if (hit_local.y < -0.5) return false;
+    res->pos = hit_global;
+    res->uv = hit_local.xy;
+    res->distance = distance;
+    return true;
 }

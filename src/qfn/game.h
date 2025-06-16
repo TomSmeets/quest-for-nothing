@@ -134,59 +134,6 @@ static void player_apply_input(Game *game, Engine *eng, Entity *ent, Player_Inpu
     ent->pos += move * 2.0 * eng->dt;
 }
 
-typedef struct {
-    bool hit;
-    v3 pos;
-    v2 uv;
-    v2 pixel;
-    f32 distance;
-} Collide_Result;
-
-static Collide_Result collide_quad_ray(m4 quad_mtx, Image *img, v3 ray_pos, v3 ray_dir) {
-    Collide_Result result = {};
-
-    Quad quad = {quad_mtx, v2u_to_v2(img->size) * 0.5f * GFX_PIXEL_SCALE_3D};
-
-    // Matrix inverse, can calculate points from Global to Local
-    m4 mtx_inv = m4_invert_tr(quad.mtx);
-
-    // Compute Ray position and direction in quad local space
-    v3 ray_pos_local = m4_mul_pos(mtx_inv, ray_pos);
-    v3 ray_dir_local = m4_mul_dir(mtx_inv, ray_dir);
-
-    // Total distance to the plane along the ray
-    f32 distance = ray_pos_local.z / -ray_dir_local.z;
-
-    // Ray moves away from plane
-    if (distance < 0) return result;
-
-    // Compute ray hit position
-    v3 hit_local = ray_pos_local + ray_dir_local * distance;
-    v3 hit_global = ray_pos + ray_dir * distance;
-
-    if (hit_local.x > 0.5) return result;
-    if (hit_local.x < -0.5) return result;
-    if (hit_local.y > 0.5) return result;
-    if (hit_local.y < -0.5) return result;
-
-    v2 pixel = hit_local.xy;
-    pixel.y *= -1;
-    pixel += (v2){0.5f, 0.5f};
-    pixel *= v2u_to_v2(img->size);
-
-    v4 *px = image_get(img, (v2i){pixel.x, pixel.y});
-    if (!px) return result;
-    if (px->w <= 0.1) return result;
-
-    return (Collide_Result){
-        .hit = true,
-        .pos = hit_global,
-        .uv = hit_local.xy,
-        .pixel = pixel,
-        .distance = distance,
-    };
-}
-
 #if 0
 // Player update function
 static void player_update(Entity *pl, Game *game, Engine *eng) {
@@ -324,7 +271,7 @@ static void game_update(Game *game, Engine *eng) {
         wall2_update(wall, eng);
     }
 
-    player2_update(game->player2, eng, &game->audio);
+    player2_update(game->player2,  game->walls, game->monster2_list, eng, &game->audio);
     for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
         monster2_update(mon, eng, &game->audio, game->sparse, game->player2->pos);
     }

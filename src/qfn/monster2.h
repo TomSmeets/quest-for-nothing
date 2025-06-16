@@ -53,6 +53,8 @@ struct Monster {
     // Visuals
     Monster_Sprite sprite;
     Image *gun;
+
+    m4 sprite_mtx;
 };
 
 static Monster *monster2_new(Memory *mem, v3 pos, Sprite_Properties prop) {
@@ -208,4 +210,5 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
     gfx_quad_3d(eng->gfx, mtx_sprite, mon->sprite.image);
     gfx_quad_3d(eng->gfx, mtx_shadow, mon->sprite.shadow);
     gfx_quad_3d(eng->gfx, mtx_gun, mon->gun);
+    mon->sprite_mtx = mtx_sprite;
 }
