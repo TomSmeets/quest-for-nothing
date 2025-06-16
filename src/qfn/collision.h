@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // collision.h - 3d Collision Math
 #pragma once
+#include "lib/mem.h"
 #include "lib/vec.h"
 #include "qfn/box.h"
-#include "qfn/mat.h"
 #include "qfn/image.h"
-#include "lib/mem.h"
+#include "qfn/mat.h"
 
 // Centered quad facing +z
 typedef struct {
@@ -204,8 +204,6 @@ static void collide_push(Collision_Result res, v3 *a, v3 *b) {
     *b -= dir * .5 * .1;
 }
 
-
-
 typedef struct {
     v3 pos;
     v2 uv;
@@ -248,7 +246,6 @@ struct Collision_Object {
     void *handle;
     Collision_Object *next;
 };
-
 
 typedef struct {
     Memory *mem;

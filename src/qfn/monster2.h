@@ -3,13 +3,13 @@
 #pragma once
 #include "lib/vec.h"
 #include "qfn/audio.h"
+#include "qfn/collision.h"
 #include "qfn/engine.h"
+#include "qfn/gun.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
-#include "qfn/gun.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/sparse_set.h"
-#include "qfn/collision.h"
 
 typedef struct Monster Monster;
 

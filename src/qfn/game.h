@@ -276,7 +276,7 @@ static void game_update(Game *game, Engine *eng) {
         monster2_update(mon, eng, &game->audio, world, game->player2->pos);
     }
 
-    player2_update(game->player2,  world, eng, &game->audio);
+    player2_update(game->player2, world, eng, &game->audio);
 
     camera_update(&game->camera, eng->dt);
 
