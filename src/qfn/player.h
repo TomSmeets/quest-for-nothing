@@ -3,9 +3,9 @@
 #pragma once
 #include "lib/vec.h"
 #include "qfn/audio.h"
+#include "qfn/collision.h"
 #include "qfn/engine.h"
 #include "qfn/input.h"
-#include "qfn/collision.h"
 #include "qfn/monster2.h"
 #include "qfn/wall.h"
 
@@ -69,7 +69,7 @@ static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
     return player;
 }
 
-static void player2_update(Player *player, Wall *walls, Monster *monsters,Engine *eng, Audio *audio) {
+static void player2_update(Player *player, Collision_World *world, Engine *eng, Audio *audio) {
     Player_Input input = player_parse_input(eng->input);
     if (key_click(eng->input, KEY_3)) player->fly = !player->fly;
 
@@ -112,13 +112,15 @@ static void player2_update(Player *player, Wall *walls, Monster *monsters,Engine
         }
     }
 
+    bool did_shoot = 0;
     player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);
     if (input.shoot && player->shoot_timeout == 0) {
         player->shoot_timeout = 1;
         audio->play_shoot = 1;
+        player->screen_shake += .5;
+        did_shoot = 1;
     }
 
-    
     m4 mtx_body = m4_id();
     m4_apply(&mtx_body, mtx_yaw);
     m4_translate(&mtx_body, player->pos);
@@ -158,36 +160,44 @@ static void player2_update(Player *player, Wall *walls, Monster *monsters,Engine
     m4_apply(&mtx_camera, mtx_head);
     player->camera = mtx_camera;
 
-    f32 dist = 1000.0f;
-    Wall *hit_wall = 0;
-    Monster *hit_monster = 0;
-    Collide_Result hit_res;
-    for (Wall *wall = walls; wall; wall = wall->next) {
-        Collide_Result res;
-        if (collide_quad_ray(&res, wall->mtx, mtx_camera.w, mtx_camera.z)) {
-            if(res.distance < dist) {
-                dist = res.distance;
-                hit_wall = wall;
-                hit_res = res;
+    if (did_shoot) {
+        for (u32 i = 0; i < 32 * 4; ++i) {
+            Collide_Result hit_res = {.distance = 1000.0f};
+            Collision_Object *hit_obj = 0;
+
+            f32 shot_ang = rand_f32(&eng->rng, 0, 1);
+            f32 shot_dist = rand_f32(&eng->rng, 0, .1f);
+            m4 shoot_mtx = mtx_head;
+            v3 shoot_pos = shoot_mtx.w;
+            v3 shoot_dir = shoot_mtx.z;
+            shoot_dir += shoot_mtx.x * f_cos2pi(shot_ang) * shot_dist;
+            shoot_dir += shoot_mtx.y * f_sin2pi(shot_ang) * shot_dist;
+            for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
+                Collide_Result res;
+                if (collide_quad_ray(&res, obj->mtx, shoot_pos, shoot_dir)) {
+                    Image *img = obj->img;
+                    v4 *px = image_get(img, (v2i){(res.uv.x + .5) * img->size.x, (.5 - res.uv.y) * img->size.y});
+
+                    if (!px) continue;
+                    if (px->w < .9f) continue;
+                    if (res.distance > hit_res.distance) continue;
+                    hit_obj = obj;
+                    hit_res = res;
+                }
+            }
+
+            if (hit_obj) {
+                Image *img = hit_obj->img;
+                v4 *px = image_get(img, (v2i){(hit_res.uv.x + .5) * img->size.x, (.5 - hit_res.uv.y) * img->size.y});
+                if (px) {
+                    f32 t = (f32)(eng->time.frame_start / 1000 / 1000 % 60) / 60;
+                    px->x += ((f_cos2pi(t + 0.0f / 3.0f) + 1) / 2 - px->x) * .9f;
+                    px->y += ((f_cos2pi(t + 1.0f / 3.0f) + 1) / 2 - px->y) * .9f;
+                    px->z += ((f_cos2pi(t + 2.0f / 3.0f) + 1) / 2 - px->z) * .9f;
+                    px->w = 1;
+                    img->variation++;
+                }
             }
         }
     }
-
-    for (Monster *monster = monsters; monster; monster = monster->next) {
-        Collide_Result res;
-        if (collide_quad_ray(&res, monster->sprite_mtx, mtx_camera.w, mtx_camera.z)) {
-            if(res.distance < dist) {
-                dist = res.distance;
-                hit_monster = monster;
-                hit_res = res;
-            }
-        }
-    }
-
-    if(hit_monster || hit_wall)  {
-        m4 mtx = m4_id();
-        m4_translate(&mtx, hit_res.pos);
-        gfx_debug_mtx(eng->gfx_dbg, mtx);
-    }
-
 }

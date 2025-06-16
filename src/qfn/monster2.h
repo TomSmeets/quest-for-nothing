@@ -6,8 +6,10 @@
 #include "qfn/engine.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
+#include "qfn/gun.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/sparse_set.h"
+#include "qfn/collision.h"
 
 typedef struct Monster Monster;
 
@@ -63,10 +65,11 @@ static Monster *monster2_new(Memory *mem, v3 pos, Sprite_Properties prop) {
     mon->sprite = monster_sprite_generate(mem, prop, G->rand);
     mon->size = (v2){mon->sprite.image->size.x, mon->sprite.image->size.y} / 32.0f;
     mon->health = 1 + mon->size.x * mon->size.y * 16;
+    mon->gun = gun_new(mem, G->rand);
     return mon;
 }
 
-static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set *sparse, v3 player_pos) {
+static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Collision_World *world, v3 player_pos) {
     f32 dt = eng->dt;
     Rand *rng = &eng->rng;
 
@@ -211,4 +214,8 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Sparse_Set 
     gfx_quad_3d(eng->gfx, mtx_shadow, mon->sprite.shadow);
     gfx_quad_3d(eng->gfx, mtx_gun, mon->gun);
     mon->sprite_mtx = mtx_sprite;
+
+    collision_add(world, mtx_sprite, mon->sprite.image, 1, mon);
+    collision_add(world, mtx_shadow, mon->sprite.shadow, 1, mon);
+    collision_add(world, mtx_gun, mon->gun, 1, mon);
 }

@@ -66,7 +66,6 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
 
         Monster *mon = monster2_new(game->mem, pos, prop);
         mon->next = game->monster2_list;
-        mon->gun = game->gun;
         game->monster2_list = mon;
     }
 }
@@ -250,6 +249,8 @@ static void entity_update(Engine *eng, Game *game, Entity *ent) {
 static void game_update(Game *game, Engine *eng) {
     Player_Input input = player_parse_input(eng->input);
 
+    Collision_World *world = collision_world_new(eng->tmp);
+
     // Debug draw sparse data
     if (game->debug == DBG_Collision) {
         // debug_draw_collisions(eng, game->sparse, game->player);
@@ -268,13 +269,14 @@ static void game_update(Game *game, Engine *eng) {
     camera_input(&game->camera, &input, eng->dt);
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
-        wall2_update(wall, eng);
+        wall2_update(wall, eng, world);
     }
 
-    player2_update(game->player2,  game->walls, game->monster2_list, eng, &game->audio);
     for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
-        monster2_update(mon, eng, &game->audio, game->sparse, game->player2->pos);
+        monster2_update(mon, eng, &game->audio, world, game->player2->pos);
     }
+
+    player2_update(game->player2,  world, eng, &game->audio);
 
     camera_update(&game->camera, eng->dt);
 

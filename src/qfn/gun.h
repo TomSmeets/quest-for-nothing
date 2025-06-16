@@ -9,6 +9,7 @@ static Image *gun_new(Memory *mem, Rand *rng) {
     u32 height = 3;
 
     Image *img = image_new(mem, (v2u){length, height + 3});
+    image_fill(img, 0);
 
     v3 color_barrel = color_rand(rng) * 0.2;
     v3 color_sight = color_rand(rng) * 0.2;

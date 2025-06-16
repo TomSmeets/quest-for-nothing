@@ -5,6 +5,7 @@
 #include "qfn/box.h"
 #include "qfn/mat.h"
 #include "qfn/image.h"
+#include "lib/mem.h"
 
 // Centered quad facing +z
 typedef struct {
@@ -237,4 +238,35 @@ static bool collide_quad_ray(Collide_Result *res, m4 quad_mtx, v3 ray_pos, v3 ra
     res->uv = hit_local.xy;
     res->distance = distance;
     return true;
+}
+
+typedef struct Collision_Object Collision_Object;
+struct Collision_Object {
+    m4 mtx;
+    Image *img;
+    u32 type;
+    void *handle;
+    Collision_Object *next;
+};
+
+
+typedef struct {
+    Memory *mem;
+    Collision_Object *objects;
+} Collision_World;
+
+static Collision_World *collision_world_new(Memory *mem) {
+    Collision_World *world = mem_struct(mem, Collision_World);
+    world->mem = mem;
+    return world;
+}
+
+static void collision_add(Collision_World *world, m4 mtx, Image *img, u32 type, void *handle) {
+    Collision_Object *obj = mem_struct(world->mem, Collision_Object);
+    obj->mtx = mtx;
+    obj->img = img;
+    obj->type = type;
+    obj->handle = handle;
+    obj->next = world->objects;
+    world->objects = obj;
 }
