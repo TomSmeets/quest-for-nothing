@@ -57,6 +57,7 @@ struct Monster {
     Image *gun;
 
     m4 sprite_mtx;
+    f32 angle;
 };
 
 static Monster *monster2_new(Memory *mem, v3 pos, Sprite_Properties prop) {
@@ -76,6 +77,11 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Collision_W
     v3 player_diff = player_pos - mon->pos;
     f32 player_dist = v3_length(player_diff);
     v3 player_dir = player_dist > 0 ? player_diff / player_dist : 0;
+
+    if(mon->health <= 0) {
+        mon->health = 0;
+        mon->state = Monster_State_Dead;
+    }
 
     // State switching
     // Idle -> Move
@@ -145,8 +151,9 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Collision_W
 
     // Dead
     else if (mon->state == Monster_State_Dead) {
-        look_chance = 0.0f;
-        mon->death_animation = f_min(mon->death_animation + dt, 1.0f);
+        scared_amount = 0;
+        look_chance = 0;
+        mon->death_animation = f_min(mon->death_animation + dt*2, 1.0f);
     }
 
     mon->shoot_timeout -= dt * 2;
@@ -167,12 +174,6 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Collision_W
     // Movement
     mon->pos += vel * dt;
 
-    // Collision
-    f32 r = mon->size.x / 2;
-    f32 h = mon->size.y;
-    Box box = {mon->pos - (v3){r, 0, r}, mon->pos + (v3){r, h, r}};
-    // gfx_debug_box(eng->gfx_dbg, box, 0);
-
     // Graphics
     m4 mtx_monster = m4_id();
     m4_translate(&mtx_monster, mon->pos);
@@ -181,7 +182,11 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Collision_W
     if (scared_amount) m4_translate_x(&mtx_rotated, rand_f32(rng, -1, 1) * .01 * scared_amount);
     if (wiggle_amount) m4_rotate_z(&mtx_rotated, f_sin(wiggle_phase * R4) * R1 * wiggle_amount * 0.2);
     if (dead_amount) m4_rotate_x(&mtx_rotated, -R1 * dead_amount);
-    m4_rotate_y(&mtx_rotated, R1 - f_atan2(player_dir.z, player_dir.x));
+
+    if (mon->state != Monster_State_Dead) {
+         mon->angle = f_atan2(player_dir.z, player_dir.x);
+    }
+    m4_rotate_y(&mtx_rotated, R1 - mon->angle);
     m4_apply(&mtx_rotated, mtx_monster);
     m4_translate_y(&mtx_rotated, 2e-3f);
 
