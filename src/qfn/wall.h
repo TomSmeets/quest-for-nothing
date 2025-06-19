@@ -5,6 +5,7 @@
 #include "qfn/engine.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
+#include "qfn/monster_sprite.h"
 
 typedef struct Wall Wall;
 struct Wall {
