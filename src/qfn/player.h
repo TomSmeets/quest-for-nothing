@@ -161,7 +161,7 @@ static void player2_update(Player *player, Collision_World *world, Engine *eng, 
     player->camera = mtx_camera;
 
     if (did_shoot) {
-        u32 n = 32*4;
+        u32 n = 32 * 4;
         for (u32 i = 0; i < n; ++i) {
             Collide_Result hit_res = {.distance = 1000.0f};
             Collision_Object *hit_obj = 0;
@@ -198,7 +198,7 @@ static void player2_update(Player *player, Collision_World *world, Engine *eng, 
                     px->w = 1;
                     img->variation++;
                 }
-                if(hit_obj->type == 1) {
+                if (hit_obj->type == 1) {
                     Monster *mon = hit_obj->handle;
                     mon->health -= 10.0f / n;
                 }
