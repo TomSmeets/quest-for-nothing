@@ -4,6 +4,7 @@
 #include "lib/mem.h"
 #include "lib/vec.h"
 #include "qfn/box.h"
+#include "qfn/box_shapes.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
 
@@ -37,56 +38,6 @@ typedef struct {
         Quad quad;
     };
 } Shape;
-
-// Supported shapes
-// Box
-// Capsule (y=up)
-// Quad
-
-// Construct a bounding box around a quad
-static Box box_from_quad(Quad quad) {
-    v3 p0 = m4_mul_pos(quad.mtx, (v3){-quad.radius.x, -quad.radius.y, 0});
-    v3 p1 = m4_mul_pos(quad.mtx, (v3){+quad.radius.x, -quad.radius.y, 0});
-    v3 p2 = m4_mul_pos(quad.mtx, (v3){-quad.radius.x, +quad.radius.y, 0});
-    v3 p3 = m4_mul_pos(quad.mtx, (v3){+quad.radius.x, +quad.radius.y, 0});
-
-    Box box = {p0, p0};
-    box = box_union_point(box, p1);
-    box = box_union_point(box, p2);
-    box = box_union_point(box, p3);
-    return box;
-}
-
-static Box box_from_quad2(m4 mtx) {
-    v3 p0 = m4_mul_pos(mtx, (v3){-0.5, -0.5, 0});
-    v3 p1 = m4_mul_pos(mtx, (v3){+0.5, -0.5, 0});
-    v3 p2 = m4_mul_pos(mtx, (v3){-0.5, +0.5, 0});
-    v3 p3 = m4_mul_pos(mtx, (v3){+0.5, +0.5, 0});
-
-    Box box = {p0, p0};
-    box = box_union_point(box, p1);
-    box = box_union_point(box, p2);
-    box = box_union_point(box, p3);
-    return box;
-}
-
-// Create a bounding box around a y-aligned cylinder
-// pos is the bottom center of the cylinder.
-// size is { diameter, height}
-static Box box_from_cylinder(Cylinder cyl) {
-    return (Box){
-        .min = cyl.pos - (v3){cyl.radius.x, cyl.radius.y, cyl.radius.x},
-        .max = cyl.pos + (v3){cyl.radius.x, cyl.radius.y, cyl.radius.x},
-    };
-}
-
-static Box box_from_shape(Shape shape) {
-    if (shape.type == Shape_Cylinder) return box_from_cylinder(shape.cylinder);
-    if (shape.type == Shape_Quad) return box_from_quad(shape.quad);
-    assert(false, "Impossible Shape");
-    return (Box){};
-}
-
 typedef struct {
     bool collision;
 
