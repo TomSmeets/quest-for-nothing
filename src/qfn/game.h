@@ -34,12 +34,11 @@ Game Design V1.0
 typedef struct {
     Memory *mem;
 
-    Player *player2;
-    Monster *monster2_list;
+    Player *player;
+    Monster *monster_list;
     Wall *walls;
 
     Image *gun;
-    Camera camera;
     Game_Debug debug;
     Sparse_Set *sparse;
     Audio audio;
@@ -48,7 +47,7 @@ typedef struct {
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
-    game->player2 = player2_new(game->mem, v3i_to_v3(spawn), game->gun);
+    game->player = player2_new(game->mem, v3i_to_v3(spawn), game->gun);
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         // Only consider floor tiles
@@ -58,15 +57,15 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
 
         // Don't generate them too close
         f32 spawn_area = 4;
-        if (v3_distance_sq(pos, game->player2->pos) < spawn_area * spawn_area) continue;
+        if (v3_distance_sq(pos, game->player->pos) < spawn_area * spawn_area) continue;
 
         // Choose random sprite props
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
         Monster *mon = monster2_new(game->mem, pos, prop);
-        mon->next = game->monster2_list;
-        game->monster2_list = mon;
+        mon->next = game->monster_list;
+        game->monster_list = mon;
     }
 }
 
@@ -87,7 +86,6 @@ static Game *game_new(Rand *rng) {
 
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
-    // game->camera.target = game->player2;
 
     game->sparse = sparse_set_new(mem);
     game->audio.snd = sound_init(mem);
@@ -97,188 +95,23 @@ static Game *game_new(Rand *rng) {
     return game;
 }
 
-static void player_apply_input(Game *game, Engine *eng, Entity *ent, Player_Input *in) {
-    // Update player head rotation
-    // x -> pitch
-    // y -> yaw
-    // z -> roll
-    ent->rot.xy += in->look.xy;
-
-    // Limit pitch to full up and full down
-    ent->rot.x = f_clamp(ent->rot.x, -0.5 * PI, 0.5 * PI);
-
-    // wraparound yaw
-    ent->rot.y = f_wrap(ent->rot.y, -PI, PI);
-
-    // Ease towards target Roll
-    ent->rot.z += (in->look.z - ent->rot.z) * 10 * eng->dt * PI;
-
-    // Jumping
-    if (in->jump && ent->on_ground && ent->health > 0) {
-        ent->pos_old.y = ent->pos.y;
-        ent->pos.y += 4 * eng->dt;
-        audio_jump(&game->audio);
-    }
-
-    // Flying
-    if (in->fly) ent->is_flying = !ent->is_flying;
-
-    // Apply movement input
-    m4 yaw_mtx = m4_id();
-    m4_rotate_y(&yaw_mtx, ent->rot.y); // Yaw
-
-    v3 move = m4_mul_dir(yaw_mtx, in->move);
-    move.xz = v2_limit(move.xz, 0, 1);
-    move.y = in->move.y * ent->is_flying;
-    ent->pos += move * 2.0 * eng->dt;
-}
-
-#if 0
-// Player update function
-static void player_update(Entity *pl, Game *game, Engine *eng) {
-    Player_Input in = {};
-    Camera *camera = &game->camera;
-    if (camera->target == pl) {
-        in = player_parse_input(eng->input);
-    }
-    entity_update_movement(pl, eng);
-    player_apply_input(game, eng, pl, &in);
-
-    entity_collide(eng, game->sparse, pl);
-    if (camera->target == pl) {
-        camera_bob(camera, v2_length(pl->vel.xz));
-    }
-
-    // Update matricies
-    {
-        pl->mtx = m4_id();
-        m4_rotate_y(&pl->mtx, pl->rot.y);
-        m4_translate(&pl->mtx, pl->pos);
-
-        pl->head_mtx = m4_id();
-        m4_rotate_z(&pl->head_mtx, pl->rot.z);
-        m4_rotate_x(&pl->head_mtx, pl->rot.x);
-        m4_rotate_y(&pl->head_mtx, pl->rot.y);
-        m4_translate(&pl->head_mtx, pl->pos);
-        m4_translate_y(&pl->head_mtx, .5);
-    }
-
-    // Shooting
-    pl->recoil_animation = animate(pl->recoil_animation, -eng->dt * 4);
-    if (in.shoot && pl->recoil_animation == 0) {
-        pl->recoil_animation = 1;
-        camera_shake(&game->camera, 0.5);
-        audio_shoot(&game->audio);
-
-        for (u32 i = 0; i < 16; ++i) {
-            v3 ray_pos = pl->head_mtx.w;
-            v3 ray_dir = pl->head_mtx.z;
-
-            f32 a = rand_f32(&eng->rng, -1, 1);
-            f32 r = rand_f32(&eng->rng, -1, 1);
-            f32 ox = f_cos2pi(a) * r * 0.1;
-            f32 oy = f_sin2pi(a) * r * 0.1;
-
-            ray_dir += pl->head_mtx.x * ox;
-            ray_dir += pl->head_mtx.y * oy;
-
-            Collide_Result best_result = {0};
-            Entity *best_monster = 0;
-            for (Entity *mon = game->monsters; mon; mon = mon->next) {
-                if (mon == pl) continue;
-                Collide_Result result = collide_quad_ray(mon->image_mtx, mon->image, ray_pos, ray_dir);
-                if (!result.hit) continue;
-                if (best_result.hit && result.distance > best_result.distance) continue;
-                best_monster = mon;
-                best_result = result;
-            }
-
-            if (best_monster) {
-                Image *img = best_monster->image;
-
-                // Damage entity
-                if (best_monster->health > 0) {
-                    best_monster->health--;
-
-                    // Entity just died
-                    if (best_monster->health == 0) {
-                        for (u32 y = 0; y < img->size.y; ++y) {
-                            for (u32 x = 0; x < img->size.x; ++x) {
-                                v4 *px = img->pixels + y * img->size.x + x;
-                                px->xyz = BLEND(px->xyz, GRAY, 0.5f);
-                            }
-                        }
-                    }
-                }
-
-                i32 x = best_result.pixel.x;
-                i32 y = best_result.pixel.y;
-                v4 *px = image_get(img, (v2i){x, y});
-                if (!px) continue;
-
-                px->xyz = BLEND(px->xyz, best_monster->sprite.blood_color, 0.6);
-
-                img->variation++;
-            }
-        }
-    }
-
-    // Draw Gun
-    {
-        m4 mtx = m4_id();
-        m4_image_3d(&mtx, game->gun);
-        m4_rotate_y(&mtx, R1);
-        m4_rotate_x(&mtx, BLEND(0, -R1 * .2, pl->recoil_animation));
-        m4_translate_x(&mtx, -0.2);
-        m4_translate_y(&mtx, -0.15);
-        m4_translate_z(&mtx, BLEND(0.3, 0.1, pl->recoil_animation));
-        m4_apply(&mtx, pl->head_mtx);
-        gfx_quad_3d(eng->gfx, mtx, game->gun);
-    }
-
-    if (pl->shadow) draw_shadow(eng, pl->mtx.w, pl->shadow);
-}
-#endif
-
-static void entity_update(Engine *eng, Game *game, Entity *ent) {
-    // if (ent->type == Entity_Monster) monster_update(ent, game->player, game->gun, game->sparse, eng);
-    // if (ent->type == Entity_Player) player_update(ent, game, eng);
-    if (game->debug == DBG_Entity) debug_draw_entity(eng, ent);
-}
-
 static void game_update(Game *game, Engine *eng) {
-    Player_Input input = player_parse_input(eng->input);
-
     Collision_World *world = collision_world_new(eng->tmp);
-
-    // Debug draw sparse data
-    if (game->debug == DBG_Collision) {
-        // debug_draw_collisions(eng, game->sparse, game->player);
-    }
-
-    // Toggle freecam
-    if (key_click(eng->input, KEY_3)) {
-        // camera_follow(&game->camera, game->camera.target ? 0 : game->player);
-    }
 
     // Toggle debug drawing
     if (key_click(eng->input, KEY_4)) {
         debug_next(&game->debug);
     }
 
-    camera_input(&game->camera, &input, eng->dt);
-
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         wall2_update(wall, eng, world);
     }
 
-    for (Monster *mon = game->monster2_list; mon; mon = mon->next) {
-        monster2_update(mon, eng, &game->audio, world, game->player2->pos);
+    for (Monster *mon = game->monster_list; mon; mon = mon->next) {
+        monster2_update(mon, eng, &game->audio, world, game->player->pos);
     }
 
-    player2_update(game->player2, world, eng, &game->audio);
-
-    camera_update(&game->camera, eng->dt);
+    player2_update(game->player, world, eng, &game->audio);
 
     // Update bvh
     sparse_set_swap(game->sparse);

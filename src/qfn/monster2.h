@@ -153,7 +153,7 @@ static void monster2_update(Monster *mon, Engine *eng, Audio *audio, Collision_W
     else if (mon->state == Monster_State_Dead) {
         scared_amount = 0;
         look_chance = 0;
-        mon->death_animation = f_min(mon->death_animation + dt * 2, 1.0f);
+        mon->death_animation = f_min(mon->death_animation + dt * 3, 1.0f);
     }
 
     mon->shoot_timeout -= dt * 2;
