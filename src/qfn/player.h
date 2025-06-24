@@ -6,7 +6,7 @@
 #include "qfn/collision.h"
 #include "qfn/engine.h"
 #include "qfn/input.h"
-#include "qfn/monster2.h"
+#include "qfn/monster.h"
 #include "qfn/wall.h"
 
 typedef struct {
@@ -62,14 +62,14 @@ typedef struct {
     bool fly;
 } Player;
 
-static Player *player2_new(Memory *mem, v3 pos, Image *gun) {
+static Player *player_new(Memory *mem, v3 pos, Image *gun) {
     Player *player = mem_struct(mem, Player);
     player->pos = pos;
     player->gun = gun;
     return player;
 }
 
-static void player2_update(Player *player, Collision_World *world, Engine *eng, Audio *audio) {
+static void player_update(Player *player, Collision_World *world, Engine *eng, Audio *audio) {
     Player_Input input = player_parse_input(eng->input);
     if (key_click(eng->input, KEY_3)) player->fly = !player->fly;
 

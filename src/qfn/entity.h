@@ -75,11 +75,3 @@ struct Entity {
     f32 recoil_animation;
     f32 step_volume;
 };
-
-static Entity *wall_new(Memory *mem, m4 mtx, Image *img) {
-    Entity *ent = mem_struct(mem, Entity);
-    ent->type = Entity_Wall;
-    ent->mtx = mtx;
-    ent->image = img;
-    return ent;
-}

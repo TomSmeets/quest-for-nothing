@@ -12,7 +12,7 @@
 #include "qfn/gun.h"
 #include "qfn/image.h"
 #include "qfn/level.h"
-#include "qfn/monster2.h"
+#include "qfn/monster.h"
 #include "qfn/player.h"
 #include "qfn/sparse_set.h"
 #include "qfn/wall.h"
@@ -45,7 +45,7 @@ typedef struct {
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
-    game->player = player2_new(game->mem, v3i_to_v3(spawn), game->gun);
+    game->player = player_new(game->mem, v3i_to_v3(spawn), game->gun);
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         // Only consider floor tiles
@@ -61,7 +61,7 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
-        Monster *mon = monster2_new(game->mem, pos, prop);
+        Monster *mon = monster_new(game->mem, pos, prop);
         mon->next = game->monster_list;
         game->monster_list = mon;
     }
@@ -102,14 +102,14 @@ static void game_update(Game *game, Engine *eng) {
     }
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
-        wall2_update(wall, eng, world);
+        wall_update(wall, eng, world);
     }
 
     for (Monster *mon = game->monster_list; mon; mon = mon->next) {
-        monster2_update(mon, eng, &game->audio, world, game->player->pos);
+        monster_update(mon, eng, &game->audio, world, game->player->pos);
     }
 
-    player2_update(game->player, world, eng, &game->audio);
+    player_update(game->player, world, eng, &game->audio);
 
     // Update bvh
     sparse_set_swap(game->sparse);

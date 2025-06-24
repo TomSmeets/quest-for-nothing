@@ -14,7 +14,7 @@ struct Wall {
     Image *image;
 };
 
-static Wall *wall2_new(Memory *mem, m4 mtx, Image *image) {
+static Wall *wall_new(Memory *mem, m4 mtx, Image *image) {
     Wall *wall = mem_struct(mem, Wall);
 
     m4 mtx2 = m4_id();
@@ -26,7 +26,7 @@ static Wall *wall2_new(Memory *mem, m4 mtx, Image *image) {
     return wall;
 }
 
-static void wall2_update(Wall *wall, Engine *eng, Collision_World *world) {
+static void wall_update(Wall *wall, Engine *eng, Collision_World *world) {
     gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
     collision_add(world, wall->mtx, wall->image, 0, wall);
 }

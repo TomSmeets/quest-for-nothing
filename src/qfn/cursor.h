@@ -2,11 +2,11 @@
 // cursor.h - Mouse cursor handling
 #pragma once
 #include "lib/math.h"
+#include "qfn/engine.h"
 #include "qfn/gfx.h"
 #include "qfn/image.h"
-#include "qfn/ui.h"
 #include "qfn/monster_sprite.h"
-#include "qfn/engine.h"
+#include "qfn/ui.h"
 
 typedef struct {
     // Mouse cursor

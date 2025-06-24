@@ -21,7 +21,7 @@ static void level_add_wall(Memory *mem, Wall **level, Image *img, v3i pos, m4 mt
     v3 pos_f = v3i_to_v3(pos);
     m4_translate(&mtx, pos_f);
 
-    Wall *ent = wall2_new(mem, mtx, img);
+    Wall *ent = wall_new(mem, mtx, img);
     ent->next = *level;
     *level = ent;
 }
