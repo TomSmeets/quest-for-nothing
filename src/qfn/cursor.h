@@ -4,8 +4,9 @@
 #include "lib/math.h"
 #include "qfn/gfx.h"
 #include "qfn/image.h"
-#include "qfn/monster.h"
 #include "qfn/ui.h"
+#include "qfn/monster_sprite.h"
+#include "qfn/engine.h"
 
 typedef struct {
     // Mouse cursor
@@ -43,7 +44,7 @@ static void cursor_draw(Cursor *cursor, Engine *eng) {
     }
 
     m4 mtx = m4_id();
-    m4_image_ui(&mtx, cursor->image);
+    m4_scale(&mtx, (v3){cursor->image->size.x * 4, cursor->image->size.y * 4, 1});
     if (!input->mouse_is_grabbed) {
         m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
     }
