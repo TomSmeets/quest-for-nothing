@@ -169,11 +169,14 @@ static bool collide_quad_ray(Collide_Result *res, m4 quad_mtx, v3 ray_pos, v3 ra
     v3 ray_pos_local = m4_mul_pos(mtx_inv, ray_pos);
     v3 ray_dir_local = m4_mul_dir(mtx_inv, ray_dir);
 
+    // Ray is behind plane
+    if (ray_pos_local.z < 0) return false;
+
+    // Ray is traveling away from plane
+    if (ray_dir_local.z > 0) return false;
+
     // Total distance to the plane along the ray
     f32 distance = ray_pos_local.z / -ray_dir_local.z;
-
-    // Ray moves away from plane
-    if (distance < 0) return false;
 
     // Compute ray hit position
     v3 hit_local = ray_pos_local + ray_dir_local * distance;
