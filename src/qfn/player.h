@@ -84,6 +84,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     v3 move = m4_mul_dir(mtx_yaw, input.move);
     move.xz = v2_limit(move.xz, 0, 1);
 
+    v3 old = player->pos;
     if (player->fly) {
         player->pos += move * 2 * eng->dt;
         player->old = player->pos;
@@ -110,7 +111,16 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
             player->pos.y += eng->dt * 4;
             audio->play_jump = 1;
         }
+
+        // Collision
+        for(Collision_Object *obj = world->objects; obj; obj = obj->next) {
+            if(obj->type != 0) continue;
+            f32 r = 0.25;
+            v3 offset = {0,r,0};
+            player->pos += wall_collide(obj->mtx, r, old + offset, player->pos + offset);
+        }
     }
+    
 
     bool did_shoot = 0;
     player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);

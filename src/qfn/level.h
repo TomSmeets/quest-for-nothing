@@ -29,7 +29,7 @@ static void level_add_wall(Memory *mem, Wall **level, Image *img, v3i pos, m4 mt
 // Generate an empty level
 static Wall *level_generate(Memory *mem, Rand *rng, v2i size) {
     i32 cell_scale = 4;
-    f32 adjust = 0.99;
+    f32 adjust = 1.0;
 
     m4 mtx_yn = m4_id();
     m4_translate_y(&mtx_yn, (f32)cell_scale / 2);
