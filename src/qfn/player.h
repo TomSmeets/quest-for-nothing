@@ -113,14 +113,13 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         }
 
         // Collision
-        for(Collision_Object *obj = world->objects; obj; obj = obj->next) {
-            if(obj->type != 0) continue;
+        for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
+            if (obj->type != 0) continue;
             f32 r = 0.25;
-            v3 offset = {0,r,0};
+            v3 offset = {0, r, 0};
             player->pos += wall_collide(obj->mtx, r, old + offset, player->pos + offset);
         }
     }
-    
 
     bool did_shoot = 0;
     player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);

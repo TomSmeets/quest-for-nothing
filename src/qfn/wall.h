@@ -43,7 +43,7 @@ static v3 wall_collide(m4 mtx, f32 r, v3 old, v3 new) {
     v3 local_new = m4_mul_pos(inv, new);
 
     // We are behind
-    if(local_old.z < 0) return 0;
+    if (local_old.z < 0) return 0;
 
     v3 point = {local_old.x, local_old.y, 0};
     if (point.x < -radius.x) point.x = -radius.x;
@@ -54,6 +54,6 @@ static v3 wall_collide(m4 mtx, f32 r, v3 old, v3 new) {
     v3 dir = v3_normalize(local_old - point);
     f32 d_old = v3_dot(dir, local_old - point) - r;
     f32 d_new = v3_dot(dir, local_new - point) - r;
-    if(d_new > 0) return 0;
+    if (d_new > 0) return 0;
     return m4_mul_dir(mtx, dir * -d_new);
 }

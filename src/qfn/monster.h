@@ -8,9 +8,9 @@
 #include "qfn/gun.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
-#include "qfn/wall.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/sparse_set.h"
+#include "qfn/wall.h"
 
 typedef struct Monster Monster;
 
@@ -172,21 +172,19 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
         monster_sprite_update_eyes(&mon->sprite, rng);
     }
 
-
     v3 old = mon->pos;
-    
+
     // Movement
     mon->pos += vel * dt;
     // mon->pos.y -= dt;
 
     // Collision
-    for(Collision_Object *obj = world->objects; obj; obj = obj->next) {
-        if(obj->type != 0) continue;
+    for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
+        if (obj->type != 0) continue;
         f32 r = 0.25;
-        v3 offset = {0,r,0};
+        v3 offset = {0, r, 0};
         mon->pos += wall_collide(obj->mtx, r, old + offset, mon->pos + offset);
     }
-
 
     // Graphics
     m4 mtx_monster = m4_id();
