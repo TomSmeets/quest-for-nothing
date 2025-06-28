@@ -213,6 +213,11 @@ static void include_graph_read_dir(Include_Graph *graph, String path) {
             continue;
         }
 
+        if (!(str_ends_with(file->name, S(".h")) || str_ends_with(file->name, S(".c")) || str_ends_with(file->name, S(".js")) ||
+              str_ends_with(file->name, S(".html")))) {
+            continue;
+        }
+
         Include_Node *node = include_graph_read_file(graph, full_path, file->name);
         node->color = color;
     }
