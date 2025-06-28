@@ -36,7 +36,6 @@ typedef struct {
     Monster *monster_list;
     Wall *walls;
 
-    Image *gun;
     Game_Debug debug;
     Sparse_Set *sparse;
     Audio audio;
@@ -45,7 +44,9 @@ typedef struct {
 static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
-    game->player = player_new(game->mem, v3i_to_v3(spawn), game->gun);
+
+    // Generate player
+    game->player = player_new(game->mem, v3i_to_v3(spawn));
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         // Only consider floor tiles
@@ -79,9 +80,6 @@ static Game *game_new(Rand *rng) {
     // Create Level
     game->walls = level_generate(mem, rng, level_size);
 
-    // Generate player
-    game->gun = gun_new(mem, rng);
-
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
 
@@ -113,8 +111,4 @@ static void game_update(Game *game, Engine *eng) {
 
     // Update bvh
     sparse_set_swap(game->sparse);
-}
-
-static void game_free(Game *game) {
-    mem_free(game->mem);
 }

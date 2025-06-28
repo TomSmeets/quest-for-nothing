@@ -62,10 +62,10 @@ typedef struct {
     bool fly;
 } Player;
 
-static Player *player_new(Memory *mem, v3 pos, Image *gun) {
+static Player *player_new(Memory *mem, v3 pos) {
     Player *player = mem_struct(mem, Player);
     player->pos = pos;
-    player->gun = gun;
+    player->gun = gun_new(mem, G->rand);
     return player;
 }
 
