@@ -9,7 +9,6 @@
 #include "qfn/collision.h"
 #include "qfn/engine.h"
 #include "qfn/game_debug.h"
-#include "qfn/gun.h"
 #include "qfn/image.h"
 #include "qfn/level.h"
 #include "qfn/monster.h"

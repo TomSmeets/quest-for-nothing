@@ -233,6 +233,5 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
     mon->sprite_mtx = mtx_sprite;
 
     collision_add(world, mtx_sprite, mon->sprite.image, 1, mon);
-    collision_add(world, mtx_shadow, mon->sprite.shadow, 1, mon);
     collision_add(world, mtx_gun, mon->gun, 1, mon);
 }
