@@ -13,7 +13,6 @@
 #include "qfn/level.h"
 #include "qfn/monster.h"
 #include "qfn/player.h"
-#include "qfn/sparse_set.h"
 #include "qfn/wall.h"
 
 /*
@@ -36,7 +35,6 @@ typedef struct {
     Wall *walls;
 
     Game_Debug debug;
-    Sparse_Set *sparse;
     Audio audio;
 } Game;
 
@@ -82,7 +80,6 @@ static Game *game_new(Rand *rng) {
     // Generate Monsters
     game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
 
-    game->sparse = sparse_set_new(mem);
     game->audio.snd = sound_init(mem);
 
     Image *img = image_new(mem, (v2u){32, 32});
@@ -107,7 +104,4 @@ static void game_update(Game *game, Engine *eng) {
     }
 
     player_update(game->player, world, eng, &game->audio);
-
-    // Update bvh
-    sparse_set_swap(game->sparse);
 }
