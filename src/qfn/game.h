@@ -38,14 +38,12 @@ typedef struct {
     Audio audio;
 } Game;
 
-static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
+static Monster *game_gen_monsters(Memory *mem, Wall *walls, Rand *rng, v3 spawn) {
     Sprite_Properties s1 = sprite_new(rng);
     Sprite_Properties s2 = sprite_new(rng);
 
-    // Generate player
-    game->player = player_new(game->mem, v3i_to_v3(spawn));
-
-    for (Wall *wall = game->walls; wall; wall = wall->next) {
+    Monster *monster_list = 0;
+    for (Wall *wall = walls; wall; wall = wall->next) {
         // Only consider floor tiles
         if (wall->mtx.z.y < 0.5) continue;
 
@@ -53,37 +51,31 @@ static void game_gen_monsters(Game *game, Rand *rng, v3i spawn) {
 
         // Don't generate them too close
         f32 spawn_area = 4;
-        if (v3_distance_sq(pos, game->player->pos) < spawn_area * spawn_area) continue;
+        if (v3_distance_sq(pos, spawn) < spawn_area * spawn_area) continue;
 
         // Choose random sprite props
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
-        Monster *mon = monster_new(game->mem, pos, prop);
-        mon->next = game->monster_list;
-        game->monster_list = mon;
+        Monster *mon = monster_new(mem, pos, prop);
+        mon->next = monster_list;
+        monster_list = mon;
     }
+    return monster_list;
 }
 
 // Create a new game
 static Game *game_new(Rand *rng) {
     v2i level_size = {8, 8};
-    v2i spawn = 0;
+    v3 spawn = 0;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
     game->mem = mem;
-
-    // Create Level
     game->walls = level_generate(mem, rng, level_size);
-
-    // Generate Monsters
-    game_gen_monsters(game, rng, (v3i){spawn.x, 0, spawn.y});
-
+    game->monster_list = game_gen_monsters(mem, game->walls, rng, spawn);
+    game->player = player_new(game->mem, spawn);
     game->audio.snd = sound_init(mem);
-
-    Image *img = image_new(mem, (v2u){32, 32});
-    image_fill(img, (v4){1, 0, 1, 1});
     return game;
 }
 
