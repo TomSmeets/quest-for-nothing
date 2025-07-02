@@ -44,22 +44,28 @@ static Monster *game_gen_monsters(Memory *mem, Wall *walls, Rand *rng, v3 spawn)
 
     Monster *monster_list = 0;
     for (Wall *wall = walls; wall; wall = wall->next) {
-        // Only consider floor tiles
+
+        // Only consider walls that point up (floor)
         if (wall->mtx.z.y < 0.5) continue;
-
-        v3 pos = wall->mtx.w;
-
-        // Don't generate them too close
-        f32 spawn_area = 4;
-        if (v3_distance_sq(pos, spawn) < spawn_area * spawn_area) continue;
 
         // Choose random sprite props
         Sprite_Properties prop = s1;
         if (rand_choice(rng, 0.5)) prop = s2;
 
-        Monster *mon = monster_new(mem, pos, prop);
-        mon->next = monster_list;
-        monster_list = mon;
+        u32 n = rand_u32(rng, 0, 4);
+        for (u32 i = 0; i < n; ++i) {
+            v3 pos = wall->mtx.w;
+            pos.x += rand_f32(rng, -1, 1);
+            pos.z += rand_f32(rng, -1, 1);
+
+            // Don't generate them too close
+            f32 spawn_area = 4;
+            if (v3_distance_sq(pos, spawn) < spawn_area * spawn_area) continue;
+
+            Monster *mon = monster_new(mem, pos, prop);
+            mon->next = monster_list;
+            monster_list = mon;
+        }
     }
     return monster_list;
 }
