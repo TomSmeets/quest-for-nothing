@@ -9,23 +9,10 @@
 #include "qfn/collision.h"
 #include "qfn/engine.h"
 #include "qfn/game_debug.h"
-#include "qfn/image.h"
 #include "qfn/level.h"
 #include "qfn/monster.h"
 #include "qfn/player.h"
 #include "qfn/wall.h"
-
-/*
-Game Design V1.0
-- Only one hit-scan gun
-- Monsters creep towards you and try to eat you
-- Monsters are generated pixel art sprites
-- Levels are generated
-- World is 2d maze with walls
-    - grid aligned
-- single player
-- walls can be painted
-*/
 
 typedef struct {
     Memory *mem;
