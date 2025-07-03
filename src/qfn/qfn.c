@@ -48,25 +48,6 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     }
 }
 
-static void handle_basic_input(App *app, Input *input, Engine *eng) {
-    // Quit
-    if (input->quit || (input_down(input, KEY_SHIFT) && input_down(input, KEY_Q))) {
-        os_exit(0);
-    }
-
-    // Toggle fullscreen
-    if (input_click(input, KEY_F)) {
-        gfx_set_fullscreen(eng->gfx, !input->is_fullscreen);
-    }
-
-    // Reload level with 'R'
-    if (input_click(input, KEY_R)) {
-        Memory *old = app->game->mem;
-        app->game = game_new(&eng->rng);
-        mem_free(old);
-    }
-}
-
 static void os_main(void) {
     // Initialize App
     if (!G->app) G->app = app_init();
@@ -80,14 +61,9 @@ static void os_main(void) {
     Input *input = eng->input;
 
     // Basic input
+    if (input->quit || (input_click(input, KEY_Q) && input_down(input, KEY_SHIFT))) os_exit(0);
     input_toggle(input, KEY_M, &game->audio.mute);
     input_cycle(input, KEY_4, &game->debug, DBG_COUNT);
-
-    // Quit
-    if (input->quit) os_exit(0);
-    if (input_click(input, KEY_Q) && input_down(input, KEY_SHIFT)) {
-        os_exit(0);
-    }
 
     // Toggle fullscreen
     if (input_click(input, KEY_F)) {
@@ -101,10 +77,10 @@ static void os_main(void) {
         mem_free(old);
     }
 
-    handle_basic_input(app, input, eng);
-    cursor_draw(&app->cursor, eng);
     game_update(game, eng);
 
+    // Graphics
+    cursor_draw(&app->cursor, eng);
     if (game->debug == DBG_Texture) debug_draw_texture(eng);
 
     engine_end(app->eng, game->player->camera);
