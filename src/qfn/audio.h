@@ -75,14 +75,23 @@ static f32 music_melody(Sound *sound, u32 beat) {
 }
 
 static v2 audio_sample(Audio *audio) {
+    v2 out = {0, 0};
+
+    if (audio->mute) {
+        audio->play_jump = 0;
+        audio->play_shoot = 0;
+        return out;
+    }
+
     Sound *sound = &audio->snd;
     sound_begin(sound);
 
-    v2 out = {0, 0};
     Clock clk = sound_clock(sound, 1.0f, 32);
 
-    f32 base = 0.1f * music_base(sound, clk.index);
-    f32 melo = 0.1f * music_melody(sound, clk.index);
+    f32 out_mono = 0;
+    out_mono += 0.1f * music_base(sound, clk.index);
+    out_mono += 0.1f * music_melody(sound, clk.index);
+
     f32 chance = 1.0f / 128.0f;
     f32 volume = 0.02f;
 
@@ -91,26 +100,24 @@ static v2 audio_sample(Audio *audio) {
     bool play_noise2 = clk.trigger && rand_choice(G->rand, chance);
     bool play_noise3 = clk.trigger && rand_choice(G->rand, chance);
     bool play_noise4 = clk.trigger && rand_choice(G->rand, chance);
-
-    melo += volume * sound_adsr(sound, play_noise0, 400, 1.0, 0) * sound_noise_white(sound);
-    melo += volume * sound_adsr(sound, play_noise1, 2, 1.0, 0) * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
-    melo += volume * sound_adsr(sound, play_noise2, 0.5, 0.5, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 4, 0) * .5f), 0);
-    melo += volume * sound_adsr(sound, play_noise3, 1, 0.5, 0) * sound_sine(sound, NOTE_F * (1 + sound_sine(sound, 2, 0) * .5f), 0);
-    melo += volume * sound_adsr(sound, play_noise4, 4, 1, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 8, 0) * .5f), 0);
+    out_mono += volume * sound_adsr(sound, play_noise0, 400, 1.0, 0) * sound_noise_white(sound);
+    out_mono += volume * sound_adsr(sound, play_noise1, 2, 1.0, 0) * clk.phase * sound_pulse(sound, NOTE_C * clk.phase, 0, 0.5f);
+    out_mono += volume * sound_adsr(sound, play_noise2, 0.5, 0.5, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 4, 0) * .5f), 0);
+    out_mono += volume * sound_adsr(sound, play_noise3, 1, 0.5, 0) * sound_sine(sound, NOTE_F * (1 + sound_sine(sound, 2, 0) * .5f), 0);
+    out_mono += volume * sound_adsr(sound, play_noise4, 4, 1, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 8, 0) * .5f), 0);
 
     f32 jump_vol = sound_adsr(sound, audio->play_jump, 400, 4.0, 0);
-    melo += 0.1 * jump_vol * sound_sine(sound, NOTE_C * (1 + 0.8 * sound_sine(sound, 8, 0)), 0);
-    melo += 1.0 * sound_lowpass(
-                      sound, NOTE_C,
-                      sound_adsr(sound, audio->play_shoot, 400, 16.0, 0) * (sound_noise_white(sound) * .8 + sound_noise_freq(sound, NOTE_C / 4, 0.5f))
-                  );
+    out_mono += 0.1 * jump_vol * sound_sine(sound, NOTE_C * (1 + 0.8 * sound_sine(sound, 8, 0)), 0);
+    out_mono +=
+        1.0 * sound_lowpass(
+                  sound, NOTE_C,
+                  sound_adsr(sound, audio->play_shoot, 400, 16.0, 0) * (sound_noise_white(sound) * .8 + sound_noise_freq(sound, NOTE_C / 4, 0.5f))
+              );
     audio->play_jump = 0;
     audio->play_shoot = 0;
 
-    melo += base;
-    // melo *= 0.5f;
-    out.x += melo;
-    out.y += melo;
+    out.x += out_mono;
+    out.y += out_mono;
 
     Freeverb_Config cfg = {
         .room = 0.9f,

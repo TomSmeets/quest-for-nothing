@@ -77,7 +77,7 @@ static void game_update(Game *game, Engine *eng) {
 
     // Toggle debug drawing
     if (input_click(eng->input, KEY_4)) debug_next(&game->debug);
-    if (input_click(eng->input, KEY_M)) game->audio.mute = !game->audio.mute;
+    input_toggle(eng->input, KEY_M, &game->audio.mute);
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         wall_update(wall, eng, world);
