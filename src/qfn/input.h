@@ -134,7 +134,15 @@ static bool input_click(Input *input, Key key) {
 }
 
 static void input_toggle(Input *input, Key key, bool *toggle) {
-    if (input_click(input, key)) *toggle = !*toggle;
+    if (input_click(input, key)) {
+        *toggle = !*toggle;
+    }
+}
+
+static void input_cycle(Input *input, Key key, u32 *value, u32 max) {
+    if (input_click(input, key)) {
+        *value = (*value + 1) % max;
+    }
 }
 
 static char key_to_char(Key key) {

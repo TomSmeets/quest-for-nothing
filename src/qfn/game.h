@@ -75,10 +75,6 @@ static Game *game_new(Rand *rng) {
 static void game_update(Game *game, Engine *eng) {
     Collision_World *world = collision_world_new(eng->tmp);
 
-    // Toggle debug drawing
-    if (input_click(eng->input, KEY_4)) debug_next(&game->debug);
-    input_toggle(eng->input, KEY_M, &game->audio.mute);
-
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         wall_update(wall, eng, world);
     }

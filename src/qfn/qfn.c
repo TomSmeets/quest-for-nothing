@@ -73,15 +73,39 @@ static void os_main(void) {
 
     // Update Loop
     App *app = G->app;
+    Game *game = app->game;
     Engine *eng = app->eng;
 
     engine_begin(eng);
+    Input *input = eng->input;
 
-    handle_basic_input(app, eng->input, eng);
+    // Basic input
+    input_toggle(input, KEY_M, &game->audio.mute);
+    input_cycle(input, KEY_4, &game->debug, DBG_COUNT);
+
+    // Quit
+    if (input->quit) os_exit(0);
+    if (input_click(input, KEY_Q) && input_down(input, KEY_SHIFT)) {
+        os_exit(0);
+    }
+
+    // Toggle fullscreen
+    if (input_click(input, KEY_F)) {
+        gfx_set_fullscreen(eng->gfx, !input->is_fullscreen);
+    }
+
+    // Reload level with 'R'
+    if (input_click(input, KEY_R)) {
+        Memory *old = app->game->mem;
+        app->game = game_new(&eng->rng);
+        mem_free(old);
+    }
+
+    handle_basic_input(app, input, eng);
     cursor_draw(&app->cursor, eng);
-    game_update(app->game, eng);
+    game_update(game, eng);
 
-    if (app->game->debug == DBG_Texture) debug_draw_texture(eng);
+    if (game->debug == DBG_Texture) debug_draw_texture(eng);
 
-    engine_end(app->eng, app->game->player->camera);
+    engine_end(app->eng, game->player->camera);
 }
