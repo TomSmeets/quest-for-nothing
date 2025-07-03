@@ -118,12 +118,12 @@ static void input_emit(Input *input, Key key, bool down) {
     input->key_state[key] = down;
 }
 
-static bool key_down(Input *input, Key key) {
+static bool input_down(Input *input, Key key) {
     assert(key < KEY_COUNT, "Invalid key");
     return input->key_state[key];
 }
 
-static bool key_click(Input *input, Key key) {
+static bool input_click(Input *input, Key key) {
     assert(key < KEY_COUNT, "Invalid key");
     for (u32 i = 0; i < input->key_event_count; ++i) {
         if (input->key_event[i] == key) {
@@ -131,6 +131,10 @@ static bool key_click(Input *input, Key key) {
         }
     }
     return false;
+}
+
+static void input_toggle(Input *input, Key key, bool *toggle) {
+    if(input_click(input, key)) *toggle = !*toggle;
 }
 
 static char key_to_char(Key key) {

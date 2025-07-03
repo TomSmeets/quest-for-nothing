@@ -50,17 +50,17 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
 
 static void handle_basic_input(App *app, Input *input, Engine *eng) {
     // Quit
-    if (input->quit || (key_down(input, KEY_SHIFT) && key_down(input, KEY_Q))) {
+    if (input->quit || (input_down(input, KEY_SHIFT) && input_down(input, KEY_Q))) {
         os_exit(0);
     }
 
     // Toggle fullscreen
-    if (key_click(input, KEY_F)) {
+    if (input_click(input, KEY_F)) {
         gfx_set_fullscreen(eng->gfx, !input->is_fullscreen);
     }
 
     // Reload level with 'R'
-    if (key_click(input, KEY_R)) {
+    if (input_click(input, KEY_R)) {
         Memory *old = app->game->mem;
         app->game = game_new(&eng->rng);
         mem_free(old);

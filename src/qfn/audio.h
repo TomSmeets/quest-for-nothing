@@ -17,6 +17,7 @@
 //   - https://www.youtube.com/watch?v=J_FCCvNzbiY
 typedef struct {
     Sound snd;
+    bool mute;
     bool play_shoot;
     bool play_jump;
 } Audio;

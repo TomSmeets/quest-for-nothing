@@ -29,17 +29,17 @@ static void cursor_draw(Cursor *cursor, Engine *eng) {
     Gfx *gfx = eng->gfx;
 
     // Capture Mouse
-    if (key_click(input, KEY_MOUSE_LEFT)) {
+    if (input_click(input, KEY_MOUSE_LEFT)) {
         gfx_set_grab(eng->gfx, true);
     }
 
     // Release Grab on focus lost or Esc
-    if ((input->focus_lost || key_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
+    if ((input->focus_lost || input_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
         gfx_set_grab(eng->gfx, false);
     }
 
     // Grab with G
-    if (key_click(input, KEY_G)) {
+    if (input_click(input, KEY_G)) {
         gfx_set_grab(eng->gfx, !input->mouse_is_grabbed);
     }
 
