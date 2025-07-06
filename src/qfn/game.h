@@ -87,9 +87,9 @@ static void game_update(Game *game, Engine *eng) {
 
     m4 inv = game->player->camera;
     inv = m4_invert_tr(inv);
-    v3 p = m4_mul_pos(inv, (v3){0,0,0});
-    fmt_sf(G->fmt, "p.x=",p.x,", ");
-    fmt_sf(G->fmt, "p.y=",p.y,", ");
-    fmt_sf(G->fmt, "p.z=",p.z,"\n");
+    v3 p = m4_mul_pos(inv, (v3){0, 0, 0});
+    fmt_sf(G->fmt, "p.x=", p.x, ", ");
+    fmt_sf(G->fmt, "p.y=", p.y, ", ");
+    fmt_sf(G->fmt, "p.z=", p.z, "\n");
     game->audio.pos = p;
 }
