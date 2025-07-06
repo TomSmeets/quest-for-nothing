@@ -137,45 +137,28 @@ static v2 sound_freeverb2(Sound *sound, Freeverb_Config cfg, v2 input) {
     return (v2){out_l, out_r};
 }
 
-// NOTE: This is too slow, things i can try:
-// - Store as f32
-// - Decrease IR tail resolution
-__attribute__((aligned(8))) static const u8 SOUND_REVERB_IR[] = {
+__attribute__((aligned(16))) static const u8 SOUND_REVERB_IR[] = {
 #embed "gfx/sound_ir.f32"
 };
 
 static v2 sound_reverb3(Sound *sound, v2 sample) {
-    const f32 *buffer = (f32 *)SOUND_REVERB_IR;
-    const u32 count = sizeof(SOUND_REVERB_IR) / (sizeof(f32) * 2);
+    const v2 *buffer = (v2 *)SOUND_REVERB_IR;
+    const u32 count = sizeof(SOUND_REVERB_IR) / sizeof(v2) / 8;
 
-    f32 *samples_l = sound_vars(sound, f32, count);
-    f32 *samples_r = sound_vars(sound, f32, count);
+    v2 *samples = sound_vars(sound, v2, count);
     u32 *ix = sound_var(sound, u32);
-    if (*ix > count) *ix = 0;
+    if (*ix >= count) *ix = 0;
 
     v2 out = 0;
-    f32 resolution = 1.0f;
-    for (u32 i = 0; i < count; i += (u32)resolution) {
-        // New -> Old
-        f32 samp_l = samples_l[(*ix + count - i) % count];
-        f32 samp_r = samples_r[(*ix + count - i) % count];
-
-        // New -> old
-        f32 ir_l = (f32)buffer[i * 2 + 0];
-        f32 ir_r = (f32)buffer[i * 2 + 1];
-
-        out.x += samp_l * ir_l;
-        out.y += samp_r * ir_r;
-
-        // Decrease resolution
-        resolution *= 1.04;
+    for (u32 i = 0; i < count; i+=4) {
+        u32 j = *ix + count - i;
+        if(j >= count) j -= count;
+        out += samples[j] * buffer[i];
     }
 
     // Write sample
-    samples_l[*ix] = sample.x;
-    samples_r[*ix] = sample.y;
-
+    samples[*ix] = sample;
     (*ix)++;
-    // out = sample;
+
     return out;
 }

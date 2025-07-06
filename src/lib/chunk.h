@@ -17,7 +17,7 @@
 // - Every chunk is eitehr 'free' or 'used'.
 
 // Every `Chunk` has a fixed size of exactly 1 MB
-#define CHUNK_SIZE (1 * 1024 * 1024)
+#define CHUNK_SIZE (2 * 1024 * 1024)
 #define CHUNK_HEADER_SIZE (sizeof(void *))
 
 typedef struct Chunk Chunk;

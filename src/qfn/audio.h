@@ -125,7 +125,7 @@ static v2 audio_sample(Audio *audio) {
         .wet = 0.9f,
         .dry = 1.0f,
     };
-    out = sound_freeverb2(sound, cfg, out * 0.5f) * 1.0f;
-    // out = sound_reverb3(sound, out * 0.5f) * 1.0f;
+    // out = sound_freeverb2(sound, cfg, out * 0.5f) * 1.0f;
+    out = sound_reverb3(sound, out * 0.5f) * 1.0f;
     return out;
 }
