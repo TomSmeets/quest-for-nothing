@@ -9,14 +9,12 @@
 #include "qfn/image.h"
 #include "qfn/mat.h"
 #include "qfn/monster_sprite.h"
-#include "qfn/sparse_set.h"
 #include "qfn/wall.h"
 
 typedef struct Monster Monster;
 
 // Idle -> Move -> Idle
 // Idle -> Attack -> Shoot -> Flee -> Idle
-//
 typedef enum {
     // Standing still
     Monster_State_Idle,
@@ -176,7 +174,6 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
 
     // Movement
     mon->pos += vel * dt;
-    // mon->pos.y -= dt;
 
     // Collision
     for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
