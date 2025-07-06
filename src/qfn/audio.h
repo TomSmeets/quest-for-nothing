@@ -20,6 +20,7 @@ typedef struct {
     bool mute;
     bool play_shoot;
     bool play_jump;
+    v3 pos;
 } Audio;
 
 // Play Jump sound
@@ -116,8 +117,8 @@ static v2 audio_sample(Audio *audio) {
     audio->play_jump = 0;
     audio->play_shoot = 0;
 
-    out.x += out_mono;
-    out.y += out_mono;
+    // out = (v2) { out_mono, out_mono };
+    out = sound_pan(sound, out_mono, audio->pos);
 
     Freeverb_Config cfg = {
         .room = 0.9f,
@@ -125,7 +126,8 @@ static v2 audio_sample(Audio *audio) {
         .wet = 0.9f,
         .dry = 1.0f,
     };
-    // out = sound_freeverb2(sound, cfg, out * 0.5f) * 1.0f;
-    out = sound_reverb3(sound, out * 0.5f) * 1.0f;
+
+    out = sound_freeverb2(sound, cfg, out * 0.5f) * 1.0f;
+    // out = sound_reverb3(sound, out * 0.5f) * 1.0f;
     return out;
 }

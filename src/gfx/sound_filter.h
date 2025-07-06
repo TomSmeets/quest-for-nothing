@@ -162,3 +162,44 @@ static v2 sound_reverb3(Sound *sound, v2 sample) {
 
     return out;
 }
+
+static f32 sound_delay(Sound *sound, f32 sample, f32 time, f32 max) {
+    if(time > max) time = max;
+    if(time < 0) time = 0;
+
+    u32 count = max * SOUND_SAMPLE_RATE + 1;
+    u32 offset = time * SOUND_SAMPLE_RATE;
+    if(offset >= count) offset = count - 1;
+
+    f32 *samples = sound_vars(sound, f32, count);
+
+    u32 *ix = sound_var(sound, u32);
+    if(*ix >= count) *ix = 0;
+    samples[*ix] = sample;
+    f32 out = samples[(*ix + count - offset) % count];
+
+    (*ix)++;
+    return out;
+}
+
+static v2 sound_pan(Sound *sound, f32 sample, v3 dir) {
+    f32 distance = v3_length(dir);
+    if(distance > 0) dir /= distance;
+
+    f32 scale = 0.6f / 1000 * 1;
+
+    f32 ang_right = f_max(-dir.x, 0);
+    f32 ang_left  = f_max(dir.x, 0);
+
+    // x=left, y=right
+    v2 out = 0;
+    out.x = sound_delay(sound, sample, ang_right * scale, scale);
+    out.y = sound_delay(sound, sample, ang_left  * scale, scale);
+
+    out.x += (sound_filter(sound, 2000, out.x).low_pass - out.x) * (ang_right - (dir.z + 1) / 2 * 0.5);
+    out.y += (sound_filter(sound, 2000, out.y).low_pass - out.y) * (ang_left - (dir.z + 1) / 2 * 0.5);
+
+    f32 attenuation = (distance);
+    if(attenuation > 1) out /= attenuation;
+    return out;
+}
