@@ -199,7 +199,7 @@ static v2 sound_pan(Sound *sound, f32 sample, v3 dir) {
     out.x += (sound_filter(sound, 2000, out.x).low_pass - out.x) * (ang_right - (dir.z + 1) / 2 * 0.5);
     out.y += (sound_filter(sound, 2000, out.y).low_pass - out.y) * (ang_left - (dir.z + 1) / 2 * 0.5);
 
-    f32 attenuation = (distance);
+    f32 attenuation = distance;
     if (attenuation > 1) out /= attenuation;
     return out;
 }

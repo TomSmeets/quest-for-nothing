@@ -3,9 +3,10 @@
 #pragma once
 #include "gfx/sound.h"
 #include "gfx/sound_filter.h"
-#include "lib/mutex.h"
 #include "lib/rand.h"
 #include "lib/types.h"
+#include "lib/mutex.h"
+#include "qfn/mat.h"
 
 // Sound System
 
@@ -16,6 +17,13 @@
 //   - Chords vs Melody
 // Inspiration
 //   - https://www.youtube.com/watch?v=J_FCCvNzbiY
+
+typedef struct {
+    bool active;
+    v3 pos;
+    f32 freq;
+} Audio_Effect;
+
 typedef struct {
     Mutex mutex;
     Sound snd;
@@ -23,6 +31,10 @@ typedef struct {
     bool play_shoot;
     bool play_jump;
     v3 pos;
+
+    u32 shoot_ix;
+    Audio_Effect shoot[4];
+    m4 inv_mtx;
 } Audio;
 
 // Play Jump sound
@@ -121,13 +133,23 @@ static v2 audio_sample(Audio *audio) {
     audio->play_jump = 0;
     audio->play_shoot = 0;
 
-    // out = (v2) { out_mono, out_mono };
     out = sound_pan(sound, out_mono, audio->pos);
 
+    for(u32 i = 0; i < array_count(audio->shoot); ++i) {
+        Audio_Effect *eff = audio->shoot + i;
+        f32 volume = sound_adsr(sound, eff->active, 100, 16.0, 0);
+        f32 noise = sound_saw(sound, eff->freq, 0)*.8 + sound_noise_white(sound) * .4 + sound_noise_freq(sound, NOTE_C, 0.5f);
+        f32 value = sound_lowpass(sound, NOTE_C, volume * noise);
+        out += sound_pan(sound, value, eff->pos);
+        eff->active = false;
+    }
+
+    // out = (v2) { out_mono, out_mono };
+
     Freeverb_Config cfg = {
-        .room = 0.9f,
+        .room = 0.8f,
         .damp = 0.2f,
-        .wet = 0.9f,
+        .wet = 0.5f,
         .dry = 1.0f,
     };
 

@@ -136,8 +136,16 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
 
     // Shoot
     else if (mon->state == Monster_State_Shoot) {
-        if (mon->shoot_timeout == 0) {
+        if (mon->shoot_timeout == 0 && rand_choice(G->rand, f_remap(player_dist, 0, 4, 1, 0))) {
             mon->shoot_timeout = 1.0f;
+
+            mutex_lock(&audio->mutex);
+            audio->shoot[audio->shoot_ix].active = true;
+            audio->shoot[audio->shoot_ix].pos = m4_mul_pos(audio->inv_mtx, mon->pos);
+            audio->shoot[audio->shoot_ix].freq = sound_scale(rand_u32(G->rand, 4*7, 5*7));
+            audio->shoot_ix = (audio->shoot_ix + 1) % array_count(audio->shoot);
+            mutex_unlock(&audio->mutex);
+
             // audio->play_shoot = 1;
         }
     }

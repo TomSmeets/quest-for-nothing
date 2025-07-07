@@ -59,6 +59,7 @@ typedef struct {
     f32 bob_phase;
 
     m4 camera;
+    m4 inv_camera;
     bool fly;
 } Player;
 
@@ -125,9 +126,15 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);
     if (input.shoot && player->shoot_timeout == 0) {
         player->shoot_timeout = 1;
-        audio->play_shoot = 1;
         player->screen_shake += .5;
         did_shoot = 1;
+
+        mutex_lock(&audio->mutex);
+        audio->shoot[audio->shoot_ix].active = true;
+        audio->shoot[audio->shoot_ix].pos = 0;
+        audio->shoot[audio->shoot_ix].freq = sound_scale(rand_u32(G->rand, 3*7, 4*7));
+        audio->shoot_ix = (audio->shoot_ix + 1) % array_count(audio->shoot);
+        mutex_unlock(&audio->mutex);
     }
 
     m4 mtx_body = m4_id();
@@ -168,6 +175,11 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
 
     m4_apply(&mtx_camera, mtx_head);
     player->camera = mtx_camera;
+    player->inv_camera = m4_invert_tr(player->camera);
+
+    mutex_lock(&audio->mutex);
+    audio->inv_mtx = player->inv_camera;
+    mutex_unlock(&audio->mutex);
 
     if (did_shoot) {
         u32 n = 32 * 4;
