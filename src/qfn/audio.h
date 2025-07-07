@@ -3,6 +3,7 @@
 #pragma once
 #include "gfx/sound.h"
 #include "gfx/sound_filter.h"
+#include "lib/mutex.h"
 #include "lib/rand.h"
 #include "lib/types.h"
 
@@ -16,6 +17,7 @@
 // Inspiration
 //   - https://www.youtube.com/watch?v=J_FCCvNzbiY
 typedef struct {
+    Mutex mutex;
     Sound snd;
     bool mute;
     bool play_shoot;
@@ -25,14 +27,16 @@ typedef struct {
 
 // Play Jump sound
 static void audio_jump(Audio *audio) {
-    // TODO: Mutex
+    mutex_lock(&audio->mutex);
     audio->play_jump = 1;
+    mutex_unlock(&audio->mutex);
 }
 
 // Play Gun shooting sound
 static void audio_shoot(Audio *audio) {
-    // TODO: Mutex
+    mutex_lock(&audio->mutex);
     audio->play_shoot = 1;
+    mutex_unlock(&audio->mutex);
 }
 
 static f32 music_note(Sound *sound, bool extra, bool down, f32 freq) {

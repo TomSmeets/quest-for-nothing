@@ -40,12 +40,11 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
     if (!app) return;
 
     Audio *audio = &app->game->audio;
-
-    // TODO: to cleanup we could reduce dependencies between sound, audio and music
-    // TODO: Split The synth from the game
+    mutex_lock(&audio->mutex);
     for (u32 i = 0; i < sample_count; ++i) {
         samples[i] = sound_clip2(audio_sample(audio));
     }
+    mutex_unlock(&audio->mutex);
 }
 
 static void os_main(void) {
