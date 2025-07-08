@@ -3,9 +3,9 @@
 #pragma once
 #include "gfx/sound.h"
 #include "gfx/sound_filter.h"
+#include "lib/mutex.h"
 #include "lib/rand.h"
 #include "lib/types.h"
-#include "lib/mutex.h"
 #include "qfn/mat.h"
 
 // Sound System
@@ -135,10 +135,10 @@ static v2 audio_sample(Audio *audio) {
 
     out = sound_pan(sound, out_mono, audio->pos);
 
-    for(u32 i = 0; i < array_count(audio->shoot); ++i) {
+    for (u32 i = 0; i < array_count(audio->shoot); ++i) {
         Audio_Effect *eff = audio->shoot + i;
         f32 volume = sound_adsr(sound, eff->active, 100, 16.0, 0);
-        f32 noise = sound_saw(sound, eff->freq, 0)*.8 + sound_noise_white(sound) * .4 + sound_noise_freq(sound, NOTE_C, 0.5f);
+        f32 noise = sound_saw(sound, eff->freq, 0) * .8 + sound_noise_white(sound) * .4 + sound_noise_freq(sound, NOTE_C, 0.5f);
         f32 value = sound_lowpass(sound, NOTE_C, volume * noise);
         out += sound_pan(sound, value, eff->pos);
         eff->active = false;

@@ -132,7 +132,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         mutex_lock(&audio->mutex);
         audio->shoot[audio->shoot_ix].active = true;
         audio->shoot[audio->shoot_ix].pos = 0;
-        audio->shoot[audio->shoot_ix].freq = sound_scale(rand_u32(G->rand, 3*7, 4*7));
+        audio->shoot[audio->shoot_ix].freq = sound_scale(rand_u32(G->rand, 3 * 7, 4 * 7));
         audio->shoot_ix = (audio->shoot_ix + 1) % array_count(audio->shoot);
         mutex_unlock(&audio->mutex);
     }
