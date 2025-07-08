@@ -1,12 +1,13 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sdl3.h - SDL3 wrapper for a single window with both audio and OpenGL
 #pragma once
-#include <SDL3/SDL.h>
+// #include <SDL3/SDL.h>
 
 // SDL3 include must go first
 #include "lib/fmt.h"
 #include "lib/mem.h"
 #include "qfn/input.h"
+#include "qfn/sdl3_api.h"
 
 #define AUDIO_SAMPLE_RATE 48000
 
