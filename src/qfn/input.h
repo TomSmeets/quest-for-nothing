@@ -80,11 +80,11 @@ typedef struct {
     Key key_event[32];
 
     bool mouse_moved;
-    v2i mouse_pos;
-    v2i mouse_rel;
+    v2 mouse_pos;
+    v2 mouse_rel;
 
     bool window_resized;
-    v2i window_size;
+    v2 window_size;
     bool focus_lost;
 
     // Events
