@@ -254,11 +254,11 @@ typedef u32 SDL_WindowID;
 typedef u32 SDL_MouseID;
 
 typedef u32 SDL_MouseButtonFlags;
-#define SDL_BUTTON_LEFT     1
-#define SDL_BUTTON_MIDDLE   2
-#define SDL_BUTTON_RIGHT    3
-#define SDL_BUTTON_X1       4
-#define SDL_BUTTON_X2       5
+#define SDL_BUTTON_LEFT 1
+#define SDL_BUTTON_MIDDLE 2
+#define SDL_BUTTON_RIGHT 3
+#define SDL_BUTTON_X1 4
+#define SDL_BUTTON_X2 5
 
 typedef u32 SDL_KeyboardID;
 typedef u16 SDL_Keymod;
@@ -604,4 +604,3 @@ typedef union {
 bool SDL_PollEvent(SDL_Event *event);
 bool SDL_SetWindowRelativeMouseMode(SDL_Window *window, bool enabled);
 bool SDL_GL_SwapWindow(SDL_Window *window);
-
