@@ -18,7 +18,6 @@ typedef struct {
     void (*audio_callback)(u32 count, v2 *output);
 } Sdl;
 
-
 static void sdl_audio_callback(u32 count, v2 *output);
 
 static v2 sample_buffer[1024];
@@ -26,7 +25,7 @@ static v2 sample_buffer[1024];
 static void sdl_audio_callback_wrapper(void *user, SDL_AudioStream *stream, int additional_amount, int total_amount) {
     Sdl *sdl = user;
     u32 total_sample_count = additional_amount / sizeof(v2);
-    while(total_sample_count > 0) {
+    while (total_sample_count > 0) {
         u32 sample_count = u_min(total_sample_count, array_count(sample_buffer));
         sdl->audio_callback(sample_count, sample_buffer);
         sdl->api.SDL_PutAudioStreamData(stream, sample_buffer, sample_count * sizeof(v2));
@@ -84,7 +83,8 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
         .channels = 2,
         .freq = AUDIO_SAMPLE_RATE,
     };
-    SDL_AudioStream *audio_stream = sdl->api.SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, sdl_audio_callback_wrapper, sdl);
+    SDL_AudioStream *audio_stream =
+        sdl->api.SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, sdl_audio_callback_wrapper, sdl);
     assert(audio_stream, "Failed to load Audio");
     sdl->audio_stream = audio_stream;
     sdl->audio_callback = sdl_audio_callback;
@@ -100,7 +100,7 @@ static void sdl_quit(Sdl *sdl) {
 }
 
 static u32 sdl_audio_needed(Sdl *sdl) {
-    u32 total  = AUDIO_SAMPLE_RATE / 30;
+    u32 total = AUDIO_SAMPLE_RATE / 30;
     u32 queued = sdl->api.SDL_GetAudioStreamQueued(sdl->audio_stream) / sizeof(v2);
     if (queued > total) return 0;
     return total - queued;
