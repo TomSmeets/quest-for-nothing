@@ -22,7 +22,6 @@ struct Watch {
 };
 
 static bool watch_add(Watch *watch, char *path) {
-    fmt_ss(G->fmt, "Watch: ", path, "\n");
     Memory *mem = mem_new();
     for (FS_Dir *dir = fs_list(mem, str_from(path)); dir; dir = dir->next) {
         if (!dir->is_dir) continue;
