@@ -176,7 +176,7 @@ static f32 sound_delay(Sound *sound, f32 sample, f32 time, f32 max) {
     u32 *ix = sound_var(sound, u32);
     if (*ix >= count) *ix = 0;
     samples[*ix] = sample;
-    
+
     u32 ix2 = *ix + count - offset;
     if (ix2 >= count) ix2 -= count;
 

@@ -142,7 +142,7 @@ static v2 audio_sample(Audio *audio) {
         eff->active = false;
     }
 
-    out += (v2) { out_mono, out_mono };
+    out += (v2){out_mono, out_mono};
 
     Freeverb_Config cfg = {
         .room = 0.8f,
