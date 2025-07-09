@@ -79,14 +79,14 @@ static void sdl_quit(Sdl *sdl) {
 }
 
 static u32 sdl_audio_needed(Sdl *sdl) {
-    u32 total = AUDIO_SAMPLE_RATE / 30;
-    u32 queued = sdl->api.SDL_GetAudioStreamQueued(sdl->audio_stream);
+    u32 total  = AUDIO_SAMPLE_RATE / 30;
+    u32 queued = sdl->api.SDL_GetAudioStreamQueued(sdl->audio_stream) / sizeof(v2);
     if (queued > total) return 0;
     return total - queued;
 }
 
 static void sdl_audio_put(Sdl *sdl, u32 sample_count, v2 *sample_list) {
-    assert0(sdl->api.SDL_PutAudioStreamData(sdl->audio_stream, sample_list, sample_count * sizeof(sample_list[0])));
+    assert0(sdl->api.SDL_PutAudioStreamData(sdl->audio_stream, sample_list, sample_count * sizeof(v2)));
 }
 
 static Input *sdl_poll(Sdl *sdl) {
