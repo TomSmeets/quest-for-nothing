@@ -176,15 +176,20 @@ static f32 sound_delay(Sound *sound, f32 sample, f32 time, f32 max) {
     u32 *ix = sound_var(sound, u32);
     if (*ix >= count) *ix = 0;
     samples[*ix] = sample;
-    f32 out = samples[(*ix + count - offset) % count];
+    
+    u32 ix2 = *ix + count - offset;
+    if (ix2 >= count) ix2 -= count;
+
+    f32 out = samples[ix2];
 
     (*ix)++;
     return out;
 }
 
 static v2 sound_pan(Sound *sound, f32 sample, v3 dir) {
-    f32 distance = v3_length(dir);
-    if (distance > 0) dir /= distance;
+    f32 distance_sq = v3_length_sq(dir);
+    f32 inv_distance = f_inv_sqrt(distance_sq);
+    dir *= inv_distance;
 
     f32 scale = 0.6f / 1000 * 1;
 
@@ -199,7 +204,7 @@ static v2 sound_pan(Sound *sound, f32 sample, v3 dir) {
     out.x += (sound_filter(sound, 2000, out.x).low_pass - out.x) * (ang_right - (dir.z + 1) / 2 * 0.5);
     out.y += (sound_filter(sound, 2000, out.y).low_pass - out.y) * (ang_left - (dir.z + 1) / 2 * 0.5);
 
-    f32 attenuation = distance;
-    if (attenuation > 1) out /= attenuation;
+    f32 gain = distance_sq == 0 ? 1 : inv_distance;
+    if (gain < 1) out *= gain;
     return out;
 }

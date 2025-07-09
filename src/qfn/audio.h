@@ -133,8 +133,6 @@ static v2 audio_sample(Audio *audio) {
     audio->play_jump = 0;
     audio->play_shoot = 0;
 
-    out = sound_pan(sound, out_mono, audio->pos);
-
     for (u32 i = 0; i < array_count(audio->shoot); ++i) {
         Audio_Effect *eff = audio->shoot + i;
         f32 volume = sound_adsr(sound, eff->active, 100, 16.0, 0);
@@ -144,7 +142,7 @@ static v2 audio_sample(Audio *audio) {
         eff->active = false;
     }
 
-    // out = (v2) { out_mono, out_mono };
+    out += (v2) { out_mono, out_mono };
 
     Freeverb_Config cfg = {
         .room = 0.8f,
