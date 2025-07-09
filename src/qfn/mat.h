@@ -310,9 +310,9 @@ static m44 m4_perspective_to_clip(m4 mtx, f32 vertical_fov, f32 aspect_x, f32 as
 
 // Screen to Clip coordinates (scaled only, 0,0 is center)
 // 0,0,0 -> 0,0,0
-static m44 m4_screen_to_clip(m4 mtx, v2i size) {
-    f32 sx = 2.0f / (f32)size.x;
-    f32 sy = 2.0f / (f32)size.y;
+static m44 m4_screen_to_clip(m4 mtx, v2 size) {
+    f32 sx = 2.0f / size.x;
+    f32 sy = 2.0f / size.y;
     f32 sz = 1.0f;
 
     // | sx  0  0  0 |

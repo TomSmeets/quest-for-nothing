@@ -57,7 +57,7 @@ typedef struct {
 typedef struct {
     Gfx_Imp *os;
     Packer *pack;
-    v2i viewport_size;
+    v2 viewport_size;
 
     Memory *tmp;
     Gfx_Pass_List pass_ui;
@@ -94,8 +94,8 @@ static Input *gfx_begin(Gfx *gfx) {
 
 static void gfx_end(Gfx *gfx, m4 camera) {
     m4 view = m4_invert_tr(camera);
-    f32 aspect_x = gfx->viewport_size.x > gfx->viewport_size.y ? (f32)gfx->viewport_size.x / (f32)gfx->viewport_size.y : 1;
-    f32 aspect_y = gfx->viewport_size.y > gfx->viewport_size.x ? (f32)gfx->viewport_size.y / (f32)gfx->viewport_size.x : 1;
+    f32 aspect_x = gfx->viewport_size.x > gfx->viewport_size.y ? gfx->viewport_size.x / gfx->viewport_size.y : 1;
+    f32 aspect_y = gfx->viewport_size.y > gfx->viewport_size.x ? gfx->viewport_size.y / gfx->viewport_size.x : 1;
 
     // 3d World
     m44 projection = m4_perspective_to_clip(view, 70, aspect_x, aspect_y, 0.1, 15.0);
@@ -165,6 +165,3 @@ static void gfx_quad_3d(Gfx *gfx, m4 mtx, Image *img) {
 
 static void gfx_set_grab(Gfx *gfx, bool grab);
 static void gfx_set_fullscreen(Gfx *gfx, bool full);
-
-static void gfx_audio_lock(Gfx *gfx);
-static void gfx_audio_unlock(Gfx *gfx);

@@ -97,10 +97,3 @@ v2 *js_audio_callback(u32 sample_count) {
     gfx_audio_callback(sample_count, GFX_GLOBAL.audio_buffer);
     return GFX_GLOBAL.audio_buffer;
 }
-
-static void gfx_audio_lock(Gfx *gfx) {
-    // No need for locking
-}
-
-static void gfx_audio_unlock(Gfx *gfx) {
-}

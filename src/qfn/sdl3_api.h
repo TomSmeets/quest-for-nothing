@@ -1,8 +1,8 @@
 // sdl3_api.h - SDL3 api header, only what we use to improve compilation speed
 #pragma once
+#include "lib/os_main.h"
 #include "lib/types.h"
 
-// ==== SDL Init ====
 typedef u32 SDL_InitFlags;
 #define SDL_INIT_AUDIO 0x00000010u
 #define SDL_INIT_VIDEO 0x00000020u
@@ -13,10 +13,6 @@ typedef u32 SDL_InitFlags;
 #define SDL_INIT_SENSOR 0x00008000u
 #define SDL_INIT_CAMERA 0x00010000u
 
-bool SDL_InitSubSystem(SDL_InitFlags flags);
-void SDL_Quit(void);
-
-// ==== SDL Window ====
 typedef u64 SDL_WindowFlags;
 #define SDL_WINDOW_FULLSCREEN 0x0000000000000001
 #define SDL_WINDOW_OPENGL 0x0000000000000002
@@ -46,10 +42,6 @@ typedef u64 SDL_WindowFlags;
 
 typedef struct SDL_Window SDL_Window;
 
-SDL_Window *SDL_CreateWindow(const char *title, int w, int h, SDL_WindowFlags flags);
-bool SDL_GetWindowSize(SDL_Window *window, int *w, int *h);
-
-// ==== SDL Video ====
 typedef enum {
     SDL_GL_RED_SIZE,
     SDL_GL_GREEN_SIZE,
@@ -89,13 +81,9 @@ typedef enum {
 #define SDL_GL_CONTEXT_PROFILE_CORE 0x0001          /**< OpenGL Core Profile context */
 #define SDL_GL_CONTEXT_PROFILE_COMPATIBILITY 0x0002 /**< OpenGL Compatibility Profile context */
 #define SDL_GL_CONTEXT_PROFILE_ES 0x0004            /**< GLX_CONTEXT_ES2_PROFILE_BIT_EXT */
-bool SDL_GL_SetAttribute(SDL_GLAttr attr, int value);
 
 typedef struct SDL_GLContextState *SDL_GLContext;
-SDL_GLContext SDL_GL_CreateContext(SDL_Window *window);
-bool SDL_GL_SetSwapInterval(int interval);
 
-// ==== SDL Audio ====
 typedef u32 SDL_AudioDeviceID;
 typedef struct SDL_AudioStream SDL_AudioStream;
 
@@ -123,11 +111,6 @@ typedef struct {
 #define SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK ((SDL_AudioDeviceID)0xFFFFFFFFu)
 
 typedef void (*SDL_AudioStreamCallback)(void *userdata, SDL_AudioStream *stream, int additional_amount, int total_amount);
-SDL_AudioStream *SDL_OpenAudioDeviceStream(SDL_AudioDeviceID devid, const SDL_AudioSpec *spec, SDL_AudioStreamCallback callback, void *userdata);
-SDL_AudioDeviceID SDL_GetAudioStreamDevice(SDL_AudioStream *stream);
-bool SDL_ResumeAudioDevice(SDL_AudioDeviceID devid);
-int SDL_GetAudioStreamQueued(SDL_AudioStream *stream);
-bool SDL_PutAudioStreamData(SDL_AudioStream *stream, const void *buf, int len);
 
 typedef enum {
     SDL_EVENT_FIRST = 0,
@@ -601,6 +584,48 @@ typedef union {
     u8 padding[128];
 } SDL_Event;
 
-bool SDL_PollEvent(SDL_Event *event);
-bool SDL_SetWindowRelativeMouseMode(SDL_Window *window, bool enabled);
-bool SDL_GL_SwapWindow(SDL_Window *window);
+typedef struct {
+    bool (*SDL_InitSubSystem)(SDL_InitFlags flags);
+    void (*SDL_Quit)(void);
+
+    SDL_AudioStream *(*SDL_OpenAudioDeviceStream)(
+        SDL_AudioDeviceID devid, const SDL_AudioSpec *spec, SDL_AudioStreamCallback callback, void *userdata
+    );
+    SDL_AudioDeviceID (*SDL_GetAudioStreamDevice)(SDL_AudioStream *stream);
+    bool (*SDL_ResumeAudioDevice)(SDL_AudioDeviceID devid);
+    int (*SDL_GetAudioStreamQueued)(SDL_AudioStream *stream);
+    bool (*SDL_PutAudioStreamData)(SDL_AudioStream *stream, const void *buf, int len);
+
+    SDL_Window *(*SDL_CreateWindow)(const char *title, int w, int h, SDL_WindowFlags flags);
+    bool (*SDL_GetWindowSize)(SDL_Window *window, int *w, int *h);
+
+    bool (*SDL_GL_SetAttribute)(SDL_GLAttr attr, int value);
+    SDL_GLContext (*SDL_GL_CreateContext)(SDL_Window *window);
+    bool (*SDL_GL_SetSwapInterval)(int interval);
+
+    bool (*SDL_PollEvent)(SDL_Event *event);
+    bool (*SDL_SetWindowRelativeMouseMode)(SDL_Window *window, bool enabled);
+    bool (*SDL_GL_SwapWindow)(SDL_Window *window);
+    bool (*SDL_SetWindowFullscreen)(SDL_Window *window, bool fullscreen);
+    void *(*SDL_GL_GetProcAddress)(const char *proc);
+} Sdl_Api;
+
+static void sdl_api_load(Sdl_Api *api, File *handle) {
+    api->SDL_InitSubSystem = os_dlsym(handle, S("SDL_InitSubSystem"));
+    api->SDL_Quit = os_dlsym(handle, S("SDL_Quit"));
+    api->SDL_OpenAudioDeviceStream = os_dlsym(handle, S("SDL_OpenAudioDeviceStream"));
+    api->SDL_GetAudioStreamDevice = os_dlsym(handle, S("SDL_GetAudioStreamDevice"));
+    api->SDL_ResumeAudioDevice = os_dlsym(handle, S("SDL_ResumeAudioDevice"));
+    api->SDL_GetAudioStreamQueued = os_dlsym(handle, S("SDL_GetAudioStreamQueued"));
+    api->SDL_PutAudioStreamData = os_dlsym(handle, S("SDL_PutAudioStreamData"));
+    api->SDL_CreateWindow = os_dlsym(handle, S("SDL_CreateWindow"));
+    api->SDL_GetWindowSize = os_dlsym(handle, S("SDL_GetWindowSize"));
+    api->SDL_GL_SetAttribute = os_dlsym(handle, S("SDL_GL_SetAttribute"));
+    api->SDL_GL_CreateContext = os_dlsym(handle, S("SDL_GL_CreateContext"));
+    api->SDL_GL_SetSwapInterval = os_dlsym(handle, S("SDL_GL_SetSwapInterval"));
+    api->SDL_PollEvent = os_dlsym(handle, S("SDL_PollEvent"));
+    api->SDL_SetWindowRelativeMouseMode = os_dlsym(handle, S("SDL_SetWindowRelativeMouseMode"));
+    api->SDL_GL_SwapWindow = os_dlsym(handle, S("SDL_GL_SwapWindow"));
+    api->SDL_SetWindowFullscreen = os_dlsym(handle, S("SDL_SetWindowFullscreen"));
+    api->SDL_GL_GetProcAddress = os_dlsym(handle, S("SDL_GL_GetProcAddress"));
+}

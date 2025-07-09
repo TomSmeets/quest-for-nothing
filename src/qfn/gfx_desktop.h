@@ -3,7 +3,7 @@
 #pragma once
 #include "qfn/gfx.h"
 #include "qfn/ogl_api.h"
-#include "qfn/sdl.h"
+#include "qfn/sdl3.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
 #embed "qfn/gl_shader.vert"
@@ -109,7 +109,7 @@ static Gfx_Imp *gfx_imp_init(Memory *mem, char *title) {
     OGL_Api *gl = &gfx->gl;
 
     // Load SDL2
-    File *lib = os_dlopen(OS_IS_LINUX ? S("libSDL2.so") : S("SDL2.dll"));
+    File *lib = os_dlopen(OS_IS_LINUX ? S("libSDL3.so") : S("SDL3.dll"));
     gfx->sdl = sdl_load(mem, lib, title);
 
     // Load OpenGL function pointers
@@ -189,22 +189,13 @@ static Input *gfx_imp_begin(Gfx_Imp *gfx) {
     return input;
 }
 
-static void gfx_audio_lock(Gfx *gfx) {
-    gfx->os->sdl->api.SDL_LockAudio();
-}
-
-static void gfx_audio_unlock(Gfx *gfx) {
-    gfx->os->sdl->api.SDL_UnlockAudio();
-}
-
 // Grab mouse
 static void gfx_set_grab(Gfx *gfx, bool grab) {
     sdl_set_mouse_grab(gfx->os->sdl, grab);
 }
 
-static void gfx_set_fullscreen(Gfx *gfx, bool full) {
-    gfx->os->sdl->api.SDL_SetWindowFullscreen(gfx->os->sdl->win, full ? SDL_WINDOW_FULLSCREEN : 0);
-    gfx->os->sdl->input.is_fullscreen = full;
+static void gfx_set_fullscreen(Gfx *gfx, bool fullscreen) {
+    sdl_set_fullscreen(gfx->os->sdl, fullscreen);
 }
 
 // Write to texture atlas
