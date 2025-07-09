@@ -180,12 +180,12 @@ static bool build_all(App *app, Cli *cli) {
     opts.output_path = "out/release/quest_for_nothing.wasm";
     if (!clang_compile(app->mem, opts)) os_exit(1);
 
-    // Download sdl2
-    if (!fs_exists(S("out/SDL2.dll"))) {
-        os_system(S("curl -L -o out/SDL2.zip https://github.com/libsdl-org/SDL/releases/download/release-2.30.6/SDL2-2.30.6-win32-x64.zip"));
-        os_system(S("cd out/ && unzip SDL2.zip SDL2.dll"));
+    // Download SDL3
+    if (!fs_exists(S("out/SDL3.dll"))) {
+        os_system(S("curl -L -o out/SDL3.zip https://github.com/libsdl-org/SDL/releases/download/release-3.2.16/SDL3-3.2.16-win32-x64.zip"));
+        os_system(S("cd out/ && unzip SDL3.zip SDL3.dll"));
     }
-    os_system(S("cp out/SDL2.dll out/release/SDL2.dll"));
+    os_system(S("cp out/SDL3.dll out/release/SDL3.dll"));
     os_system(S("cp src/lib/*.js out/release/"));
     os_system(S("cp src/qfn/os_wasm.html out/release/index.html"));
 
