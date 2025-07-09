@@ -15,41 +15,68 @@ typedef struct {
     SDL_GLContext gl_context;
     SDL_AudioStream *audio_stream;
     Input input;
+    void (*audio_callback)(u32 count, v2 *output);
 } Sdl;
 
+
+static void sdl_audio_callback(u32 count, v2 *output);
+
+static v2 sample_buffer[1024];
+
+static void sdl_audio_callback_wrapper(void *user, SDL_AudioStream *stream, int additional_amount, int total_amount) {
+    Sdl *sdl = user;
+    u32 total_sample_count = additional_amount / sizeof(v2);
+    while(total_sample_count > 0) {
+        u32 sample_count = u_min(total_sample_count, array_count(sample_buffer));
+        sdl->audio_callback(sample_count, sample_buffer);
+        sdl->api.SDL_PutAudioStreamData(stream, sample_buffer, sample_count * sizeof(v2));
+        total_sample_count -= sample_count;
+    }
+}
+
 static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
-    Sdl_Api api = {};
-    sdl_api_load(&api, handle);
+    Sdl *sdl = mem_struct(mem, Sdl);
+    sdl_api_load(&sdl->api, handle);
+
+#if OS_IS_LINUX
+    // Use wayland if possible
+    // See: https://www.phoronix.com/news/SDL2-Reverts-Wayland-Default
+    sdl->api.SDL_SetHint("SDL_VIDEO_DRIVER", "wayland,x11");
+#endif
 
     // Init SDL3 subsystems
-    assert0(api.SDL_InitSubSystem(SDL_INIT_EVENTS));
-    assert0(api.SDL_InitSubSystem(SDL_INIT_AUDIO));
-    assert0(api.SDL_InitSubSystem(SDL_INIT_VIDEO));
-    assert0(api.SDL_InitSubSystem(SDL_INIT_GAMEPAD));
+    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_EVENTS));
+    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_AUDIO));
+    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_VIDEO));
+    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_GAMEPAD));
 
     // Configure OpenGL before creating the window
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3));
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3));
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG));
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
-    assert0(api.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
+    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4));
 
     // Create window
-    SDL_Window *window = api.SDL_CreateWindow(title, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window *window = sdl->api.SDL_CreateWindow(title, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     assert(window, "Failed to create SDL Window");
+    sdl->window = window;
 
     // Load OpenGL context
-    SDL_GLContext gl_context = api.SDL_GL_CreateContext(window);
+    SDL_GLContext gl_context = sdl->api.SDL_GL_CreateContext(window);
     assert(gl_context, "Failed to create OpenGL 3.3 Context");
+    sdl->gl_context = gl_context;
 
     // Disable VSync
-    assert(api.SDL_GL_SetSwapInterval(0), "Failed to disable VSync");
+    assert(sdl->api.SDL_GL_SetSwapInterval(0), "Failed to disable VSync");
 
     // Get Initial window size
     int window_size_x = 0, window_size_y = 0;
-    assert0(api.SDL_GetWindowSize(window, &window_size_x, &window_size_y));
+    assert0(sdl->api.SDL_GetWindowSize(window, &window_size_x, &window_size_y));
+    sdl->input.window_size.x = window_size_x;
+    sdl->input.window_size.y = window_size_y;
 
     // Load Audio
     const SDL_AudioSpec audio_spec = {
@@ -57,20 +84,14 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
         .channels = 2,
         .freq = AUDIO_SAMPLE_RATE,
     };
-    SDL_AudioStream *audio_stream = api.SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, 0, 0);
+    SDL_AudioStream *audio_stream = sdl->api.SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, sdl_audio_callback_wrapper, sdl);
     assert(audio_stream, "Failed to load Audio");
+    sdl->audio_stream = audio_stream;
+    sdl->audio_callback = sdl_audio_callback;
 
     // Start Audio
-    SDL_AudioDeviceID audio_device = api.SDL_GetAudioStreamDevice(audio_stream);
-    assert0(api.SDL_ResumeAudioDevice(audio_device));
-
-    Sdl *sdl = mem_struct(mem, Sdl);
-    sdl->api = api;
-    sdl->window = window;
-    sdl->gl_context = gl_context;
-    sdl->audio_stream = audio_stream;
-    sdl->input.window_size.x = window_size_x;
-    sdl->input.window_size.y = window_size_y;
+    SDL_AudioDeviceID audio_device = sdl->api.SDL_GetAudioStreamDevice(audio_stream);
+    assert0(sdl->api.SDL_ResumeAudioDevice(audio_device));
     return sdl;
 }
 
@@ -90,6 +111,9 @@ static void sdl_audio_put(Sdl *sdl, u32 sample_count, v2 *sample_list) {
 }
 
 static Input *sdl_poll(Sdl *sdl) {
+    // Update audio callback
+    if (G->reloaded) sdl->audio_callback = sdl_audio_callback;
+
     Input *input = &sdl->input;
     input_reset(input);
 

@@ -608,6 +608,7 @@ typedef struct {
     bool (*SDL_GL_SwapWindow)(SDL_Window *window);
     bool (*SDL_SetWindowFullscreen)(SDL_Window *window, bool fullscreen);
     void *(*SDL_GL_GetProcAddress)(const char *proc);
+    bool (*SDL_SetHint)(const char *name, const char *value);
 } Sdl_Api;
 
 static void sdl_api_load(Sdl_Api *api, File *handle) {
@@ -628,4 +629,5 @@ static void sdl_api_load(Sdl_Api *api, File *handle) {
     api->SDL_GL_SwapWindow = os_dlsym(handle, S("SDL_GL_SwapWindow"));
     api->SDL_SetWindowFullscreen = os_dlsym(handle, S("SDL_SetWindowFullscreen"));
     api->SDL_GL_GetProcAddress = os_dlsym(handle, S("SDL_GL_GetProcAddress"));
+    api->SDL_SetHint = os_dlsym(handle, S("SDL_SetHint"));
 }
