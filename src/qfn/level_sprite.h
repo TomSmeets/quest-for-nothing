@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // level_sprite.h - Generate artwork for spaceship walls
 #pragma once
+#include "gfx/color.h"
+#include "gfx/color_rand.h"
 #include "lib/math.h"
 #include "lib/rand.h"
-#include "qfn/color.h"
-#include "qfn/color_rand.h"
 #include "qfn/image.h"
 
 static void color_splatter(v3 *color, Rand *rng, v3 tint, f32 chance, f32 min, f32 max) {

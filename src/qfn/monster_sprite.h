@@ -1,12 +1,12 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // monster_sprite.h - Generate Sprites for Aliens
 #pragma once
+#include "gfx/color.h"
+#include "gfx/color_rand.h"
 #include "lib/math.h"
 #include "lib/mem.h"
 #include "lib/rand.h"
 #include "lib/vec.h"
-#include "qfn/color.h"
-#include "qfn/color_rand.h"
 #include "qfn/image.h"
 #include "qfn/mat.h"
 
