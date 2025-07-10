@@ -1,12 +1,12 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // collision.h - 3d Collision Math
 #pragma once
+#include "lib/mat.h"
 #include "lib/mem.h"
 #include "lib/vec.h"
 #include "qfn/box.h"
 #include "qfn/box_shapes.h"
 #include "qfn/image.h"
-#include "qfn/mat.h"
 
 // Centered quad facing +z
 typedef struct {

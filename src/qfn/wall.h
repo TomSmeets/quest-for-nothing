@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // wall.h - A Quad in 3d space
 #pragma once
+#include "lib/mat.h"
 #include "qfn/collision.h"
 #include "qfn/engine.h"
 #include "qfn/image.h"
-#include "qfn/mat.h"
 #include "qfn/monster_sprite.h"
 
 typedef struct Wall Wall;

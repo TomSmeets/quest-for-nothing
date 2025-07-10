@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // engine.h - Immediate Mode Game Engine
 #pragma once
+#include "gfx/input.h"
 #include "lib/rand.h"
 #include "qfn/gfx.h"
 #include "qfn/gfx_debug.h"
-#include "qfn/input.h"
 #include "qfn/time.h"
 #include "qfn/ui.h"
 

@@ -3,10 +3,10 @@
 #pragma once
 #include "gfx/sound.h"
 #include "gfx/sound_filter.h"
+#include "lib/mat.h"
 #include "lib/mutex.h"
 #include "lib/rand.h"
 #include "lib/types.h"
-#include "qfn/mat.h"
 
 // Sound System
 

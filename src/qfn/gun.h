@@ -1,7 +1,7 @@
 #pragma once
+#include "gfx/color_rand.h"
 #include "lib/mem.h"
 #include "lib/rand.h"
-#include "qfn/color_rand.h"
 #include "qfn/image.h"
 
 static Image *gun_new(Memory *mem, Rand *rng) {

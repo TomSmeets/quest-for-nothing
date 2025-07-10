@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// time.h - Accurate frame timing calcuation
+// time.h - Accurate frame timing calculation
 #pragma once
 #include "lib/fmt.h"
 #include "lib/os_main.h"

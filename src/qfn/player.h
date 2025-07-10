@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // player.h - The player character
 #pragma once
+#include "gfx/input.h"
 #include "lib/vec.h"
 #include "qfn/audio.h"
 #include "qfn/collision.h"
 #include "qfn/engine.h"
-#include "qfn/input.h"
 #include "qfn/monster.h"
 #include "qfn/wall.h"
 

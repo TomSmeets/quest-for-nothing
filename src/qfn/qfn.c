@@ -1,5 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
+#include "gfx/input.h"
 #include "lib/global.h"
 #include "lib/math.h"
 #include "lib/os_main.h"
@@ -8,7 +9,6 @@
 #include "qfn/game.h"
 #include "qfn/gfx.h"
 #include "qfn/gfx_impl.h"
-#include "qfn/input.h"
 
 struct App {
     // Permanent Game memory (allocate only)
