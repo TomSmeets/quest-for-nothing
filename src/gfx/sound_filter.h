@@ -137,32 +137,6 @@ static v2 sound_freeverb2(Sound *sound, Freeverb_Config cfg, v2 input) {
     return (v2){out_l, out_r};
 }
 
-__attribute__((aligned(16))) static const u8 SOUND_REVERB_IR[] = {
-#embed "gfx/sound_ir.f32"
-};
-
-static v2 sound_reverb3(Sound *sound, v2 sample) {
-    const v2 *buffer = (v2 *)SOUND_REVERB_IR;
-    const u32 count = sizeof(SOUND_REVERB_IR) / sizeof(v2) / 8;
-
-    v2 *samples = sound_vars(sound, v2, count);
-    u32 *ix = sound_var(sound, u32);
-    if (*ix >= count) *ix = 0;
-
-    v2 out = 0;
-    for (u32 i = 0; i < count; i += 4) {
-        u32 j = *ix + count - i;
-        if (j >= count) j -= count;
-        out += samples[j] * buffer[i];
-    }
-
-    // Write sample
-    samples[*ix] = sample;
-    (*ix)++;
-
-    return out;
-}
-
 static f32 sound_delay(Sound *sound, f32 sample, f32 time, f32 max) {
     if (time > max) time = max;
     if (time < 0) time = 0;
