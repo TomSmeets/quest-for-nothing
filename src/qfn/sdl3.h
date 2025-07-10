@@ -10,7 +10,7 @@
 #define AUDIO_SAMPLE_RATE 48000
 
 typedef struct {
-    Sdl_Api api;
+    Sdl_Api sdl;
     SDL_Window *window;
     SDL_GLContext gl_context;
     SDL_AudioStream *audio_stream;
@@ -28,52 +28,52 @@ static void sdl_audio_callback_wrapper(void *user, SDL_AudioStream *stream, int 
     while (total_sample_count > 0) {
         u32 sample_count = u_min(total_sample_count, array_count(sample_buffer));
         sdl->audio_callback(sample_count, sample_buffer);
-        sdl->api.SDL_PutAudioStreamData(stream, sample_buffer, sample_count * sizeof(v2));
+        sdl->sdl.SDL_PutAudioStreamData(stream, sample_buffer, sample_count * sizeof(v2));
         total_sample_count -= sample_count;
     }
 }
 
 static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
     Sdl *sdl = mem_struct(mem, Sdl);
-    sdl_api_load(&sdl->api, handle);
+    sdl_api_load(&sdl->sdl, handle);
 
 #if OS_IS_LINUX
     // Use wayland if possible
     // See: https://www.phoronix.com/news/SDL2-Reverts-Wayland-Default
-    sdl->api.SDL_SetHint("SDL_VIDEO_DRIVER", "wayland,x11");
+    sdl->sdl.SDL_SetHint("SDL_VIDEO_DRIVER", "wayland,x11");
 #endif
 
     // Init SDL3 subsystems
-    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_EVENTS));
-    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_AUDIO));
-    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_VIDEO));
-    assert0(sdl->api.SDL_InitSubSystem(SDL_INIT_GAMEPAD));
+    assert0(sdl->sdl.SDL_InitSubSystem(SDL_INIT_EVENTS));
+    assert0(sdl->sdl.SDL_InitSubSystem(SDL_INIT_AUDIO));
+    assert0(sdl->sdl.SDL_InitSubSystem(SDL_INIT_VIDEO));
+    assert0(sdl->sdl.SDL_InitSubSystem(SDL_INIT_GAMEPAD));
 
     // Configure OpenGL before creating the window
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3));
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3));
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG));
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
-    assert0(sdl->api.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG | SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1));
+    assert0(sdl->sdl.SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 4));
 
     // Create window
-    SDL_Window *window = sdl->api.SDL_CreateWindow(title, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+    SDL_Window *window = sdl->sdl.SDL_CreateWindow(title, 800, 600, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     assert(window, "Failed to create SDL Window");
     sdl->window = window;
 
     // Load OpenGL context
-    SDL_GLContext gl_context = sdl->api.SDL_GL_CreateContext(window);
+    SDL_GLContext gl_context = sdl->sdl.SDL_GL_CreateContext(window);
     assert(gl_context, "Failed to create OpenGL 3.3 Context");
     sdl->gl_context = gl_context;
 
     // Disable VSync
-    assert(sdl->api.SDL_GL_SetSwapInterval(0), "Failed to disable VSync");
+    assert(sdl->sdl.SDL_GL_SetSwapInterval(0), "Failed to disable VSync");
 
     // Get Initial window size
     int window_size_x = 0, window_size_y = 0;
-    assert0(sdl->api.SDL_GetWindowSize(window, &window_size_x, &window_size_y));
+    assert0(sdl->sdl.SDL_GetWindowSize(window, &window_size_x, &window_size_y));
     sdl->input.window_size.x = window_size_x;
     sdl->input.window_size.y = window_size_y;
 
@@ -84,30 +84,30 @@ static Sdl *sdl_load(Memory *mem, File *handle, char *title) {
         .freq = AUDIO_SAMPLE_RATE,
     };
     SDL_AudioStream *audio_stream =
-        sdl->api.SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, sdl_audio_callback_wrapper, sdl);
+        sdl->sdl.SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &audio_spec, sdl_audio_callback_wrapper, sdl);
     assert(audio_stream, "Failed to load Audio");
     sdl->audio_stream = audio_stream;
     sdl->audio_callback = sdl_audio_callback;
 
     // Start Audio
-    SDL_AudioDeviceID audio_device = sdl->api.SDL_GetAudioStreamDevice(audio_stream);
-    assert0(sdl->api.SDL_ResumeAudioDevice(audio_device));
+    SDL_AudioDeviceID audio_device = sdl->sdl.SDL_GetAudioStreamDevice(audio_stream);
+    assert0(sdl->sdl.SDL_ResumeAudioDevice(audio_device));
     return sdl;
 }
 
 static void sdl_quit(Sdl *sdl) {
-    sdl->api.SDL_Quit();
+    sdl->sdl.SDL_Quit();
 }
 
 static u32 sdl_audio_needed(Sdl *sdl) {
     u32 total = AUDIO_SAMPLE_RATE / 30;
-    u32 queued = sdl->api.SDL_GetAudioStreamQueued(sdl->audio_stream) / sizeof(v2);
+    u32 queued = sdl->sdl.SDL_GetAudioStreamQueued(sdl->audio_stream) / sizeof(v2);
     if (queued > total) return 0;
     return total - queued;
 }
 
 static void sdl_audio_put(Sdl *sdl, u32 sample_count, v2 *sample_list) {
-    assert0(sdl->api.SDL_PutAudioStreamData(sdl->audio_stream, sample_list, sample_count * sizeof(v2)));
+    assert0(sdl->sdl.SDL_PutAudioStreamData(sdl->audio_stream, sample_list, sample_count * sizeof(v2)));
 }
 
 static Input *sdl_poll(Sdl *sdl) {
@@ -118,7 +118,7 @@ static Input *sdl_poll(Sdl *sdl) {
     input_reset(input);
 
     SDL_Event event;
-    while (sdl->api.SDL_PollEvent(&event)) {
+    while (sdl->sdl.SDL_PollEvent(&event)) {
         switch (event.type) {
         case SDL_EVENT_QUIT: {
             input->quit = 1;
@@ -179,15 +179,15 @@ static Input *sdl_poll(Sdl *sdl) {
 }
 
 static void sdl_swap_window(Sdl *sdl) {
-    sdl->api.SDL_GL_SwapWindow(sdl->window);
+    sdl->sdl.SDL_GL_SwapWindow(sdl->window);
 }
 
 static void sdl_set_mouse_grab(Sdl *sdl, bool grab) {
     sdl->input.mouse_is_grabbed = grab;
-    sdl->api.SDL_SetWindowRelativeMouseMode(sdl->window, grab);
+    sdl->sdl.SDL_SetWindowRelativeMouseMode(sdl->window, grab);
 }
 
 static void sdl_set_fullscreen(Sdl *sdl, bool fullscreen) {
     sdl->input.is_fullscreen = fullscreen;
-    sdl->api.SDL_SetWindowFullscreen(sdl->window, fullscreen);
+    sdl->sdl.SDL_SetWindowFullscreen(sdl->window, fullscreen);
 }
