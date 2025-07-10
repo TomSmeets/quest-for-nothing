@@ -1,6 +1,6 @@
 #pragma once
+#include "gfx/box.h"
 #include "lib/mat.h"
-#include "qfn/box.h"
 
 static Box box_from_quad(m4 mtx) {
     v3 p0 = m4_mul_pos(mtx, (v3){-0.5, -0.5, 0});

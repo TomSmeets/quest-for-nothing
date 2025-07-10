@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_debug.h - Debug primitives for visualising vectors and matricies
 #pragma once
-#include "qfn/box.h"
+#include "gfx/box.h"
 #include "qfn/gfx.h"
 #include "qfn/image.h"
 

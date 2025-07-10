@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_desktop.h - GFX Platform implementation for Windows and Linux
 #pragma once
+#include "gfx/ogl_api.h"
 #include "qfn/gfx.h"
-#include "qfn/ogl_api.h"
 #include "qfn/sdl3.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
