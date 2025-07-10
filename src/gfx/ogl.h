@@ -1,7 +1,7 @@
 #pragma once
 #include "gfx/ogl_api.h"
-#include "lib/types.h"
 #include "lib/fmt.h"
+#include "lib/types.h"
 
 static GLuint ogl_compile_shader(OGL_Api *gl, GLenum type, char *source) {
     GLuint shader = gl->glCreateShader(type);
@@ -53,7 +53,6 @@ static GLuint ogl_program_compile_and_link(OGL_Api *gl, char *vert, char *frag) 
     gl->glDeleteShader(frag_shader);
     return shader_program;
 }
-
 
 // Prevent spam
 static u32 ogl_prev_message_index;
