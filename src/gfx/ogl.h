@@ -2,6 +2,7 @@
 #include "gfx/ogl_api.h"
 #include "lib/fmt.h"
 #include "lib/types.h"
+#include "lib/vec.h"
 
 static GLuint ogl_compile_shader(OGL_Api *gl, GLenum type, char *source) {
     GLuint shader = gl->glCreateShader(type);
@@ -79,4 +80,13 @@ static void ogl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum sev
 static void ogl_enable_debug(OGL_Api *gl) {
     gl->glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
     gl->glDebugMessageCallbackARB(ogl_debug_callback, 0);
+}
+
+// Calculate aspect ration in x and y
+static v2 ogl_aspect(v2 size) {
+    if (size.x > size.y) {
+        return (v2){size.x / size.y, 1};
+    } else {
+        return (v2){1, size.y / size.x};
+    }
 }

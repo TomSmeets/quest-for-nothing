@@ -4,6 +4,7 @@
 #include "gfx/sdl3_api.h"
 #include "gfx/ogl_api.h"
 #include "gfx/ogl.h"
+#include "qfn/texture_packer.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
 #embed "qfn/gl_shader.vert"
@@ -25,6 +26,14 @@ typedef struct {
 } Gfx_Quad;
 
 #define GFX_ATLAS_SIZE 4096
+
+typedef struct Gfx_Pass Gfx_Pass;
+
+struct Gfx_Pass {
+    Image *img;
+    m4 mtx;
+    Gfx_Pass *next;
+};
 
 struct Gfx {
     Input input;
@@ -51,10 +60,10 @@ struct Gfx {
 
     // Texture
     GLuint texture;
+    Gfx_Pass *pass_3d;
+    Gfx_Pass *pass_ui;
 
-    u32 quad_count;
-    u32 quad_cap;
-    Gfx_Quad *quad_list;
+    Memory *tmp;
 };
 
 static void sdl_audio_callback_wrapper(void *user, SDL_AudioStream *stream, int additional_amount, int total_amount) {
@@ -185,9 +194,6 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     gl->glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     gl->glEnable(GL_SAMPLE_SHADING);
     gl->glMinSampleShading(1);
-
-    gfx->quad_cap = 1024;
-    gfx->quad_list = mem_array_uninit(mem, Gfx_Quad, gfx->quad_cap);
     return gfx;
 }
 
@@ -196,6 +202,8 @@ static void gfx_quit(Gfx *gfx) {
 }
 
 static Input *gfx_begin(Gfx *gfx) {
+    gfx->tmp = mem_new();
+
     // Update audio callback
     if (G->reloaded || !gfx->audio_callback) gfx->audio_callback = gfx_audio_callback;
 
@@ -273,14 +281,30 @@ static Input *gfx_begin(Gfx *gfx) {
 
 // Draw image during render
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
+    Gfx_Pass *pass = mem_struct(gfx->tmp, Gfx_Pass);
+    pass->mtx = mtx;
+    pass->img = img;
+    if(depth) {
+        pass->next = gfx->pass_3d;
+        gfx->pass_3d = pass;
+    } else {
+        pass->next = gfx->pass_ui;
+        gfx->pass_ui = pass;
+    }
 }
 
-static v2 ogl_aspect(v2 size) {
-    if(size.x > size.y) {
-        return (v2) { size.x / size.y, 1 };
-    } else {
-        return (v2) { 1, size.y / size.x };
-    }
+static Gfx_Quad gfx_quad_from_mtx(m4 mtx, v2u pos, v2u size) {
+    return (Gfx_Quad){
+        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
+        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
+        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
+        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
+        .uv_pos = {(f32)pos.x / GFX_ATLAS_SIZE, (f32)pos.y / GFX_ATLAS_SIZE},
+        .uv_size = {(f32)size.x / GFX_ATLAS_SIZE, (f32)size.y / GFX_ATLAS_SIZE},
+    };
+}
+
+static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
 }
 
 static void gfx_end(Gfx *gfx, m4 camera) {
@@ -295,8 +319,19 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     gl->glViewport(0, 0, gfx->input.window_size.x, gfx->input.window_size.y);
     gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+    u32 quad_cap = 1024;
+    Gfx_Quad *quad_list = mem_array_uninit(gfx->tmp, Gfx_Quad, quad_cap);
     u32 quad_count = 0;
-    Gfx_Quad quad_list[1];
+
+    Packer *pack = packer_new(GFX_ATLAS_SIZE);
+    for (Gfx_Pass *pass = gfx->pass_3d; pass; pass = pass->next) {
+        if (quad_count == quad_cap) break;
+        Packer_Area *area = packer_get_new(pack, pass->img);
+        v2u img_size = pass->img->size;
+        gfx->gl.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img_size.x, img_size.y, GL_RGBA, GL_FLOAT, pass->img->pixels);
+        quad_list[quad_count++] = gfx_quad_from_mtx(pass->mtx, area->pos, pass->img->size);
+    }
+    packer_free(pack);
 
     gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
     gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
@@ -305,6 +340,11 @@ static void gfx_end(Gfx *gfx, m4 camera) {
 
     // Swap
     sdl->SDL_GL_SwapWindow(gfx->window);
+
+    mem_free(gfx->tmp);
+    gfx->tmp = 0;
+    gfx->pass_3d = 0;
+    gfx->pass_ui = 0;
 }
 
 // Set mouse grab

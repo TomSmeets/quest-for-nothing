@@ -15,6 +15,8 @@ struct App {
     f32 volume2;
     f32 pitch;
     Mutex mutex;
+
+    f32 angle;
 };
 
 static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
@@ -66,11 +68,18 @@ static void os_main(void) {
     mutex_unlock(&app->mutex);
 
     Image *img = image_new(tmp, (v2u){16,16});
+    image_grid(img, (v4){1, 0, 0, 1}, (v4){0, 1, 0, 1});
+
     m4 mtx = m4_id();
-    gfx_draw(app->gfx, false, mtx, img);
+    m4_rotate_z(&mtx, app->angle);
+    gfx_draw(app->gfx, 1, mtx, img);
 
     m4 camera = m4_id();
+    m4_rotate_y(&camera, R2);
+    m4_translate_z(&camera, 1);
     gfx_end(app->gfx, camera);
+
+    app->angle += 0.1;
 
     mem_free(tmp);
 }
