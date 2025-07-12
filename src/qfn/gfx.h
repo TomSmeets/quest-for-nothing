@@ -7,7 +7,7 @@
 #include "lib/math.h"
 #include "lib/os_main.h"
 #include "lib/vec.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 #include "qfn/texture_packer.h"
 
 #define GFX_ATLAS_SIZE 4096

@@ -5,7 +5,7 @@
 #include "gfx/color_rand.h"
 #include "lib/math.h"
 #include "lib/rand.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 
 static void color_splatter(v3 *color, Rand *rng, v3 tint, f32 chance, f32 min, f32 max) {
     if (!rand_choice(rng, chance)) return;

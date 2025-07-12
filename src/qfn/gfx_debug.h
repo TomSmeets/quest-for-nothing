@@ -3,7 +3,7 @@
 #pragma once
 #include "gfx/box.h"
 #include "qfn/gfx.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 
 typedef struct {
     // X,Y and Z colors

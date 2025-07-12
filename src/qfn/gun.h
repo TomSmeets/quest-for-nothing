@@ -2,7 +2,7 @@
 #include "gfx/color_rand.h"
 #include "lib/mem.h"
 #include "lib/rand.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 
 static Image *gun_new(Memory *mem, Rand *rng) {
     u32 length = 8;

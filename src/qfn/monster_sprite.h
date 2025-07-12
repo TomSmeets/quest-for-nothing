@@ -8,7 +8,7 @@
 #include "lib/mem.h"
 #include "lib/rand.h"
 #include "lib/vec.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 
 typedef struct {
     // Left and right eye positions

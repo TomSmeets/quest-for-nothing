@@ -4,7 +4,7 @@
 #include "lib/mat.h"
 #include "qfn/collision.h"
 #include "qfn/engine.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 #include "qfn/monster_sprite.h"
 
 typedef struct Wall Wall;

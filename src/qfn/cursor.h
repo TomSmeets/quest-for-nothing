@@ -4,7 +4,7 @@
 #include "lib/math.h"
 #include "qfn/engine.h"
 #include "qfn/gfx.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/ui.h"
 

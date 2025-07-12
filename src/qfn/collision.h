@@ -6,7 +6,7 @@
 #include "lib/mat.h"
 #include "lib/mem.h"
 #include "lib/vec.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 
 // Centered quad facing +z
 typedef struct {

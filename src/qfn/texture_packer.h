@@ -3,7 +3,7 @@
 #pragma once
 #include "lib/mem.h"
 #include "lib/vec.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 
 // A region in a texture atlas
 typedef struct Packer_Area {

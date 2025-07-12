@@ -5,7 +5,7 @@
 #include "lib/rand.h"
 #include "lib/types.h"
 #include "lib/vec.h"
-#include "qfn/image.h"
+#include "gfx/image.h"
 #include "qfn/level_sprite.h"
 #include "qfn/maze.h"
 #include "qfn/monster.h"
