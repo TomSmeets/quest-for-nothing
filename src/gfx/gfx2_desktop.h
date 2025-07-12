@@ -1,9 +1,9 @@
 #pragma once
 #include "gfx/gfx2.h"
 #include "gfx/input.h"
-#include "gfx/sdl3_api.h"
-#include "gfx/ogl_api.h"
 #include "gfx/ogl.h"
+#include "gfx/ogl_api.h"
+#include "gfx/sdl3_api.h"
 #include "qfn/texture_packer.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
@@ -123,7 +123,7 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     assert0(gfx->sdl.SDL_GetWindowSize(window, &window_size_x, &window_size_y));
     gfx->input.window_size.x = window_size_x;
     gfx->input.window_size.y = window_size_y;
-    
+
     // Load Audio
     const SDL_AudioSpec audio_spec = {
         .format = SDL_AUDIO_F32,
@@ -208,7 +208,7 @@ static Input *gfx_begin(Gfx *gfx) {
     if (G->reloaded || !gfx->audio_callback) gfx->audio_callback = gfx_audio_callback;
 
     // Start Audio
-    if(!gfx->audio_started) {
+    if (!gfx->audio_started) {
         gfx->audio_started = 1;
         SDL_AudioDeviceID audio_device = gfx->sdl.SDL_GetAudioStreamDevice(gfx->audio_stream);
         assert0(gfx->sdl.SDL_ResumeAudioDevice(audio_device));
@@ -284,7 +284,7 @@ static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
     Gfx_Pass *pass = mem_struct(gfx->tmp, Gfx_Pass);
     pass->mtx = mtx;
     pass->img = img;
-    if(depth) {
+    if (depth) {
         pass->next = gfx->pass_3d;
         gfx->pass_3d = pass;
     } else {

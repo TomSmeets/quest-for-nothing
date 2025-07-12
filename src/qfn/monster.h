@@ -1,13 +1,13 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // monster.h - Monster
 #pragma once
+#include "gfx/image.h"
 #include "lib/mat.h"
 #include "lib/vec.h"
 #include "qfn/audio.h"
 #include "qfn/collision.h"
 #include "qfn/engine.h"
 #include "qfn/gun.h"
-#include "gfx/image.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/wall.h"
 

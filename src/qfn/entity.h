@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // entity.h - Generic object that exists in the game
 #pragma once
+#include "gfx/image.h"
 #include "lib/mat.h"
 #include "qfn/collision.h"
-#include "gfx/image.h"
 #include "qfn/monster_sprite.h"
 
 typedef enum {

@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // cursor.h - Mouse cursor handling
 #pragma once
+#include "gfx/image.h"
 #include "lib/math.h"
 #include "qfn/engine.h"
 #include "qfn/gfx.h"
-#include "gfx/image.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/ui.h"
 

@@ -1,13 +1,13 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx.h - Graphics, Audio, and Input handling abstraction implementation
 #pragma once
+#include "gfx/image.h"
 #include "gfx/input.h"
 #include "lib/fmt.h"
 #include "lib/mat.h"
 #include "lib/math.h"
 #include "lib/os_main.h"
 #include "lib/vec.h"
-#include "gfx/image.h"
 #include "qfn/texture_packer.h"
 
 #define GFX_ATLAS_SIZE 4096

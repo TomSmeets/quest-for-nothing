@@ -3,10 +3,10 @@
 #pragma once
 #include "gfx/box.h"
 #include "gfx/box_shapes.h"
+#include "gfx/image.h"
 #include "lib/mat.h"
 #include "lib/mem.h"
 #include "lib/vec.h"
-#include "gfx/image.h"
 
 // Centered quad facing +z
 typedef struct {

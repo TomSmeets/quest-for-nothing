@@ -1,8 +1,8 @@
 #pragma once
 #include "gfx/color_rand.h"
+#include "gfx/image.h"
 #include "lib/mem.h"
 #include "lib/rand.h"
-#include "gfx/image.h"
 
 static Image *gun_new(Memory *mem, Rand *rng) {
     u32 length = 8;
