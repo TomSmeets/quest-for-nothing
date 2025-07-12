@@ -7,9 +7,17 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Hot Run",
+            "name": "Quest For Nothing (Hot)",
             "program": "${workspaceFolder}/out/build",
             "args": ["run", "src/qfn/qfn.c"],
+            "cwd": "${workspaceFolder}"
+        }
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Gfx2 Text (Hot)",
+            "program": "${workspaceFolder}/out/build",
+            "args": ["run", "src/qfn/gfx2_test.c"],
             "cwd": "${workspaceFolder}"
         }
 

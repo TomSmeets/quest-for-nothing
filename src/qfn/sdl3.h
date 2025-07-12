@@ -99,17 +99,6 @@ static void sdl_quit(Sdl *sdl) {
     sdl->sdl.SDL_Quit();
 }
 
-static u32 sdl_audio_needed(Sdl *sdl) {
-    u32 total = AUDIO_SAMPLE_RATE / 30;
-    u32 queued = sdl->sdl.SDL_GetAudioStreamQueued(sdl->audio_stream) / sizeof(v2);
-    if (queued > total) return 0;
-    return total - queued;
-}
-
-static void sdl_audio_put(Sdl *sdl, u32 sample_count, v2 *sample_list) {
-    assert0(sdl->sdl.SDL_PutAudioStreamData(sdl->audio_stream, sample_list, sample_count * sizeof(v2)));
-}
-
 static Input *sdl_poll(Sdl *sdl) {
     // Update audio callback
     if (G->reloaded) sdl->audio_callback = sdl_audio_callback;
