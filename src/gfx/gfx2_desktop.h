@@ -3,8 +3,8 @@
 #include "gfx/input.h"
 #include "gfx/ogl.h"
 #include "gfx/ogl_api.h"
-#include "lib/fmt.h"
 #include "gfx/sdl3_api.h"
+#include "lib/fmt.h"
 #include "qfn/texture_packer.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
@@ -317,15 +317,15 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
         Gfx_Quad quad_list[1024];
         u32 quad_count = 0;
 
-        if(total_count == 0) quad_list[quad_count++] = gfx_quad_from_mtx(m4_id(), (v2u){0, 0}, (v2u){GFX_ATLAS_SIZE, GFX_ATLAS_SIZE});
+        if (total_count == 0) quad_list[quad_count++] = gfx_quad_from_mtx(m4_id(), (v2u){0, 0}, (v2u){GFX_ATLAS_SIZE, GFX_ATLAS_SIZE});
 
-        if(packer_reset){
+        if (packer_reset) {
             fmt_s(G->fmt, "Packer Reset\n");
             packer_free(gfx->pack);
             gfx->pack = packer_new(GFX_ATLAS_SIZE);
         }
 
-        while(pass) {
+        while (pass) {
             // Out of quads -> Finish pass
             if (quad_count == array_count(quad_list)) break;
 
@@ -334,7 +334,7 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
             if (!area) {
                 area = packer_get_new(gfx->pack, pass->img);
                 // Out of texture space -> finish pass and use new Packer
-                if(!area) {
+                if (!area) {
                     packer_reset = true;
                     break;
                 }

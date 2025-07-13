@@ -4,8 +4,8 @@
 #include "gfx/sound_music.h"
 #include "gfx/sound_osc.h"
 #include "gfx/sound_var.h"
-#include "qfn/time.h"
 #include "lib/mutex.h"
+#include "qfn/time.h"
 
 struct App {
     Memory *mem;
@@ -37,7 +37,7 @@ static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
             .dry = 1.0f,
         };
         v2 vv;
-        vv = sound_freeverb2(snd, cfg, v*0.1) * 2.0f;
+        vv = sound_freeverb2(snd, cfg, v * 0.1) * 2.0f;
         vv = sound_clip2(vv);
         sample_list[i] = vv;
     }
@@ -78,7 +78,7 @@ static void os_main(void) {
     app->volume2 = input_down(input, KEY_MOUSE_RIGHT) ? 1 : 0;
     mutex_unlock(&app->mutex);
 
-    for(u32 i = 0; i < 1024; ++i) {
+    for (u32 i = 0; i < 1024; ++i) {
         f32 a = (1.0f + f_sqrt(5.0f)) / 2 * i * R4;
         v3 col = color_rainbow(1.0f / 64.0f * a);
 
@@ -90,7 +90,7 @@ static void os_main(void) {
         m4_rotate_z(&mtx, app->angle);
         m4_translate_x(&mtx, 1);
         m4_rotate_z(&mtx, a);
-        m4_translate_z(&mtx, i*-0.01f);
+        m4_translate_z(&mtx, i * -0.01f);
         gfx_draw(app->gfx, 1, mtx, img);
     }
 
