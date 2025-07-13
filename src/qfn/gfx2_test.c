@@ -78,16 +78,25 @@ static void os_main(void) {
     app->volume2 = input_down(input, KEY_MOUSE_RIGHT) ? 1 : 0;
     mutex_unlock(&app->mutex);
 
-    Image *img = image_new(tmp, (v2u){16, 16});
-    image_grid(img, (v4){1, 0, 0, 1}, (v4){0, 1, 0, 1});
+    for(u32 i = 0; i < 1024; ++i) {
+        f32 a = (1.0f + f_sqrt(5.0f)) / 2 * i * R4;
+        v3 col = color_rainbow(1.0f / 64.0f * a);
 
-    m4 mtx = m4_id();
-    m4_rotate_z(&mtx, app->angle);
-    gfx_draw(app->gfx, 1, mtx, img);
+        Image *img = image_new(tmp, (v2u){32, 32});
+        image_fill(img, (v4){col.x, col.y, col.z, 1});
+
+        m4 mtx = m4_id();
+        m4_scale(&mtx, 0.2);
+        m4_rotate_z(&mtx, app->angle);
+        m4_translate_x(&mtx, 1);
+        m4_rotate_z(&mtx, a);
+        m4_translate_z(&mtx, i*-0.01f);
+        gfx_draw(app->gfx, 1, mtx, img);
+    }
 
     m4 camera = m4_id();
+    m4_translate_z(&camera, -1);
     m4_rotate_y(&camera, R2);
-    m4_translate_z(&camera, 1);
     gfx_end(app->gfx, camera);
 
     app->angle += dt;
@@ -97,8 +106,8 @@ static void os_main(void) {
     u64 t_end = os_time();
     u64 t_compute = t_end - t_start;
     u64 t_total = 1000 * 1000 * dt;
-    u64 t_margin = t_total - t_compute;
+    u64 t_sleep = t_compute < t_total ? t_total - t_compute : 0;
     fmt_su(G->fmt, "compute = ", t_compute, "\n");
-    fmt_su(G->fmt, "margin  = ", t_margin, "\n");
-    G->os->sleep_time = 1000 * 1000 * dt - t_compute;
+    fmt_su(G->fmt, "sleep  = ", t_sleep, "\n");
+    G->os->sleep_time = t_sleep;
 }

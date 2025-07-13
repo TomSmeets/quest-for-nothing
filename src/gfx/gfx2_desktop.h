@@ -3,6 +3,7 @@
 #include "gfx/input.h"
 #include "gfx/ogl.h"
 #include "gfx/ogl_api.h"
+#include "lib/fmt.h"
 #include "gfx/sdl3_api.h"
 #include "qfn/texture_packer.h"
 
@@ -28,7 +29,6 @@ typedef struct {
 #define GFX_ATLAS_SIZE 4096
 
 typedef struct Gfx_Pass Gfx_Pass;
-
 struct Gfx_Pass {
     Image *img;
     m4 mtx;
@@ -64,6 +64,7 @@ struct Gfx {
     Gfx_Pass *pass_ui;
 
     Memory *tmp;
+    Packer *pack;
 };
 
 static void sdl_audio_callback_wrapper(void *user, SDL_AudioStream *stream, int additional_amount, int total_amount) {
@@ -194,6 +195,7 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     gl->glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     gl->glEnable(GL_SAMPLE_SHADING);
     gl->glMinSampleShading(1);
+    gfx->pack = packer_new(GFX_ATLAS_SIZE);
     return gfx;
 }
 
@@ -305,6 +307,47 @@ static Gfx_Quad gfx_quad_from_mtx(m4 mtx, v2u pos, v2u size) {
 }
 
 static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
+    OGL_Api *gl = &gfx->gl;
+
+    bool first = false;
+    bool packer_reset = false;
+
+    u32 total_count = 0;
+    while (pass) {
+        Gfx_Quad quad_list[1024];
+        u32 quad_count = 0;
+
+        if(total_count == 0) quad_list[quad_count++] = gfx_quad_from_mtx(m4_id(), (v2u){0, 0}, (v2u){GFX_ATLAS_SIZE, GFX_ATLAS_SIZE});
+
+        if(packer_reset){
+            fmt_s(G->fmt, "Packer Reset\n");
+            packer_free(gfx->pack);
+            gfx->pack = packer_new(GFX_ATLAS_SIZE);
+        }
+
+        while(pass) {
+            // Out of quads -> Finish pass
+            if (quad_count == array_count(quad_list)) break;
+
+            Packer_Area *area = packer_get_cache(gfx->pack, pass->img);
+            v2u img_size = pass->img->size;
+            if (!area) {
+                area = packer_get_new(gfx->pack, pass->img);
+                // Out of texture space -> finish pass and use new Packer
+                if(!area) {
+                    packer_reset = true;
+                    break;
+                }
+                gfx->gl.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img_size.x, img_size.y, GL_RGBA, GL_FLOAT, pass->img->pixels);
+            }
+            quad_list[quad_count++] = gfx_quad_from_mtx(pass->mtx, area->pos, pass->img->size);
+            total_count++;
+            pass = pass->next;
+        }
+        fmt_su(G->fmt, "count: ", quad_count, "\n");
+        gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
+        gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
+    }
 }
 
 static void gfx_end(Gfx *gfx, m4 camera) {
@@ -319,24 +362,16 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     gl->glViewport(0, 0, gfx->input.window_size.x, gfx->input.window_size.y);
     gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-    u32 quad_cap = 1024;
-    Gfx_Quad *quad_list = mem_array_uninit(gfx->tmp, Gfx_Quad, quad_cap);
-    u32 quad_count = 0;
-
-    Packer *pack = packer_new(GFX_ATLAS_SIZE);
-    for (Gfx_Pass *pass = gfx->pass_3d; pass; pass = pass->next) {
-        if (quad_count == quad_cap) break;
-        Packer_Area *area = packer_get_new(pack, pass->img);
-        v2u img_size = pass->img->size;
-        gfx->gl.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img_size.x, img_size.y, GL_RGBA, GL_FLOAT, pass->img->pixels);
-        quad_list[quad_count++] = gfx_quad_from_mtx(pass->mtx, area->pos, pass->img->size);
-    }
-    packer_free(pack);
-
     gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
-    gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
     gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&projection);
-    gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
+    gl->glEnable(GL_DEPTH_TEST);
+    gl->glDisable(GL_BLEND);
+    gfx_draw_pass(gfx, gfx->pass_3d);
+
+    gl->glDisable(GL_DEPTH_TEST);
+    gl->glEnable(GL_BLEND);
+    gl->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    gfx_draw_pass(gfx, gfx->pass_ui);
 
     // Swap
     sdl->SDL_GL_SwapWindow(gfx->window);
