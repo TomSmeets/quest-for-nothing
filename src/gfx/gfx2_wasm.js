@@ -24,17 +24,174 @@ ctx.exports.wasm_gfx_init = () => {
 
     // Load Opengl
     const texture_size = 4096;
-    ctx.gl = ctx.canvas.getContext("webgl2", {
+    const gl = ctx.canvas.getContext("webgl2", {
         alpha: false,
         depth: true,
         antialias: false,
         powerPreference: "high-performance",
         // desynchoronized: true,
     });
+    ctx.gl = gl;
+
+    // shader
+    const shader_vert_code =
+       `#version 300 es
+        layout(location = 0) in vec3 quad_x;
+        layout(location = 1) in vec3 quad_y;
+        layout(location = 2) in vec3 quad_z;
+        
+        layout(location = 3) in vec3 quad_w;
+        
+        layout(location = 4) in vec2 quad_uv_pos;
+        layout(location = 5) in vec2 quad_uv_size;
+        
+        out vec2 frag_uv;
+        out vec3 frag_normal;
+        out vec3 frag_pos;
+        
+        uniform mat4 proj;
+
+        const vec2 verts[6] = vec2[6](
+            // Top Left
+            vec2(0,0),
+            vec2(1,1),
+            vec2(0,1),
+
+            // Bottom Right
+            vec2(1,1),
+            vec2(0,0),
+            vec2(1,0)
+        );
+        
+        void main() {
+            vec2 vert_pos = verts[gl_VertexID]-0.5f;
+
+            frag_uv = quad_uv_pos + quad_uv_size * 0.5 + vert_pos * quad_uv_size * vec2(1.0, -1.0) * (1.0 - 0.25 / 32.0);
+            frag_normal = quad_z;
+            vec3 pos = quad_w + vert_pos.x * quad_x + vert_pos.y * quad_y;
+            gl_Position = proj * vec4(pos, 1.0);
+            frag_pos = gl_Position.xyz;
+        }`;
+
+    const  shader_frag_code =
+       `#version 300 es
+
+        precision mediump float;
+
+        in vec2 frag_uv;
+        in vec3 frag_normal;
+        in vec3 frag_pos;
+
+        out vec4 out_color;
+
+        uniform sampler2D img;
+
+        void main() {
+            // Texture
+            out_color = texture(img, frag_uv);
+
+            // Distance fog
+            float z_near = 0.1;
+            float z_far = 15.0;
+            float z_rel = (frag_pos.z - z_near) / (z_far - z_near);
+            out_color.rgb = mix(out_color.rgb, vec3(0.02f), clamp(z_rel, 0.0f, 1.0f));
+            out_color.rgb *= out_color.a;
+            if (out_color.a < 0.5) discard;
+
+            // Gamma correction
+            out_color.rgb = pow(out_color.rgb, vec3(1.0f / 2.2f));
+        }`;
+
+    const vao = gl.createVertexArray();
+    gl.bindVertexArray(vao);
+
+    const instance_buffer = gl.createBuffer();
+
+    const shader_vert = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(shader_vert, shader_vert_code);
+    gl.compileShader(shader_vert);
+
+    const shader_frag = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(shader_frag, shader_frag_code);
+    gl.compileShader(shader_frag);
+
+    const shader_prog = gl.createProgram();
+    gl.attachShader(shader_prog, shader_vert);
+    gl.attachShader(shader_prog, shader_frag);
+    gl.linkProgram(shader_prog);
+    gl.useProgram(shader_prog);
+
+    const shader_uniform_proj = gl.getUniformLocation(shader_prog, "proj");
+
+    // Setup Instances
+    gl.bindBuffer(gl.ARRAY_BUFFER, instance_buffer);
+
+    for (let i = 0; i <= 5; i++) {
+        gl.enableVertexAttribArray(i);
+        gl.vertexAttribDivisor(i, 1);
+    }
+
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 64, 4*0);
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 64, 4*3);
+    gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 64, 4*6);
+    gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 64, 4*9);
+    gl.vertexAttribPointer(4, 2, gl.FLOAT, false, 64, 4*12);
+    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 64, 4*14);
+
+    // Texture atlas
+    gl.activeTexture(gl.TEXTURE0);
+
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+    // These parameters have to be set for the texture.
+    // Otherwise, we won't see the textures.
+    // NOTE: REQUIRED, https://www.khronos.org/opengl/wiki/Common_Mistakes#Creating_a_complete_texture/
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0);
+    
+    // NOTE: Linear color space
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, texture_size, texture_size, 0, gl.RGBA, gl.FLOAT, null);
+
+    // Set WebGL Settings
+    gl.enable(gl.CULL_FACE);
+    gl.cullFace(gl.BACK);
+    gl.clearColor(0.1689, 0.1689, 0.1689, 1);
+
+    ctx.instance_buffer = instance_buffer;
+    ctx.uniform_proj = shader_uniform_proj;
+
+    const sample_count = 1024;
+    ctx.audio = new AudioContext();
+    ctx.audio_processor = ctx.audio.createScriptProcessor(sample_count, 2, 2);
+    ctx.audio_processor.onaudioprocess = function (ev) {
+        output = ev.outputBuffer;
+        const sample_list_c = ctx.imports.wasm_gfx_audio_callback(sample_count);
+        const sample_list = new Float32Array(ctx.memory.buffer, sample_list_c, sample_count*2);
+
+        const chan_0 = output.getChannelData(0);
+        const chan_1 = output.getChannelData(1);
+        for(let i = 0; i < sample_count; ++i) {
+            chan_0[i] = sample_list[i*2 + 0];
+            chan_1[i] = sample_list[i*2 + 1];
+        }
+    }
+    ctx.audio_processor.connect(ctx.audio.destination);
 }
 
-ctx.exports.wasm_gfx_begin = () => { }
-ctx.exports.wasm_gfx_end = () => { }
+ctx.exports.wasm_gfx_begin = () => {
+    ctx.audio.resume();
+
+    // Clear canvas
+    var gl = ctx.gl;
+    gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+}
 
 ctx.exports.wasm_gfx_set_grab = (grab) => {
     if(grab) {

@@ -109,7 +109,7 @@ static void os_main(void) {
     u64 t_compute = t_end - t_start;
     u64 t_total = 1000 * 1000 * dt;
     u64 t_sleep = t_compute < t_total ? t_total - t_compute : 0;
-    fmt_su(G->fmt, "compute = ", t_compute, "\n");
-    fmt_su(G->fmt, "sleep  = ", t_sleep, "\n");
+    // fmt_su(G->fmt, "compute = ", t_compute, "\n");
+    // fmt_su(G->fmt, "sleep  = ", t_sleep, "\n");
     G->os->sleep_time = t_sleep;
 }
