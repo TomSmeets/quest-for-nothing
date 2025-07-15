@@ -23,7 +23,7 @@
 // Grab the mouse
 ctx.exports.gfx_js_grab = (grab) => {
     if(grab) {
-        canvas.requestPointerLock()
+        ctx.canvas.requestPointerLock()
     } else {
         document.exitPointerLock()
     }
@@ -32,7 +32,7 @@ ctx.exports.gfx_js_grab = (grab) => {
 // Grab the mouse
 ctx.exports.gfx_js_fullscreen = (full) => {
     if(full) {
-        canvas.requestFullscreen()
+        ctx.canvas.requestFullscreen()
     } else {
         document.exitFullscreen()
     }
@@ -58,21 +58,22 @@ ctx.exports.gfx_js_init = () => {
     document.addEventListener("mousemove", (ev) => { ctx.imports.gfx_js_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
     document.addEventListener("mousedown", (ev) => { ctx.imports.gfx_js_mouse_down(ev.button, true) }, true)
     document.addEventListener("mouseup",   (ev) => { ctx.imports.gfx_js_mouse_down(ev.button, false) }, true)
+
     window.addEventListener("resize",      (ev) => {
-        canvas.width = window.innerWidth*multisample_scaling;
-        canvas.height = window.innerHeight*multisample_scaling;
+        ctx.canvas.width = window.innerWidth*multisample_scaling;
+        ctx.canvas.height = window.innerHeight*multisample_scaling;
         ctx.imports.gfx_js_resize(window.innerWidth, window.innerHeight);
     }, false);
 
     // Send initial size to wasm
-    canvas.width = window.innerWidth*multisample_scaling;
-    canvas.height = window.innerHeight*multisample_scaling;
+    ctx.canvas.width = window.innerWidth*multisample_scaling;
+    ctx.canvas.height = window.innerHeight*multisample_scaling;
     ctx.imports.gfx_js_resize(window.innerWidth, window.innerHeight);
 
     // # Load Opengl
     const texture_size = 4096;
 
-    var gl = canvas.getContext("webgl2", {
+    var gl = ctx.canvas.getContext("webgl2", {
         alpha: false,
         depth: true,
         antialias: false,
@@ -235,11 +236,10 @@ ctx.exports.gfx_js_init = () => {
 
 ctx.exports.gfx_js_begin = () => {
     var gl = ctx.gl;
-    var canvas = ctx.canvas;
     ctx.audio.resume();
 
     // Clear canvas
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
