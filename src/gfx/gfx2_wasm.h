@@ -61,13 +61,11 @@ void wasm_gfx_mouse_move(f32 x, f32 y, f32 dx, f32 dy) {
 }
 
 void wasm_gfx_mouse_down(u32 button, bool down) {
-    // fmt_suu(G->fmt, "Mouse: button=", button, " down=", down, "\n");
     if (button == 0) input_emit(&GFX_GLOBAL.next_input, KEY_MOUSE_LEFT, down);
     if (button == 2) input_emit(&GFX_GLOBAL.next_input, KEY_MOUSE_RIGHT, down);
 }
 
 void wasm_gfx_resize(i32 width, i32 height) {
-    // fmt_suu(G->fmt, "Resize: width=", width, " height=", height, "\n");
     GFX_GLOBAL.next_input.window_size.x = width;
     GFX_GLOBAL.next_input.window_size.y = height;
 }

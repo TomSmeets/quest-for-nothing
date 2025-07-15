@@ -35,6 +35,77 @@ struct Gfx_Pass {
     Gfx_Pass *next;
 };
 
+typedef struct {
+    Memory *tmp;
+    Gfx_Pass *pass_ui;
+    Gfx_Pass *pass_3d;
+    Packer *pack;
+} Gfx_Helper;
+
+static void gfx_help_begin(Gfx_Helper *help, Memory *tmp) {
+    help->tmp = tmp;
+    help->pass_3d = 0;
+    help->pass_ui = 0;
+}
+
+static Gfx_Quad gfx_quad_from_mtx(m4 mtx, v2u pos, v2u size) {
+    return (Gfx_Quad){
+        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
+        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
+        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
+        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
+        .uv_pos = {(f32)pos.x / GFX_ATLAS_SIZE, (f32)pos.y / GFX_ATLAS_SIZE},
+        .uv_size = {(f32)size.x / GFX_ATLAS_SIZE, (f32)size.y / GFX_ATLAS_SIZE},
+    };
+}
+
+
+typedef struct {
+    bool need_upload;
+    v2u upload_size;
+    v2u upload_pos;
+    v4 *upload_pixels;
+    Gfx_Quad quad;
+} Gfx_Help_Fill_Result;
+
+static bool gfx_help_fill(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx, Image *img) {
+    if(!help->pack) {
+        help->pack = packer_new(GFX_ATLAS_SIZE);
+    }
+
+    // Check cache
+    Packer_Area *area = packer_get_cache(help->pack, img);
+    result->need_upload = false;
+    if(!area) {
+        area = packer_get_new(help->pack, img);
+        if(!area) {
+            packer_free(help->pack);
+            help->pack = 0;
+            return false;
+        }
+        result->need_upload = true;
+        result->upload_pos = area->pos;
+        result->upload_size = img->size;
+        result->upload_pixels = img->pixels;
+    }
+    result->quad = gfx_quad_from_mtx(mtx, area->pos, img->size);
+    return true;
+}
+
+
+static void gfx_help_push(Gfx_Helper *help, bool depth, m4 mtx, Image *img) {
+    Gfx_Pass *pass = mem_struct(help->tmp, Gfx_Pass);
+    pass->mtx = mtx;
+    pass->img = img;
+    if (depth) {
+        pass->next = help->pass_3d;
+        help->pass_3d = pass;
+    } else {
+        pass->next = help->pass_ui;
+        help->pass_ui = pass;
+    }
+}
+
 struct Gfx {
     Input input;
 
@@ -60,8 +131,7 @@ struct Gfx {
 
     // Texture
     GLuint texture;
-    Gfx_Pass *pass_3d;
-    Gfx_Pass *pass_ui;
+    Gfx_Helper help;
 
     Memory *tmp;
     Packer *pack;
@@ -195,7 +265,6 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     gl->glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     gl->glEnable(GL_SAMPLE_SHADING);
     gl->glMinSampleShading(1);
-    gfx->pack = packer_new(GFX_ATLAS_SIZE);
     return gfx;
 }
 
@@ -274,75 +343,41 @@ static Input *gfx_begin(Gfx *gfx) {
         }
     }
 
+    gfx_help_begin(&gfx->help, gfx->tmp);
     return input;
 }
 
 // Draw image during render
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
-    Gfx_Pass *pass = mem_struct(gfx->tmp, Gfx_Pass);
-    pass->mtx = mtx;
-    pass->img = img;
-    if (depth) {
-        pass->next = gfx->pass_3d;
-        gfx->pass_3d = pass;
-    } else {
-        pass->next = gfx->pass_ui;
-        gfx->pass_ui = pass;
-    }
-}
-
-static Gfx_Quad gfx_quad_from_mtx(m4 mtx, v2u pos, v2u size) {
-    return (Gfx_Quad){
-        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
-        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
-        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
-        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
-        .uv_pos = {(f32)pos.x / GFX_ATLAS_SIZE, (f32)pos.y / GFX_ATLAS_SIZE},
-        .uv_size = {(f32)size.x / GFX_ATLAS_SIZE, (f32)size.y / GFX_ATLAS_SIZE},
-    };
+    gfx_help_push(&gfx->help, depth, mtx, img);
 }
 
 static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
     OGL_Api *gl = &gfx->gl;
-
-    bool first = false;
-    bool packer_reset = false;
-
-    u32 total_count = 0;
     while (pass) {
         Gfx_Quad quad_list[1024];
         u32 quad_count = 0;
-
-        if (total_count == 0) quad_list[quad_count++] = gfx_quad_from_mtx(m4_id(), (v2u){0, 0}, (v2u){GFX_ATLAS_SIZE, GFX_ATLAS_SIZE});
-
-        if (packer_reset) {
-            fmt_s(G->fmt, "Packer Reset\n");
-            packer_free(gfx->pack);
-            gfx->pack = packer_new(GFX_ATLAS_SIZE);
-        }
-
         while (pass) {
             // Out of quads -> Finish pass
             if (quad_count == array_count(quad_list)) break;
 
-            Packer_Area *area = packer_get_cache(gfx->pack, pass->img);
-            v2u img_size = pass->img->size;
-            if (!area) {
-                area = packer_get_new(gfx->pack, pass->img);
-                // Out of texture space -> finish pass and use new Packer
-                if (!area) {
-                    packer_reset = true;
-                    break;
-                }
-                gfx->gl.glTexSubImage2D(GL_TEXTURE_2D, 0, area->pos.x, area->pos.y, img_size.x, img_size.y, GL_RGBA, GL_FLOAT, pass->img->pixels);
+            Gfx_Help_Fill_Result result;
+            bool ok = gfx_help_fill(&gfx->help, &result, pass->mtx, pass->img);
+            if(!ok) break;
+            if(result.need_upload) {
+                gfx->gl.glTexSubImage2D(
+                    GL_TEXTURE_2D, 0, result.upload_pos.x, result.upload_pos.y, result.upload_size.x, result.upload_size.y, GL_RGBA, GL_FLOAT,
+                    result.upload_pixels
+                );
             }
-            quad_list[quad_count++] = gfx_quad_from_mtx(pass->mtx, area->pos, pass->img->size);
-            total_count++;
+            quad_list[quad_count++] = result.quad;
             pass = pass->next;
         }
         fmt_su(G->fmt, "count: ", quad_count, "\n");
-        gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
-        gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
+        if(quad_count > 0) {
+            gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
+            gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
+        }
     }
 }
 
@@ -362,20 +397,18 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&projection);
     gl->glEnable(GL_DEPTH_TEST);
     gl->glDisable(GL_BLEND);
-    gfx_draw_pass(gfx, gfx->pass_3d);
+    gfx_draw_pass(gfx, gfx->help.pass_3d);
 
     gl->glDisable(GL_DEPTH_TEST);
     gl->glEnable(GL_BLEND);
     gl->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    gfx_draw_pass(gfx, gfx->pass_ui);
+    gfx_draw_pass(gfx, gfx->help.pass_ui);
 
     // Swap
     sdl->SDL_GL_SwapWindow(gfx->window);
 
     mem_free(gfx->tmp);
     gfx->tmp = 0;
-    gfx->pass_3d = 0;
-    gfx->pass_ui = 0;
 }
 
 // Set mouse grab

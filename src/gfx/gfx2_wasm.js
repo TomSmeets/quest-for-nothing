@@ -6,6 +6,7 @@ ctx.exports.wasm_gfx_init = () => {
     ctx.canvas = document.getElementById('canvas')
 
     // Input listeners
+    // TODO: why documenta and not canvas?
     document.addEventListener("keydown",   (ev) => { ctx.imports.wasm_gfx_key_down(ev.keyCode, true) })
     document.addEventListener("keyup",     (ev) => { ctx.imports.wasm_gfx_key_down(ev.keyCode, false) })
     document.addEventListener("mousemove", (ev) => { ctx.imports.wasm_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) })
