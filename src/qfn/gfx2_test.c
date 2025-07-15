@@ -1,11 +1,16 @@
 #include "gfx/gfx2.h"
-#include "gfx/gfx2_desktop.h"
 #include "gfx/sound.h"
 #include "gfx/sound_music.h"
 #include "gfx/sound_osc.h"
 #include "gfx/sound_var.h"
 #include "lib/mutex.h"
 #include "qfn/time.h"
+
+#if OS_IS_WASM
+#include "gfx/gfx2_wasm.h"
+#else
+#include "gfx/gfx2_desktop.h"
+#endif
 
 struct App {
     Memory *mem;
