@@ -48,17 +48,6 @@ static void gfx_help_begin(Gfx_Helper *help, Memory *tmp) {
     help->pass_ui = 0;
 }
 
-static Gfx_Quad gfx_quad_from_mtx(m4 mtx, v2u pos, v2u size) {
-    return (Gfx_Quad){
-        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
-        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
-        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
-        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
-        .uv_pos = {(f32)pos.x / GFX_ATLAS_SIZE, (f32)pos.y / GFX_ATLAS_SIZE},
-        .uv_size = {(f32)size.x / GFX_ATLAS_SIZE, (f32)size.y / GFX_ATLAS_SIZE},
-    };
-}
-
 typedef struct {
     bool need_upload;
     v2u upload_size;
@@ -67,7 +56,7 @@ typedef struct {
     Gfx_Quad quad;
 } Gfx_Help_Fill_Result;
 
-static bool gfx_help_fill(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx, Image *img) {
+static bool gfx_help_pull(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx, Image *img) {
     if (!help->pack) {
         help->pack = packer_new(GFX_ATLAS_SIZE);
     }
@@ -87,7 +76,14 @@ static bool gfx_help_fill(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx
         result->upload_size = img->size;
         result->upload_pixels = img->pixels;
     }
-    result->quad = gfx_quad_from_mtx(mtx, area->pos, img->size);
+    result->quad = (Gfx_Quad){
+        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
+        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
+        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
+        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
+        .uv_pos = {(f32)area->pos.x / GFX_ATLAS_SIZE, (f32)area->pos.y / GFX_ATLAS_SIZE},
+        .uv_size = {(f32)img->size.x / GFX_ATLAS_SIZE, (f32)img->size.y / GFX_ATLAS_SIZE},
+    };
     return true;
 }
 
@@ -360,7 +356,7 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
             if (quad_count == array_count(quad_list)) break;
 
             Gfx_Help_Fill_Result result;
-            bool ok = gfx_help_fill(&gfx->help, &result, pass->mtx, pass->img);
+            bool ok = gfx_help_pull(&gfx->help, &result, pass->mtx, pass->img);
             if (!ok) break;
             if (result.need_upload) {
                 gfx->gl.glTexSubImage2D(
