@@ -59,7 +59,6 @@ static Gfx_Quad gfx_quad_from_mtx(m4 mtx, v2u pos, v2u size) {
     };
 }
 
-
 typedef struct {
     bool need_upload;
     v2u upload_size;
@@ -69,16 +68,16 @@ typedef struct {
 } Gfx_Help_Fill_Result;
 
 static bool gfx_help_fill(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx, Image *img) {
-    if(!help->pack) {
+    if (!help->pack) {
         help->pack = packer_new(GFX_ATLAS_SIZE);
     }
 
     // Check cache
     Packer_Area *area = packer_get_cache(help->pack, img);
     result->need_upload = false;
-    if(!area) {
+    if (!area) {
         area = packer_get_new(help->pack, img);
-        if(!area) {
+        if (!area) {
             packer_free(help->pack);
             help->pack = 0;
             return false;
@@ -91,7 +90,6 @@ static bool gfx_help_fill(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx
     result->quad = gfx_quad_from_mtx(mtx, area->pos, img->size);
     return true;
 }
-
 
 static void gfx_help_push(Gfx_Helper *help, bool depth, m4 mtx, Image *img) {
     Gfx_Pass *pass = mem_struct(help->tmp, Gfx_Pass);
@@ -363,8 +361,8 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
 
             Gfx_Help_Fill_Result result;
             bool ok = gfx_help_fill(&gfx->help, &result, pass->mtx, pass->img);
-            if(!ok) break;
-            if(result.need_upload) {
+            if (!ok) break;
+            if (result.need_upload) {
                 gfx->gl.glTexSubImage2D(
                     GL_TEXTURE_2D, 0, result.upload_pos.x, result.upload_pos.y, result.upload_size.x, result.upload_size.y, GL_RGBA, GL_FLOAT,
                     result.upload_pixels
@@ -374,7 +372,7 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
             pass = pass->next;
         }
         fmt_su(G->fmt, "count: ", quad_count, "\n");
-        if(quad_count > 0) {
+        if (quad_count > 0) {
             gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
             gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
         }
