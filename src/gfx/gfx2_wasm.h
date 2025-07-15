@@ -2,7 +2,6 @@
 #include "gfx/gfx2.h"
 #include "lib/os_api_wasm.h"
 
-
 struct Gfx {
     Input input;
     Input next_input;
@@ -26,7 +25,8 @@ static Input *gfx_begin(Gfx *gfx) {
     return &gfx->input;
 }
 
-static void gfx_end(Gfx *gfx, m4 camera) {}
+static void gfx_end(Gfx *gfx, m4 camera) {
+}
 
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
 }
@@ -76,4 +76,3 @@ v2 *wasm_gfx_audio_callback(u32 sample_count) {
     gfx_audio_callback(sample_count, GFX_GLOBAL.sample_buffer);
     return GFX_GLOBAL.sample_buffer;
 }
-
