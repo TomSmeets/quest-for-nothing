@@ -18,9 +18,6 @@ static void gfx_audio_callback(u32 sample_count, v2 *sample_list);
 // Create Window and start playing audio
 static Gfx *gfx_init(Memory *mem, const char *title);
 
-// Close window and quit application
-static void gfx_quit(Gfx *gfx);
-
 // Start Render
 static Input *gfx_begin(Gfx *gfx);
 

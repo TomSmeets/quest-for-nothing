@@ -199,10 +199,6 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     return gfx;
 }
 
-static void gfx_quit(Gfx *gfx) {
-    gfx->sdl.SDL_Quit();
-}
-
 static Input *gfx_begin(Gfx *gfx) {
     gfx->tmp = mem_new();
 

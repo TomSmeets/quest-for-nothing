@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<head>
+<style>
+    html,body,canvas {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+    }
+    canvas {
+        background-color: #cccccc;
+    }
+</style>
+<script src="os_api_wasm.js"></script>
+<script src="os_alloc_wasm.js"></script>
+<script src="os_base_wasm.js"></script>
+<script src="gfx2_wasm.js"></script>
+<script>
+function js_loop() {
+    try {
+        let result = ctx.imports.js_main()
+        let timeout = Number(result) / 1000
+        window.setTimeout(js_loop, timeout)
+    } catch(error) {
+        // Exit called
+        console.log("Exit: ", error);
+    }
+}
+
+fetch('gfx2_test.wasm')
+.then(re => re.arrayBuffer())
+.then(data => WebAssembly.instantiate(data, { env: ctx.exports }))
+.then(ret => {
+    ctx.memory  = ret.instance.exports.memory;
+    ctx.imports = ret.instance.exports;
+    js_loop()
+});
+</script>
+</head>
+<body>
+<canvas id='canvas'></canvas>
+</body>

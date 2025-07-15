@@ -2,13 +2,6 @@
 #include "gfx/gfx2.h"
 #include "lib/os_api_wasm.h"
 
-WASM_IMPORT(wasm_gfx_quit)    void wasm_gfx_quit(void);
-WASM_IMPORT(wasm_gfx_begin) void wasm_gfx_begin(void);
-WASM_IMPORT(wasm_gfx_end) void wasm_gfx_end(void);
-
-// Helpers
-WASM_IMPORT(wasm_gfx_draw)    void wasm_gfx_draw(float *projection, bool depth, u32 quad_count, Gfx_Quad *quad_list);
-WASM_IMPORT(wasm_gfx_texture) void wasm_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
 
 struct Gfx {
     Input input;
@@ -25,14 +18,14 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     return gfx;
 }
 
-static void gfx_quit(Gfx *gfx) {}
-
+WASM_IMPORT(wasm_gfx_begin) void wasm_gfx_begin(void);
 static Input *gfx_begin(Gfx *gfx) {
     gfx->input = gfx->next_input;
     input_reset(&gfx->next_input);
     return &gfx->input;
 }
 
+WASM_IMPORT(wasm_gfx_end) void wasm_gfx_end(void);
 static void gfx_end(Gfx *gfx, m4 camera) {}
 
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {

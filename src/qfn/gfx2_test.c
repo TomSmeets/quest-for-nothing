@@ -71,10 +71,7 @@ static void os_main(void) {
     // Input handling
     if (input_click(input, KEY_G)) gfx_set_grab(app->gfx, !input->mouse_is_grabbed);
     if (input_click(input, KEY_F)) gfx_set_fullscreen(app->gfx, !input->is_fullscreen);
-    if (input->quit || input_click(input, KEY_Q)) {
-        gfx_quit(app->gfx);
-        os_exit(0);
-    }
+    if (input->quit || input_click(input, KEY_Q)) os_exit(0);
 
     // Music
     mutex_lock(&app->mutex);

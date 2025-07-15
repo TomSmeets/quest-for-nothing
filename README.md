@@ -80,3 +80,9 @@ How does hot reloading work?
 # Module structure
 
 ![](include-graph.svg)
+
+
+# Todo
+
+- [ ] Turn inside out Platfrom -> Libraries, abstract by composition
+- [ ] Let desktop decide framerate. (pass dt? or compute?)
