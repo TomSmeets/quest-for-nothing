@@ -6,11 +6,12 @@ ctx.exports.wasm_gfx_init = () => {
     ctx.canvas = document.getElementById('canvas')
 
     // Input listeners
-    document.addEventListener("keydown",   (ev) => { ctx.imports.wasm_gfx_key_down(ev.keyCode, true) }, true)
-    document.addEventListener("keyup",     (ev) => { ctx.imports.wasm_gfx_key_down(ev.keyCode, false) }, true)
-    document.addEventListener("mousemove", (ev) => { ctx.imports.wasm_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) }, true)
-    document.addEventListener("mousedown", (ev) => { ctx.imports.wasm_gfx_mouse_down(ev.button, true) }, true)
-    document.addEventListener("mouseup",   (ev) => { ctx.imports.wasm_gfx_mouse_down(ev.button, false) }, true)
+    document.addEventListener("keydown",   (ev) => { ctx.imports.wasm_gfx_key_down(ev.keyCode, true) })
+    document.addEventListener("keyup",     (ev) => { ctx.imports.wasm_gfx_key_down(ev.keyCode, false) })
+    document.addEventListener("mousemove", (ev) => { ctx.imports.wasm_gfx_mouse_move(ev.x, ev.y, ev.movementX, ev.movementY) })
+    document.addEventListener("mousedown", (ev) => { ctx.imports.wasm_gfx_mouse_down(ev.button, true) })
+    document.addEventListener("mouseup",   (ev) => { ctx.imports.wasm_gfx_mouse_down(ev.button, false) })
+    document.addEventListener('contextmenu', (ev) => { ev.preventDefault() });
     window.addEventListener("resize",      (ev) => {
         ctx.canvas.width = window.innerWidth * multisample_scaling;
         ctx.canvas.height = window.innerHeight * multisample_scaling;
@@ -186,7 +187,9 @@ ctx.exports.wasm_gfx_init = () => {
 
 ctx.exports.wasm_gfx_begin = () => {
     ctx.audio.resume();
+}
 
+ctx.exports.wasm_gfx_end = () => {
     // Clear canvas
     var gl = ctx.gl;
     gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);

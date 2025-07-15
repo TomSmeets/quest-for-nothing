@@ -25,7 +25,9 @@ static Input *gfx_begin(Gfx *gfx) {
     return &gfx->input;
 }
 
+WASM_IMPORT(wasm_gfx_end) void wasm_gfx_end(void);
 static void gfx_end(Gfx *gfx, m4 camera) {
+    wasm_gfx_end();
 }
 
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
