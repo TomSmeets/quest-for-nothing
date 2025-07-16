@@ -3,12 +3,20 @@
 #pragma once
 #include "gfx/gfx2.h"
 #include "gfx/gfx2_help.h"
+#include "lib/fmt.h"
 #include "lib/os_api_wasm.h"
+#include "gfx/ogl.h"
 
 struct Gfx {
     Input input;
     Input next_input;
     v2 sample_buffer[1024];
+
+    Memory *tmp;
+    Packer *pack;
+    Gfx_Pass *pass_3d;
+    Gfx_Pass *pass_ui;
+    Gfx_Pass_Compiled result;
 };
 
 struct Gfx GFX_GLOBAL;
@@ -16,54 +24,67 @@ struct Gfx GFX_GLOBAL;
 WASM_IMPORT(wasm_gfx_init) void wasm_gfx_init(void);
 static Gfx *gfx_init(Memory *mem, const char *title) {
     Gfx *gfx = &GFX_GLOBAL;
+    fmt_s(G->fmt, "gfx_init\n");
     wasm_gfx_init();
     return gfx;
 }
 
-WASM_IMPORT(wasm_gfx_begin) void wasm_gfx_begin(void);
+WASM_IMPORT(wasm_gfx_begin_audio) void wasm_gfx_begin_audio(void);
 static Input *gfx_begin(Gfx *gfx) {
+    fmt_s(G->fmt, "gfx_begin\n");
     // Double buffer input because we can recieve input callbacks at any time
     gfx->input = gfx->next_input;
     input_reset(&gfx->next_input);
-    wasm_gfx_begin();
+    wasm_gfx_begin_audio();
+
+    gfx->tmp = mem_new();
+    gfx->pass_3d = 0;
+    gfx->pass_ui = 0;
     return &gfx->input;
 }
 
 WASM_IMPORT(wasm_gfx_texture) void wasm_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
-WASM_IMPORT(wasm_gfx_clear) void wasm_gfx_clear(void);
-WASM_IMPORT(wasm_gfx_draw) void wasm_gfx_draw(float *projection, bool depth, u32 quad_count, Gfx_Quad *quad_list);
-WASM_IMPORT(wasm_gfx_end) void wasm_gfx_end(void);
-static void gfx_end(Gfx *gfx, m4 camera) {
+WASM_IMPORT(wasm_gfx_draw) void wasm_gfx_draw(u32 quad_count, Gfx_Quad *quad_list);
+static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
+    Gfx_Pass_Compiled *result = &gfx->result;
+    while (gfx_pass_compile(result, &gfx->pack, &pass)) {
+        for (u32 i = 0; i < result->upload_count; ++i) {
+            Gfx_Upload *upload = result->upload_list + i;
+            u32 x = upload->pos.x;
+            u32 y = upload->pos.y;
+            u32 w = upload->size.x;
+            u32 h = upload->size.y;
+            wasm_gfx_texture(x, y, w, h, upload->pixels);
+        }
+        wasm_gfx_draw(result->quad_count, result->quad_list);
+    }
+}
 
+WASM_IMPORT(wasm_gfx_clear) void wasm_gfx_clear(void);
+WASM_IMPORT(wasm_gfx_begin_3d) void wasm_gfx_begin_3d(m44 *projection);
+WASM_IMPORT(wasm_gfx_begin_ui) void wasm_gfx_begin_ui(m44 *projection);
+static void gfx_end(Gfx *gfx, m4 camera) {
+    fmt_s(G->fmt, "gfx_end\n");
     v2 aspect = ogl_aspect(gfx->input.window_size);
     m4 view = m4_invert_tr(camera);
     m44 projection = m4_perspective_to_clip(view, 70, aspect.x, aspect.y, 0.1, 15.0);
 
     // Graphics
     wasm_gfx_clear();
-    wasm_gfx_begin_ui();
-    gl->glViewport(0, 0, gfx->input.window_size.x, gfx->input.window_size.y);
-    gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
-    gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&projection);
-
-    gl->glEnable(GL_DEPTH_TEST);
-    gl->glDisable(GL_BLEND);
-    gfx_draw_pass(gfx, gfx->help.pass_3d);
-
-    gl->glDisable(GL_DEPTH_TEST);
-    gl->glEnable(GL_BLEND);
-    gl->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    gfx_draw_pass(gfx, gfx->help.pass_ui);
-
-    // Swap
-    sdl->SDL_GL_SwapWindow(gfx->window);
-
-    wasm_gfx_clear();
-    wasm_gfx_end();
+    wasm_gfx_begin_3d(&projection);
+    gfx_draw_pass(gfx, gfx->pass_3d);
+    wasm_gfx_begin_ui(&projection);
+    gfx_draw_pass(gfx, gfx->pass_ui);
+    mem_free(gfx->tmp);
+    gfx->tmp = 0;
 }
 
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
+    if(depth) {
+        gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
+    } else {
+        gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
+    }
 }
 
 WASM_IMPORT(wasm_gfx_set_grab) void wasm_gfx_set_grab(bool grab);

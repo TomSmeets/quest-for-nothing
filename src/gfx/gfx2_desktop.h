@@ -274,7 +274,7 @@ static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
 
 static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
     OGL_Api *gl = &gfx->gl;
-    Gfx_Pass_Compiled result;
+    static Gfx_Pass_Compiled result;
     while (gfx_pass_compile(&result, &gfx->pack, &pass)) {
         fmt_su(G->fmt, "Upload = ", result.upload_count, "\n");
         fmt_su(G->fmt, "Draw   = ", result.quad_count, "\n");

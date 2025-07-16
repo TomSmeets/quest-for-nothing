@@ -192,12 +192,27 @@ ctx.exports.wasm_gfx_begin_audio = () => {
     ctx.audio.resume();
 }
 
-ctx.exports.wasm_gfx_begin = () => {
+ctx.exports.wasm_gfx_clear = () => {
     var gl = ctx.gl;
     gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
-    gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&projection);
+}
+
+ctx.exports.wasm_gfx_begin_3d = (projection) => {
+    var gl = ctx.gl;
+    const projection_array = new Float32Array(ctx.memory.buffer, projection, 4*4);
+    gl.enable(gl.DEPTH_TEST);
+    gl.disable(gl.BLEND);
+    gl.uniformMatrix4fv(ctx.uniform_proj, false, projection_array);
+}
+
+ctx.exports.wasm_gfx_begin_ui = (projection) => {
+    var gl = ctx.gl;
+    const projection_array = new Float32Array(ctx.memory.buffer, projection, 4*4);
+    gl.disable(gl.DEPTH_TEST);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.uniformMatrix4fv(ctx.uniform_proj, false, projection_array);
 }
 
 ctx.exports.wasm_gfx_texture = (x, y, sx, sy, pixels) => {
@@ -206,26 +221,13 @@ ctx.exports.wasm_gfx_texture = (x, y, sx, sy, pixels) => {
     gl.texSubImage2D( gl.TEXTURE_2D, 0,  x,  y,  sx,  sy,  gl.RGBA,  gl.FLOAT,  pixel_array);
 }
 
-ctx.exports.wasm_gfx_draw = (projection, depth, quad_count, quad_list) => {
+ctx.exports.wasm_gfx_draw = (quad_count, quad_list) => {
     const gl = ctx.gl;
     const quad_array = new Float32Array(ctx.memory.buffer, quad_list, quad_count*16);
-    const projection_array = new Float32Array(ctx.memory.buffer, projection, 4*4);
-
-    if (depth) {
-        gl.enable(gl.DEPTH_TEST);
-        gl.disable(gl.BLEND);
-    } else {
-        gl.disable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    }
 
     // Bind and update instance buffer
     gl.bindBuffer(gl.ARRAY_BUFFER, ctx.instance_buffer);
     gl.bufferData(gl.ARRAY_BUFFER, quad_array, gl.STREAM_DRAW);
-
-    // Set projection uniform
-    gl.uniformMatrix4fv(ctx.uniform_proj, false, projection_array);
 
     // Perform instanced draw call
     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, quad_count);
