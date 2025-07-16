@@ -1,10 +1,14 @@
 #include "gfx/gfx2.h"
+#include "gfx/input.h"
 #include "gfx/sound.h"
+#include "gfx/sound_env.h"
 #include "gfx/sound_music.h"
 #include "gfx/sound_osc.h"
 #include "gfx/sound_var.h"
+#include "lib/id.h"
 #include "lib/mutex.h"
 #include "qfn/time.h"
+#include "gfx/color_rand.h"
 
 #if OS_IS_WASM
 #include "gfx/gfx2_wasm.h"
@@ -17,12 +21,13 @@ struct App {
     Gfx *gfx;
     Sound sound;
 
-    f32 volume1;
-    f32 volume2;
+    bool volume1;
+    bool volume2;
     f32 pitch;
     Mutex mutex;
 
     f32 angle;
+    Image *images[64];
 };
 
 static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
@@ -33,13 +38,13 @@ static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
     for (u32 i = 0; i < sample_count; ++i) {
         sound_begin(snd);
         f32 v = 0;
-        v += sound_sine(snd, app->pitch, 0) * app->volume1;
-        v += sound_saw(snd, app->pitch, 0) * app->volume2;
+        v += sound_pulse(snd, app->pitch, 0, .5) * sound_adsr(snd, app->volume1, 4, 10, .5);
+        v += sound_saw(snd, app->pitch, 0) * sound_adsr(snd, app->volume2, 10, 4, .5);;
         Freeverb_Config cfg = {
             .room = 0.9f,
             .damp = 0.2f,
             .wet = 0.9f,
-            .dry = 1.0f,
+            .dry = 0.5f,
         };
         v2 vv;
         vv = sound_freeverb2(snd, cfg, v * 0.1) * 2.0f;
@@ -55,6 +60,12 @@ static App *app_init(void) {
     app->mem = mem;
     app->sound = sound_init(mem);
     app->gfx = gfx_init(mem, "GFX2 Test Application");
+
+    for(u32 i = 0; i < array_count(app->images); ++i) {
+        app->images[i] = image_new(mem, (v2u){32,32});
+        image_fill(app->images[i], color4(color_rand_rainbow(G->rand)));
+    }
+
     return app;
 }
 
@@ -73,19 +84,24 @@ static void os_main(void) {
     if (input_click(input, KEY_F)) gfx_set_fullscreen(app->gfx, !input->is_fullscreen);
     if (input->quit || input_click(input, KEY_Q)) os_exit(0);
 
+    if(input_click(input, KEY_R)) {
+        for(u32 i = 0; i < array_count(app->images); ++i) {
+            image_fill(app->images[i], color4(color_rand_rainbow(G->rand)));
+            app->images[i]->id = id_next();
+        }
+    }
+
     // Music
     mutex_lock(&app->mutex);
     app->pitch = f_remap(input->mouse_pos.x, -input->window_size.x, input->window_size.x, NOTE_C, NOTE_C * 2);
-    app->volume1 = input_down(input, KEY_MOUSE_LEFT) ? 1 : 0;
-    app->volume2 = input_down(input, KEY_MOUSE_RIGHT) ? 1 : 0;
+    app->volume1 = input_down(input, KEY_MOUSE_LEFT);
+    app->volume2 = input_down(input, KEY_MOUSE_RIGHT);
     mutex_unlock(&app->mutex);
 
     for (u32 i = 0; i < 1024; ++i) {
         f32 a = (1.0f + f_sqrt(5.0f)) / 2 * i * R4;
-        v3 col = color_rainbow(1.0f / 64.0f * a);
 
-        Image *img = image_new(tmp, (v2u){32, 32});
-        image_fill(img, (v4){col.x, col.y, col.z, 1});
+        Image *img = app->images[i % array_count(app->images)];
 
         m4 mtx = m4_id();
         m4_scale(&mtx, 0.2);
