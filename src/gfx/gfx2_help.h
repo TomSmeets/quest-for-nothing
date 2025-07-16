@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx2_help.h - Helper methods for gfx2 implementations
 #pragma once
-#include "qfn/texture_packer.h"
 #include "lib/mat.h"
+#include "qfn/texture_packer.h"
 
 #define GFX_ATLAS_SIZE 4096
 
@@ -59,7 +59,7 @@ static void gfx_pass_push(Memory *mem, Gfx_Pass **pass_list, m4 mtx, Image *img)
 
 // Gather information on a draw pass
 static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass **pass_list) {
-    if(!*pass_list) return false;
+    if (!*pass_list) return false;
 
     // Reset result
     result->quad_count = 0;
@@ -70,26 +70,26 @@ static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass 
         *pack = packer_new(GFX_ATLAS_SIZE);
     }
 
-    for(;;) {
+    for (;;) {
         // Pull Item
         Gfx_Pass *pass = *pass_list;
-        if(!pass) break;
+        if (!pass) break;
 
         // Out of space for quads
-        if(result->quad_count == array_count(result->quad_list)) break;
+        if (result->quad_count == array_count(result->quad_list)) break;
 
         // Check texture atlas for existing item
         Packer_Area *area = packer_get_cache(*pack, pass->img);
 
-        if(!area) {
+        if (!area) {
             // Out of space for texture uploads
-            if(result->upload_count == array_count(result->upload_list)) break;
+            if (result->upload_count == array_count(result->upload_list)) break;
 
             // Try to allocate space on the atlas
             area = packer_get_new(*pack, pass->img);
 
             // No more space left
-            if(!area) {
+            if (!area) {
                 packer_free(*pack);
                 *pack = 0;
                 break;

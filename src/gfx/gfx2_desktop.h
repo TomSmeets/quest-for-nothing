@@ -265,7 +265,7 @@ static Input *gfx_begin(Gfx *gfx) {
 
 // Draw image during render
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
-    if(depth) {
+    if (depth) {
         gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
     } else {
         gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
