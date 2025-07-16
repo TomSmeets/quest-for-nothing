@@ -121,6 +121,8 @@ static bool build_run(App *app, Cli *cli) {
 
         if (clang_compile(app->tmp, opts)) {
             hot_load(app->hot, out_path);
+        } else {
+            app->hot->child_main = 0;
         }
     }
 
