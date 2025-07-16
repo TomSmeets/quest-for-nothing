@@ -1,3 +1,4 @@
+#include "gfx/color_rand.h"
 #include "gfx/gfx2.h"
 #include "gfx/input.h"
 #include "gfx/sound.h"
@@ -8,7 +9,6 @@
 #include "lib/id.h"
 #include "lib/mutex.h"
 #include "qfn/time.h"
-#include "gfx/color_rand.h"
 
 #if OS_IS_WASM
 #include "gfx/gfx2_wasm.h"
@@ -39,7 +39,8 @@ static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
         sound_begin(snd);
         f32 v = 0;
         v += sound_pulse(snd, app->pitch, 0, .5) * sound_adsr(snd, app->volume1, 4, 10, .5);
-        v += sound_saw(snd, app->pitch, 0) * sound_adsr(snd, app->volume2, 10, 4, .5);;
+        v += sound_saw(snd, app->pitch, 0) * sound_adsr(snd, app->volume2, 10, 4, .5);
+        ;
         Freeverb_Config cfg = {
             .room = 0.9f,
             .damp = 0.2f,
@@ -61,8 +62,8 @@ static App *app_init(void) {
     app->sound = sound_init(mem);
     app->gfx = gfx_init(mem, "GFX2 Test Application");
 
-    for(u32 i = 0; i < array_count(app->images); ++i) {
-        app->images[i] = image_new(mem, (v2u){32,32});
+    for (u32 i = 0; i < array_count(app->images); ++i) {
+        app->images[i] = image_new(mem, (v2u){32, 32});
         image_fill(app->images[i], color4(color_rand_rainbow(G->rand)));
     }
 
@@ -84,8 +85,8 @@ static void os_main(void) {
     if (input_click(input, KEY_F)) gfx_set_fullscreen(app->gfx, !input->is_fullscreen);
     if (input->quit || input_click(input, KEY_Q)) os_exit(0);
 
-    if(input_click(input, KEY_R)) {
-        for(u32 i = 0; i < array_count(app->images); ++i) {
+    if (input_click(input, KEY_R)) {
+        for (u32 i = 0; i < array_count(app->images); ++i) {
             image_fill(app->images[i], color4(color_rand_rainbow(G->rand)));
             app->images[i]->id = id_next();
         }
