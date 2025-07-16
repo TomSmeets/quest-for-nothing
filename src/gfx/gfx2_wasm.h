@@ -1,5 +1,6 @@
 #pragma once
 #include "gfx/gfx2.h"
+#include "gfx/gfx2_help.h"
 #include "lib/os_api_wasm.h"
 
 struct Gfx {
@@ -19,14 +20,44 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
 
 WASM_IMPORT(wasm_gfx_begin) void wasm_gfx_begin(void);
 static Input *gfx_begin(Gfx *gfx) {
+    // Double buffer input because we can recieve input callbacks at any time
     gfx->input = gfx->next_input;
     input_reset(&gfx->next_input);
     wasm_gfx_begin();
     return &gfx->input;
 }
 
+WASM_IMPORT(wasm_gfx_texture) void wasm_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
+WASM_IMPORT(wasm_gfx_clear) void wasm_gfx_clear(void);
+WASM_IMPORT(wasm_gfx_draw) void wasm_gfx_draw(float *projection, bool depth, u32 quad_count, Gfx_Quad *quad_list);
 WASM_IMPORT(wasm_gfx_end) void wasm_gfx_end(void);
 static void gfx_end(Gfx *gfx, m4 camera) {
+
+    v2 aspect = ogl_aspect(gfx->input.window_size);
+    m4 view = m4_invert_tr(camera);
+    m44 projection = m4_perspective_to_clip(view, 70, aspect.x, aspect.y, 0.1, 15.0);
+
+    // Graphics
+    wasm_gfx_clear();
+    wasm_gfx_begin_ui();
+    gl->glViewport(0, 0, gfx->input.window_size.x, gfx->input.window_size.y);
+    gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    gl->glBindBuffer(GL_ARRAY_BUFFER, gfx->instance_buffer);
+    gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&projection);
+
+    gl->glEnable(GL_DEPTH_TEST);
+    gl->glDisable(GL_BLEND);
+    gfx_draw_pass(gfx, gfx->help.pass_3d);
+
+    gl->glDisable(GL_DEPTH_TEST);
+    gl->glEnable(GL_BLEND);
+    gl->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    gfx_draw_pass(gfx, gfx->help.pass_ui);
+
+    // Swap
+    sdl->SDL_GL_SwapWindow(gfx->window);
+
+    wasm_gfx_clear();
     wasm_gfx_end();
 }
 
