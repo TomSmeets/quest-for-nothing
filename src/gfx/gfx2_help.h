@@ -4,6 +4,8 @@
 #include "qfn/texture_packer.h"
 #include "lib/mat.h"
 
+#define GFX_ATLAS_SIZE 4096
+
 typedef struct {
     f32 x[3];
     f32 y[3];
@@ -13,27 +15,12 @@ typedef struct {
     f32 uv_size[2];
 } Gfx_Quad;
 
-#define GFX_ATLAS_SIZE 4096
-
 typedef struct Gfx_Pass Gfx_Pass;
 struct Gfx_Pass {
     Image *img;
     m4 mtx;
     Gfx_Pass *next;
 };
-
-typedef struct {
-    Memory *tmp;
-    Gfx_Pass *pass_ui;
-    Gfx_Pass *pass_3d;
-    Packer *pack;
-} Gfx_Helper;
-
-static void gfx_help_begin(Gfx_Helper *help, Memory *tmp) {
-    help->tmp = tmp;
-    help->pass_3d = 0;
-    help->pass_ui = 0;
-}
 
 typedef struct {
     v2u size;
@@ -47,8 +34,7 @@ typedef struct {
 
     u32 quad_count;
     Gfx_Quad quad_list[1024];
-} Gfx_Help_Fill_Result;
-
+} Gfx_Pass_Compiled;
 
 // Convert a matrix and texture region to a quad
 static Gfx_Quad gfx_help_make_quad(m4 mtx, v2u pos, v2u size) {
@@ -62,9 +48,17 @@ static Gfx_Quad gfx_help_make_quad(m4 mtx, v2u pos, v2u size) {
     };
 }
 
+// Insert quad into render pass
+static void gfx_pass_push(Memory *mem, Gfx_Pass **pass_list, m4 mtx, Image *img) {
+    Gfx_Pass *pass = mem_struct(mem, Gfx_Pass);
+    pass->mtx = mtx;
+    pass->img = img;
+    pass->next = *pass_list;
+    *pass_list = pass;
+}
 
 // Gather information on a draw pass
-static bool gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Helper *help, Gfx_Pass **pass_list) {
+static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass **pass_list) {
     if(!*pass_list) return false;
 
     // Reset result
@@ -72,8 +66,8 @@ static bool gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Helper *help, Gfx_Pa
     result->upload_count = 0;
 
     // Create texture packer if needed
-    if (!help->pack) {
-        help->pack = packer_new(GFX_ATLAS_SIZE);
+    if (!*pack) {
+        *pack = packer_new(GFX_ATLAS_SIZE);
     }
 
     for(;;) {
@@ -85,19 +79,19 @@ static bool gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Helper *help, Gfx_Pa
         if(result->quad_count == array_count(result->quad_list)) break;
 
         // Check texture atlas for existing item
-        Packer_Area *area = packer_get_cache(help->pack, pass->img);
+        Packer_Area *area = packer_get_cache(*pack, pass->img);
 
         if(!area) {
             // Out of space for texture uploads
             if(result->upload_count == array_count(result->upload_list)) break;
 
             // Try to allocate space on the atlas
-            area = packer_get_new(help->pack, pass->img);
+            area = packer_get_new(*pack, pass->img);
 
             // No more space left
             if(!area) {
-                packer_free(help->pack);
-                help->pack = 0;
+                packer_free(*pack);
+                *pack = 0;
                 break;
             }
 
@@ -117,17 +111,3 @@ static bool gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Helper *help, Gfx_Pa
 
     return true;
 }
-
-static void gfx_help_push(Gfx_Helper *help, bool depth, m4 mtx, Image *img) {
-    Gfx_Pass *pass = mem_struct(help->tmp, Gfx_Pass);
-    pass->mtx = mtx;
-    pass->img = img;
-    if (depth) {
-        pass->next = help->pass_3d;
-        help->pass_3d = pass;
-    } else {
-        pass->next = help->pass_ui;
-        help->pass_ui = pass;
-    }
-}
-
