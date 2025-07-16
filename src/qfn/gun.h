@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// gun.h - Generate gun sprite
 #pragma once
 #include "gfx/color_rand.h"
 #include "gfx/image.h"

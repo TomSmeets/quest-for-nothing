@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// gfx2_deskitop.h - Gfx implentation for WASM
 #pragma once
 #include "gfx/gfx2.h"
 #include "gfx/gfx2_help.h"

@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// game_debug.h - Debug drawing modes for QFN
 #pragma once
 #include "qfn/engine.h"
 

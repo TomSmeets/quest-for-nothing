@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// text.h - Text buffer
 #pragma once
 #include "lib/fmt.h"
 #include "lib/mem.h"

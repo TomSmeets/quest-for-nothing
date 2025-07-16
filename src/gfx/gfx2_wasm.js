@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// gfx2_wasm.js - Gfx implentation for WASM
 
 ctx.exports.wasm_gfx_init = () => {
     // Scale canvas by some factor to achive MSAA

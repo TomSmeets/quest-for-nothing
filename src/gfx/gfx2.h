@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// gfx.h - A Graphics, Audio, and Input handling abstraction
+// gfx2.h - A Graphics, Audio, and Input handling abstraction
 #pragma once
 #include "gfx/image.h"
 #include "gfx/input.h"

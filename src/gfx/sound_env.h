@@ -1,4 +1,3 @@
-
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // sound_env.h - Sound Envelopes
 #pragma once

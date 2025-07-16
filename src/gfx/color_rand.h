@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// color_rand.h - Create random colors
 #pragma once
 #include "gfx/color.h"
 #include "lib/rand.h"

@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// ogl.h - OpenGL helpers
 #pragma once
 #include "gfx/ogl_api.h"
 #include "lib/fmt.h"

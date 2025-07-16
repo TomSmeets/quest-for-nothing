@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// box_shapes.h - Create Bounding box from shapes
 #pragma once
 #include "gfx/box.h"
 #include "lib/mat.h"

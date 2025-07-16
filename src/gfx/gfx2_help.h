@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// gfx2_help.h - Helper methods for gfx2 implementations
 #pragma once
 #include "qfn/texture_packer.h"
 #include "lib/mat.h"
