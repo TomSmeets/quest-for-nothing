@@ -3,9 +3,9 @@
 #pragma once
 #include "gfx/gfx2.h"
 #include "gfx/gfx2_help.h"
+#include "gfx/ogl.h"
 #include "lib/fmt.h"
 #include "lib/os_api_wasm.h"
-#include "gfx/ogl.h"
 
 struct Gfx {
     Input input;
@@ -80,7 +80,7 @@ static void gfx_end(Gfx *gfx, m4 camera) {
 }
 
 static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
-    if(depth) {
+    if (depth) {
         gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
     } else {
         gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
