@@ -266,64 +266,22 @@ static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
     gfx_help_push(&gfx->help, depth, mtx, img);
 }
 
-
-static bool gfx_help_pull(Gfx_Helper *help, Gfx_Help_Fill_Result *result, m4 mtx, Image *img) {
-    if (!help->pack) {
-        help->pack = packer_new(GFX_ATLAS_SIZE);
-    }
-
-    // Check cache
-    Packer_Area *area = packer_get_cache(help->pack, img);
-    result->need_upload = false;
-    if (!area) {
-        area = packer_get_new(help->pack, img);
-        if (!area) {
-            packer_free(help->pack);
-            help->pack = 0;
-            return false;
-        }
-        result->need_upload = true;
-        result->upload_pos = area->pos;
-        result->upload_size = img->size;
-        result->upload_pixels = img->pixels;
-    }
-    result->quad = (Gfx_Quad){
-        .x = {mtx.x.x, mtx.x.y, mtx.x.z},
-        .y = {mtx.y.x, mtx.y.y, mtx.y.z},
-        .z = {mtx.z.x, mtx.z.y, mtx.z.z},
-        .w = {mtx.w.x, mtx.w.y, mtx.w.z},
-        .uv_pos = {(f32)area->pos.x / GFX_ATLAS_SIZE, (f32)area->pos.y / GFX_ATLAS_SIZE},
-        .uv_size = {(f32)img->size.x / GFX_ATLAS_SIZE, (f32)img->size.y / GFX_ATLAS_SIZE},
-    };
-    return true;
-}
-
 static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
     OGL_Api *gl = &gfx->gl;
-    while (pass) {
-        Gfx_Quad quad_list[1024];
-        u32 quad_count = 0;
-        while (pass) {
-            // Out of quads -> Finish pass
-            if (quad_count == array_count(quad_list)) break;
-
-            Gfx_Help_Fill_Result result;
-            bool ok = gfx_help_pull(&gfx->help, &result, pass->mtx, pass->img);
-            if (!ok) break;
-            if (result.need_upload) {
-                gfx->gl.glTexSubImage2D(
-                    GL_TEXTURE_2D, 0, result.upload_pos.x, result.upload_pos.y, result.upload_size.x, result.upload_size.y, GL_RGBA, GL_FLOAT,
-                    result.upload_pixels
-                );
-            }
-            quad_list[quad_count++] = result.quad;
-            pass = pass->next;
+    Gfx_Help_Fill_Result result;
+    while (gfx_help_pull(&result, &gfx->help, &pass)) {
+        fmt_su(G->fmt, "Upload = ", result.upload_count, "\n");
+        fmt_su(G->fmt, "Draw   = ", result.quad_count, "\n");
+        for (u32 i = 0; i < result.upload_count; ++i) {
+            Gfx_Upload *upload = result.upload_list + i;
+            u32 x = upload->pos.x;
+            u32 y = upload->pos.y;
+            u32 w = upload->size.x;
+            u32 h = upload->size.y;
+            gl->glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA, GL_FLOAT, upload->pixels);
         }
-        fmt_su(G->fmt, "count: ", quad_count, "\n");
-        if (quad_count > 0) {
-            gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * quad_count, quad_list, GL_STREAM_DRAW);
-            gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, quad_count);
-        }
+        gl->glBufferData(GL_ARRAY_BUFFER, sizeof(Gfx_Quad) * result.quad_count, result.quad_list, GL_STREAM_DRAW);
+        gl->glDrawArraysInstanced(GL_TRIANGLES, 0, 6, result.quad_count);
     }
 }
 

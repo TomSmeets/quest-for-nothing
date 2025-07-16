@@ -50,6 +50,7 @@ typedef struct {
 } Gfx_Help_Fill_Result;
 
 
+// Convert a matrix and texture region to a quad
 static Gfx_Quad gfx_help_make_quad(m4 mtx, v2u pos, v2u size) {
     return (Gfx_Quad){
         .x = {mtx.x.x, mtx.x.y, mtx.x.z},
@@ -60,9 +61,20 @@ static Gfx_Quad gfx_help_make_quad(m4 mtx, v2u pos, v2u size) {
         .uv_size = {(f32)size.x / GFX_ATLAS_SIZE, (f32)size.y / GFX_ATLAS_SIZE},
     };
 }
-static Gfx_Help_Fill_Result gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Helper *help, Gfx_Pass **pass_list) {
+
+
+// Gather information on a draw pass
+static bool gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Helper *help, Gfx_Pass **pass_list) {
+    if(!*pass_list) return false;
+
+    // Reset result
     result->quad_count = 0;
     result->upload_count = 0;
+
+    // Create texture packer if needed
+    if (!help->pack) {
+        help->pack = packer_new(GFX_ATLAS_SIZE);
+    }
 
     for(;;) {
         // Pull Item
@@ -76,6 +88,9 @@ static Gfx_Help_Fill_Result gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Help
         Packer_Area *area = packer_get_cache(help->pack, pass->img);
 
         if(!area) {
+            // Out of space for texture uploads
+            if(result->upload_count == array_count(result->upload_list)) break;
+
             // Try to allocate space on the atlas
             area = packer_get_new(help->pack, pass->img);
 
@@ -85,36 +100,21 @@ static Gfx_Help_Fill_Result gfx_help_pull(Gfx_Help_Fill_Result *result, Gfx_Help
                 help->pack = 0;
                 break;
             }
+
+            result->upload_list[result->upload_count++] = (Gfx_Upload){
+                .pos = area->pos,
+                .size = pass->img->size,
+                .pixels = pass->img->pixels,
+            };
         }
 
         // Insert Item
-        result->quad_list[result->quad_count++] = gfx_help_make_quad(pass->mtx, area->pos, img->size);
-        // =========================== CONTINUE HERE ===========================
+        result->quad_list[result->quad_count++] = gfx_help_make_quad(pass->mtx, area->pos, pass->img->size);
 
         // Iterate to next item
         *pass_list = pass->next;
     }
 
-    if (!help->pack) {
-        help->pack = packer_new(GFX_ATLAS_SIZE);
-    }
-
-    // Check cache
-    Packer_Area *area = packer_get_cache(help->pack, img);
-    result->need_upload = false;
-    if (!area) {
-        area = packer_get_new(help->pack, img);
-        if (!area) {
-            packer_free(help->pack);
-            help->pack = 0;
-            return false;
-        }
-        result->need_upload = true;
-        result->upload_pos = area->pos;
-        result->upload_size = img->size;
-        result->upload_pixels = img->pixels;
-    }
-    result->quad = gfx_help_make_quad(mtx, area->pos, img->size);
     return true;
 }
 
