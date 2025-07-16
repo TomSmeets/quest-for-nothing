@@ -274,10 +274,10 @@ static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
 
 static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
     OGL_Api *gl = &gfx->gl;
-    static Gfx_Pass_Compiled result;
+    Gfx_Pass_Compiled result;
     while (gfx_pass_compile(&result, &gfx->pack, &pass)) {
-        fmt_su(G->fmt, "Upload = ", result.upload_count, "\n");
-        fmt_su(G->fmt, "Draw   = ", result.quad_count, "\n");
+        // fmt_su(G->fmt, "Upload = ", result.upload_count, "\n");
+        // fmt_su(G->fmt, "Draw   = ", result.quad_count, "\n");
         for (u32 i = 0; i < result.upload_count; ++i) {
             Gfx_Upload *upload = result.upload_list + i;
             u32 x = upload->pos.x;
