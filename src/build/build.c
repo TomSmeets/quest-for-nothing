@@ -189,6 +189,7 @@ static bool build_all(App *app, Cli *cli) {
     }
     os_system(S("cp out/SDL3.dll out/release/SDL3.dll"));
     os_system(S("cp src/lib/*.js out/release/"));
+    os_system(S("cp src/gfx/*.js out/release/"));
     os_system(S("cp src/qfn/os_wasm.html out/release/index.html"));
 
     if (upload) {

@@ -24,14 +24,12 @@ struct Gfx GFX_GLOBAL;
 WASM_IMPORT(wasm_gfx_init) void wasm_gfx_init(void);
 static Gfx *gfx_init(Memory *mem, const char *title) {
     Gfx *gfx = &GFX_GLOBAL;
-    fmt_s(G->fmt, "gfx_init\n");
     wasm_gfx_init();
     return gfx;
 }
 
 WASM_IMPORT(wasm_gfx_begin_audio) void wasm_gfx_begin_audio(void);
 static Input *gfx_begin(Gfx *gfx) {
-    fmt_s(G->fmt, "gfx_begin\n");
     // Double buffer input because we can recieve input callbacks at any time
     gfx->input = gfx->next_input;
     input_reset(&gfx->next_input);
@@ -40,6 +38,7 @@ static Input *gfx_begin(Gfx *gfx) {
     gfx->tmp = mem_new();
     gfx->pass_3d = 0;
     gfx->pass_ui = 0;
+    fmt_sf(G->fmt, "x: ", gfx->input.mouse_rel.x, "\n");
     return &gfx->input;
 }
 
@@ -64,7 +63,6 @@ WASM_IMPORT(wasm_gfx_clear) void wasm_gfx_clear(void);
 WASM_IMPORT(wasm_gfx_begin_3d) void wasm_gfx_begin_3d(m44 *projection);
 WASM_IMPORT(wasm_gfx_begin_ui) void wasm_gfx_begin_ui(m44 *projection);
 static void gfx_end(Gfx *gfx, m4 camera) {
-    fmt_s(G->fmt, "gfx_end\n");
     v2 aspect = ogl_aspect(gfx->input.window_size);
     m4 view = m4_invert_tr(camera);
     m44 projection = m4_perspective_to_clip(view, 70, aspect.x, aspect.y, 0.1, 15.0);
@@ -73,7 +71,9 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     wasm_gfx_clear();
     wasm_gfx_begin_3d(&projection);
     gfx_draw_pass(gfx, gfx->pass_3d);
-    wasm_gfx_begin_ui(&projection);
+
+    m44 screen = m4_screen_to_clip(m4_id(), gfx->input.window_size);
+    wasm_gfx_begin_ui(&screen);
     gfx_draw_pass(gfx, gfx->pass_ui);
     mem_free(gfx->tmp);
     gfx->tmp = 0;
@@ -89,14 +89,14 @@ static void gfx_draw_ui(Gfx *gfx, m4 mtx, Image *img) {
 
 WASM_IMPORT(wasm_gfx_set_grab) void wasm_gfx_set_grab(bool grab);
 static void gfx_set_grab(Gfx *gfx, bool grab) {
-    gfx->input.mouse_is_grabbed = grab;
+    gfx->next_input.mouse_is_grabbed = grab;
     wasm_gfx_set_grab(grab);
 }
 
 // Set Window fullscreen
 WASM_IMPORT(wasm_gfx_set_fullscreen) void wasm_gfx_set_fullscreen(bool fullscreen);
 static void gfx_set_fullscreen(Gfx *gfx, bool fullscreen) {
-    gfx->input.is_fullscreen = fullscreen;
+    gfx->next_input.is_fullscreen = fullscreen;
     wasm_gfx_set_fullscreen(fullscreen);
 }
 
