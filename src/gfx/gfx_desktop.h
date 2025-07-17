@@ -7,8 +7,8 @@
 #include "gfx/ogl.h"
 #include "gfx/ogl_api.h"
 #include "gfx/sdl3_api.h"
-#include "lib/fmt.h"
 #include "gfx/texture_packer.h"
+#include "lib/fmt.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
 #embed "gfx/gl_shader.vert"

@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_help.h - Helper methods for gfx implementations
 #pragma once
-#include "lib/mat.h"
 #include "gfx/texture_packer.h"
+#include "lib/mat.h"
 
 #define GFX_ATLAS_SIZE 4096
 
