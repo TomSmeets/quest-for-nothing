@@ -8,15 +8,15 @@
 #include "gfx/ogl_api.h"
 #include "gfx/sdl3_api.h"
 #include "lib/fmt.h"
-#include "qfn/texture_packer.h"
+#include "gfx/texture_packer.h"
 
 static unsigned char ASSET_SHADER_VERT[] = {
-#embed "qfn/gl_shader.vert"
+#embed "gfx/gl_shader.vert"
     , 0
 };
 
 static unsigned char ASSET_SHADER_FRAG[] = {
-#embed "qfn/gl_shader.frag"
+#embed "gfx/gl_shader.frag"
     , 0
 };
 

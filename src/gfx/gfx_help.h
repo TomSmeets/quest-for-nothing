@@ -2,7 +2,7 @@
 // gfx_help.h - Helper methods for gfx implementations
 #pragma once
 #include "lib/mat.h"
-#include "qfn/texture_packer.h"
+#include "gfx/texture_packer.h"
 
 #define GFX_ATLAS_SIZE 4096
 
