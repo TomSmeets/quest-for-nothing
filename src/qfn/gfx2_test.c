@@ -1,5 +1,5 @@
 #include "gfx/color_rand.h"
-#include "gfx/gfx2.h"
+#include "gfx/gfx.h"
 #include "gfx/input.h"
 #include "gfx/sound.h"
 #include "gfx/sound_env.h"
@@ -11,9 +11,9 @@
 #include "qfn/time.h"
 
 #if OS_IS_WASM
-#include "gfx/gfx2_wasm.h"
+#include "gfx/gfx_wasm.h"
 #else
-#include "gfx/gfx2_desktop.h"
+#include "gfx/gfx_desktop.h"
 #endif
 
 struct App {

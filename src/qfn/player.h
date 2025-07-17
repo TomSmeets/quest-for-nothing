@@ -156,7 +156,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     m4_translate_z(&mtx_gun, 0.15);
     m4_translate_y(&mtx_gun, -0.12);
     m4_apply(&mtx_gun, mtx_head);
-    gfx_quad_3d(eng->gfx, mtx_gun, player->gun);
+    gfx_draw_3d(eng->gfx, mtx_gun, player->gun);
 
     m4 mtx_camera = m4_id();
     if (player->screen_shake > 0) {

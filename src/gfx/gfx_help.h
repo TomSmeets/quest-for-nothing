@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// gfx2_help.h - Helper methods for gfx2 implementations
+// gfx_help.h - Helper methods for gfx implementations
 #pragma once
 #include "lib/mat.h"
 #include "qfn/texture_packer.h"
@@ -81,12 +81,14 @@ static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass 
         // Check texture atlas for existing item
         Packer_Area *area = packer_get_cache(*pack, pass->img);
 
-        if (!area) {
+        if (!area || area->variation != pass->img->variation) {
             // Out of space for texture uploads
             if (result->upload_count == array_count(result->upload_list)) break;
 
             // Try to allocate space on the atlas
-            area = packer_get_new(*pack, pass->img);
+            if (!area) {
+                area = packer_get_new(*pack, pass->img);
+            }
 
             // No more space left
             if (!area) {

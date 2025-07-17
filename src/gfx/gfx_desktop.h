@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// gfx2_deskitop.h - Gfx implentation for Linux and Windows desktop
+// gfx_deskitop.h - Gfx implentation for Linux and Windows desktop
 #pragma once
-#include "gfx/gfx2.h"
-#include "gfx/gfx2_help.h"
+#include "gfx/gfx.h"
+#include "gfx/gfx_help.h"
 #include "gfx/input.h"
 #include "gfx/ogl.h"
 #include "gfx/ogl_api.h"
@@ -264,12 +264,12 @@ static Input *gfx_begin(Gfx *gfx) {
 }
 
 // Draw image during render
-static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
-    if (depth) {
-        gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
-    } else {
-        gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
-    }
+static void gfx_draw_3d(Gfx *gfx, m4 mtx, Image *img) {
+    gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
+}
+
+static void gfx_draw_ui(Gfx *gfx, m4 mtx, Image *img) {
+    gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
 }
 
 static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
@@ -309,6 +309,8 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     gl->glDisable(GL_BLEND);
     gfx_draw_pass(gfx, gfx->pass_3d);
 
+    m44 screen = m4_screen_to_clip(m4_id(), gfx->input.window_size);
+    gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&screen);
     gl->glDisable(GL_DEPTH_TEST);
     gl->glEnable(GL_BLEND);
     gl->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

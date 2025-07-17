@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // ui.h - Immediate mode UI
 #pragma once
+#include "gfx/gfx.h"
 #include "lib/str.h"
 #include "lib/vec.h"
-#include "qfn/gfx.h"
 
 typedef struct {
     v2 pos;
@@ -373,7 +373,7 @@ static void ui_text(UI *ui, m4 mtx, char *text) {
             m4_translate_x(&mtx2, x);
             m4_translate_y(&mtx2, y);
             m4_apply(&mtx2, mtx);
-            gfx_quad_ui(ui->gfx, mtx2, img);
+            gfx_draw_ui(ui->gfx, mtx2, img);
         }
 
         x += size;

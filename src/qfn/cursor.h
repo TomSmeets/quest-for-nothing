@@ -1,10 +1,10 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // cursor.h - Mouse cursor handling
 #pragma once
+#include "gfx/gfx.h"
 #include "gfx/image.h"
 #include "lib/math.h"
 #include "qfn/engine.h"
-#include "qfn/gfx.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/ui.h"
 
@@ -48,5 +48,5 @@ static void cursor_draw(Cursor *cursor, Engine *eng) {
     if (!input->mouse_is_grabbed) {
         m4_translate(&mtx, (v3){input->mouse_pos.x, input->mouse_pos.y, 0});
     }
-    gfx_quad_ui(gfx, mtx, cursor->image);
+    gfx_draw_ui(gfx, mtx, cursor->image);
 }

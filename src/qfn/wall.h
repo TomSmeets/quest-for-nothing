@@ -27,7 +27,7 @@ static Wall *wall_new(Memory *mem, m4 mtx, Image *image) {
 }
 
 static void wall_update(Wall *wall, Engine *eng, Collision_World *world) {
-    gfx_quad_3d(eng->gfx, wall->mtx, wall->image);
+    gfx_draw_3d(eng->gfx, wall->mtx, wall->image);
     collision_add(world, wall->mtx, wall->image, 0, wall);
 }
 

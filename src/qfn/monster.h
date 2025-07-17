@@ -232,9 +232,9 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
     if (dead_amount) m4_rotate_z(&mtx_gun, -0.2 * R1 * dead_amount);
     m4_apply(&mtx_gun, mtx_rotated);
 
-    gfx_quad_3d(eng->gfx, mtx_sprite, mon->sprite.image);
-    gfx_quad_3d(eng->gfx, mtx_shadow, mon->sprite.shadow);
-    gfx_quad_3d(eng->gfx, mtx_gun, mon->gun);
+    gfx_draw_3d(eng->gfx, mtx_sprite, mon->sprite.image);
+    gfx_draw_3d(eng->gfx, mtx_shadow, mon->sprite.shadow);
+    gfx_draw_3d(eng->gfx, mtx_gun, mon->gun);
     mon->sprite_mtx = mtx_sprite;
 
     collision_add(world, mtx_sprite, mon->sprite.image, 1, mon);

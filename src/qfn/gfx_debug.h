@@ -2,8 +2,8 @@
 // gfx_debug.h - Debug primitives for visualising vectors and matricies
 #pragma once
 #include "gfx/box.h"
+#include "gfx/gfx.h"
 #include "gfx/image.h"
-#include "qfn/gfx.h"
 
 typedef struct {
     // X,Y and Z colors
@@ -59,7 +59,7 @@ static void gfx_debug_line_ex(Gfx_Debug *dbg, v3 pos, v3 dir, u32 color, bool ar
             m4_scale(&mtx2, (v3){width, width, len});
             m4_rotate_z(&mtx2, R1 * i);
             m4_apply(&mtx2, mtx);
-            gfx_quad_3d(dbg->gfx, mtx2, img);
+            gfx_draw_3d(dbg->gfx, mtx2, img);
         }
         if (arrow) {
             m4 mtx2 = m4_id();
@@ -70,7 +70,7 @@ static void gfx_debug_line_ex(Gfx_Debug *dbg, v3 pos, v3 dir, u32 color, bool ar
             m4_translate_z(&mtx2, len);
             m4_rotate_z(&mtx2, R1 * i);
             m4_apply(&mtx2, mtx);
-            gfx_quad_3d(dbg->gfx, mtx2, img);
+            gfx_draw_3d(dbg->gfx, mtx2, img);
         }
         if (arrow) {
             m4 mtx2 = m4_id();
@@ -81,7 +81,7 @@ static void gfx_debug_line_ex(Gfx_Debug *dbg, v3 pos, v3 dir, u32 color, bool ar
             m4_translate_z(&mtx2, len);
             m4_rotate_z(&mtx2, R1 * i);
             m4_apply(&mtx2, mtx);
-            gfx_quad_3d(dbg->gfx, mtx2, img);
+            gfx_draw_3d(dbg->gfx, mtx2, img);
         }
     }
 }

@@ -21,19 +21,19 @@ typedef enum {
 
 // DBG_Texture
 static void debug_draw_texture(Engine *eng) {
-    *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (Gfx_Quad){
-        .x = {400, 0, 0},
-        .y = {0, 400, 0},
-        .z = {0, 0, 1},
-        .w = {0, 0, 0},
-        .uv_pos = {0, 0},
-        .uv_size = {1, 1},
-    };
+    // *gfx_pass_quad(eng->gfx, &eng->gfx->pass_ui) = (Gfx_Quad){
+    //     .x = {400, 0, 0},
+    //     .y = {0, 400, 0},
+    //     .z = {0, 0, 1},
+    //     .w = {0, 0, 0},
+    //     .uv_pos = {0, 0},
+    //     .uv_size = {1, 1},
+    // };
 
     // Text
     m4 mtx = m4_id();
     m4_translate_x(&mtx, -eng->input->window_size.x * .5 + 3 * 4);
     m4_translate_y(&mtx, eng->input->window_size.y * .5 - 3 * 4);
-    gfx_quad_ui(eng->gfx, mtx, eng->ui->image);
+    gfx_draw_ui(eng->gfx, mtx, eng->ui->image);
     ui_text(eng->ui, mtx, "Hello World!\n0123456789\n3.141592");
 }

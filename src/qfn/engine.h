@@ -1,9 +1,9 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // engine.h - Immediate Mode Game Engine
 #pragma once
+#include "gfx/gfx.h"
 #include "gfx/input.h"
 #include "lib/rand.h"
-#include "qfn/gfx.h"
 #include "qfn/gfx_debug.h"
 #include "qfn/time.h"
 #include "qfn/ui.h"
@@ -35,7 +35,7 @@ static Engine *engine_new(Memory *mem, OS *os, Rand rng, char *title) {
     eng->mem = mem;
     eng->rng = rng;
 
-    eng->gfx = gfx_new(mem, title);
+    eng->gfx = gfx_init(mem, title);
     eng->gfx_dbg = gfx_debug_new(eng->gfx, mem);
     eng->input = 0;
 

@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// gfx2.h - A Graphics, Audio, and Input handling abstraction
+// gfx.h - A Graphics, Audio, and Input handling abstraction
 #pragma once
 #include "gfx/image.h"
 #include "gfx/input.h"
@@ -25,7 +25,8 @@ static Input *gfx_begin(Gfx *gfx);
 static void gfx_end(Gfx *gfx, m4 camera);
 
 // Draw image during render
-static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img);
+static void gfx_draw_3d(Gfx *gfx, m4 mtx, Image *img);
+static void gfx_draw_ui(Gfx *gfx, m4 mtx, Image *img);
 
 // Set mouse grab
 static void gfx_set_grab(Gfx *gfx, bool grab);

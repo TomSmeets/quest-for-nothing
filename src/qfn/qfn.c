@@ -1,5 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // main.c - Quest For Nothing main entry point
+#include "gfx/gfx.h"
 #include "gfx/input.h"
 #include "lib/global.h"
 #include "lib/math.h"
@@ -7,7 +8,6 @@
 #include "qfn/cursor.h"
 #include "qfn/engine.h"
 #include "qfn/game.h"
-#include "qfn/gfx.h"
 #include "qfn/gfx_impl.h"
 
 struct App {

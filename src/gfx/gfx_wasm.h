@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// gfx2_deskitop.h - Gfx implentation for WASM
+// gfx_deskitop.h - Gfx implentation for WASM
 #pragma once
-#include "gfx/gfx2.h"
-#include "gfx/gfx2_help.h"
+#include "gfx/gfx.h"
+#include "gfx/gfx_help.h"
 #include "gfx/ogl.h"
 #include "lib/fmt.h"
 #include "lib/os_api_wasm.h"
@@ -79,12 +79,12 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     gfx->tmp = 0;
 }
 
-static void gfx_draw(Gfx *gfx, bool depth, m4 mtx, Image *img) {
-    if (depth) {
-        gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
-    } else {
-        gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
-    }
+static void gfx_draw_3d(Gfx *gfx, m4 mtx, Image *img) {
+    gfx_pass_push(gfx->tmp, &gfx->pass_3d, mtx, img);
+}
+
+static void gfx_draw_ui(Gfx *gfx, m4 mtx, Image *img) {
+    gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
 }
 
 WASM_IMPORT(wasm_gfx_set_grab) void wasm_gfx_set_grab(bool grab);
