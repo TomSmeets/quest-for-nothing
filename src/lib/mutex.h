@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // mutex.h
 #pragma once
-#include "types.h"
+#include "lib/types.h"
 
 // References:
 // - [Atomic break down: understanding ordering - Ciara](https://www.youtube.com/watch?v=C5xY96i0Aes)
