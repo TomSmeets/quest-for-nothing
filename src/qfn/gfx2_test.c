@@ -110,7 +110,7 @@ static void os_main(void) {
         m4_translate_x(&mtx, 1);
         m4_rotate_z(&mtx, a);
         m4_translate_z(&mtx, i * -0.01f);
-        gfx_draw(app->gfx, 1, mtx, img);
+        gfx_draw_3d(app->gfx, mtx, img);
     }
 
     m4 camera = m4_id();
