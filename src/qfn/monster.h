@@ -107,7 +107,7 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
                 break;
             }
         }
-        if(can_see) mon->state = Monster_State_Attack;
+        if (can_see) mon->state = Monster_State_Attack;
     }
 
     // Attack -> Shoot
@@ -156,46 +156,46 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
             mutex_unlock(&audio->mutex);
 
             // for (u32 i = 0; i < 32; ++i) {
-                Collide_Result hit_res = {.distance = 1000.0f};
-                Collision_Object *hit_obj = 0;
+            Collide_Result hit_res = {.distance = 1000.0f};
+            Collision_Object *hit_obj = 0;
 
-                v3 shoot_pos = mon->pos + (v3){0, mon->size.y / 2, 0};
-                v3 shoot_dir = player_dir;
-                // shoot_dir.x += rand_f32(&eng->rng, -1, 1) * 0.02;
-                // shoot_dir.y += rand_f32(&eng->rng, -1, 1) * 0.02;
-                // shoot_dir.z += rand_f32(&eng->rng, -1, 1) * 0.02;
-                // shoot_dir = v3_normalize(shoot_dir);
-                for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
-                    Collide_Result res;
-                    if (collide_quad_ray(&res, obj->mtx, shoot_pos, shoot_dir)) {
-                        Image *img = obj->img;
-                        v4 *px = image_get(img, (v2i){(res.uv.x + .5) * img->size.x, (.5 - res.uv.y) * img->size.y});
+            v3 shoot_pos = mon->pos + (v3){0, mon->size.y / 2, 0};
+            v3 shoot_dir = player_dir;
+            // shoot_dir.x += rand_f32(&eng->rng, -1, 1) * 0.02;
+            // shoot_dir.y += rand_f32(&eng->rng, -1, 1) * 0.02;
+            // shoot_dir.z += rand_f32(&eng->rng, -1, 1) * 0.02;
+            // shoot_dir = v3_normalize(shoot_dir);
+            for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
+                Collide_Result res;
+                if (collide_quad_ray(&res, obj->mtx, shoot_pos, shoot_dir)) {
+                    Image *img = obj->img;
+                    v4 *px = image_get(img, (v2i){(res.uv.x + .5) * img->size.x, (.5 - res.uv.y) * img->size.y});
 
-                        if (!px) continue;
-                        if (px->w < .9f) continue;
-                        if (res.distance > hit_res.distance) continue;
-                        hit_obj = obj;
-                        hit_res = res;
-                    }
+                    if (!px) continue;
+                    if (px->w < .9f) continue;
+                    if (res.distance > hit_res.distance) continue;
+                    hit_obj = obj;
+                    hit_res = res;
                 }
+            }
 
-                // Check if we can see player
-                if (hit_res.distance >= player_dist) {
-                    (*player_damage)++;
-                }
+            // Check if we can see player
+            if (hit_res.distance >= player_dist) {
+                (*player_damage)++;
+            }
 
-                if (hit_obj) {
-                    Image *img = hit_obj->img;
-                    v4 *px = image_get(img, (v2i){(hit_res.uv.x + .5) * img->size.x, (.5 - hit_res.uv.y) * img->size.y});
-                    if (px) {
-                        f32 t = (f32)(eng->time.frame_start / 1000 / 1000 % 60) / 60;
-                        px->x += ((f_cos2pi(t + 0.0f / 3.0f) + 1) / 2 - px->x) * .9f;
-                        px->y += ((f_cos2pi(t + 1.0f / 3.0f) + 1) / 2 - px->y) * .9f;
-                        px->z += ((f_cos2pi(t + 2.0f / 3.0f) + 1) / 2 - px->z) * .9f;
-                        px->w = 1;
-                        img->variation++;
-                    }
+            if (hit_obj) {
+                Image *img = hit_obj->img;
+                v4 *px = image_get(img, (v2i){(hit_res.uv.x + .5) * img->size.x, (.5 - hit_res.uv.y) * img->size.y});
+                if (px) {
+                    f32 t = (f32)(eng->time.frame_start / 1000 / 1000 % 60) / 60;
+                    px->x += ((f_cos2pi(t + 0.0f / 3.0f) + 1) / 2 - px->x) * .9f;
+                    px->y += ((f_cos2pi(t + 1.0f / 3.0f) + 1) / 2 - px->y) * .9f;
+                    px->z += ((f_cos2pi(t + 2.0f / 3.0f) + 1) / 2 - px->z) * .9f;
+                    px->w = 1;
+                    img->variation++;
                 }
+            }
             // }
         }
     }

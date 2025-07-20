@@ -86,15 +86,14 @@ static void game_update(Game *game, Engine *eng) {
     u32 dead_count = 0;
     for (Monster *mon = game->monster_list; mon; mon = mon->next) {
         monster_update(mon, eng, &game->audio, world, game->player->pos, &player_damage);
-        if(mon->state != Monster_State_Dead) {
+        if (mon->state != Monster_State_Dead) {
             alive_count++;
-            } else {
-                dead_count++;
-            }
+        } else {
+            dead_count++;
+        }
     }
 
-
-    if(game->player->health > 0) {
+    if (game->player->health > 0) {
         player_update(game->player, world, eng, &game->audio, player_damage);
 
         m4 mtx = m4_id();
@@ -115,16 +114,18 @@ static void game_update(Game *game, Engine *eng) {
     } else {
         m4 mtx = m4_id();
         m4_scale(&mtx, 4);
-        m4_translate(&mtx, (v3){-400,0,0});
-        m4_rotate_z(&mtx, f_sin2pi(game->time)*.2);
-        m4_scale(&mtx, f_sin2pi(game->time/2)*.2 + 1);
+        m4_translate(&mtx, (v3){-400, 0, 0});
+        m4_rotate_z(&mtx, f_sin2pi(game->time) * .2);
+        m4_scale(&mtx, f_sin2pi(game->time / 2) * .2 + 1);
         m4_scale(&mtx, f_remap(game->time, 0, 2, 0, 1));
         ui_text(eng->ui, mtx, "Game Over!");
 
         mtx = m4_id();
         m4_scale(&mtx, 2);
-        m4_translate(&mtx, (v3){-400,0,0});
-        m4_translate(&mtx, (v3){f_sin2pi(game->time*0.02)*eng->input->window_size.x/4,f_cos2pi(game->time*0.03)*eng->input->window_size.y/2.2,0});
+        m4_translate(&mtx, (v3){-400, 0, 0});
+        m4_translate(
+            &mtx, (v3){f_sin2pi(game->time * 0.02) * eng->input->window_size.x / 4, f_cos2pi(game->time * 0.03) * eng->input->window_size.y / 2.2, 0}
+        );
         m4_scale(&mtx, f_remap(game->time, 2, 3, 0, 1));
         if (f_fract(game->time * 0.04) < 0.8) {
             ui_text(eng->ui, mtx, "Press R to resetart");

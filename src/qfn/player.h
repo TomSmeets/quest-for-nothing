@@ -124,7 +124,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         }
     }
 
-    if(damage) {
+    if (damage) {
         player->screen_shake += (f32)damage / 2;
         player->health -= damage;
     }

@@ -31,8 +31,6 @@ static World_Object *world_cast(World *world, v3 pos, v3 dir);
 // Find colliding boxes
 static World_Object *world_collide(World *world, Memory *mem, Box box);
 
-
-
 struct World {
     Memory *mem_next;
     Memory *mem_prev;
@@ -42,7 +40,7 @@ struct World {
 
 static void world_begin(World *world) {
     // Free(prev)
-    if(world->mem_prev) mem_free(world->mem_prev);
+    if (world->mem_prev) mem_free(world->mem_prev);
 
     // Next -> Prev
     world->mem_prev = world->mem_next;
@@ -64,8 +62,8 @@ static void world_add(World *world, Entity_Type type, Box box, void *entity) {
 // Find colliding boxes
 static World_Object *world_collide(World *world, Memory *mem, Box box) {
     World_Object *ret_list = 0;
-    for(World_Object *obj = world->obj_prev; obj; obj = obj->next) {
-        if(!box_intersect(obj->box, box)) continue;
+    for (World_Object *obj = world->obj_prev; obj; obj = obj->next) {
+        if (!box_intersect(obj->box, box)) continue;
 
         World_Object *ret = mem_struct_uninit(mem, World_Object);
         *ret = *obj;
