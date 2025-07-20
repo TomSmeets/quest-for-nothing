@@ -61,7 +61,7 @@ static Monster *game_gen_monsters(Memory *mem, Wall *walls, Rand *rng, v3 spawn)
 
 // Create a new game
 static Game *game_new(Rand *rng) {
-    v2i level_size = {8, 8};
+    v2i level_size = {6, 6};
     v3 spawn = 0;
 
     Memory *mem = mem_new();
@@ -93,7 +93,15 @@ static void game_update(Game *game, Engine *eng) {
         }
     }
 
-    if (game->player->health > 0 && alive_count > 0) {
+    bool over = game->player->health == 0 && alive_count > 0;
+    bool win = alive_count == 0;
+
+    mutex_lock(&game->audio.mutex);
+    game->audio.over = over;
+    game->audio.win = win;
+    mutex_unlock(&game->audio.mutex);
+
+    if (!win && !over) {
         player_update(game->player, world, eng, &game->audio, player_damage);
 
         m4 mtx = m4_id();
@@ -119,7 +127,7 @@ static void game_update(Game *game, Engine *eng) {
         m4_scale(&mtx, f_sin2pi(game->time / 2) * .2 + 1);
         m4_scale(&mtx, f_remap(game->time, 0, 2, 0, 1));
 
-        if (alive_count > 0) {
+        if (over) {
             ui_text(eng->ui, mtx, "Game Over!");
         } else {
             ui_text(eng->ui, mtx, " You Won!");
@@ -138,5 +146,7 @@ static void game_update(Game *game, Engine *eng) {
             ui_text(eng->ui, mtx, "Or press Q to Quit");
         }
         game->time += eng->dt;
+
+        if (input_down(eng->input, KEY_Q)) os_exit(0);
     }
 }

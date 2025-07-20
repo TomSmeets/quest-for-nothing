@@ -30,6 +30,9 @@ typedef struct {
     bool mute;
     bool play_shoot;
     bool play_jump;
+    bool play_hurt;
+    bool over;
+    bool win;
     v3 pos;
 
     u32 shoot_ix;
@@ -123,6 +126,8 @@ static v2 audio_sample(Audio *audio) {
     out_mono += volume * sound_adsr(sound, play_noise3, 1, 0.5, 0) * sound_sine(sound, NOTE_F * (1 + sound_sine(sound, 2, 0) * .5f), 0);
     out_mono += volume * sound_adsr(sound, play_noise4, 4, 1, 0) * sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 8, 0) * .5f), 0);
 
+    out_mono += 0.5f * sound_adsr(sound, audio->play_hurt, 400, 4.0, 0) * sound_lowpass(sound, 1000, sound_noise_freq(sound, 80, 0.5));
+
     f32 jump_vol = sound_adsr(sound, audio->play_jump, 400, 4.0, 0);
     out_mono += 0.1 * jump_vol * sound_sine(sound, NOTE_C * (1 + 0.8 * sound_sine(sound, 8, 0)), 0);
     out_mono +=
@@ -130,8 +135,23 @@ static v2 audio_sample(Audio *audio) {
                   sound, NOTE_C,
                   sound_adsr(sound, audio->play_shoot, 400, 16.0, 0) * (sound_noise_white(sound) * .8 + sound_noise_freq(sound, NOTE_C / 4, 0.5f))
               );
+
+    // out_mono += 0.04 * (audio->over || audio->win) * sound_sine(sound, NOTE_C, sound_sine(sound, NOTE_C * (1 + sound_sine(sound, 0.01, 0)*0.2), 0)
+    // * sound_sine(sound, 2, 0) * sound_sine(sound, .01, 0)) *
+    //             sound_sine(sound, 1.0f/4, 0) * sound_sine(sound, .01, 0);
+
+    {
+        f32 wawa = .5 + sound_sine(sound, 2, 0) / 2;
+        f32 volume1 = 1.0 + sound_sine(sound, 1.0f / 4, 0) / 4;
+        if (!(audio->over || audio->win)) volume1 = 0;
+        f32 freq = NOTE_C / 4;
+        if (audio->win) freq *= 2;
+        out_mono += 0.05 * volume1 * sound_filter(sound, wawa * NOTE_C * 4, sound_saw(sound, freq, 0)).band_pass;
+    }
+
     audio->play_jump = 0;
     audio->play_shoot = 0;
+    audio->play_hurt = 0;
 
     for (u32 i = 0; i < array_count(audio->shoot); ++i) {
         Audio_Effect *eff = audio->shoot + i;
@@ -150,6 +170,10 @@ static v2 audio_sample(Audio *audio) {
         .wet = 0.5f,
         .dry = 1.0f,
     };
+
+    if (audio->over || audio->win) {
+        cfg.dry = 0.5;
+    }
 
     out = sound_freeverb2(sound, cfg, out * 0.5f) * 1.0f;
     // out = sound_reverb3(sound, out * 0.5f) * 1.0f;

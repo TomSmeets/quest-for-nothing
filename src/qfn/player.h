@@ -127,6 +127,10 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     if (damage) {
         player->screen_shake += (f32)damage / 2;
         player->health -= damage;
+
+        mutex_lock(&audio->mutex);
+        audio->play_hurt = true;
+        mutex_unlock(&audio->mutex);
     }
 
     bool did_shoot = 0;
@@ -143,6 +147,8 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         audio->shoot_ix = (audio->shoot_ix + 1) % array_count(audio->shoot);
         mutex_unlock(&audio->mutex);
     }
+
+    if (player->screen_shake > .5) player->screen_shake = .5;
 
     m4 mtx_body = m4_id();
     m4_apply(&mtx_body, mtx_yaw);
@@ -228,7 +234,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
                 }
                 if (hit_obj->type == 1) {
                     Monster *mon = hit_obj->handle;
-                    mon->health -= 10.0f / n;
+                    mon->health -= 15.0f / n;
                 }
             }
         }

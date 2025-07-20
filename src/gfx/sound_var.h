@@ -20,7 +20,7 @@ typedef struct {
 
 static Sound sound_init(Memory *mem) {
     return (Sound){
-        .imm = imm_new(mem, 8 * 1024),
+        .imm = imm_new(mem, 16 * 1024),
     };
 }
 
