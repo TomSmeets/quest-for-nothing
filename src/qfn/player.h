@@ -12,7 +12,6 @@
 typedef struct {
     v3 move;
     v3 look;
-    f32 health;
 
     bool jump;
     bool fly;
@@ -62,16 +61,18 @@ typedef struct {
     m4 camera;
     m4 inv_camera;
     bool fly;
+    u32 health;
 } Player;
 
 static Player *player_new(Memory *mem, v3 pos) {
     Player *player = mem_struct(mem, Player);
     player->pos = pos;
     player->gun = gun_new(mem, G->rand);
+    player->health = 10;
     return player;
 }
 
-static void player_update(Player *player, Collision_World *world, Engine *eng, Audio *audio) {
+static void player_update(Player *player, Collision_World *world, Engine *eng, Audio *audio, u32 damage) {
     Player_Input input = player_parse_input(eng->input);
     if (input_click(eng->input, KEY_3)) player->fly = !player->fly;
 
@@ -123,6 +124,11 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         }
     }
 
+    if(damage) {
+        player->screen_shake += (f32)damage / 2;
+        player->health -= damage;
+    }
+
     bool did_shoot = 0;
     player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);
     if (input.shoot && player->shoot_timeout == 0) {
@@ -162,9 +168,9 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     m4 mtx_camera = m4_id();
     if (player->screen_shake > 0) {
         f32 shake = player->screen_shake * player->screen_shake * player->screen_shake;
-        m4_rotate_x(&mtx_camera, f_sin2pi(shake * 3 * 10) * shake * 0.5);
-        m4_rotate_z(&mtx_camera, f_sin2pi(shake * 5 * 10) * shake * 0.5);
-        m4_rotate_y(&mtx_camera, f_sin2pi(shake * 7 * 10) * shake * 0.5);
+        m4_rotate_x(&mtx_camera, f_sin2pi(shake * 3 * 10) * f_min(shake, .2) * 0.5);
+        m4_rotate_z(&mtx_camera, f_sin2pi(shake * 5 * 10) * f_min(shake, .2) * 0.5);
+        m4_rotate_y(&mtx_camera, f_sin2pi(shake * 7 * 10) * f_min(shake, .2) * 0.5);
         player->screen_shake -= eng->dt;
     }
 
@@ -189,7 +195,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
             Collision_Object *hit_obj = 0;
 
             f32 shot_ang = rand_f32(&eng->rng, 0, 1);
-            f32 shot_dist = rand_f32(&eng->rng, 0, .1f);
+            f32 shot_dist = rand_f32(&eng->rng, 0, .08f);
             m4 shoot_mtx = mtx_head;
             v3 shoot_pos = shoot_mtx.w;
             v3 shoot_dir = shoot_mtx.z;

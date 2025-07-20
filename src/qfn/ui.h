@@ -336,11 +336,11 @@ static Image *ui_get_char(UI *ui, u8 chr) {
 
     assert(str_len((char *)grid) == 5 * 5 * 2, "Character does not match size");
 
-    v4 color_bg = {0, 0, 0, 1};
-    v4 color_fg = {1, 1, 1, 1};
+    v4 color_fg = {0, 0, 0, 1};
+    v4 color_bg = {1, 1, 1, 1};
 
     Image *img = image_new(mem, (v2u){6, 6});
-    image_fill(img, color_bg);
+    // image_fill(img, color_bg);
     for (u32 y = 0; y < 5; ++y) {
         for (u32 x = 0; x < 5; ++x) {
             bool value = grid[(y * 5 + x) * 2] != ' ';

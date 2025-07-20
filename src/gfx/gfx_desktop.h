@@ -48,8 +48,8 @@ struct Gfx {
 
     Memory *tmp;
     Packer *pack;
-    Gfx_Pass *pass_3d;
-    Gfx_Pass *pass_ui;
+    Gfx_Pass_List pass_3d;
+    Gfx_Pass_List pass_ui;
 };
 
 static void sdl_audio_callback_wrapper(void *user, SDL_AudioStream *stream, int additional_amount, int total_amount) {
@@ -258,8 +258,8 @@ static Input *gfx_begin(Gfx *gfx) {
         }
     }
 
-    gfx->pass_3d = 0;
-    gfx->pass_ui = 0;
+    gfx->pass_3d = (Gfx_Pass_List){};
+    gfx->pass_ui = (Gfx_Pass_List){};
     return input;
 }
 
@@ -272,10 +272,10 @@ static void gfx_draw_ui(Gfx *gfx, m4 mtx, Image *img) {
     gfx_pass_push(gfx->tmp, &gfx->pass_ui, mtx, img);
 }
 
-static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
+static void gfx_draw_pass(Gfx *gfx, Gfx_Pass_List *pass) {
     OGL_Api *gl = &gfx->gl;
     Gfx_Pass_Compiled result;
-    while (gfx_pass_compile(&result, &gfx->pack, &pass)) {
+    while (gfx_pass_compile(&result, &gfx->pack, pass)) {
         // fmt_su(G->fmt, "Upload = ", result.upload_count, "\n");
         // fmt_su(G->fmt, "Draw   = ", result.quad_count, "\n");
         for (u32 i = 0; i < result.upload_count; ++i) {
@@ -307,14 +307,14 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&projection);
     gl->glEnable(GL_DEPTH_TEST);
     gl->glDisable(GL_BLEND);
-    gfx_draw_pass(gfx, gfx->pass_3d);
+    gfx_draw_pass(gfx, &gfx->pass_3d);
 
     m44 screen = m4_screen_to_clip(m4_id(), gfx->input.window_size);
     gl->glUniformMatrix4fv(gfx->uniform_proj, 1, false, (GLfloat *)&screen);
     gl->glDisable(GL_DEPTH_TEST);
     gl->glEnable(GL_BLEND);
     gl->glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    gfx_draw_pass(gfx, gfx->pass_ui);
+    gfx_draw_pass(gfx, &gfx->pass_ui);
 
     // Swap
     sdl->SDL_GL_SwapWindow(gfx->window);

@@ -23,6 +23,8 @@ typedef struct {
 
     Game_Debug debug;
     Audio audio;
+
+    f32 time;
 } Game;
 
 static Monster *game_gen_monsters(Memory *mem, Wall *walls, Rand *rng, v3 spawn) {
@@ -79,9 +81,56 @@ static void game_update(Game *game, Engine *eng) {
         wall_update(wall, eng, world);
     }
 
+    u32 player_damage = 0;
+    u32 alive_count = 0;
+    u32 dead_count = 0;
     for (Monster *mon = game->monster_list; mon; mon = mon->next) {
-        monster_update(mon, eng, &game->audio, world, game->player->pos);
+        monster_update(mon, eng, &game->audio, world, game->player->pos, &player_damage);
+        if(mon->state != Monster_State_Dead) {
+            alive_count++;
+            } else {
+                dead_count++;
+            }
     }
 
-    player_update(game->player, world, eng, &game->audio);
+
+    if(game->player->health > 0) {
+        player_update(game->player, world, eng, &game->audio, player_damage);
+
+        m4 mtx = m4_id();
+        m4_scale(&mtx, 2);
+        m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 20, -eng->input->window_size.y / 2 + 200, 0});
+
+        Fmt *fmt = fmt_new(eng->tmp, 0);
+        fmt_s(fmt, " Helath   ");
+        fmt_u(fmt, game->player->health);
+        fmt_s(fmt, "\n");
+        fmt_s(fmt, " Monsters ");
+        fmt_u(fmt, alive_count);
+        fmt_s(fmt, "\n");
+        fmt_s(fmt, " Kills    ");
+        fmt_u(fmt, dead_count);
+        fmt_s(fmt, "\n");
+        ui_text(eng->ui, mtx, fmt_close(fmt));
+    } else {
+        m4 mtx = m4_id();
+        m4_scale(&mtx, 4);
+        m4_translate(&mtx, (v3){-400,0,0});
+        m4_rotate_z(&mtx, f_sin2pi(game->time)*.2);
+        m4_scale(&mtx, f_sin2pi(game->time/2)*.2 + 1);
+        m4_scale(&mtx, f_remap(game->time, 0, 2, 0, 1));
+        ui_text(eng->ui, mtx, "Game Over!");
+
+        mtx = m4_id();
+        m4_scale(&mtx, 2);
+        m4_translate(&mtx, (v3){-400,0,0});
+        m4_translate(&mtx, (v3){f_sin2pi(game->time*0.02)*eng->input->window_size.x/4,f_cos2pi(game->time*0.03)*eng->input->window_size.y/2.2,0});
+        m4_scale(&mtx, f_remap(game->time, 2, 3, 0, 1));
+        if (f_fract(game->time * 0.04) < 0.8) {
+            ui_text(eng->ui, mtx, "Press R to resetart");
+        } else {
+            ui_text(eng->ui, mtx, "Or press Q to Quit");
+        }
+        game->time += eng->dt;
+    }
 }

@@ -69,7 +69,7 @@ static Monster *monster_new(Memory *mem, v3 pos, Sprite_Properties prop) {
     return mon;
 }
 
-static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_World *world, v3 player_pos) {
+static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_World *world, v3 player_pos, u32 *player_damage) {
     f32 dt = eng->dt;
     Rand *rng = &eng->rng;
 
@@ -96,8 +96,18 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
     }
 
     // Idle -> Attack
-    else if (mon->state == Monster_State_Idle && rand_choice(rng, 0.4 * dt)) {
-        mon->state = Monster_State_Attack;
+    else if (mon->state == Monster_State_Idle && rand_choice(rng, dt)) {
+        bool can_see = true;
+        for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
+            // Only walls
+            if (obj->type != 0) continue;
+            Collide_Result res;
+            if (collide_quad_ray(&res, obj->mtx, mon->pos + (v3){0, mon->size.y / 2, 0}, player_dir) && res.distance < player_dist) {
+                can_see = false;
+                break;
+            }
+        }
+        if(can_see) mon->state = Monster_State_Attack;
     }
 
     // Attack -> Shoot
@@ -136,9 +146,8 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
 
     // Shoot
     else if (mon->state == Monster_State_Shoot) {
-        if (mon->shoot_timeout == 0 && rand_choice(G->rand, f_remap(player_dist, 0, 4, 1, 0))) {
+        if (mon->shoot_timeout == 0 && rand_choice(G->rand, dt)) {
             mon->shoot_timeout = 1.0f;
-
             mutex_lock(&audio->mutex);
             audio->shoot[audio->shoot_ix].active = true;
             audio->shoot[audio->shoot_ix].pos = m4_mul_pos(audio->inv_mtx, mon->pos);
@@ -146,7 +155,48 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
             audio->shoot_ix = (audio->shoot_ix + 1) % array_count(audio->shoot);
             mutex_unlock(&audio->mutex);
 
-            // audio->play_shoot = 1;
+            // for (u32 i = 0; i < 32; ++i) {
+                Collide_Result hit_res = {.distance = 1000.0f};
+                Collision_Object *hit_obj = 0;
+
+                v3 shoot_pos = mon->pos + (v3){0, mon->size.y / 2, 0};
+                v3 shoot_dir = player_dir;
+                // shoot_dir.x += rand_f32(&eng->rng, -1, 1) * 0.02;
+                // shoot_dir.y += rand_f32(&eng->rng, -1, 1) * 0.02;
+                // shoot_dir.z += rand_f32(&eng->rng, -1, 1) * 0.02;
+                // shoot_dir = v3_normalize(shoot_dir);
+                for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
+                    Collide_Result res;
+                    if (collide_quad_ray(&res, obj->mtx, shoot_pos, shoot_dir)) {
+                        Image *img = obj->img;
+                        v4 *px = image_get(img, (v2i){(res.uv.x + .5) * img->size.x, (.5 - res.uv.y) * img->size.y});
+
+                        if (!px) continue;
+                        if (px->w < .9f) continue;
+                        if (res.distance > hit_res.distance) continue;
+                        hit_obj = obj;
+                        hit_res = res;
+                    }
+                }
+
+                // Check if we can see player
+                if (hit_res.distance >= player_dist) {
+                    (*player_damage)++;
+                }
+
+                if (hit_obj) {
+                    Image *img = hit_obj->img;
+                    v4 *px = image_get(img, (v2i){(hit_res.uv.x + .5) * img->size.x, (.5 - hit_res.uv.y) * img->size.y});
+                    if (px) {
+                        f32 t = (f32)(eng->time.frame_start / 1000 / 1000 % 60) / 60;
+                        px->x += ((f_cos2pi(t + 0.0f / 3.0f) + 1) / 2 - px->x) * .9f;
+                        px->y += ((f_cos2pi(t + 1.0f / 3.0f) + 1) / 2 - px->y) * .9f;
+                        px->z += ((f_cos2pi(t + 2.0f / 3.0f) + 1) / 2 - px->z) * .9f;
+                        px->w = 1;
+                        img->variation++;
+                    }
+                }
+            // }
         }
     }
 

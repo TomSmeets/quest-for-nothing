@@ -23,6 +23,11 @@ struct Gfx_Pass {
 };
 
 typedef struct {
+    Gfx_Pass *first;
+    Gfx_Pass *last;
+} Gfx_Pass_List;
+
+typedef struct {
     v2u size;
     v2u pos;
     v4 *pixels;
@@ -49,17 +54,16 @@ static Gfx_Quad gfx_help_make_quad(m4 mtx, v2u pos, v2u size) {
 }
 
 // Insert quad into render pass
-static void gfx_pass_push(Memory *mem, Gfx_Pass **pass_list, m4 mtx, Image *img) {
+static void gfx_pass_push(Memory *mem, Gfx_Pass_List *pass_list, m4 mtx, Image *img) {
     Gfx_Pass *pass = mem_struct(mem, Gfx_Pass);
     pass->mtx = mtx;
     pass->img = img;
-    pass->next = *pass_list;
-    *pass_list = pass;
+    LIST_APPEND(pass_list->first, pass_list->last, pass);
 }
 
 // Gather information on a draw pass
-static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass **pass_list) {
-    if (!*pass_list) return false;
+static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass_List *pass_list) {
+    if (!pass_list->first) return false;
 
     // Reset result
     result->quad_count = 0;
@@ -72,8 +76,11 @@ static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass 
 
     for (;;) {
         // Pull Item
-        Gfx_Pass *pass = *pass_list;
-        if (!pass) break;
+        Gfx_Pass *pass = pass_list->first;
+        if (!pass) {
+            pass_list->last = 0;
+            break;
+        }
 
         // Out of space for quads
         if (result->quad_count == array_count(result->quad_list)) break;
@@ -108,7 +115,7 @@ static bool gfx_pass_compile(Gfx_Pass_Compiled *result, Packer **pack, Gfx_Pass 
         result->quad_list[result->quad_count++] = gfx_help_make_quad(pass->mtx, area->pos, pass->img->size);
 
         // Iterate to next item
-        *pass_list = pass->next;
+        pass_list->first = pass->next;
     }
 
     return true;
