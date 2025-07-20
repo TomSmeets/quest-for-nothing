@@ -93,7 +93,7 @@ static void game_update(Game *game, Engine *eng) {
         }
     }
 
-    if (game->player->health > 0) {
+    if (game->player->health > 0 && alive_count > 0) {
         player_update(game->player, world, eng, &game->audio, player_damage);
 
         m4 mtx = m4_id();
@@ -118,7 +118,12 @@ static void game_update(Game *game, Engine *eng) {
         m4_rotate_z(&mtx, f_sin2pi(game->time) * .2);
         m4_scale(&mtx, f_sin2pi(game->time / 2) * .2 + 1);
         m4_scale(&mtx, f_remap(game->time, 0, 2, 0, 1));
-        ui_text(eng->ui, mtx, "Game Over!");
+
+        if (alive_count > 0) {
+            ui_text(eng->ui, mtx, "Game Over!");
+        } else {
+            ui_text(eng->ui, mtx, " You Won!");
+        }
 
         mtx = m4_id();
         m4_scale(&mtx, 2);
@@ -128,7 +133,7 @@ static void game_update(Game *game, Engine *eng) {
         );
         m4_scale(&mtx, f_remap(game->time, 2, 3, 0, 1));
         if (f_fract(game->time * 0.04) < 0.8) {
-            ui_text(eng->ui, mtx, "Press R to resetart");
+            ui_text(eng->ui, mtx, "Press R to restart");
         } else {
             ui_text(eng->ui, mtx, "Or press Q to Quit");
         }
