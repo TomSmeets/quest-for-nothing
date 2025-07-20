@@ -1,8 +1,8 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs_api.h: Platform independent filesystem API interface
 #pragma once
-#include "lib/str.h"
 #include "lib/mem.h"
+#include "lib/str.h"
 
 // Directory listing result
 typedef struct FS_Dir FS_Dir;

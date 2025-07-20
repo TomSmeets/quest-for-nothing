@@ -1,11 +1,11 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs_windows.h: Platform independent filesystem
 #pragma once
-#include "lib/fs_api.h"
-#include "lib/os_api.h"
-#include "lib/mem.h"
-#include "lib/str_mem.h"
 #include "lib/fmt.h"
+#include "lib/fs_api.h"
+#include "lib/mem.h"
+#include "lib/os_api.h"
+#include "lib/str_mem.h"
 
 static File *fs_open(String path, FS_Open_Type type) {
     return 0;
@@ -24,14 +24,12 @@ static bool fs_mkdir(String path) {
     return CreateDirectoryA(str_c(&cstr, path), NULL);
 }
 
-
 static FS_Dir *fs_list(Memory *mem, String path) {
     CString cstr;
     FS_Dir *first = 0;
     FS_Dir *last = 0;
 
     String search_path = str_cat3(mem, S0, path, S("\\*"));
-
 
     // fmt always includes zero terminator
     // TODO: maybe go back to format strings

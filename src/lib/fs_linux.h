@@ -28,7 +28,6 @@ static bool fs_rmdir(String path) {
     return linux_rmdir(str_c(&cstr, path)) == 0;
 }
 
-
 static FS_Dir *fs_list(Memory *mem, String path) {
     CString cstr;
     i32 dir = linux_open(str_c(&cstr, path), O_RDONLY | O_DIRECTORY, 0);

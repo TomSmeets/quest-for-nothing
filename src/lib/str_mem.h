@@ -59,7 +59,6 @@ static char *str_to_c(Memory *mem, String str) {
     return cstr;
 }
 
-
 static void test_str(void) {
     Memory *mem = mem_new();
 

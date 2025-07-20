@@ -14,7 +14,7 @@ typedef struct Collision_Object Collision_Object;
 struct Collision_Object {
     Entity_Type type;
     m4 mtx;
-    Image  *img;
+    Image *img;
     void *entity;
     Collision_Object *next;
 };

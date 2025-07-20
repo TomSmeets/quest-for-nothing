@@ -115,9 +115,9 @@ typedef struct {
 // NOTE: The returned string is only vaild until the next str_c call with the same buffer
 // NOTE: string length is limited (See CString)
 static char *str_c(CString *cstr, String str) {
-    if(str.len == 0) return "";
-    if(str.zero_terminated) return (char *) str.data;
-    if(str.len >= sizeof(cstr->buffer)) return 0;
+    if (str.len == 0) return "";
+    if (str.zero_terminated) return (char *)str.data;
+    if (str.len >= sizeof(cstr->buffer)) return 0;
     std_memcpy(cstr->buffer, str.data, str.len);
     cstr->buffer[str.len] = 0;
     return (char *)cstr->buffer;

@@ -16,7 +16,7 @@ typedef struct Fmt {
     u32 used;
     u8 data[1024];
 
-    // TODO: 
+    // TODO:
     // Mem *mem
     // u32 cap
     // String str
