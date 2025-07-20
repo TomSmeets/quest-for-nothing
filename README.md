@@ -83,6 +83,6 @@ How does hot reloading work?
 
 
 # Todo
-
-- [ ] Turn inside out Platfrom -> Libraries, abstract by composition
-- [ ] Let desktop decide framerate. (pass dt? or compute?)
+- [x] Turn inside out Platfrom -> Libraries, abstract by composition
+- [ ] Feature: Player Health, monster shoot player
+- [ ] Let desktop decide framerate. (pass dt? or compute?) (??)

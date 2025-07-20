@@ -1,27 +1,50 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs_windows.h: Platform independent filesystem
 #pragma once
-#include "lib/fs_types.h"
-#include "lib/mem.h"
+#include "lib/fs_api.h"
 #include "lib/os_api.h"
+#include "lib/mem.h"
 #include "lib/str_mem.h"
+#include "lib/fmt.h"
 
-static void fs_mkdir(char *path) {
-    CreateDirectoryA(path, NULL);
+static File *fs_open(String path, FS_Open_Type type) {
+    return 0;
 }
 
-static void fs_remove(char *path) {
-    DeleteFileA(path);
+static void fs_close(File *file) {
 }
 
-static FS_Dir *fs_list(Memory *mem, char *path) {
+static bool fs_remove(String path) {
+    CString cstr;
+    return DeleteFileA(str_c(&cstr, path));
+}
+
+static bool fs_mkdir(String path) {
+    CString cstr;
+    return CreateDirectoryA(str_c(&cstr, path), NULL);
+}
+
+
+static FS_Dir *fs_list(Memory *mem, String path) {
+    CString cstr;
     FS_Dir *first = 0;
     FS_Dir *last = 0;
 
-    char *search_path = str_cat3(mem, "", path, "\\*");
+    String search_path = str_cat3(mem, S0, path, S("\\*"));
+
+
+    // fmt always includes zero terminator
+    // TODO: maybe go back to format strings
+    // String search_path = fmt(mem, "%s\\*", path);
+    // assert(search_path.zero_terminated, "Fmt always includes zero terminator");
+    // Or is this nicer?
+    // Fmt *search_path = fmt_new(mem, 0);
+    // fmt_str(search_path, path);
+    // fmt_str(search_path, S("\\*"));
+    // fmt_zero(search_path);
 
     WIN32_FIND_DATAA find_data;
-    HANDLE handle = FindFirstFileA(search_path, &find_data);
+    HANDLE handle = FindFirstFileA(str_c(&cstr, search_path), &find_data);
     if (handle == INVALID_HANDLE_VALUE) return 0;
 
     do {

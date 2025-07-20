@@ -12,6 +12,7 @@
 typedef struct {
     v3 move;
     v3 look;
+    f32 health;
 
     bool jump;
     bool fly;

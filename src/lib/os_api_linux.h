@@ -270,6 +270,10 @@ static int linux_mkdir(const char *path, int mode) {
     return linux_syscall2(0x53, (i64)path, mode);
 }
 
+static int linux_rmdir(const char *path) {
+    return linux_syscall1(0x54, (i64)path);
+}
+
 #if 0
 struct linux_clone_args {
     u64 flags;

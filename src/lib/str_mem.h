@@ -59,17 +59,6 @@ static char *str_to_c(Memory *mem, String str) {
     return cstr;
 }
 
-static u8 str_buf[1024];
-
-// Copy string and include zero terminator
-// Quickly convert a 'String' to a zero terminated 'char *'
-// NOTE: this pointer is only valid until the next call! And not at all thread safe!
-static char *str_c(String str) {
-    assert(str.len < sizeof(str_buf), "String out of range");
-    std_memcpy(str_buf, str.data, str.len);
-    str_buf[str.len] = 0;
-    return (char *)str_buf;
-}
 
 static void test_str(void) {
     Memory *mem = mem_new();

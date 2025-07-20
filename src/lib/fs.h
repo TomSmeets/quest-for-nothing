@@ -1,13 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs.h: Platform independent filesystem API
 #pragma once
-#include "lib/fs_types.h"
-#include "lib/mem.h"
-#include "lib/os_api.h"
-
-static void fs_mkdir(String path);
-static void fs_remove(String path);
-static FS_Dir *fs_list(struct Memory *mem, String path);
+#include "lib/fs_api.h"
 
 #if OS_IS_LINUX
 #include "lib/fs_linux.h"

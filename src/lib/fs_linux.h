@@ -1,21 +1,37 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // fs_linux.h: Platform independent filesystem
 #pragma once
-#include "lib/fs_types.h"
+#include "lib/fs_api.h"
 #include "lib/mem.h"
 #include "lib/os_api.h"
 #include "lib/str_mem.h"
 
-static void fs_mkdir(String path) {
-    linux_mkdir(str_c(path), 0777);
+static File *fs_open(String path, FS_Open_Type type) {
+    return 0;
 }
 
-static void fs_remove(String path) {
-    linux_unlink(str_c(path));
+static void fs_close(File *file) {
 }
+
+static bool fs_remove(String path) {
+    CString cstr;
+    return linux_unlink(str_c(&cstr, path)) == 0;
+}
+
+static bool fs_mkdir(String path) {
+    CString cstr;
+    return linux_mkdir(str_c(&cstr, path), 0777) == 0;
+}
+
+static bool fs_rmdir(String path) {
+    CString cstr;
+    return linux_rmdir(str_c(&cstr, path)) == 0;
+}
+
 
 static FS_Dir *fs_list(Memory *mem, String path) {
-    i32 dir = linux_open(str_c(path), O_RDONLY | O_DIRECTORY, 0);
+    CString cstr;
+    i32 dir = linux_open(str_c(&cstr, path), O_RDONLY | O_DIRECTORY, 0);
     if (dir < 0) return 0;
 
     FS_Dir *first = 0;

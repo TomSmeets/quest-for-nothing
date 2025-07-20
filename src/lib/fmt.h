@@ -15,6 +15,11 @@ typedef struct Fmt {
     // Number of bytes used in this buffer
     u32 used;
     u8 data[1024];
+
+    // TODO: 
+    // Mem *mem
+    // u32 cap
+    // String str
 } Fmt;
 // Create a new formatter that optionally writes to a file
 static Fmt *fmt_new(Memory *mem, File *out) {
