@@ -31,7 +31,7 @@ static void os_write(File *file, u8 *data, u32 len) {
 }
 
 static void os_exit(i32 code) {
-    __builtin_trap();
+    // __builtin_trap();
 }
 
 // we need to implement these if we don't use stdlib

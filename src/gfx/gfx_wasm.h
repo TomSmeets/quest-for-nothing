@@ -14,8 +14,8 @@ struct Gfx {
 
     Memory *tmp;
     Packer *pack;
-    Gfx_Pass *pass_3d;
-    Gfx_Pass *pass_ui;
+    Gfx_Pass_List pass_3d;
+    Gfx_Pass_List pass_ui;
     Gfx_Pass_Compiled result;
 };
 
@@ -36,17 +36,17 @@ static Input *gfx_begin(Gfx *gfx) {
     wasm_gfx_begin_audio();
 
     gfx->tmp = mem_new();
-    gfx->pass_3d = 0;
-    gfx->pass_ui = 0;
+    gfx->pass_3d = (Gfx_Pass_List){};
+    gfx->pass_ui = (Gfx_Pass_List){};
     fmt_sf(G->fmt, "x: ", gfx->input.mouse_rel.x, "\n");
     return &gfx->input;
 }
 
 WASM_IMPORT(wasm_gfx_texture) void wasm_gfx_texture(u32 x, u32 y, u32 sx, u32 sy, void *pixels);
 WASM_IMPORT(wasm_gfx_draw) void wasm_gfx_draw(u32 quad_count, Gfx_Quad *quad_list);
-static void gfx_draw_pass(Gfx *gfx, Gfx_Pass *pass) {
+static void gfx_draw_pass(Gfx *gfx, Gfx_Pass_List *pass) {
     Gfx_Pass_Compiled *result = &gfx->result;
-    while (gfx_pass_compile(result, &gfx->pack, &pass)) {
+    while (gfx_pass_compile(result, &gfx->pack, pass)) {
         for (u32 i = 0; i < result->upload_count; ++i) {
             Gfx_Upload *upload = result->upload_list + i;
             u32 x = upload->pos.x;
@@ -70,11 +70,11 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     // Graphics
     wasm_gfx_clear();
     wasm_gfx_begin_3d(&projection);
-    gfx_draw_pass(gfx, gfx->pass_3d);
+    gfx_draw_pass(gfx, &gfx->pass_3d);
 
     m44 screen = m4_screen_to_clip(m4_id(), gfx->input.window_size);
     wasm_gfx_begin_ui(&screen);
-    gfx_draw_pass(gfx, gfx->pass_ui);
+    gfx_draw_pass(gfx, &gfx->pass_ui);
     mem_free(gfx->tmp);
     gfx->tmp = 0;
 }
