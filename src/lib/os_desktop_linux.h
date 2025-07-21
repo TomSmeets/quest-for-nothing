@@ -50,7 +50,8 @@ static String os_readfile(Memory *mem, String path) {
     }
 
     u32 file_size = sb.st_size;
-    u8 *file_buf = mem_push_uninit(mem, file_size);
+    u8 *file_buf = mem_push_uninit(mem, file_size + 1);
+    file_buf[file_size] = 0;
     assert0(file_buf);
 
     u32 bytes_read = 0;
@@ -69,7 +70,7 @@ static String os_readfile(Memory *mem, String path) {
 
     linux_close(fd);
 
-    return (String){file_size, file_buf};
+    return (String){file_size, 1, file_buf};
 }
 
 static void os_sleep(u64 us) {

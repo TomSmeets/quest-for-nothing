@@ -8,6 +8,7 @@
 static String str_alloc(Memory *mem, u32 len) {
     String str = {
         .len = len,
+        .zero_terminated = 1,
         .data = mem_push_uninit(mem, len + 1),
     };
     str.data[str.len] = 0;
