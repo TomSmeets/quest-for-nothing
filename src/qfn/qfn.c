@@ -80,7 +80,5 @@ static void os_main(void) {
 
     // Graphics
     cursor_draw(&app->cursor, eng);
-    if (game->debug == DBG_Texture) debug_draw_texture(eng);
-
     engine_end(app->eng, game->player->camera);
 }

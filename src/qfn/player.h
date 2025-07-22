@@ -74,7 +74,6 @@ static Player *player_new(Memory *mem, v3 pos) {
 
 static void player_update(Player *player, Collision_World *world, Engine *eng, Audio *audio, u32 damage) {
     Player_Input input = player_parse_input(eng->input);
-    if (input_click(eng->input, KEY_3)) player->fly = !player->fly;
 
     player->look.xy += input.look.xy;
     player->look.x = f_clamp(player->look.x, -PI / 2, PI / 2);

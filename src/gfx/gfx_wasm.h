@@ -1,5 +1,5 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-// gfx_deskitop.h - Gfx implentation for WASM
+// gfx_wasm.h - Gfx implentation for WASM
 #pragma once
 #include "gfx/gfx.h"
 #include "gfx/gfx_help.h"
