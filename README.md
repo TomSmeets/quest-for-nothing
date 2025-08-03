@@ -54,8 +54,8 @@ I'd like to release this someday, so keeping it very simple!
 - [x] Random Level
 - [x] Sound effects
 - [x] Music
-- [ ] Score
-- [ ] Death
+- [x] Score
+- [x] Death
 - [ ] Write Description
 - [ ] Publish Promo Images
 - [ ] Publish Promo Youtube video (how to play, and how to edit)
@@ -84,5 +84,5 @@ How does hot reloading work?
 
 # Todo
 - [x] Turn inside out Platfrom -> Libraries, abstract by composition
-- [ ] Feature: Player Health, monster shoot player
+- [x] Feature: Player Health, monster shoot player
 - [ ] Let desktop decide framerate. (pass dt? or compute?) (??)
