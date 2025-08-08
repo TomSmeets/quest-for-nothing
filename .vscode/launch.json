@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/out/build",
             "args": ["run", "src/qfn/qfn.c"],
             "cwd": "${workspaceFolder}"
-        }
+        },
         {
             "type": "lldb",
             "request": "launch",
@@ -19,7 +19,15 @@
             "program": "${workspaceFolder}/out/build",
             "args": ["run", "src/qfn/gfx2_test.c"],
             "cwd": "${workspaceFolder}"
-        }
+        },
+                {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Lang (Hot)",
+            "program": "${workspaceFolder}/out/build",
+            "args": ["run", "src/lang/main.c"],
+            "cwd": "${workspaceFolder}"
+        },
 
     ]
 }
