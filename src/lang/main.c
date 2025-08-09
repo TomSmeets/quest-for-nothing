@@ -27,6 +27,15 @@ static void parse_next(Parse *parse) {
     if (parse->index < parse->len) parse->index++;
 }
 
+static void parse_space(Parse *parse) {
+    for (;;) {
+        u8 c = parse_peek(parse);
+        if (c == 0) break;
+        if (c != ' ') break;
+        parse_next(parse);
+    }
+}
+
 static Expr *parse_num(Parse *parse) {
     i32 value = 0;
     bool valid = 0;
@@ -42,6 +51,7 @@ static Expr *parse_num(Parse *parse) {
         value += c - '0';
     }
 
+    parse_space(parse);
     if (!valid) return 0;
 
     Expr *expr = mem_struct(parse->mem, Expr);
@@ -68,25 +78,16 @@ static void fmt_expr(Fmt *fmt, Expr *expr) {
     }
 }
 
-static void parse_space(Parse *parse) {
-    for (;;) {
-        u8 c = parse_peek(parse);
-        if (c == 0) break;
-        if (c != ' ') break;
-        parse_next(parse);
-    }
-}
-
 static Expr *parse_expr(Parse *parse);
 
 static Expr *parse_bracket(Parse *parse) {
-    parse_space(parse);
     if (parse_peek(parse) != '(') return 0;
     parse_next(parse);
     parse_space(parse);
     Expr *expr = parse_expr(parse);
     if (parse_peek(parse) != ')') return 0;
     parse_next(parse);
+    parse_space(parse);
     return expr;
 }
 
@@ -98,43 +99,48 @@ static Expr *parse_lit(Parse *parse) {
 }
 
 static Expr *parse_mul(Parse *parse) {
-    parse_space(parse);
-    Expr *left = parse_lit(parse);
-    if (!left) return left;
-    parse_space(parse);
+    Expr *expr = parse_lit(parse);
+    for(;;) {
+        if (!expr) break;
+        u8 op_chr = parse_peek(parse);
 
-    u8 op_chr = parse_peek(parse);
-    if (op_chr != '*' && op_chr != '/') return left;
-    parse_next(parse);
+        if (op_chr != '*' && op_chr != '/') break;
+        parse_next(parse);
+        parse_space(parse);
 
-    Expr *right = parse_mul(parse);
-    Expr *op = mem_struct(parse->mem, Expr);
-    op->left = left;
-    op->right = right;
-    op->op = op_chr;
-    return op;
+        Expr *right = parse_lit(parse);
+
+        Expr *op = mem_struct(parse->mem, Expr);
+        op->left = expr;
+        op->right = right;
+        op->op = op_chr;
+        expr = op;
+    }
+    return expr;
 }
 
 static Expr *parse_add(Parse *parse) {
-    parse_space(parse);
-    Expr *left = parse_mul(parse);
-    if (!left) return left;
-    parse_space(parse);
+    Expr *expr = parse_mul(parse);
+    for(;;) {
+        if (!expr) break;
 
-    u8 op_chr = parse_peek(parse);
-    if (op_chr != '+' && op_chr != '-') return left;
-    parse_next(parse);
+        u8 op_chr = parse_peek(parse);
+        if (op_chr != '+' && op_chr != '-') break;
+        parse_next(parse);
+        parse_space(parse);
 
-    Expr *right = parse_add(parse);
-    Expr *op = mem_struct(parse->mem, Expr);
-    op->left = left;
-    op->right = right;
-    op->op = op_chr;
-    return op;
+        Expr *right = parse_mul(parse);
+
+        Expr *op = mem_struct(parse->mem, Expr);
+        op->left = expr;
+        op->right = right;
+        op->op = op_chr;
+        expr = op;
+    }
+    return expr;
 }
 
 static Expr *parse_expr(Parse *parse) {
-    parse_space(parse);
     return parse_add(parse);
 }
 
@@ -155,7 +161,7 @@ static i32 expr_eval(Expr *expr) {
 
 static void os_main(void) {
     // 1. Read line
-    String line = S("1337 * 2 / 2 + 663");
+    String line = S("1 + 2 * 3 * 8 + 4 + 5");
     Parse parse = {
         .mem = mem_new(),
         .data = line.data,
@@ -163,6 +169,7 @@ static void os_main(void) {
     };
 
     // 2. parse into ast
+    parse_space(&parse);
     Expr *expr = parse_expr(&parse);
     fmt_s(G->fmt, "Ast: ");
     fmt_expr(G->fmt, expr);
