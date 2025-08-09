@@ -43,22 +43,22 @@ struct Expr {
 
 static Expr *parse_tokens(Memory *mem, String str) {
     Expr *tokens_start = 0;
-    Expr *tokens_end  = 0;
+    Expr *tokens_end = 0;
 
     u32 index = 0;
-    for(;;) {
+    for (;;) {
         u32 start = index;
 
         // End of file
-        if(index == str.len) break;
+        if (index == str.len) break;
         u8 first = str.data[index++];
 
         // Consume whitespace
-        if(first == ' ' || first == '\n' || first == '\r') continue;
+        if (first == ' ' || first == '\n' || first == '\r') continue;
 
         // Next is some token
         Expr *token = mem_struct(mem, Expr);
-        if(0) {
+        if (0) {
         } else if (first == '+') {
             token->token_type = Token_Add;
         } else if (first == '-') {
@@ -74,7 +74,7 @@ static Expr *parse_tokens(Memory *mem, String str) {
         } else if (first >= '0' && first <= '9') {
             token->token_type = Token_Num;
             for (;;) {
-                if(index == str.len) break;
+                if (index == str.len) break;
                 u8 chr = str.data[index];
                 bool is_number = chr >= '0' && chr <= '9';
                 if (!is_number) break;
@@ -96,7 +96,7 @@ static Expr *parse_tokens(Memory *mem, String str) {
 }
 
 static void fmt_tokens(Fmt *fmt, Expr *expr) {
-    while(expr) {
+    while (expr) {
         fmt_str(fmt, expr->token);
         fmt_s(fmt, " ");
         expr = expr->next;
@@ -159,17 +159,16 @@ static Expr *parse_next(ExprParse *parse) {
 static Expr *parse_expr(ExprParse *parse);
 
 static Expr *parse_num(ExprParse *parse) {
-    if(parse_peek(parse) != Token_Num) return 0;
+    if (parse_peek(parse) != Token_Num) return 0;
     Expr *token = parse_next(parse);
     i32 value = 0;
-    for(u32 i = 0; i < token->token.len; ++i) {
+    for (u32 i = 0; i < token->token.len; ++i) {
         value *= 10;
         value += token->token.data[i] - '0';
     }
     token->value = value;
     return token;
 }
-
 
 static Expr *parse_bracket(ExprParse *parse) {
     if (parse_peek(parse) != Token_BrOpen) return 0;
@@ -194,7 +193,7 @@ static Expr *parse_lit(ExprParse *parse) {
 
 static Expr *parse_mul(ExprParse *parse) {
     Expr *expr = parse_lit(parse);
-    for(;;) {
+    for (;;) {
         if (!expr) break;
         Token_Type op_chr = parse_peek(parse);
         if (op_chr != Token_Mul && op_chr != Token_Div) break;
@@ -210,7 +209,7 @@ static Expr *parse_mul(ExprParse *parse) {
 
 static Expr *parse_add(ExprParse *parse) {
     Expr *expr = parse_mul(parse);
-    for(;;) {
+    for (;;) {
         if (!expr) break;
         Token_Type op_chr = parse_peek(parse);
         if (op_chr != Token_Add && op_chr != Token_Sub) break;
@@ -230,7 +229,7 @@ static Expr *parse_expr(ExprParse *parse) {
 
 static Expr *parse_lang(ExprParse *parse) {
     Expr *exp = parse_expr(parse);
-    if(parse_peek(parse) != Token_Eof) return 0;
+    if (parse_peek(parse) != Token_Eof) return 0;
     return exp;
 }
 
