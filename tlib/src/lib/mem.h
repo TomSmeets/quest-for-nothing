@@ -104,7 +104,7 @@ static Memory *mem_new(void) {
 
 // Free this memory allocator and all it's allocations
 static void mem_free(Memory *mem) {
-    if(!mem) return;
+    if (!mem) return;
     // Free all chunks in this memory arena
     chunk_free(mem->chunk);
 }

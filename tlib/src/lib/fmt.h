@@ -9,8 +9,8 @@
 
 // Simple flexible buffered string formatter and printer
 typedef struct Fmt {
-    Memory *mem; // Optional for dynamic growing
-    File *out;   // Optional output file (use fmt_open/fmt_close)
+    Memory *mem;   // Optional for dynamic growing
+    File *out;     // Optional output file (use fmt_open/fmt_close)
     u32 allocated; // number of bytes allocated
     u32 used;      // number of bytes used
     u8 *data;      // the bytes
@@ -78,7 +78,7 @@ static String fmt_get(Fmt *fmt) {
 
     String str = {
         .data = fmt->data,
-        .len  = fmt->used,
+        .len = fmt->used,
         .zero_terminated = 1,
     };
     return str;

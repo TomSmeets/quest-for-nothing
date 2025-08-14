@@ -18,7 +18,6 @@ struct OS {
     u64 sleep_time;
 };
 
-
 static Global GLOBAL_IMPL;
 
 static void os_main_init(u32 argc, char **argv, File *stdout, u64 seed) {

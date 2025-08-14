@@ -45,25 +45,17 @@ struct Build_Source {
 };
 
 struct Build {
-    // Permanent memory
-    Memory *mem;
-
-    // Memory that is reset after each frame
-    Memory *tmp;
-
     // Source directories
     Build_Source *sources;
 };
 
-static Build *build_new(Memory *mem) {
-    Build *build = mem_struct(mem, Build);
-    build->mem = mem;
-    build->tmp = mem_new();
+static Build *build_new(void) {
+    Build *build = mem_struct(G->mem, Build);
     return build;
 }
 
 static void build_add_source(Build *build, String path) {
-    Build_Source *src = mem_struct(build->mem, Build_Source);
+    Build_Source *src = mem_struct(G->mem, Build_Source);
     src->path = path;
     LIST_PUSH(build->sources, src, next);
 }
@@ -73,15 +65,19 @@ static void build_add_source(Build *build, String path) {
 static bool build_format(Build *build, Cli *cli) {
     if (!cli_flag(cli, "format", "Run code formatter")) return false;
 
-    Fmt *cmd = fmt_memory(build->tmp);
-    fmt_str(cmd, S("clang-format --verbose -i --"));
-    for(Build_Source *src = build->sources; src; src = src->next) {
+    Fmt *cmd = fmt_memory(G->tmp);
+    fmt_s(cmd, "clang-format --verbose -i --");
+    fmt_s(cmd, " $(find");
+    for (Build_Source *src = build->sources; src; src = src->next) {
         fmt_str(cmd, S(" "));
         fmt_str(cmd, src->path);
-        fmt_str(cmd, S("/**.{h,c}"));
     }
-
-    bool result = os_system(S("clang-format --verbose -i {tlib/src,src}/*/*.{h,c}"));
+    fmt_s(cmd, " -name '*.h' -o -name '*.c'");
+    fmt_s(cmd, ")");
+    fmt_s(G->fmt, "Running Command: ");
+    fmt_str(G->fmt, fmt_get(cmd));
+    fmt_s(G->fmt, "\n");
+    bool result = os_system(fmt_get(cmd));
     assert(result, "Format failed!");
     os_exit(0);
     return true;

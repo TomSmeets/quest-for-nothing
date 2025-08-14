@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // build.c - Build tool for runing and building applications
-#include "build/clang.h"
 #include "build/build.h"
+#include "build/clang.h"
 #include "build/cli.h"
 #include "build/hot.h"
 #include "build/include_graph.h"
@@ -187,17 +187,18 @@ static void build_init(App *app, Cli *cli) {
 }
 
 static void os_main(void) {
-    Memory *mem = G->mem;
-    Memory *tmp = G->tmp;
     App *app = G->app;
+
+    // TODO: remove update time, always run at some fixed rate.
     os_set_update_time(G->os, 100 * 1000);
+
     if (!app) {
-        app = G->app = mem_struct(mem, App);
+        app = G->app = mem_struct(G->mem, App);
         app->changed = true;
-        app->build = build_new(mem);
-        app->hot_output_fmt.mem = mem;
+        app->build = build_new();
+        app->hot_output_fmt.mem = G->mem;
         build_add_source(app->build, S("src"));
-        build_add_source(app->build, S("tlibc/src"));
+        build_add_source(app->build, S("tlib/src"));
     }
     Cli cli = cli_new(G->os->argc, G->os->argv);
     build_init(app, &cli);
