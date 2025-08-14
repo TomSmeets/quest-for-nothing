@@ -14,6 +14,17 @@
         }                                                                                                                                            \
     } while (0)
 
+// Append an element to a singly linked list with first and last pointers
+#define LIST_APPEND2(FIRST, LAST, EL, NEXT)                                                                                                                 \
+    do {                                                                                                                                             \
+        if ((FIRST)) {                                                                                                                               \
+            (LAST)->NEXT = (EL);                                                                                                                     \
+            (LAST) = (EL);                                                                                                                           \
+        } else {                                                                                                                                     \
+            (FIRST) = (LAST) = (EL);                                                                                                                 \
+        }                                                                                                                                            \
+    } while (0)
+
 static void std_memcpy(u8 *restrict dst, const u8 *restrict src, u32 size) {
     while (size--) *dst++ = *src++;
 }
