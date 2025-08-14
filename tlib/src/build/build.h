@@ -124,14 +124,22 @@ static void build_generate_clangd(Build *build) {
     fmt_s(fmt, "    -Wno-unused-function,\n");
     fmt_s(fmt, "    -std=c23,\n");
 
+    u32 buf_size = 1024;
+    char *cwd = mem_push_uninit(G->tmp, buf_size);
+    linux_getcwd(cwd, buf_size);
+
     for (Build_Source *src = build->sources; src; src = src->next) {
         fmt_s(fmt, "    ");
         fmt_s(fmt, "-I");
+        fmt_s(fmt, cwd);
+        fmt_s(fmt, "/");
         fmt_str(fmt, src->path);
         fmt_s(fmt, ",\n");
 
         fmt_s(fmt, "    ");
         fmt_s(fmt, "--embed-dir=");
+        fmt_s(fmt, cwd);
+        fmt_s(fmt, "/");
         fmt_str(fmt, src->path);
         fmt_s(fmt, ",\n");
     }
@@ -141,9 +149,10 @@ static void build_generate_clangd(Build *build) {
 }
 
 static bool build_opt_clangd(Build *build, Cli *cli) {
-    bool doit = cli_flag(cli, "clangd", "Generate .clangd baed on current project root and settings");
+    bool doit = cli_flag(cli, "clangd", "Generate .clangd based on current project root and settings");
     if (!doit) return false;
     build_generate_clangd(build);
+    os_exit(0);
     return true;
 }
 

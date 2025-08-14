@@ -316,3 +316,7 @@ static struct linux_timespec linux_us_to_time(u64 time) {
     ts.nsec = nsec;
     return ts;
 }
+
+static i64 linux_getcwd(char *buf, u64 size) {
+    return linux_syscall2(0x4f, (i64)buf, size);
+}
