@@ -119,36 +119,36 @@ static void fmt_expr(Fmt *fmt, Expr *expr) {
         return;
     }
 
-    switch(expr->token_type) {
-        case Token_Eof:
-            fmt_s(fmt, "EOF");
-            break;
-        case Token_Add:
-        case Token_Sub:
-        case Token_Mul:
-        case Token_Div:
-            fmt_c(fmt, '(');
-            fmt_expr(fmt, expr->left);
-            fmt_c(fmt, ' ');
-            fmt_str(fmt, expr->token);
-            fmt_c(fmt, ' ');
-            fmt_expr(fmt, expr->right);
-            fmt_c(fmt, ')');
-            break;
-        case Token_Num:
-            fmt_i(fmt, expr->value);
-            break;
-        case Token_Semi:
-            fmt_expr(fmt, expr->left);
-            fmt_str(fmt, expr->token);
-            fmt_expr(fmt, expr->right);
-            break;
-        case Token_BrOpen:
-        case Token_BrClose:
-            break;
+    switch (expr->token_type) {
+    case Token_Eof:
+        fmt_s(fmt, "EOF");
+        break;
+    case Token_Add:
+    case Token_Sub:
+    case Token_Mul:
+    case Token_Div:
+        fmt_c(fmt, '(');
+        fmt_expr(fmt, expr->left);
+        fmt_c(fmt, ' ');
+        fmt_str(fmt, expr->token);
+        fmt_c(fmt, ' ');
+        fmt_expr(fmt, expr->right);
+        fmt_c(fmt, ')');
+        break;
+    case Token_Num:
+        fmt_i(fmt, expr->value);
+        break;
+    case Token_Semi:
+        fmt_expr(fmt, expr->left);
+        fmt_str(fmt, expr->token);
+        fmt_expr(fmt, expr->right);
+        break;
+    case Token_BrOpen:
+    case Token_BrClose:
+        break;
     }
 
-    if(expr->error) {
+    if (expr->error) {
         fmt_s(fmt, "ERR(");
         fmt_s(fmt, expr->error);
         fmt_s(fmt, ")");
@@ -243,7 +243,7 @@ static Expr *parse_statement(ExprParse *parse) {
     Expr *expr = parse_expr(parse);
     Expr *semi = parse_next(parse);
 
-    if(semi->token_type != Token_Semi) {
+    if (semi->token_type != Token_Semi) {
         semi->error = "Expecting ';'";
     }
 
@@ -264,7 +264,7 @@ static Expr *parse_lang(ExprParse *parse) {
 
 static i32 expr_eval(Expr *expr) {
     if (!expr) return 0;
-    switch(expr->token_type) {
+    switch (expr->token_type) {
     case Token_Eof:
     case Token_Add:
         return expr_eval(expr->left) + expr_eval(expr->right);

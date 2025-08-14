@@ -15,7 +15,7 @@
     } while (0)
 
 // Append an element to a singly linked list with first and last pointers
-#define LIST_APPEND2(FIRST, LAST, EL, NEXT)                                                                                                                 \
+#define LIST_APPEND2(FIRST, LAST, EL, NEXT)                                                                                                          \
     do {                                                                                                                                             \
         if ((FIRST)) {                                                                                                                               \
             (LAST)->NEXT = (EL);                                                                                                                     \
