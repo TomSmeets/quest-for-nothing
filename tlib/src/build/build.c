@@ -163,6 +163,7 @@ static void os_main(void) {
         // Extras
         if (build_format(app->build, &cli)) break;
         if (build_serve(app->build, &cli)) break;
+        if (build_opt_clangd(app->build, &cli)) break;
         if (build_include_graph(app, &cli)) break;
 
         // failed
