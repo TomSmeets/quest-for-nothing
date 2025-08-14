@@ -47,6 +47,9 @@ struct Build_Source {
 struct Build {
     // Source directories
     Build_Source *sources;
+
+    // Dit a source file change on disk?
+    bool changed;
 };
 
 static Build *build_new(void) {
@@ -80,5 +83,29 @@ static bool build_format(Build *build, Cli *cli) {
     bool result = os_system(fmt_get(cmd));
     assert(result, "Format failed!");
     os_exit(0);
+    return true;
+}
+
+static bool build_serve(Build *build, Cli *cli) {
+    if (!cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) return false;
+    assert(os_system(S("cd out && python -m http.server")), "Failed to start python http server. Is python installed?");
+    os_exit(0);
+    return true;
+}
+
+static bool build_build(Build *app, Cli *cli) {
+    bool build = cli_flag(cli, "build", "Build an executable");
+    bool watch = cli_flag(cli, "watch", "Build an executable and watch changes");
+    if (!build && !watch) return false;
+    if (watch && !app->changed) return true;
+
+    Clang_Options opts = {};
+    if (!build_read_opts(cli, &opts)) {
+        cli_show_usage(cli, G->fmt);
+        os_exit(1);
+    }
+
+    bool ret = clang_compile(opts);
+    if (build) os_exit(ret ? 0 : 1);
     return true;
 }

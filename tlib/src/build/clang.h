@@ -98,7 +98,7 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
 
 // Build single executable using clang
 // This will become a single 'clang' call
-static bool clang_compile(Memory *tmp, Clang_Options opt) {
+static bool clang_compile(Clang_Options opt) {
     fmt_s(G->fmt, "Compiling ");
     fmt_s(G->fmt, opt.input_path);
     fmt_s(G->fmt, " to ");
@@ -115,7 +115,7 @@ static bool clang_compile(Memory *tmp, Clang_Options opt) {
         return true;
     }
 
-    Fmt *fmt = fmt_memory(tmp);
+    Fmt *fmt = fmt_memory(G->tmp);
     clang_fmt(fmt, opt);
     return os_system(fmt_get(fmt));
 }

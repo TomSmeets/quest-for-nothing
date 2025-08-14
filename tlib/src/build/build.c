@@ -84,7 +84,7 @@ static bool build_run(App *app, Cli *cli) {
             .dynamic = true,
         };
 
-        if (clang_compile(G->tmp, opts)) {
+        if (clang_compile(opts)) {
             hot_load(app->hot, out_path);
         } else {
             app->hot->child_main = 0;
@@ -92,30 +92,6 @@ static bool build_run(App *app, Cli *cli) {
     }
 
     hot_update(app->hot);
-    return true;
-}
-
-static bool build_build(App *app, Cli *cli) {
-    bool build = cli_flag(cli, "build", "Build an executable");
-    bool watch = cli_flag(cli, "watch", "Build an executable and watch changes");
-    if (!build && !watch) return false;
-    if (watch && !app->changed) return true;
-
-    Clang_Options opts = {};
-    if (!build_read_opts(cli, &opts)) {
-        cli_show_usage(cli, G->fmt);
-        os_exit(1);
-    }
-
-    bool ret = clang_compile(G->mem, opts);
-    if (build) os_exit(ret ? 0 : 1);
-    return true;
-}
-
-static bool build_serve(App *app, Cli *cli) {
-    if (!cli_flag(cli, "serve", "Start a simple local python http server for testing wasm builds")) return false;
-    assert(os_system(S("cd out && python -m http.server")), "Failed to start python http server. Is python installed?");
-    os_exit(0);
     return true;
 }
 
@@ -137,15 +113,15 @@ static bool build_all(App *app, Cli *cli) {
 
     opts.platform = Platform_Linux;
     opts.output_path = "out/release/quest_for_nothing.elf";
-    if (!clang_compile(G->mem, opts)) os_exit(1);
+    if (!clang_compile(opts)) os_exit(1);
 
     opts.platform = Platform_Windows;
     opts.output_path = "out/release/quest_for_nothing.exe";
-    if (!clang_compile(G->mem, opts)) os_exit(1);
+    if (!clang_compile(opts)) os_exit(1);
 
     opts.platform = Platform_Wasm;
     opts.output_path = "out/release/quest_for_nothing.wasm";
-    if (!clang_compile(G->mem, opts)) os_exit(1);
+    if (!clang_compile(opts)) os_exit(1);
 
     // Download SDL3
     if (!fs_exists(S("out/SDL3.dll"))) {
@@ -169,9 +145,9 @@ static bool build_all(App *app, Cli *cli) {
 static void build_init(App *app, Cli *cli) {
     if (build_run(app, cli)) {
     } else if (build_format(app->build, cli)) {
-    } else if (build_build(app, cli)) {
+    } else if (build_serve(app->build, cli)) {
+    } else if (build_build(app->build, cli)) {
     } else if (build_include_graph(app, cli)) {
-    } else if (build_serve(app, cli)) {
     } else if (build_all(app, cli)) {
     } else {
         cli_show_usage(cli, G->fmt);
