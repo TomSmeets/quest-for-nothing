@@ -140,9 +140,6 @@ static bool build_all(App *app, Cli *cli) {
     return true;
 }
 
-static void build_init(App *app, Cli *cli) {
-}
-
 static void os_main(void) {
     App *app = G->app;
 
@@ -156,12 +153,15 @@ static void os_main(void) {
 
     Cli cli = cli_new(G->os->argc, G->os->argv);
     do {
-        if (build_format(app->build, &cli)) break;
-        if (build_build(app->build, &cli)) break;
-        if (build_run(app, &cli)) break;
+        // Release
         if (build_all(app, &cli)) break;
 
+        // Basics
+        if (build_build(app->build, &cli)) break;
+        if (build_run(app, &cli)) break;
+
         // Extras
+        if (build_format(app->build, &cli)) break;
         if (build_serve(app->build, &cli)) break;
         if (build_include_graph(app, &cli)) break;
 

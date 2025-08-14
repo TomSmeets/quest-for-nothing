@@ -6,12 +6,11 @@
 #include "lib/str_mem.h"
 
 static File *os_open(String path, OS_Open_Type type) {
-    CString cstr;
     HANDLE handle = 0;
     if (type == Open_Write) {
-        handle = CreateFile(str_c(&cstr, path), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(str_c(path), GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
     } else if (type == Open_Read) {
-        handle = CreateFile(str_c(&cstr, path), GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+        handle = CreateFile(str_c(path), GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
     }
 
     if (handle == INVALID_HANDLE_VALUE) handle = 0;
@@ -33,13 +32,11 @@ static void os_sleep(u64 time) {
 }
 
 static File *os_dlopen(String path) {
-    CString cstr;
-    return (File *)LoadLibrary(str_c(&cstr, path));
+    return (File *)LoadLibrary(str_c(path));
 }
 
 static void *os_dlsym(File *file, String name) {
-    CString cstr;
-    return GetProcAddress((void *)file, str_c(&cstr, name));
+    return GetProcAddress((void *)file, str_c(name));
 }
 
 static char *os_dlerror(void) {
@@ -47,7 +44,6 @@ static char *os_dlerror(void) {
 }
 
 static bool os_system(String cmd) {
-    CString cstr;
-    int ret = system(str_c(&cstr, cmd));
+    int ret = system(str_c(cmd));
     return ret == 0;
 }
