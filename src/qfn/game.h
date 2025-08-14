@@ -130,7 +130,7 @@ static void game_update(Game *game, Engine *eng) {
         if (over) {
             ui_text(eng->ui, mtx, "Game Over!");
         } else {
-            ui_text(eng->ui, mtx, " You Won!");
+            ui_text(eng->ui, mtx, " You Win!");
         }
 
         mtx = m4_id();
