@@ -104,6 +104,15 @@ static Memory *mem_new(void) {
 
 // Free this memory allocator and all it's allocations
 static void mem_free(Memory *mem) {
+    if(!mem) return;
     // Free all chunks in this memory arena
     chunk_free(mem->chunk);
+}
+
+// Reallocate memory and fill new space with zeros
+static u8 *mem_realloc(Memory *mem, u8 *old, u32 old_size, u32 new_size) {
+    assert0(old_size < new_size);
+    u8 *new = mem_push_uninit(mem, new_size);
+    std_memcpy(new, old, old_size);
+    return new;
 }

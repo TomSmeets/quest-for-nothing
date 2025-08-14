@@ -109,7 +109,7 @@ static void game_update(Game *game, Engine *eng) {
         m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 20, -eng->input->window_size.y / 2 + 200, 0});
 
         Fmt *fmt = fmt_new(eng->tmp, 0);
-        fmt_s(fmt, " Helath   ");
+        fmt_s(fmt, " Health   ");
         fmt_u(fmt, game->player->health);
         fmt_s(fmt, "\n");
         fmt_s(fmt, " Monsters ");

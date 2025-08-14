@@ -11,23 +11,10 @@ __declspec(dllexport) void os_main_dynamic(Global *global_instance) {
 
 // Normal Main entry point, calling os_main statically
 int main(int argc, char **argv) {
-    Global global = {};
-    G = &global;
-
-    OS os = {};
-    os.argc = argc;
-    os.argv = argv;
-    G->os = &os;
-
-    Fmt fmt = {};
-    fmt.out = GetStdHandle(STD_OUTPUT_HANDLE);
-    G->fmt = &fmt;
-
-    Rand rand = rand_new(os_time());
-    G->rand = &rand;
+    os_main_init(argc, argv, GetStdHandle(STD_OUTPUT_HANDLE), os_time());
     for (;;) {
-        os.sleep_time = 1000 * 1000;
+        os_main_begin();
         os_main();
-        os_sleep(os.sleep_time);
+        os_sleep(G->os->sleep_time);
     }
 }

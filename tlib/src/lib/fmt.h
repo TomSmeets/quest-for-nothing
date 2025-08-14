@@ -9,22 +9,34 @@
 
 // Simple flexible buffered string formatter and printer
 typedef struct Fmt {
-    // Optional output file (use fmt_open/fmt_close)
-    File *out;
-
-    // Number of bytes used in this buffer
-    u32 used;
-    u8 data[1024];
-
-    // TODO:
-    // Mem *mem
-    // u32 cap
-    // String str
+    Memory *mem; // Optional for dynamic growing
+    File *out;   // Optional output file (use fmt_open/fmt_close)
+    u32 allocated; // number of bytes allocated
+    u32 used;      // number of bytes used
+    u8 *data;      // the bytes
 } Fmt;
+
 // Create a new formatter that optionally writes to a file
 static Fmt *fmt_new(Memory *mem, File *out) {
     Fmt *fmt = mem_struct(mem, Fmt);
+    fmt->mem = mem;
     fmt->out = out;
+    return fmt;
+}
+
+// Create a new formatter wihtout allocating memory
+static Fmt fmt_buffer(u32 buffer_size, u8 *buffer, File *out) {
+    Fmt fmt = {};
+    fmt.out = out;
+    fmt.allocated = buffer_size;
+    fmt.data = buffer;
+    return fmt;
+}
+
+// Create a new formatter that only writes to memory
+static Fmt *fmt_memory(Memory *mem) {
+    Fmt *fmt = mem_struct(mem, Fmt);
+    fmt->mem = mem;
     return fmt;
 }
 
@@ -33,32 +45,48 @@ static Fmt *fmt_open(Memory *mem, char *path) {
     return fmt_new(mem, os_open(str_from(path), Open_Write));
 }
 
-// Create a new formatter that only writes to memory
-static Fmt *fmt_memory(Memory *mem) {
-    return fmt_new(mem, 0);
-}
-
-// Write all buffered data to the output stream (if avaliable)
+// Write all buffered data to the output stream (if possible)
 static void fmt_flush(Fmt *fmt) {
     if (!fmt->out) return;
     os_write(fmt->out, fmt->data, fmt->used);
     fmt->used = 0;
 }
 
-static void fmt_grow(Fmt *fmt) {
-    // Not implemented yet, do we want this?
+static void fmt_reserve(Fmt *fmt, u32 count) {
+    u32 reserve_size = fmt->used + count;
+
+    // Check if it still fits
+    if (reserve_size <= fmt->allocated) return;
+
+    // Allocate
+    assert(fmt->mem, "Out of memory!");
+
+    // Compute new size
+    u32 new_size = fmt->allocated * 1.5;
+    if (new_size < reserve_size) new_size = reserve_size;
+    if (new_size < 16) new_size = 16;
+
+    fmt->data = mem_realloc(fmt->mem, fmt->data, fmt->allocated, new_size);
+    fmt->allocated = new_size;
+    assert(fmt->data, "Out of memory!");
+}
+
+static String fmt_get(Fmt *fmt) {
+    // Add a zero terminator
+    fmt_reserve(fmt, 1);
+    fmt->data[fmt->used] = 0;
+
+    String str = {
+        .data = fmt->data,
+        .len  = fmt->used,
+        .zero_terminated = 1,
+    };
+    return str;
 }
 
 // Append a single character
-//   Full    -> grow
-//   Newline -> flush
 static void fmt_c(Fmt *fmt, u8 chr) {
-    if (fmt->used == sizeof(fmt->data)) {
-        fmt_grow(fmt);
-    }
-
-    assert(fmt->used < sizeof(fmt->data), "Out of memory for this formatter");
-
+    fmt_reserve(fmt, 1);
     fmt->data[fmt->used++] = chr;
 
     // Flush on newline
@@ -73,13 +101,14 @@ static char *fmt_close(Fmt *fmt) {
         os_close(fmt->out);
         return 0;
     } else {
-        fmt_c(fmt, 0);
-        return (char *)fmt->data;
+        // TODO: remove
+        return (char *)fmt_get(fmt).data;
     }
 }
 
 // Append multiple bytes
 static void fmt_buf(Fmt *fmt, u8 *data, u32 size) {
+    fmt_reserve(fmt, size);
     for (u32 i = 0; i < size; ++i) fmt_c(fmt, data[i]);
 }
 
@@ -88,7 +117,7 @@ static void fmt_s(Fmt *fmt, char *str) {
     while (*str) fmt_c(fmt, *str++);
 }
 
-// Append a null terminated string
+// Append a string
 static void fmt_str(Fmt *fmt, String str) {
     fmt_buf(fmt, str.data, str.len);
 }

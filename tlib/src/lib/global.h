@@ -10,6 +10,7 @@ typedef struct OS OS;       // Defined in "os_main.h"
 typedef struct Fmt Fmt;     // Defined in "fmt.h"
 typedef struct Rand Rand;   // Defined in "rand.h"
 typedef struct Chunk Chunk; // Defined in "chunk.h"
+typedef struct Memory Memory; // Defined in "memory.h"
 
 typedef struct {
     bool reloaded;
@@ -39,6 +40,12 @@ typedef struct {
     // Memory chunck cache. Used internally to track free memory.
     // Used in "chunk.h"
     Chunk *chunk_cache;
+
+    // Global permanent memory
+    Memory *mem;
+
+    // Global per frame memory
+    Memory *tmp;
 } Global;
 
 // Global handle, should be initailized by the OS

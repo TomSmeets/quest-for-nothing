@@ -99,7 +99,11 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
 // Build single executable using clang
 // This will become a single 'clang' call
 static bool clang_compile(Memory *tmp, Clang_Options opt) {
-    fmt_sss(G->fmt, "Compiling ", opt.input_path, " to ", opt.output_path, " in");
+    fmt_s(G->fmt, "Compiling ");
+    fmt_s(G->fmt, opt.input_path);
+    fmt_s(G->fmt, " to ");
+    fmt_s(G->fmt, opt.output_path);
+    fmt_s(G->fmt, " in");
     if (opt.dynamic) fmt_s(G->fmt, " Dynamic");
     fmt_s(G->fmt, opt.release ? " Release" : " Debug");
     fmt_s(G->fmt, " mode for ");
@@ -113,6 +117,5 @@ static bool clang_compile(Memory *tmp, Clang_Options opt) {
 
     Fmt *fmt = fmt_memory(tmp);
     clang_fmt(fmt, opt);
-    char *cmd = fmt_close(fmt);
-    return os_system(str_from(cmd));
+    return os_system(fmt_get(fmt));
 }
