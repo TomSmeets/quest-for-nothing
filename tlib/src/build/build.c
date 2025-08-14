@@ -59,7 +59,7 @@ static bool build_read_opts(Cli *cli, Clang_Options *opts) {
 
 static bool build_format(App *app, Cli *cli) {
     if (!cli_flag(cli, "format", "Run code formatter")) return false;
-    bool result = os_system(S("clang-format --verbose -i src/*/*.{h,c}"));
+    bool result = os_system(S("clang-format --verbose -i {tlib/src,src}/*/*.{h,c}"));
     assert(result, "Format failed!");
     os_exit(0);
     return true;
@@ -188,8 +188,8 @@ static bool build_all(App *app, Cli *cli) {
         os_system(S("cd out/ && unzip SDL3.zip SDL3.dll"));
     }
     os_system(S("cp out/SDL3.dll out/release/SDL3.dll"));
-    os_system(S("cp src/lib/*.js out/release/"));
-    os_system(S("cp src/gfx/*.js out/release/"));
+    os_system(S("cp tlib/src/lib/*.js out/release/"));
+    os_system(S("cp tlib/src/gfx/*.js out/release/"));
     os_system(S("cp src/qfn/index.html out/release/index.html"));
 
     if (upload) {
@@ -215,6 +215,7 @@ static void build_init(App *app, Cli *cli) {
 
     // We keep going, so init watch
     if (!app->watch.count) {
+        watch_add(&app->watch, "tlib/src");
         watch_add(&app->watch, "src");
     }
     app->changed = watch_check(&app->watch);

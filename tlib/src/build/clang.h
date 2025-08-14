@@ -38,7 +38,9 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
 
     // Inlcude paths
     fmt_s(fmt, " -Isrc");
+    fmt_s(fmt, " -Itlib/src");
     fmt_s(fmt, " --embed-dir=src");
+    fmt_s(fmt, " --embed-dir=tlib/src");
 
     // Language flags
     fmt_s(fmt, " -std=c23");

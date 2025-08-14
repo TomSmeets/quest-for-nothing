@@ -178,6 +178,7 @@ static void include_graph_rank(Include_Graph *graph) {
 static Include_Node *include_graph_read_file(Include_Graph *graph, String path, String name) {
     String file = os_readfile(graph->mem, path);
     String name2 = path;
+    str_drop_start_matching(&name2, S("tlib/"));
     str_drop_start_matching(&name2, S("src/"));
     Include_Node *node = include_graph_node(graph, name2);
 
