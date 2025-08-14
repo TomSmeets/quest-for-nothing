@@ -104,21 +104,3 @@ static u32 str_find(String str, u8 chr) {
     }
     return str.len;
 }
-
-// Buffer for storing a c string
-typedef struct {
-    u8 buffer[1024 * 4];
-} CString;
-
-// Quickly convert a 'String' to a zero terminated 'char *'
-// If the string is not zero terminated copy to a buffer and zero terminate.
-// NOTE: The returned string is only vaild until the next str_c call with the same buffer
-// NOTE: string length is limited (See CString)
-static char *str_c(CString *cstr, String str) {
-    if (str.len == 0) return "";
-    if (str.zero_terminated) return (char *)str.data;
-    if (str.len >= sizeof(cstr->buffer)) return 0;
-    std_memcpy(cstr->buffer, str.data, str.len);
-    cstr->buffer[str.len] = 0;
-    return (char *)cstr->buffer;
-}

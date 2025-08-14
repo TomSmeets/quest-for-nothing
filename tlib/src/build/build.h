@@ -49,11 +49,13 @@ struct Build {
     Build_Source *sources;
 
     // Dit a source file change on disk?
+    Watch watch;
     bool changed;
 };
 
 static Build *build_new(void) {
     Build *build = mem_struct(G->mem, Build);
+    build->changed = true;
     return build;
 }
 
@@ -61,6 +63,7 @@ static void build_add_source(Build *build, String path) {
     Build_Source *src = mem_struct(G->mem, Build_Source);
     src->path = path;
     LIST_PUSH(build->sources, src, next);
+    watch_add(&build->watch, str_c(path));
 }
 
 // Code formatter option
@@ -108,4 +111,8 @@ static bool build_build(Build *app, Cli *cli) {
     bool ret = clang_compile(opts);
     if (build) os_exit(ret ? 0 : 1);
     return true;
+}
+
+static void build_update(Build *build) {
+    build->changed = watch_check(&build->watch);
 }

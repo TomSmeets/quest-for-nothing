@@ -11,7 +11,6 @@
 
 struct App {
     Build *build;
-    Watch watch;
 
     // Build
     bool do_build;
@@ -24,7 +23,6 @@ struct App {
 
     // First time?
     bool first;
-    bool changed;
 };
 
 static bool build_include_graph(App *app, Cli *cli) {
@@ -65,7 +63,7 @@ static bool build_run(App *app, Cli *cli) {
         app->hot = hot_new(G->mem, hot_argc, hot_argv);
     }
 
-    if (app->changed) {
+    if (app->build->changed) {
         // Remove previous output file
         if (app->hot_output.len) {
             fs_remove(app->hot_output);
@@ -143,43 +141,33 @@ static bool build_all(App *app, Cli *cli) {
 }
 
 static void build_init(App *app, Cli *cli) {
-    if (build_run(app, cli)) {
-    } else if (build_format(app->build, cli)) {
-    } else if (build_serve(app->build, cli)) {
-    } else if (build_build(app->build, cli)) {
-    } else if (build_include_graph(app, cli)) {
-    } else if (build_all(app, cli)) {
-    } else {
-        cli_show_usage(cli, G->fmt);
-        os_exit(1);
-    }
-
-    // We keep going, so init watch
-    if (!app->watch.count) {
-        watch_add(&app->watch, "tlib/src");
-        watch_add(&app->watch, "src");
-    }
-    app->changed = watch_check(&app->watch);
 }
 
 static void os_main(void) {
     App *app = G->app;
 
-    // TODO: remove update time, always run at some fixed rate.
-    os_set_update_time(G->os, 100 * 1000);
-
     if (!app) {
         app = G->app = mem_struct(G->mem, App);
-        app->changed = true;
         app->build = build_new();
         app->hot_output_fmt.mem = G->mem;
         build_add_source(app->build, S("src"));
         build_add_source(app->build, S("tlib/src"));
     }
+
     Cli cli = cli_new(G->os->argc, G->os->argv);
-    build_init(app, &cli);
-    // if (watch_check(&app->watch) || app->first) {
-    //     app->first = false;
-    //     if (app->do_build) clang_compile(G->tmp, app->build_opts);
-    // }
+    do {
+        if (build_format(app->build, &cli)) break;
+        if (build_build(app->build, &cli)) break;
+        if (build_run(app, &cli)) break;
+        if (build_all(app, &cli)) break;
+
+        // Extras
+        if (build_serve(app->build, &cli)) break;
+        if (build_include_graph(app, &cli)) break;
+
+        // failed
+        cli_show_usage(&cli, G->fmt);
+        os_exit(1);
+    } while (0);
+    build_update(app->build);
 }

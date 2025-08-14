@@ -52,9 +52,12 @@ static String str_clone(Memory *mem, String str) {
     return new;
 }
 
-// Copy string and include zero terminator
-static char *str_to_c(Memory *mem, String str) {
-    char *cstr = mem_push_uninit(mem, str.len + 1);
+// Quickly convert a 'String' to a zero terminated 'char *'
+// Either returns the original string or reallocates to G->tmp with a zero byte
+static char *str_c(String str) {
+    if (str.len == 0) return "";
+    if (str.zero_terminated) return (char *)str.data;
+    char *cstr = mem_push_uninit(G->tmp, str.len + 1);
     std_memcpy((u8 *)cstr, str.data, str.len);
     cstr[str.len] = 0;
     return cstr;

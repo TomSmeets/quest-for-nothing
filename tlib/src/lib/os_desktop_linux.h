@@ -7,12 +7,11 @@
 #include "lib/str_mem.h"
 
 static File *os_open(String path, OS_Open_Type type) {
-    CString cstr;
     i32 fd = -1;
     if (type == Open_Write) {
-        fd = linux_open(str_c(&cstr, path), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        fd = linux_open(str_c(path), O_WRONLY | O_CREAT | O_TRUNC, 0644);
     } else if (type == Open_Read) {
-        fd = linux_open(str_c(&cstr, path), O_RDONLY, 0);
+        fd = linux_open(str_c(path), O_RDONLY, 0);
     }
 
     // Failed to open file
@@ -36,8 +35,7 @@ static u32 os_read(File *file, u8 *data, u32 len) {
 
 // Simple read/write
 static String os_readfile(Memory *mem, String path) {
-    CString cstr;
-    i32 fd = linux_open(str_c(&cstr, path), O_RDONLY, 0);
+    i32 fd = linux_open(str_c(path), O_RDONLY, 0);
     if (fd < 0) return S0;
 
     struct linux_stat sb = {};
@@ -79,13 +77,11 @@ static void os_sleep(u64 us) {
 }
 
 static File *os_dlopen(String path) {
-    CString cstr;
-    return dlopen(str_c(&cstr, path), RTLD_LOCAL | RTLD_NOW);
+    return dlopen(str_c(path), RTLD_LOCAL | RTLD_NOW);
 }
 
 static void *os_dlsym(File *handle, String name) {
-    CString cstr;
-    return dlsym(handle, str_c(&cstr, name));
+    return dlsym(handle, str_c(name));
 }
 
 static char *os_dlerror(void) {
@@ -93,7 +89,6 @@ static char *os_dlerror(void) {
 }
 
 static bool os_system(String cmd) {
-    CString cstr;
-    i32 ret = system(str_c(&cstr, cmd));
+    i32 ret = system(str_c(cmd));
     return ret == 0;
 }

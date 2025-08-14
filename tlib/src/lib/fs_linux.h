@@ -14,23 +14,19 @@ static void fs_close(File *file) {
 }
 
 static bool fs_remove(String path) {
-    CString cstr;
-    return linux_unlink(str_c(&cstr, path)) == 0;
+    return linux_unlink(str_c(path)) == 0;
 }
 
 static bool fs_mkdir(String path) {
-    CString cstr;
-    return linux_mkdir(str_c(&cstr, path), 0777) == 0;
+    return linux_mkdir(str_c(path), 0777) == 0;
 }
 
 static bool fs_rmdir(String path) {
-    CString cstr;
-    return linux_rmdir(str_c(&cstr, path)) == 0;
+    return linux_rmdir(str_c(path)) == 0;
 }
 
 static FS_Dir *fs_list(Memory *mem, String path) {
-    CString cstr;
-    i32 dir = linux_open(str_c(&cstr, path), O_RDONLY | O_DIRECTORY, 0);
+    i32 dir = linux_open(str_c(path), O_RDONLY | O_DIRECTORY, 0);
     if (dir < 0) return 0;
 
     FS_Dir *first = 0;

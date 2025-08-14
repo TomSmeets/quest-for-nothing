@@ -29,13 +29,13 @@ static void os_main_init(u32 argc, char **argv, File *stdout, u64 seed) {
     G->fmt = fmt_new(G->mem, stdout);
     G->rand = mem_struct(G->mem, Rand);
     G->rand->seed = seed;
-    G->os->sleep_time = 1000 * 1000;
+    G->os->sleep_time = 100 * 1000;
 }
 
 static void os_main_begin(void) {
     if (G->tmp) mem_free(G->tmp);
     G->tmp = mem_new();
-    G->os->sleep_time = 1000 * 1000;
+    G->os->sleep_time = 100 * 1000;
 }
 
 // Main callback, implement this method for your application
