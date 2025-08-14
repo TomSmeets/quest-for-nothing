@@ -70,6 +70,7 @@ static bool build_include_graph(App *app, Cli *cli) {
     if (!build) return false;
     Include_Graph *graph = include_graph_new(app->tmp);
     include_graph_read_dir(graph, S("src"));
+    include_graph_read_dir(graph, S("tlib/src"));
     include_graph_tred(graph);
     // include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
