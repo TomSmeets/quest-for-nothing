@@ -1,3 +1,4 @@
 /out
 /v1
 /callgrind.out.*
+/compile_commands.json
