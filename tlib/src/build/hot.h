@@ -10,22 +10,13 @@ typedef void os_main_t(Global *global_instance);
 
 typedef struct {
     os_main_t *child_main;
-    OS child_os;
-    Global child_global;
+
+    // Preserved state (rest is inherited)
+    App *child_app;
 } Hot;
 
-static Hot *hot_new(Memory *mem, u32 argc, char **argv) {
+static Hot *hot_new(Memory *mem) {
     Hot *hot = mem_struct(mem, Hot);
-
-    // Copy our global
-    hot->child_os.argc = argc;
-    hot->child_os.argv = argv;
-    hot->child_global.os = &hot->child_os;
-
-    // Share
-    hot->child_global.fmt = G->fmt;
-    hot->child_global.rand = G->rand;
-
     return hot;
 }
 
@@ -49,11 +40,24 @@ static bool hot_load(Hot *hot, String path) {
     return 1;
 }
 
+#define SWAP(A, B)                                                                                                                                   \
+    do {                                                                                                                                             \
+        typeof(A) tmp = A;                                                                                                                           \
+        A = B;                                                                                                                                       \
+        B = tmp;                                                                                                                                     \
+    } while (0)
+
 // Call child main function
-static void hot_update(Hot *hot) {
-    hot->child_os.sleep_time = G->os->sleep_time;
+static void hot_update(Hot *hot, u32 argc, char **argv) {
     if (!hot->child_main) return;
-    hot->child_main(&hot->child_global);
-    hot->child_global.reloaded = false;
-    G->os->sleep_time = hot->child_global.os->sleep_time;
+
+    // Swap in child state
+    SWAP(G->app, hot->child_app);
+    SWAP(G->os->argc, argc);
+    SWAP(G->os->argv, argv);
+    hot->child_main(G);
+    // Swap back our own state
+    SWAP(G->app, hot->child_app);
+    SWAP(G->os->argc, argc);
+    SWAP(G->os->argv, argv);
 }

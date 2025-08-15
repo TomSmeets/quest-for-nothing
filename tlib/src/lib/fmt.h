@@ -45,11 +45,16 @@ static Fmt *fmt_open(Memory *mem, char *path) {
     return fmt_new(mem, os_open(str_from(path), Open_Write));
 }
 
+// Reset used data back to zero, clearing the formatted string
+static void fmt_clear(Fmt *fmt) {
+    fmt->used = 0;
+}
+
 // Write all buffered data to the output stream (if possible)
 static void fmt_flush(Fmt *fmt) {
     if (!fmt->out) return;
     os_write(fmt->out, fmt->data, fmt->used);
-    fmt->used = 0;
+    fmt_clear(fmt);
 }
 
 static void fmt_reserve(Fmt *fmt, u32 count) {

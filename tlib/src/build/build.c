@@ -14,8 +14,8 @@ struct App {
 
     // Hot
     Hot *hot;
+    Fmt *hot_formatter;
     String hot_output;
-    Fmt hot_output_fmt;
 
     // First time?
     bool first;
@@ -24,7 +24,9 @@ struct App {
 // Reset formatter and create a unique output path for a .so
 static String hot_fmt(Fmt *fmt) {
     fmt->used = 0;
-    fmt_su(fmt, "out/hot_", os_time(), ".so");
+    fmt_s(fmt, "out/hot_");
+    fmt_u(fmt, os_time());
+    fmt_s(fmt, ".so");
     return fmt_get(fmt);
 }
 
@@ -40,11 +42,8 @@ static bool build_run(App *app, Cli *cli) {
     }
 
     // Init hot (if first time)
-    if (!app->hot) {
-        char **hot_argv = cli->argv + cli->ix - 1;
-        u32 hot_argc = cli->argc - cli->ix + 1;
-        app->hot = hot_new(G->mem, hot_argc, hot_argv);
-    }
+    char **hot_argv = cli->argv + cli->ix - 1;
+    u32 hot_argc = cli->argc - cli->ix + 1;
 
     if (app->build->changed) {
         // Remove previous output file
@@ -72,7 +71,7 @@ static bool build_run(App *app, Cli *cli) {
         }
     }
 
-    hot_update(app->hot);
+    hot_update(app->hot, hot_argc, hot_argv);
     return true;
 }
 
@@ -128,11 +127,13 @@ static void os_main(void) {
     App *app = G->app;
 
     if (!app) {
+        Build *build = build_new();
+        build_add_source(build, S("src"));
+        build_add_source(build, S("tlib/src"));
+
         app = G->app = mem_struct(G->mem, App);
-        app->build = build_new();
-        app->hot_output_fmt.mem = G->mem;
-        build_add_source(app->build, S("src"));
-        build_add_source(app->build, S("tlib/src"));
+        app->build = build;
+        app->hot_formatter = fmt_memory(G->mem);
     }
 
     Cli cli = cli_new(G->os->argc, G->os->argv);
