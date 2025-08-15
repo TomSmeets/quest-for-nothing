@@ -131,24 +131,24 @@ static bool build_opt_clangd(Build *build, Cli *cli) {
 
     Fmt *fmt = fmt_open(G->tmp, "compile_commands.json");
     fmt_s(fmt, "[\n");
-        fmt_s(fmt, "  {\n");
+    fmt_s(fmt, "  {\n");
 
-        fmt_s(fmt, "    \"directory\":");
-        fmt_s(fmt, "\"");
-        fmt_s(fmt, cwd);
-        fmt_s(fmt, "\",\n");
+    fmt_s(fmt, "    \"directory\":");
+    fmt_s(fmt, "\"");
+    fmt_s(fmt, cwd);
+    fmt_s(fmt, "\",\n");
 
-        fmt_s(fmt, "    \"command\":");
-        fmt_s(fmt, "\"");
-        clang_fmt(fmt, opts);
-        fmt_s(fmt, "\",\n");
+    fmt_s(fmt, "    \"command\":");
+    fmt_s(fmt, "\"");
+    clang_fmt(fmt, opts);
+    fmt_s(fmt, "\",\n");
 
-        fmt_s(fmt, "    \"file\":");
-        fmt_s(fmt, "\"");
-        fmt_s(fmt, opts.input_path);
-        fmt_s(fmt, "\",\n");
+    fmt_s(fmt, "    \"file\":");
+    fmt_s(fmt, "\"");
+    fmt_s(fmt, opts.input_path);
+    fmt_s(fmt, "\",\n");
 
-        fmt_s(fmt, "  },\n");
+    fmt_s(fmt, "  },\n");
     fmt_s(fmt, "],\n");
     fmt_close(fmt);
 
@@ -158,4 +158,18 @@ static bool build_opt_clangd(Build *build, Cli *cli) {
 
 static void build_update(Build *build) {
     build->changed = watch_check(&build->watch);
+}
+
+static bool build_include_graph(Build *build, Cli *cli) {
+    bool active = cli_flag(cli, "include-graph", "Generate Include graph");
+    if (!active) return false;
+    Include_Graph *graph = include_graph_new(G->tmp);
+    for (Build_Source *src = build->sources; src; src = src->next) {
+        include_graph_read_dir(graph, src->path);
+    }
+    include_graph_tred(graph);
+    // include_graph_rank(graph);
+    include_graph_fmt(graph, G->fmt);
+    os_exit(0);
+    return true;
 }

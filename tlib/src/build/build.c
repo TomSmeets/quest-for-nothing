@@ -12,10 +12,6 @@
 struct App {
     Build *build;
 
-    // Build
-    bool do_build;
-    Clang_Options build_opts;
-
     // Hot
     Hot *hot;
     String hot_output;
@@ -24,19 +20,6 @@ struct App {
     // First time?
     bool first;
 };
-
-static bool build_include_graph(App *app, Cli *cli) {
-    bool build = cli_flag(cli, "include-graph", "Generate Include graph");
-    if (!build) return false;
-    Include_Graph *graph = include_graph_new(G->tmp);
-    include_graph_read_dir(graph, S("src"));
-    include_graph_read_dir(graph, S("tlib/src"));
-    include_graph_tred(graph);
-    // include_graph_rank(graph);
-    include_graph_fmt(graph, G->fmt);
-    os_exit(0);
-    return true;
-}
 
 // Reset formatter and create a unique output path for a .so
 static String hot_fmt(Fmt *fmt) {
@@ -104,6 +87,7 @@ static bool build_all(App *app, Cli *cli) {
     bool build = cli_flag(cli, "release", "Build qfn release");
     bool upload = cli_flag(cli, "publish", "Upload archive");
     if (!build && !upload) return false;
+    os_system(S("mkdir -p out/release/"));
 
     Clang_Options opts = {};
     opts.input_path = "src/qfn/qfn.c";
@@ -164,7 +148,7 @@ static void os_main(void) {
         if (build_format(app->build, &cli)) break;
         if (build_serve(app->build, &cli)) break;
         if (build_opt_clangd(app->build, &cli)) break;
-        if (build_include_graph(app, &cli)) break;
+        if (build_include_graph(app->build, &cli)) break;
 
         // failed
         cli_show_usage(&cli, G->fmt);
