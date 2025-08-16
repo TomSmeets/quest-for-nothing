@@ -9,9 +9,9 @@
 #include "lib/types.h"
 
 // Set maximum wait time between os_main calls
-static void os_set_update_time(OS *os, u64 wake_time) {
-    if (os->sleep_time > wake_time) {
-        os->sleep_time = wake_time;
+static void os_set_update_time(u64 wake_time) {
+    if (G->sleep_time > wake_time) {
+        G->sleep_time = wake_time;
     }
 }
 

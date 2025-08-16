@@ -6,12 +6,12 @@
 // Forward declare types
 // The definitions are defined in each module
 typedef struct App App;       // Defined in "main.c"
-typedef struct OS OS;         // Defined in "os_main.h"
 typedef struct Fmt Fmt;       // Defined in "fmt.h"
 typedef struct Rand Rand;     // Defined in "rand.h"
 typedef struct Chunk Chunk;   // Defined in "chunk.h"
 typedef struct Memory Memory; // Defined in "memory.h"
 
+// NOTE: Only use global in the main thread
 typedef struct {
     bool reloaded;
 
@@ -19,10 +19,9 @@ typedef struct {
     // Should be defined in "main.c"
     App *app;
 
-    // Handle to operating system specific state
-    // Is only used by OS spesific code
-    // Defined in "os_main.h"
-    OS *os;
+    // Arguments
+    u32 argc;
+    char **argv;
 
     // Latest Unique ID counter, starts at 0 and increments forever
     // Used in "id.h"
@@ -46,6 +45,10 @@ typedef struct {
 
     // Global per frame memory
     Memory *tmp;
+
+    // Time to sleep until the next time
+    // os_main is called.
+    u64 sleep_time;
 } Global;
 
 // Global handle, should be initailized by the OS

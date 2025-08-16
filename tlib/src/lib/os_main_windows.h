@@ -4,8 +4,8 @@
 #include "lib/os_main_types.h"
 
 // Export main, allowing us to dynamically call it
-__declspec(dllexport) void os_main_dynamic(Global *global_instance) {
-    G = global_instance;
+__declspec(dllexport) void os_main_dynamic(Global *global) {
+    G = global;
     os_main();
 }
 

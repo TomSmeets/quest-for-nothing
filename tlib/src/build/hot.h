@@ -6,13 +6,11 @@
 #include "lib/mem.h"
 #include "lib/os_main.h"
 
-typedef void os_main_t(Global *global_instance);
+typedef void os_main_t(Global *global);
 
 typedef struct {
     os_main_t *child_main;
-
-    // Preserved state (rest is inherited)
-    App *child_app;
+    App *app;
 } Hot;
 
 static Hot *hot_new(Memory *mem) {
@@ -36,7 +34,6 @@ static bool hot_load(Hot *hot, String path) {
     }
 
     hot->child_main = child_main;
-    hot->child_global.reloaded = true;
     return 1;
 }
 
@@ -50,14 +47,7 @@ static bool hot_load(Hot *hot, String path) {
 // Call child main function
 static void hot_update(Hot *hot, u32 argc, char **argv) {
     if (!hot->child_main) return;
-
-    // Swap in child state
-    SWAP(G->app, hot->child_app);
-    SWAP(G->os->argc, argc);
-    SWAP(G->os->argv, argv);
+    SWAP(G->app, hot->app);
     hot->child_main(G);
-    // Swap back our own state
-    SWAP(G->app, hot->child_app);
-    SWAP(G->os->argc, argc);
-    SWAP(G->os->argv, argv);
+    SWAP(G->app, hot->app);
 }

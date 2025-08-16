@@ -14,16 +14,13 @@ struct App {
 
     // Hot
     Hot *hot;
-    Fmt *hot_formatter;
-    String hot_output;
 
     // First time?
     bool first;
 };
 
-// Reset formatter and create a unique output path for a .so
-static String hot_fmt(Fmt *fmt) {
-    fmt->used = 0;
+static String hot_fmt(void) {
+    Fmt *fmt = fmt_memory(G->tmp);
     fmt_s(fmt, "out/hot_");
     fmt_u(fmt, os_time());
     fmt_s(fmt, ".so");
@@ -41,19 +38,9 @@ static bool build_run(App *app, Cli *cli) {
         os_exit(1);
     }
 
-    // Init hot (if first time)
-    char **hot_argv = cli->argv + cli->ix - 1;
-    u32 hot_argc = cli->argc - cli->ix + 1;
-
     if (app->build->changed) {
-        // Remove previous output file
-        if (app->hot_output.len) {
-            fs_remove(app->hot_output);
-        }
-
         // Format new output file
-        String out_path = hot_fmt(&app->hot_output_fmt);
-        app->hot_output = out_path;
+        String out_path = hot_fmt();
         fmt_s(G->fmt, "OUT: ");
         fmt_str(G->fmt, out_path);
         fmt_s(G->fmt, "\n");
@@ -71,7 +58,8 @@ static bool build_run(App *app, Cli *cli) {
         }
     }
 
-    hot_update(app->hot, hot_argc, hot_argv);
+    u32 arg_ix = cli->ix - 1;
+    hot_update(app->hot, cli->argc - arg_ix, cli->argv + arg_ix);
     return true;
 }
 
@@ -133,10 +121,10 @@ static void os_main(void) {
 
         app = G->app = mem_struct(G->mem, App);
         app->build = build;
-        app->hot_formatter = fmt_memory(G->mem);
+        app->hot = hot_new(G->mem);
     }
 
-    Cli cli = cli_new(G->os->argc, G->os->argv);
+    Cli cli = cli_new(G->argc, G->argv);
     do {
         // Release
         if (build_all(app, &cli)) break;

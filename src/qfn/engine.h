@@ -9,8 +9,6 @@
 #include "qfn/ui.h"
 
 typedef struct {
-    OS *os;
-
     // Permanent memory
     Memory *mem;
 
@@ -29,9 +27,8 @@ typedef struct {
     UI *ui;
 } Engine;
 
-static Engine *engine_new(Memory *mem, OS *os, Rand rng, char *title) {
+static Engine *engine_new(Memory *mem, Rand rng, char *title) {
     Engine *eng = mem_struct(mem, Engine);
-    eng->os = os;
     eng->mem = mem;
     eng->rng = rng;
 
@@ -53,6 +50,6 @@ static void engine_begin(Engine *eng) {
 
 static void engine_end(Engine *eng, m4 camera) {
     gfx_end(eng->gfx, camera);
-    eng->os->sleep_time = time_end(&eng->time);
+    G->sleep_time = time_end(&eng->time);
     mem_free(eng->tmp);
 }

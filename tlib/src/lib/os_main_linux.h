@@ -6,8 +6,9 @@
 #include "lib/os_main_types.h"
 
 // Export main, allowing us to dynamically call it
-void os_main_dynamic(Global *global_instance) {
-    G = global_instance;
+void os_main_dynamic(Global *global) {
+    G = global;
+    os_main_begin();
     os_main();
 }
 
@@ -16,6 +17,6 @@ int main(int argc, char **argv) {
     for (;;) {
         os_main_begin();
         os_main();
-        os_sleep(G->os->sleep_time);
+        os_sleep(G->sleep_time);
     }
 }

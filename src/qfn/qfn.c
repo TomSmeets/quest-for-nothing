@@ -24,21 +24,28 @@ struct App {
     Cursor cursor;
 };
 
-static App *app_init(void) {
+static App *AUDIO_CALLBACK_STATE;
+
+static App *app_load(void) {
+    // Already loaded
+    if (G->app) {
+        AUDIO_CALLBACK_STATE = G->app;
+        return G->app;
+    }
+
     Memory *mem = mem_new();
     App *app = mem_struct(mem, App);
-
     app->mem = mem;
-    app->eng = engine_new(mem, G->os, *G->rand, "Quest For Nothing");
+    app->eng = engine_new(mem, *G->rand, "Quest For Nothing");
     app->game = game_new(&app->eng->rng);
+    AUDIO_CALLBACK_STATE = app;
+    G->app = app;
     cursor_load(&app->cursor, mem);
     return app;
 }
 
 static void gfx_audio_callback(u32 sample_count, v2 *samples) {
-    App *app = G->app;
-    if (!app) return;
-
+    App *app = AUDIO_CALLBACK_STATE;
     Audio *audio = &app->game->audio;
     mutex_lock(&audio->mutex);
     for (u32 i = 0; i < sample_count; ++i) {
@@ -49,10 +56,9 @@ static void gfx_audio_callback(u32 sample_count, v2 *samples) {
 
 static void os_main(void) {
     // Initialize App
-    if (!G->app) G->app = app_init();
+    App *app = app_load();
 
     // Update Loop
-    App *app = G->app;
     Game *game = app->game;
     Engine *eng = app->eng;
 
