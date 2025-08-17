@@ -33,6 +33,7 @@ static bool build_all(App *app, Cli *cli) {
     os_system(S("mkdir -p out/release/"));
 
     Clang_Options opts = {};
+    opts.includes = app->build->sources;
     opts.input_path = "src/qfn/qfn.c";
     opts.release = true;
 

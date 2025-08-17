@@ -3,6 +3,8 @@
 #pragma once
 #include "lib/types.h"
 
+#define TYPEDEF_STRUCT(NAME) typedef struct NAME NAME;
+
 // Append an element to a singly linked list with first and last pointers
 #define LIST_APPEND(first, last, el)                                                                                                                 \
     do {                                                                                                                                             \

@@ -35,16 +35,7 @@ static bool build_read_opts(Cli *cli, Clang_Options *opts) {
     return true;
 }
 
-#define TYPEDEF_STRUCT(NAME) typedef struct NAME NAME;
-
 TYPEDEF_STRUCT(Build);
-TYPEDEF_STRUCT(Build_Source);
-
-// Source paths
-struct Build_Source {
-    String path;
-    Build_Source *next;
-};
 
 struct Build {
     // Source directories
@@ -112,6 +103,7 @@ static bool build_build(Build *app, Cli *cli) {
     if (watch && !app->changed) return true;
 
     Clang_Options opts = {};
+    opts.includes = app->sources;
     if (!build_read_opts(cli, &opts)) {
         cli_show_usage(cli, G->fmt);
         os_exit(1);
@@ -133,6 +125,7 @@ static bool build_opt_clangd(Build *build, Cli *cli) {
     assert0(linux_getcwd(cwd, buf_size) > 0);
 
     Clang_Options opts = {};
+    opts.includes = build->sources;
     if (!build_read_opts(cli, &opts)) {
         cli_show_usage(cli, G->fmt);
         os_exit(1);
@@ -213,6 +206,7 @@ static bool build_run(Build *build, Cli *cli) {
             .input_path = input_path,
             .output_path = (char *)out_path.data,
             .dynamic = true,
+            .includes = build->sources,
         };
 
         if (clang_compile(opts)) {
