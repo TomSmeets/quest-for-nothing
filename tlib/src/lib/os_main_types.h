@@ -7,27 +7,61 @@
 #include "lib/rand.h"
 #include "lib/types.h"
 
-static Global GLOBAL_IMPL;
-
-static void os_main_init(u32 argc, char **argv, File *stdout, u64 seed) {
-    G = &GLOBAL_IMPL;
-    G->mem = mem_new();
-    G->fmt = fmt_new(G->mem, stdout);
-    G->rand = mem_struct(G->mem, Rand);
-    G->rand->seed = seed;
-    G->sleep_time = 100 * 1000;
-    G->argc = argc;
-    G->argv = argv;
-}
-
-static void os_main_begin(void) {
-    if (G->tmp) mem_free(G->tmp);
-    G->tmp = mem_new();
-    G->sleep_time = 100 * 1000;
-}
 
 // Main callback, implement this method for your application
 // os_main is called in a infinite loop, until os_exit is called
 // The command line arguments and other members of the `OS` struct
 // can be accessed with `G->os`
 static void os_main(void);
+
+static Rand *rand_alloc(Memory *mem, u64 seed) {
+    Rand *rand = mem_struct(mem, Rand);
+    rand->seed = seed;
+    return rand;
+}
+
+static Global GLOBAL_IMPL;
+
+static void global_init(File *stdout, u64 seed, u32 argc, char **argv) {
+    G = &GLOBAL_IMPL;
+
+    Memory *mem = mem_new();
+    G->mem = mem;
+    G->fmt = fmt_new(mem, stdout);
+    G->rand = rand_alloc(mem, seed);
+    G->argc = argc;
+    G->argv = argv;
+    G->dt   = 1.0f / 120.0f;
+    G->time = os_time();
+}
+
+static void global_load(Global *global) {
+    G = global;
+}
+
+static u64 time_update(u64 *time, u32 *frame_skips, f32 dt) {
+    u64 current_time = os_time();
+    u64 frame_dt   = (u64) (dt * 1e6);
+    u64 frame_start = *time;
+    u64 frame_end = frame_start + frame_dt;
+    u64 elapsed = current_time - frame_start;
+
+    if(elapsed > frame_dt) {
+        u32 skips = elapsed / frame_dt;
+        frame_end += skips * frame_dt;
+        *frame_skips += skips;
+    }
+
+    *time = frame_end;
+    return frame_end - current_time;
+}
+
+static void global_begin(void) {
+    G->tmp = mem_new();
+}
+
+static u64 global_end(void) {
+    mem_free(G->tmp);
+    G->tmp = 0;
+    return time_update(&G->time, &G->frame_skips, G->dt);
+}

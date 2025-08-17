@@ -224,7 +224,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
                 Image *img = hit_obj->img;
                 v4 *px = image_get(img, (v2i){(hit_res.uv.x + .5) * img->size.x, (.5 - hit_res.uv.y) * img->size.y});
                 if (px) {
-                    f32 t = (f32)(eng->time.frame_start / 1000 / 1000 % 60) / 60;
+                    f32 t = (f32)(G->time / 1000 / 1000 % 60) / 60;
                     px->x += ((f_cos2pi(t + 0.0f / 3.0f) + 1) / 2 - px->x) * .9f;
                     px->y += ((f_cos2pi(t + 1.0f / 3.0f) + 1) / 2 - px->y) * .9f;
                     px->z += ((f_cos2pi(t + 2.0f / 3.0f) + 1) / 2 - px->z) * .9f;

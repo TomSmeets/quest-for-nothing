@@ -17,7 +17,6 @@ typedef struct {
 
     // Frame Timing
     f32 dt;
-    Time time;
 
     // Submodules
     Rand rng;
@@ -43,13 +42,12 @@ static Engine *engine_new(Memory *mem, Rand rng, char *title) {
 static void engine_begin(Engine *eng) {
     // Allocate memory for this frame (and free at the end of the frame)
     // These memory blocks are reused every frame, so this is very cheap
-    eng->dt = time_begin(&eng->time, 120);
+    eng->dt = G->dt;
     eng->tmp = mem_new();
     eng->input = gfx_begin(eng->gfx);
 }
 
 static void engine_end(Engine *eng, m4 camera) {
     gfx_end(eng->gfx, camera);
-    G->sleep_time = time_end(&eng->time);
     mem_free(eng->tmp);
 }

@@ -39,6 +39,8 @@ typedef struct {
     // Memory chunck cache. Used internally to track free memory.
     // Used in "chunk.h"
     Chunk *chunk_cache;
+    u64 stat_alloc_size;
+    u64 stat_cache_size;
 
     // Global permanent memory
     Memory *mem;
@@ -46,9 +48,10 @@ typedef struct {
     // Global per frame memory
     Memory *tmp;
 
-    // Time to sleep until the next time
-    // os_main is called.
-    u64 sleep_time;
+    // Timing
+    f32 dt;
+    u64 time;
+    u32 frame_skips;
 } Global;
 
 // Global handle, should be initailized by the OS

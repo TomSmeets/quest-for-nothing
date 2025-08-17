@@ -3,6 +3,7 @@
 #pragma once
 #include "lib/os_api.h"
 #include "lib/str.h"
+#include "lib/global.h"
 #include "lib/types.h"
 
 // On Linux, we can use the 'mmap' system-call.
@@ -21,6 +22,7 @@ static void *os_alloc(u32 size) {
         -1, 0
     );
     if (ret == MAP_FAILED) return 0;
+    G->stat_alloc_size += size;
     return ret;
 }
 

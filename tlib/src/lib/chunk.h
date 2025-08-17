@@ -39,6 +39,7 @@ static Chunk *chunk_alloc(void) {
         Chunk *chunk = G->chunk_cache;
         G->chunk_cache = chunk->next;
         chunk->next = 0;
+        G->stat_cache_size -= CHUNK_SIZE;
 
         // Give it to the caller
         return chunk;
@@ -50,11 +51,11 @@ static Chunk *chunk_alloc(void) {
 
 // Free all used chunks in this list and add the to the cache
 static void chunk_free(Chunk *first) {
-    // Find last element in the list
-    Chunk *last = first;
-    while (last->next) last = last->next;
-
-    // Prepend the chunks to the cache
-    last->next = G->chunk_cache;
-    G->chunk_cache = first;
+    Chunk *chunk = first;
+    while (chunk) {
+        Chunk *next = chunk->next;
+        LIST_PUSH(G->chunk_cache, chunk, next);
+        G->stat_cache_size += CHUNK_SIZE;
+        chunk = next;
+    }
 }

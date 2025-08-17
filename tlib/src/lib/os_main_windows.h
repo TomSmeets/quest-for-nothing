@@ -5,16 +5,16 @@
 
 // Export main, allowing us to dynamically call it
 __declspec(dllexport) void os_main_dynamic(Global *global) {
-    G = global;
-    os_main();
+    os_main_wrapper(global);
 }
 
 // Normal Main entry point, calling os_main statically
 int main(int argc, char **argv) {
-    os_main_init(argc, argv, GetStdHandle(STD_OUTPUT_HANDLE), os_time());
+    Memory *mem = mem_new();
+    Global *global = global_new(mem, argc, argv, GetStdHandle(STD_OUTPUT_HANDLE), os_time());
     for (;;) {
-        os_main_begin();
+        os_main_wrapper(global);
         os_main();
-        os_sleep(G->os->sleep_time);
+        os_sleep(G->sleep_time);
     }
 }

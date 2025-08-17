@@ -7,16 +7,15 @@
 
 // Export main, allowing us to dynamically call it
 void os_main_dynamic(Global *global) {
-    G = global;
-    os_main_begin();
+    global_load(global);
     os_main();
 }
 
 int main(int argc, char **argv) {
-    os_main_init(argc, argv, fd_to_file(1), os_rand());
+    global_init(fd_to_file(1), os_rand(), argc, argv);
     for (;;) {
-        os_main_begin();
+        global_begin();
         os_main();
-        os_sleep(G->sleep_time);
+        os_sleep(global_end());
     }
 }
