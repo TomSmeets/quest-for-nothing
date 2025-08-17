@@ -1,3 +1,5 @@
+// Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
+// build.h - Build tool for runing and building applications
 #pragma once
 #include "build/clang.h"
 #include "build/cli.h"
@@ -51,11 +53,18 @@ struct Build {
     // Dit a source file change on disk?
     Watch watch;
     bool changed;
+
+    // Hot
+    Hot *hot;
+
+    // First time?
+    bool first;
 };
 
 static Build *build_new(void) {
     Build *build = mem_struct(G->mem, Build);
     build->changed = true;
+    build->hot = hot_new(G->mem);
     return build;
 }
 
@@ -171,5 +180,49 @@ static bool build_include_graph(Build *build, Cli *cli) {
     // include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
     os_exit(0);
+    return true;
+}
+
+static String hot_fmt(void) {
+    Fmt *fmt = fmt_memory(G->tmp);
+    fmt_s(fmt, "out/hot_");
+    fmt_u(fmt, os_time());
+    fmt_s(fmt, ".so");
+    return fmt_get(fmt);
+}
+
+static bool build_run(Build *build, Cli *cli) {
+    // Check command
+    if (!cli_flag(cli, "run", "Run an application with dynamic hot reloading")) return false;
+
+    char *input_path = cli_value(cli, "<INPUT>", "Input file");
+
+    if (!input_path) {
+        cli_show_usage(cli, G->fmt);
+        os_exit(1);
+    }
+
+    if (build->changed) {
+        // Format new output file
+        String out_path = hot_fmt();
+        fmt_s(G->fmt, "OUT: ");
+        fmt_str(G->fmt, out_path);
+        fmt_s(G->fmt, "\n");
+
+        Clang_Options opts = {
+            .input_path = input_path,
+            .output_path = (char *)out_path.data,
+            .dynamic = true,
+        };
+
+        if (clang_compile(opts)) {
+            hot_load(build->hot, out_path);
+        } else {
+            build->hot->child_main = 0;
+        }
+    }
+
+    u32 arg_ix = cli->ix - 1;
+    hot_update(build->hot, cli->argc - arg_ix, cli->argv + arg_ix);
     return true;
 }
