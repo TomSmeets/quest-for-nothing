@@ -14,7 +14,7 @@ struct App {
 };
 
 static App *app_load(void) {
-    if(G->app) return G->app;
+    if (G->app) return G->app;
 
     Build *build = build_new();
     build_add_source(build, S("src"));
