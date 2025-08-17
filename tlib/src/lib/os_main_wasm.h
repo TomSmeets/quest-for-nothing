@@ -4,8 +4,8 @@
 #include "lib/os_main_types.h"
 
 u64 js_main(void) {
-    if (!G) os_main_init(0, 0, (void *)1, os_time());
-    os_main_begin();
+    if (!G) global_init((void *)1, os_time(), 0, 0);
+    global_begin();
     os_main();
-    return G->os->sleep_time;
+    return global_end();
 }

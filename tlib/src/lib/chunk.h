@@ -45,6 +45,8 @@ static Chunk *chunk_alloc(void) {
         return chunk;
     }
 
+    G->stat_alloc_size += CHUNK_SIZE;
+
     // The cache is empty, ask the os for a new chunk.
     return os_alloc(CHUNK_SIZE);
 }

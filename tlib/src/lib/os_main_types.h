@@ -7,7 +7,6 @@
 #include "lib/rand.h"
 #include "lib/types.h"
 
-
 // Main callback, implement this method for your application
 // os_main is called in a infinite loop, until os_exit is called
 // The command line arguments and other members of the `OS` struct
@@ -31,7 +30,7 @@ static void global_init(File *stdout, u64 seed, u32 argc, char **argv) {
     G->rand = rand_alloc(mem, seed);
     G->argc = argc;
     G->argv = argv;
-    G->dt   = 1.0f / 120.0f;
+    G->dt = 1.0f / 120.0f;
     G->time = os_time();
 }
 
@@ -41,19 +40,17 @@ static void global_load(Global *global) {
 
 static u64 time_update(u64 *time, u32 *frame_skips, f32 dt) {
     u64 current_time = os_time();
-    u64 frame_dt   = (u64) (dt * 1e6);
+    u64 frame_dt = (u64)(dt * 1e6);
     u64 frame_start = *time;
     u64 frame_end = frame_start + frame_dt;
-    u64 elapsed = current_time - frame_start;
 
-    if(elapsed > frame_dt) {
-        u32 skips = elapsed / frame_dt;
-        frame_end += skips * frame_dt;
-        *frame_skips += skips;
+    if(current_time > frame_end) {
+        *time = current_time;
+        return 0;
+    } else {
+        *time = frame_end;
+        return frame_end - current_time;
     }
-
-    *time = frame_end;
-    return frame_end - current_time;
 }
 
 static void global_begin(void) {

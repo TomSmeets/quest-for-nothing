@@ -123,8 +123,8 @@ static void game_update(Game *game, Engine *eng) {
         player_update(game->player, world, eng, &game->audio, player_damage);
 
         m4 mtx = m4_id();
-        m4_scale(&mtx, 2);
-        m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 20, -eng->input->window_size.y / 2 + 300, 0});
+        // m4_scale(&mtx, 2);
+        m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 10, -eng->input->window_size.y / 2 + 10 + 20*3, 0});
 
         Fmt *fmt = fmt_new(eng->tmp, 0);
         fmt_s(fmt, " Health   ");
@@ -136,12 +136,6 @@ static void game_update(Game *game, Engine *eng) {
         fmt_s(fmt, " Kills    ");
         fmt_u(fmt, dead_count);
         fmt_s(fmt, "\n");
-        fmt_s(fmt, " Alloc    ");
-        fmt_u(fmt, G->stat_alloc_size / 1024 / 1024);
-        fmt_s(fmt, " M\n");
-        fmt_s(fmt, " Cache    ");
-        fmt_u(fmt, G->stat_cache_size / 1024 / 1024);
-        fmt_s(fmt, " M\n");
         ui_text(eng->ui, mtx, fmt_close(fmt));
     } else {
         m4 mtx = m4_id();
