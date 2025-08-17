@@ -38,7 +38,6 @@ static Input *gfx_begin(Gfx *gfx) {
     gfx->tmp = mem_new();
     gfx->pass_3d = (Gfx_Pass_List){};
     gfx->pass_ui = (Gfx_Pass_List){};
-    fmt_sf(G->fmt, "x: ", gfx->input.mouse_rel.x, "\n");
     return &gfx->input;
 }
 
