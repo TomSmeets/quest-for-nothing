@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
     for (;;) {
         global_begin();
         os_main();
-        u64 sleep_time = global_end(); 
+        u64 sleep_time = global_end();
         fmt_s(G->fmt, "Sleep: ");
         fmt_u(G->fmt, sleep_time);
         fmt_s(G->fmt, "\n");

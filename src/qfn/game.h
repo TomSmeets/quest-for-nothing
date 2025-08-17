@@ -124,7 +124,7 @@ static void game_update(Game *game, Engine *eng) {
 
         m4 mtx = m4_id();
         // m4_scale(&mtx, 2);
-        m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 10, -eng->input->window_size.y / 2 + 10 + 20*3, 0});
+        m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 10, -eng->input->window_size.y / 2 + 10 + 20 * 3, 0});
 
         Fmt *fmt = fmt_new(eng->tmp, 0);
         fmt_s(fmt, " Health   ");

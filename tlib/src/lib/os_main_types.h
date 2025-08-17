@@ -44,7 +44,7 @@ static u64 time_update(u64 *time, u32 *frame_skips, f32 dt) {
     u64 frame_start = *time;
     u64 frame_end = frame_start + frame_dt;
 
-    if(current_time > frame_end) {
+    if (current_time > frame_end) {
         *time = current_time;
         return 0;
     } else {
