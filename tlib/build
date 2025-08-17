@@ -1,8 +1,0 @@
-#!/bin/bash
-#
-# Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
-# build.sh - Build the current project
-set -euo pipefail
-mkdir -p out
-clang -O0 -g -Isrc -o out/build src/build/build.c
-exec ./out/build "${@}"
