@@ -93,7 +93,7 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
         fmt_s(fmt, " -O3");
         if (OS_IS_LINUX) fmt_s(fmt, " -Xlinker --strip-all");
     } else {
-        fmt_s(fmt, " -O1 -g");
+        fmt_s(fmt, " -O0 -g");
     }
 
     // Create a '.so' file for dynamic loading

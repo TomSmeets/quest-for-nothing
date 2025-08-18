@@ -19,7 +19,7 @@ static App *app_load(void) {
     Build *build = build_new();
     build_add_source(build, S("src"));
 
-    App *app = mem_struct(G->mem, App);
+    App *app = G->app = mem_struct(G->mem, App);
     app->build = build;
     return app;
 }
