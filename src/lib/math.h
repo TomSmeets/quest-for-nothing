@@ -185,20 +185,46 @@ static f32 f_pow2(f32 x) {
 }
 
 static f32 f_inv_sqrt(f32 v) {
-    if (v == 0) return 0;
+    if (v <= 0) return 0;
 
+    // Initial guess
     union {
         f32 f;
         u32 i;
     } conv = {.f = v};
     conv.i = 0x5f3759df - (conv.i >> 1);
-    conv.f *= 1.5f - (v * 0.5f * conv.f * conv.f);
-    conv.f *= 1.5f - (v * 0.5f * conv.f * conv.f);
+
+    // Newton method
+    // > y = 1/sqrt(x)
+    //
+    // > f(y)  = 1/yy - x
+    // > f'(y) = -2/yyy
+    // > N(y) = y - f(y)/f'(y)
+    // > N(y) = y*(1.5 - 0.5*xyy)
+    f32 y = conv.f;
+    y *= 1.5f - v * 0.5f * y * y;
+    y *= 1.5f - v * 0.5f * y * y;
     return conv.f;
 }
 
-static f32 f_sqrt(f32 v) {
-    return f_inv_sqrt(v) * v;
+static f32 f_sqrt(f32 x) {
+    if (x <= 0) return 0;
+    // Newton method
+    // > y = sqrt(x)
+    // > yy - x = 0
+    //
+    // > f(y)  = yy - x
+    // > f'(y) = 2y
+    // > N(y) = y - f(y)/f'(y)
+    // > N(y) = y - (yy-x)/2y
+    // > N(y) = y - yy/2y + x/2y
+    // > N(y) = 0.5*(y + x/y)
+    f32 y = 1; // Starting at 1 (allows constant folding of first operation)
+    y = 0.5 * (y + x / y);
+    y = 0.5 * (y + x / y);
+    y = 0.5 * (y + x / y);
+    y = 0.5 * (y + x / y);
+    return y;
 }
 
 static f32 f_acos(f32 x) {
