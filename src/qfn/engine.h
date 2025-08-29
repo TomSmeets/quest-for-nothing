@@ -47,7 +47,7 @@ static void engine_begin(Engine *eng) {
     eng->input = gfx_begin(eng->gfx);
 }
 
-static void engine_end(Engine *eng, m4 camera) {
-    gfx_end(eng->gfx, camera);
+static void engine_end(Engine *eng, v3 clear_color, m4 camera) {
+    gfx_end(eng->gfx, clear_color, camera);
     mem_free(eng->tmp);
 }

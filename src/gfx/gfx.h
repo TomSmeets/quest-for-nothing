@@ -22,7 +22,7 @@ static Gfx *gfx_init(Memory *mem, const char *title);
 static Input *gfx_begin(Gfx *gfx);
 
 // Finish Render
-static void gfx_end(Gfx *gfx, m4 camera);
+static void gfx_end(Gfx *gfx, v3 clear_color, m4 camera);
 
 // Draw image during render
 static void gfx_draw_3d(Gfx *gfx, m4 mtx, Image *img);

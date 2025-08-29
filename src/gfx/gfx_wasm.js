@@ -165,7 +165,6 @@ ctx.exports.wasm_gfx_init = () => {
     // Set WebGL Settings
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
-    gl.clearColor(0.1689, 0.1689, 0.1689, 1);
 
     ctx.instance_buffer = instance_buffer;
     ctx.uniform_proj = shader_uniform_proj;
@@ -192,9 +191,10 @@ ctx.exports.wasm_gfx_begin_audio = () => {
     ctx.audio.resume();
 }
 
-ctx.exports.wasm_gfx_clear = () => {
+ctx.exports.wasm_gfx_clear = (r, g, b) => {
     var gl = ctx.gl;
     gl.viewport(0, 0, ctx.canvas.width, ctx.canvas.height);
+    gl.clearColor(r, g, b, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 

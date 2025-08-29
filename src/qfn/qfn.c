@@ -86,5 +86,5 @@ static void os_main(void) {
 
     // Graphics
     cursor_draw(&app->cursor, eng);
-    engine_end(app->eng, game->player->camera);
+    engine_end(app->eng, (v3){0.02, 0.02, 0.02}, game->player->camera);
 }

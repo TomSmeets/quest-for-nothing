@@ -176,7 +176,6 @@ static Gfx *gfx_init(Memory *mem, const char *title) {
     gl->glEnable(GL_MULTISAMPLE);
     gl->glEnable(GL_CULL_FACE);
     gl->glCullFace(GL_BACK);
-    gl->glClearColor(0.1f, 0.1f, 0.2f, 1);
     gl->glEnable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     gl->glEnable(GL_SAMPLE_SHADING);
     gl->glMinSampleShading(1);
@@ -291,7 +290,7 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass_List *pass) {
     }
 }
 
-static void gfx_end(Gfx *gfx, m4 camera) {
+static void gfx_end(Gfx *gfx, v3 clear_color, m4 camera) {
     OGL_Api *gl = &gfx->gl;
     Sdl_Api *sdl = &gfx->sdl;
 
@@ -300,7 +299,7 @@ static void gfx_end(Gfx *gfx, m4 camera) {
     m44 projection = m4_perspective_to_clip(view, 70, aspect.x, aspect.y, 0.1, 15.0);
 
     // Graphics
-    gl->glClearColor(0.2f, 0.3f, 0.4f, 1);
+    gl->glClearColor(clear_color.x, clear_color.y, clear_color.z, 1);
     gl->glViewport(0, 0, gfx->input.window_size.x, gfx->input.window_size.y);
     gl->glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 

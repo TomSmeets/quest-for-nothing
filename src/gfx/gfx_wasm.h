@@ -58,16 +58,16 @@ static void gfx_draw_pass(Gfx *gfx, Gfx_Pass_List *pass) {
     }
 }
 
-WASM_IMPORT(wasm_gfx_clear) void wasm_gfx_clear(void);
+WASM_IMPORT(wasm_gfx_clear) void wasm_gfx_clear(f32, f32, f32);
 WASM_IMPORT(wasm_gfx_begin_3d) void wasm_gfx_begin_3d(m44 *projection);
 WASM_IMPORT(wasm_gfx_begin_ui) void wasm_gfx_begin_ui(m44 *projection);
-static void gfx_end(Gfx *gfx, m4 camera) {
+static void gfx_end(Gfx *gfx, v3 clear_color, m4 camera) {
     v2 aspect = ogl_aspect(gfx->input.window_size);
     m4 view = m4_invert_tr(camera);
     m44 projection = m4_perspective_to_clip(view, 70, aspect.x, aspect.y, 0.1, 15.0);
 
     // Graphics
-    wasm_gfx_clear();
+    wasm_gfx_clear(clear_color.x, clear_color.y, clear_color.z);
     wasm_gfx_begin_3d(&projection);
     gfx_draw_pass(gfx, &gfx->pass_3d);
 
