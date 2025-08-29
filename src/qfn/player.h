@@ -200,7 +200,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
             Collision_Object *hit_obj = 0;
 
             f32 shot_ang = rand_f32(&eng->rng, 0, 1);
-            f32 shot_dist = rand_f32(&eng->rng, 0, .08f);
+            f32 shot_dist = rand_f32(&eng->rng, 0, .06f);
             m4 shoot_mtx = mtx_head;
             v3 shoot_pos = shoot_mtx.w;
             v3 shoot_dir = shoot_mtx.z;
