@@ -75,7 +75,7 @@ static Game *game_new(Rand *rng) {
 }
 
 static void game_update(Game *game, Engine *eng) {
-    Collision_World *world = collision_world_new(eng->tmp);
+    Collision_World *world = collision_world_new(G->tmp);
 
     for (Wall *wall = game->walls; wall; wall = wall->next) {
         wall_update(wall, eng, world);
@@ -106,7 +106,7 @@ static void game_update(Game *game, Engine *eng) {
         m4_translate(&mtx, (v3){0, -20, 0});
         m4_scale(&mtx, .5);
         m4_translate(&mtx, (v3){-eng->input->window_size.x / 2, eng->input->window_size.y / 2, 0});
-        Fmt *fmt = fmt_new(eng->tmp, 0);
+        Fmt *fmt = fmt_new(G->tmp, 0);
         fmt_s(fmt, " Alloc ");
         fmt_u(fmt, G->stat_alloc_size / 1024 / 1024);
         fmt_s(fmt, " M\n");
@@ -126,7 +126,7 @@ static void game_update(Game *game, Engine *eng) {
         // m4_scale(&mtx, 2);
         m4_translate(&mtx, (v3){-eng->input->window_size.x / 2 + 10, -eng->input->window_size.y / 2 + 10 + 20 * 3, 0});
 
-        Fmt *fmt = fmt_new(eng->tmp, 0);
+        Fmt *fmt = fmt_new(G->tmp, 0);
         fmt_s(fmt, " Health   ");
         fmt_u(fmt, game->player->health);
         fmt_s(fmt, "\n");

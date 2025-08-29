@@ -12,9 +12,6 @@ typedef struct {
     // Permanent memory
     Memory *mem;
 
-    // Frame Memory
-    Memory *tmp;
-
     // Frame Timing
     f32 dt;
 
@@ -43,11 +40,9 @@ static void engine_begin(Engine *eng) {
     // Allocate memory for this frame (and free at the end of the frame)
     // These memory blocks are reused every frame, so this is very cheap
     eng->dt = G->dt;
-    eng->tmp = mem_new();
     eng->input = gfx_begin(eng->gfx);
 }
 
 static void engine_end(Engine *eng, v3 clear_color, m4 camera) {
     gfx_end(eng->gfx, clear_color, camera);
-    mem_free(eng->tmp);
 }
