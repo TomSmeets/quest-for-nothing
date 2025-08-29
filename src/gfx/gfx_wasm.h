@@ -67,7 +67,7 @@ static void gfx_end(Gfx *gfx, v3 clear_color, m4 camera) {
     m44 projection = m4_perspective_to_clip(view, 70, aspect.x, aspect.y, 0.1, 15.0);
 
     // Graphics
-    wasm_gfx_clear(clear_color.x, clear_color.y, clear_color.z);
+    wasm_gfx_clear(f_sqrt(clear_color.x), f_sqrt(clear_color.y), f_sqrt(clear_color.z));
     wasm_gfx_begin_3d(&projection);
     gfx_draw_pass(gfx, &gfx->pass_3d);
 
