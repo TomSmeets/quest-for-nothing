@@ -71,8 +71,7 @@ static f32 f_exp(f32 x) {
     // Exp(x) = (1 + X/N)^N
     f32 y = 1.0f + x / 1024.0f;
     if (y < 0) return 0;
-    for(u32 i = 0; i < 10; ++i)
-        y *= y;
+    for (u32 i = 0; i < 10; ++i) y *= y;
     return y;
 }
 #else
@@ -87,7 +86,7 @@ static f32 f_exp(f32 x) {
     f32 d = (1 << 23) * 255;
     if (y < c) y = 0;
     if (y > d) y = d;
-    return bits_to_float((u32) y);
+    return bits_to_float((u32)y);
 }
 #endif
 
@@ -330,9 +329,9 @@ static void test_math(void) {
     assert0(f_trunc(0.0f) == 0);
     assert0(f_trunc(-1.2f) == -1);
 
-    assert0(f_min(1,  2) == 1);
+    assert0(f_min(1, 2) == 1);
     assert0(f_min(-2, 1) == -2);
-    assert0(f_max(1,  2) == 2);
+    assert0(f_max(1, 2) == 2);
     assert0(f_max(-2, 1) == 1);
 
     assert0(is_near(f_step(0), 0));
@@ -355,11 +354,11 @@ static void test_math(void) {
     assert0(is_near(f_wrap(0.123, 1, 2), 1.123));
     assert0(is_near(f_wrap(3.123, 1, 2), 1.123));
 
-    assert0(is_near(f_sin2pi(0.0f/4.0f), 0));
-    assert0(is_near(f_sin2pi(1.0f/4.0f), 1));
-    assert0(is_near(f_sin2pi(2.0f/4.0f), 0));
-    assert0(is_near(f_sin2pi(3.0f/4.0f), -1));
-    assert0(is_near(f_sin2pi(4.0f/4.0f), 0));
+    assert0(is_near(f_sin2pi(0.0f / 4.0f), 0));
+    assert0(is_near(f_sin2pi(1.0f / 4.0f), 1));
+    assert0(is_near(f_sin2pi(2.0f / 4.0f), 0));
+    assert0(is_near(f_sin2pi(3.0f / 4.0f), -1));
+    assert0(is_near(f_sin2pi(4.0f / 4.0f), 0));
 
     assert0(is_near(f_cos2pi(0.0f / 4.0f), 1));
     assert0(is_near(f_cos2pi(1.0f / 4.0f), 0));
@@ -387,7 +386,7 @@ static void test_math(void) {
     assert0(is_near(f_pow2(4), 16.0));
 
     u32 n = 1024;
-    for(u32 i = 0; i < n; ++i) {
+    for (u32 i = 0; i < n; ++i) {
         f32 x = (f32)i / (f32)n * 4 - 2;
         // assert0(is_near(f_atan(f_tan(x)), x));
         // assert0(is_near(f_sqrt(x * x), x));

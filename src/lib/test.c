@@ -20,8 +20,6 @@ static void os_main(void) {
     test_midi();
     test_math();
 
-
-
     fmt_s(G->fmt, "All tests OK!\n");
     os_exit(0);
 }
