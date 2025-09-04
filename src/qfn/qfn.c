@@ -68,7 +68,6 @@ static void os_main(void) {
     // Basic input
     if (input->quit || (input_click(input, KEY_Q) && input_down(input, KEY_SHIFT))) os_exit(0);
     input_toggle(input, KEY_M, &game->audio.mute);
-    input_cycle(input, KEY_4, &game->debug, DBG_COUNT);
 
     // Toggle fullscreen
     if (input_click(input, KEY_F)) {

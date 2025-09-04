@@ -133,10 +133,11 @@ static bool input_click(Input *input, Key key) {
     return false;
 }
 
-static void input_toggle(Input *input, Key key, bool *toggle) {
+static bool input_toggle(Input *input, Key key, bool *toggle) {
     if (input_click(input, key)) {
         *toggle = !*toggle;
     }
+    return *toggle;
 }
 
 static void input_cycle(Input *input, Key key, u32 *value, u32 max) {

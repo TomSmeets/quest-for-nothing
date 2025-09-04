@@ -21,7 +21,7 @@ typedef struct {
     Monster *monster_list;
     Wall *walls;
 
-    Game_Debug debug;
+    bool debug;
     Audio audio;
 
     f32 time;
@@ -101,7 +101,7 @@ static void game_update(Game *game, Engine *eng) {
     game->audio.win = win;
     mutex_unlock(&game->audio.mutex);
 
-    {
+    if (input_toggle(eng->input, KEY_4, &game->debug)) {
         m4 mtx = m4_id();
         m4_translate(&mtx, (v3){0, -20, 0});
         m4_scale(&mtx, .5);
