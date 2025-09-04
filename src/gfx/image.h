@@ -68,12 +68,12 @@ static void image_write(Image *img, v2i pos, v3 value) {
 }
 
 static void image_write_debug_axis(Image *img) {
-    image_write(img, (v2i){0, 0}, BLACK);
+    image_write(img, (v2i){0, 0}, COLOR_BLACK);
     for (u32 x = 1; x < img->size.x * .5; ++x) {
-        image_write(img, (v2i){x, 0}, RED);
+        image_write(img, (v2i){x, 0}, COLOR_RED);
     }
     for (u32 y = 1; y < img->size.y * .5; ++y) {
-        image_write(img, (v2i){0, y}, GREEN);
+        image_write(img, (v2i){0, y}, COLOR_GREEN);
     }
     img->variation++;
 }

@@ -3,12 +3,12 @@
 #pragma once
 #include "lib/vec.h"
 
-#define WHITE ((v3){1, 1, 1})
-#define BLACK ((v3){0, 0, 0})
-#define GRAY ((v3){0.5, 0.5, 0.5})
-#define RED ((v3){1, 0, 0})
-#define GREEN ((v3){0, 1, 0})
-#define BLUE ((v3){0, 0, 1})
+#define COLOR_WHITE ((v3){1, 1, 1})
+#define COLOR_BLACK ((v3){0, 0, 0})
+#define COLOR_GRAY ((v3){0.5, 0.5, 0.5})
+#define COLOR_RED ((v3){1, 0, 0})
+#define COLOR_GREEN ((v3){0, 1, 0})
+#define COLOR_BLUE ((v3){0, 0, 1})
 
 static v3 color_blend(v3 a, v3 b, f32 alpha) {
     return a * (1 - alpha) + b * alpha;

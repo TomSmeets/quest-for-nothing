@@ -17,7 +17,7 @@ static void cursor_load(Cursor *cursor, Memory *mem) {
     u32 size = 5;
     Image *img = image_new(mem, (v2u){size, size});
     for (u32 i = 0; i < size; ++i) {
-        v4 col = color_alpha(WHITE, 1);
+        v4 col = color_alpha(COLOR_WHITE, 1);
         image_write4(img, (v2i){i, i}, col);
         image_write4(img, (v2i){i, size - 1 - i}, col);
     }
