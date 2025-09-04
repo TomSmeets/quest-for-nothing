@@ -12,9 +12,6 @@ typedef struct {
     // Permanent memory
     Memory *mem;
 
-    // Frame Timing
-    f32 dt;
-
     // Submodules
     Rand rng;
     Gfx *gfx;
@@ -39,7 +36,6 @@ static Engine *engine_new(Memory *mem, Rand rng, char *title) {
 static void engine_begin(Engine *eng) {
     // Allocate memory for this frame (and free at the end of the frame)
     // These memory blocks are reused every frame, so this is very cheap
-    eng->dt = G->dt;
     eng->input = gfx_begin(eng->gfx);
 }
 

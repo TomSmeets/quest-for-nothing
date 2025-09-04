@@ -163,7 +163,7 @@ static void game_update(Game *game, Engine *eng) {
         } else {
             ui_text(eng->ui, mtx, "Or press Q to Quit");
         }
-        game->time += eng->dt;
+        game->time += G->dt;
 
         if (input_down(eng->input, KEY_Q)) os_exit(0);
     }

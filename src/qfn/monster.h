@@ -70,7 +70,7 @@ static Monster *monster_new(Memory *mem, v3 pos, Sprite_Properties prop) {
 }
 
 static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_World *world, v3 player_pos, u32 *player_damage) {
-    f32 dt = eng->dt;
+    f32 dt = G->dt;
     Rand *rng = &eng->rng;
 
     v3 player_diff = player_pos - mon->pos;

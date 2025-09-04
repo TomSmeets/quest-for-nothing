@@ -78,7 +78,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     player->look.xy += input.look.xy;
     player->look.x = f_clamp(player->look.x, -PI / 2, PI / 2);
     player->look.y = f_wrap(player->look.y, -PI, PI);
-    player->look.z += (input.look.z - player->look.z) * 10 * eng->dt * PI;
+    player->look.z += (input.look.z - player->look.z) * 10 * G->dt * PI;
 
     m4 mtx_yaw = m4_id();
     m4_rotate_y(&mtx_yaw, player->look.y);
@@ -88,18 +88,18 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
 
     v3 old = player->pos;
     if (player->fly) {
-        player->pos += move * 2 * eng->dt;
+        player->pos += move * 2 * G->dt;
         player->old = player->pos;
         player->bob_amount = 0;
     } else {
         move.y = 0;
-        player->bob_amount += (v3_length(move) * 2 - player->bob_amount) * eng->dt * 8;
+        player->bob_amount += (v3_length(move) * 2 - player->bob_amount) * G->dt * 8;
 
         v3 vel = player->pos - player->old;
         player->old = player->pos;
-        player->pos += move * 2.0 * eng->dt;
+        player->pos += move * 2.0 * G->dt;
         player->pos.y += vel.y;
-        player->pos.y -= 10 * eng->dt * eng->dt;
+        player->pos.y -= 10 * G->dt * G->dt;
 
         // Collision
         bool on_ground = 0;
@@ -129,7 +129,7 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
     }
 
     bool did_shoot = 0;
-    player->shoot_timeout = f_max(player->shoot_timeout - eng->dt * 2, 0);
+    player->shoot_timeout = f_max(player->shoot_timeout - G->dt * 2, 0);
     if (input.shoot && player->shoot_timeout == 0) {
         player->shoot_timeout = 1;
         player->screen_shake += .5;
@@ -172,12 +172,12 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         m4_rotate_x(&mtx_camera, f_sin2pi(shake * 3 * 10) * f_min(shake, .2) * 0.5);
         m4_rotate_z(&mtx_camera, f_sin2pi(shake * 5 * 10) * f_min(shake, .2) * 0.5);
         m4_rotate_y(&mtx_camera, f_sin2pi(shake * 7 * 10) * f_min(shake, .2) * 0.5);
-        player->screen_shake -= eng->dt;
+        player->screen_shake -= G->dt;
     }
 
     if (player->bob_amount > 0) {
         m4_translate_y(&mtx_camera, f_sin2pi(player->bob_phase) * player->bob_amount * 0.01);
-        player->bob_phase += eng->dt * player->bob_amount * 1.5;
+        player->bob_phase += G->dt * player->bob_amount * 1.5;
         player->bob_phase -= (i32)player->bob_phase;
     }
 
