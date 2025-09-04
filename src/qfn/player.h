@@ -101,25 +101,21 @@ static void player_update(Player *player, Collision_World *world, Engine *eng, A
         player->pos.y += vel.y;
         player->pos.y -= 10 * eng->dt * eng->dt;
 
-        // Gravity
-        bool on_ground = false;
-        if (player->pos.y <= 0) {
-            on_ground = true;
-            player->pos.y = 0;
-        }
-
-        // Jumping
-        if (input.jump && on_ground) {
-            player->pos.y += eng->dt * 4;
-            audio->play_jump = 1;
-        }
-
         // Collision
+        bool on_ground = 0;
         for (Collision_Object *obj = world->objects; obj; obj = obj->next) {
             if (obj->type != 0) continue;
             f32 r = 0.25;
             v3 offset = {0, r, 0};
-            player->pos += wall_collide(obj->mtx, r, old + offset, player->pos + offset);
+            v3 dx = wall_collide(obj->mtx, r, old + offset, player->pos + offset);
+            if (dx.y > 0) on_ground = 1;
+            player->pos += dx;
+        }
+
+        // Jumping
+        if (input.jump && on_ground) {
+            player->pos.y += G->dt * 4;
+            audio->play_jump = 1;
         }
     }
 
