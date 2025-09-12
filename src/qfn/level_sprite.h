@@ -13,12 +13,12 @@ static void color_splatter(v3 *color, Rand *rng, v3 tint, f32 chance, f32 min, f
 }
 
 static Image *level_sprite_generate(Memory *mem, Rand *rng) {
-    u32 sx = 32*2;
-    u32 sy = 32*2;
+    u32 sx = 32 * 2;
+    u32 sy = 32 * 2;
 
     Image *img = image_new(mem, (v2u){sx, sy});
-    v3 tint1 = color_rand(rng)*.4;
-    v3 tint2 = color_rand(rng)*.4;
+    v3 tint1 = color_rand(rng) * .4;
+    v3 tint2 = color_rand(rng) * .4;
     for (u32 y = 0; y < sy; ++y) {
         for (u32 x = 0; x < sx; ++x) {
             f32 r_x = f_min(x, sx - x - 1);
