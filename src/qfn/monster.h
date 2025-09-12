@@ -39,6 +39,7 @@ struct Monster {
     Monster *next;
 
     v3 pos;
+    f32 z_offset;
     v2 size;
     f32 health;
 
@@ -66,6 +67,7 @@ static Monster *monster_new(Memory *mem, v3 pos, Sprite_Properties prop) {
     mon->size = (v2){mon->sprite.image->size.x, mon->sprite.image->size.y} / 32.0f;
     mon->health = 1 + mon->size.x * mon->size.y * 16;
     mon->gun = gun_new(mem, G->rand);
+    mon->z_offset = rand_f32(G->rand, 0, 1) * 1e-3;
     return mon;
 }
 
@@ -255,7 +257,7 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
     }
     m4_rotate_y(&mtx_rotated, R1 - mon->angle);
     m4_apply(&mtx_rotated, mtx_monster);
-    m4_translate_y(&mtx_rotated, 2e-3f);
+    m4_translate_y(&mtx_rotated, mon->z_offset);
 
     m4 mtx_sprite = m4_id();
     m4_scale_image(&mtx_sprite, mon->sprite.image);
@@ -266,8 +268,8 @@ static void monster_update(Monster *mon, Engine *eng, Audio *audio, Collision_Wo
     m4_scale_image(&mtx_shadow, mon->sprite.shadow);
     if (dead_amount) m4_scale(&mtx_shadow, 1 - dead_amount);
     m4_rotate_x(&mtx_shadow, -R1);
-    m4_translate_y(&mtx_shadow, 1e-3f);
     m4_apply(&mtx_shadow, mtx_monster);
+    m4_translate_y(&mtx_shadow, mon->z_offset);
 
     m4 mtx_gun = m4_id();
     f32 gun_y = mon->size.y - mon->sprite.hand[0].y / 32.0f;
