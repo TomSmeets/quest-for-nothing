@@ -89,24 +89,6 @@ static void net_layer_forward(const Net_Layer *input, Net_Layer *output) {
     }
 }
 
-static void nn_mul_fwd(f32 *weight, u32 input_count, f32 *input, u32 output_count, f32 *output) {
-    for (u32 output_ix = 0; output_ix < output_count; ++output_ix) {
-        f32 sum = 0;
-        for (u32 input_ix = 0; input_ix < input_count; ++input_ix) {
-            sum += input[input_ix] * weight[output_ix * input_count + input_ix];
-        }
-        output[output_ix] += sum;
-    }
-}
-
-static void nn_relu(u32 count, f32 *x, f32 *y, f32 *d_yx) {
-    for (u32 i = 0; i < count; ++i) {
-        f32 slope = x[i] > 0 ? 1 : 0.01;
-        y[i] = x[i] * slope;
-        d_yx[i] = slope;
-    }
-}
-
 // Backwards Pass A <- B
 // reads input_activation
 // reads output_activation
@@ -300,15 +282,16 @@ static Net_Layer *net_push_layer(Net_Network *net, Memory *mem, u32 output_count
 }
 
 static void net_test(void) {
-    // Create nerual network
-    Net_Network *network = mem_struct(G->mem, Net_Network);
-    net_push_layer(network, G->mem, 2, Activation_None);
-    net_push_layer(network, G->mem, 4, Activation_Relu);
-    net_push_layer(network, G->mem, 4, Activation_Relu);
-    net_push_layer(network, G->mem, 1, Activation_Sigmoid);
+    Memory *mem = G->mem;
 
-    u32 batch_size = 64 * 10;
-    u32 iteration_count = 8000;
+    Net_Network *network = mem_struct(mem, Net_Network);
+    net_push_layer(network, mem, 2, Activation_None);
+    net_push_layer(network, mem, 4, Activation_Relu);
+    net_push_layer(network, mem, 4, Activation_Relu);
+    net_push_layer(network, mem, 1, Activation_Sigmoid);
+
+    u32 batch_size = 8;
+    u32 iteration_count = 10000;
     f32 error = 0;
     for (u32 j = 0; j < iteration_count; ++j) {
         error = 0;
@@ -326,14 +309,30 @@ static void net_test(void) {
             error += net_compute_output_gradient(network, target);
             net_backward(network);
         }
-        net_update(network, 0.1);
+        net_update(network, 0.3 / batch_size);
         error /= batch_size;
+    }
+    assert0(error < 0.01);
+    fmt_s(G->fmt, "Error: ");
+    fmt_f(G->fmt, error);
+    fmt_s(G->fmt, "\n");
 
-        if(j % 1000 == 0) {
-            fmt_s(G->fmt, "Error: ");
-            fmt_f(G->fmt, error);
+    for (u32 x = 0; x < 2; ++x) {
+        for (u32 y = 0; y < 2; ++y) {
+            u32 o = x != y;
+            // Write input
+            network->layer_first->activation[0] = x;
+            network->layer_first->activation[1] = y;
+            net_forward(network);
+            u32 z = network->layer_last->activation[0] > 0.5f;
+            assert0(o == z);
+            fmt_s(G->fmt, "net(");
+            fmt_u(G->fmt, x);
+            fmt_s(G->fmt, ",");
+            fmt_u(G->fmt, y);
+            fmt_s(G->fmt, ") = ");
+            fmt_f(G->fmt, network->layer_last->activation[0]);
             fmt_s(G->fmt, "\n");
         }
     }
-    assert0(f_abs(error) < 0.01);
 }
