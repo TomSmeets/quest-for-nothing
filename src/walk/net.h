@@ -89,12 +89,11 @@ static void net_layer_forward(const Net_Layer *input, Net_Layer *output) {
     }
 }
 
-
 static void nn_mul_fwd(f32 *weight, u32 input_count, f32 *input, u32 output_count, f32 *output) {
     for (u32 output_ix = 0; output_ix < output_count; ++output_ix) {
         f32 sum = 0;
         for (u32 input_ix = 0; input_ix < input_count; ++input_ix) {
-            sum += input[input_ix]*weight[output_ix*input_count + input_ix];
+            sum += input[input_ix] * weight[output_ix * input_count + input_ix];
         }
         output[output_ix] += sum;
     }
@@ -107,8 +106,6 @@ static void nn_relu(u32 count, f32 *x, f32 *y, f32 *d_yx) {
         d_yx[i] = slope;
     }
 }
-
-
 
 typedef struct NN_Weights NN_Weights;
 struct NN_Weights {
@@ -313,8 +310,6 @@ static Net_Layer *net_push_layer(Net_Network *net, Memory *mem, u32 output_count
     }
 }
 
-
-
 static void net_test(void) {
     // Create nerual network
     Net_Network *network = mem_struct(G->mem, Net_Network);
@@ -322,7 +317,7 @@ static void net_test(void) {
     net_push_layer(network, G->mem, 4, Activation_Relu);
     net_push_layer(network, G->mem, 1, Activation_Sigmoid);
 
-    u32 batch_size = 64*10;
+    u32 batch_size = 64 * 10;
     u32 iteration_count = 1000;
     for (u32 j = 0; j < iteration_count; ++j) {
         f32 error = 0;
