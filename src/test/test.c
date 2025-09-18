@@ -1,12 +1,12 @@
-#include "lang/lang.h"
 #include "lib/math.h"
 #include "lib/midi.h"
 #include "lib/os_main.h"
 #include "lib/str_mem.h"
 #include "qfn/game.h"
+#include "walk/net.h"
+#include "lang/lang.h"
 
-static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
-}
+static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {}
 
 static void lib_test(void) {
     fmt_s(G->fmt, "EXP(1) = ");
@@ -25,6 +25,7 @@ static void lib_test(void) {
 }
 
 static void os_main(void) {
+    net_test();
     lib_test();
     lang_test();
     fmt_s(G->fmt, "All tests OK!\n");
