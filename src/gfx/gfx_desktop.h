@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_deskitop.h - Gfx implentation for Linux and Windows desktop
 #pragma once
-#include "gfx/gfx.h"
+#include "gfx/gfx_api.h"
 #include "gfx/gfx_help.h"
 #include "gfx/input.h"
 #include "gfx/ogl.h"

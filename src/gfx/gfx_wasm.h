@@ -1,7 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // gfx_wasm.h - Gfx implentation for WASM
 #pragma once
-#include "gfx/gfx.h"
+#include "gfx/gfx_api.h"
 #include "gfx/gfx_help.h"
 #include "gfx/ogl.h"
 #include "lib/fmt.h"
