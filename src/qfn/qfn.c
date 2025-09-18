@@ -6,7 +6,6 @@
 #include "lib/global.h"
 #include "lib/math.h"
 #include "lib/os_main.h"
-#include "qfn/cursor.h"
 #include "qfn/engine.h"
 #include "qfn/game.h"
 
@@ -19,9 +18,6 @@ struct App {
 
     // Entire game state
     Game *game;
-
-    // Mouse cursor
-    Cursor cursor;
 };
 
 static App *AUDIO_CALLBACK_STATE;
@@ -40,7 +36,6 @@ static App *app_load(void) {
     app->game = game_new(&app->eng->rng);
     AUDIO_CALLBACK_STATE = app;
     G->app = app;
-    cursor_load(&app->cursor, mem);
     return app;
 }
 
@@ -84,6 +79,5 @@ static void os_main(void) {
     game_update(game, eng);
 
     // Graphics
-    cursor_draw(&app->cursor, eng);
     engine_end(app->eng, (v3){0.02, 0.02, 0.02}, game->player->camera);
 }

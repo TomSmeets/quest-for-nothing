@@ -4,7 +4,6 @@
 #include "gfx/gfx.h"
 #include "gfx/image.h"
 #include "lib/math.h"
-#include "qfn/engine.h"
 #include "qfn/monster_sprite.h"
 #include "qfn/ui.h"
 
@@ -24,23 +23,20 @@ static void cursor_load(Cursor *cursor, Memory *mem) {
     cursor->image = img;
 }
 
-static void cursor_draw(Cursor *cursor, Engine *eng) {
-    Input *input = eng->input;
-    Gfx *gfx = eng->gfx;
-
+static void cursor_draw(Cursor *cursor, Input *input, Gfx *gfx) {
     // Capture Mouse
     if (input_click(input, KEY_MOUSE_LEFT)) {
-        gfx_set_grab(eng->gfx, true);
+        gfx_set_grab(gfx, true);
     }
 
     // Release Grab on focus lost or Esc
     if ((input->focus_lost || input_click(input, KEY_ESCAPE)) && input->mouse_is_grabbed) {
-        gfx_set_grab(eng->gfx, false);
+        gfx_set_grab(gfx, false);
     }
 
     // Grab with G
     if (input_click(input, KEY_G)) {
-        gfx_set_grab(eng->gfx, !input->mouse_is_grabbed);
+        gfx_set_grab(gfx, !input->mouse_is_grabbed);
     }
 
     m4 mtx = m4_id();

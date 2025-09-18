@@ -4,6 +4,7 @@
 #include "gfx/gfx.h"
 #include "gfx/input.h"
 #include "lib/rand.h"
+#include "qfn/cursor.h"
 #include "qfn/gfx_debug.h"
 #include "qfn/time.h"
 #include "qfn/ui.h"
@@ -18,13 +19,16 @@ typedef struct {
     Gfx_Debug *gfx_dbg;
     Input *input;
     UI *ui;
+
+    // Mouse cursor
+    Cursor cursor;
 } Engine;
 
 static Engine *engine_new(Memory *mem, Rand rng, char *title) {
     Engine *eng = mem_struct(mem, Engine);
     eng->mem = mem;
     eng->rng = rng;
-
+    cursor_load(&eng->cursor, mem);
     eng->gfx = gfx_init(mem, title);
     eng->gfx_dbg = gfx_debug_new(eng->gfx, mem);
     eng->input = 0;
@@ -40,5 +44,6 @@ static void engine_begin(Engine *eng) {
 }
 
 static void engine_end(Engine *eng, v3 clear_color, m4 camera) {
+    cursor_draw(&eng->cursor, eng->input, eng->gfx);
     gfx_end(eng->gfx, clear_color, camera);
 }
