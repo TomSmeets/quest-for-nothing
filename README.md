@@ -86,3 +86,4 @@ How does hot reloading work?
 - [x] Turn inside out Platfrom -> Libraries, abstract by composition
 - [x] Feature: Player Health, monster shoot player
 - [ ] Let desktop decide framerate. (pass dt? or compute?) (??)
+- [ ] move gfx -> gfx_api and make gfx.h the implementation
