@@ -107,17 +107,6 @@ static void nn_relu(u32 count, f32 *x, f32 *y, f32 *d_yx) {
     }
 }
 
-typedef struct NN_Weights NN_Weights;
-struct NN_Weights {
-    u32 nx, ny, nw;
-    f32 *weight;
-
-    f32 *d_yx;
-    f32 *d_yw;
-
-    f32 *full_grad;
-};
-
 // Backwards Pass A <- B
 // reads input_activation
 // reads output_activation
@@ -315,12 +304,14 @@ static void net_test(void) {
     Net_Network *network = mem_struct(G->mem, Net_Network);
     net_push_layer(network, G->mem, 2, Activation_None);
     net_push_layer(network, G->mem, 4, Activation_Relu);
+    net_push_layer(network, G->mem, 4, Activation_Relu);
     net_push_layer(network, G->mem, 1, Activation_Sigmoid);
 
     u32 batch_size = 64 * 10;
-    u32 iteration_count = 1000;
+    u32 iteration_count = 8000;
+    f32 error = 0;
     for (u32 j = 0; j < iteration_count; ++j) {
-        f32 error = 0;
+        error = 0;
         for (u32 i = 0; i < batch_size; ++i) {
             u32 x = rand_u32(G->rand, 0, 2);
             u32 y = rand_u32(G->rand, 0, 2);
@@ -337,8 +328,12 @@ static void net_test(void) {
         }
         net_update(network, 0.1);
         error /= batch_size;
-        fmt_s(G->fmt, "Error: ");
-        fmt_f(G->fmt, error);
-        fmt_s(G->fmt, "\n");
+
+        if(j % 1000 == 0) {
+            fmt_s(G->fmt, "Error: ");
+            fmt_f(G->fmt, error);
+            fmt_s(G->fmt, "\n");
+        }
     }
+    assert0(f_abs(error) < 0.01);
 }
