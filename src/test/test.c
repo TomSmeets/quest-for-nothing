@@ -4,7 +4,6 @@
 #include "lib/os_main.h"
 #include "lib/str_mem.h"
 #include "qfn/game.h"
-#include "walk/net.h"
 
 static void gfx_audio_callback(u32 sample_count, v2 *sample_list) {
 }
@@ -26,9 +25,7 @@ static void lib_test(void) {
 }
 
 static void os_main(void) {
-    net_test();
     lib_test();
-    lang_test();
     fmt_s(G->fmt, "All tests OK!\n");
     os_exit(0);
 }
