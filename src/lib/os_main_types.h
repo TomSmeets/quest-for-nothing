@@ -15,7 +15,7 @@ static void os_main(void);
 
 static Rand *rand_alloc(Memory *mem, u64 seed) {
     Rand *rand = mem_struct(mem, Rand);
-    rand->seed = seed;
+    *rand = rand_new(seed);
     return rand;
 }
 

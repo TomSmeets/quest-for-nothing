@@ -6,25 +6,33 @@
 typedef struct Rand Rand;
 
 struct Rand {
-    u64 seed;
+    u64 state;
+    u64 inc;
 };
 
+// Initialize a new psedo random number generator with a given seed
 static Rand rand_new(u64 seed) {
-    return (Rand){seed};
+    return (Rand){.state = seed, .inc = 1};
 }
 
 // Generae a random 32 bit number
 // range: [0, U32_MAX]
+// This is a variant of the minimal C example.
+// See https://www.pcg-random.org/ for more info.
 static u32 rand_next(Rand *rand) {
-    rand->seed = 6364136223846793005ULL * rand->seed + 1;
-    u32 xorshifted = ((rand->seed >> 18u) ^ rand->seed) >> 27u;
-    u32 rot = rand->seed >> 59u;
+    rand->state = 6364136223846793005ULL * rand->state + (rand->inc | 1u);
+    u32 xorshifted = ((rand->state >> 18u) ^ rand->state) >> 27u;
+    u32 rot = rand->state >> 59u;
     return (xorshifted >> rot) | (xorshifted << ((-rot) & 31));
 }
 
 // Split this rng into two 'timelines'
 static Rand rand_fork(Rand *rand) {
-    return rand_new(rand_next(rand) + 1);
+    Rand new = {};
+    new.state = rand->state ^ rand_next(rand);
+    new.inc = (rand_next(rand) << 1) | 1;
+    rand_next(&new);
+    return new;
 }
 
 // Random float in range [min, max)
