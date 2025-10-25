@@ -229,17 +229,17 @@ static bool f_isneginf(float f) {
 static void fmt_f(Fmt *fmt, f32 value) {
     bool sign = false;
 
-    if(f_isnan(value)) {
+    if (f_isnan(value)) {
         fmt_s(fmt, "NaN");
         return;
     }
 
-    if(f_isposinf(value)) {
+    if (f_isposinf(value)) {
         fmt_s(fmt, "+INF");
         return;
     }
 
-    if(f_isneginf(value)) {
+    if (f_isneginf(value)) {
         fmt_s(fmt, "-INF");
         return;
     }
