@@ -20,8 +20,8 @@ typedef struct File File;
 
 #define U32_MAX 0xffffffff
 
-#if true
-#else
+// Define bool for clang-format
+#if __STDC_VERSION__ <= 201710L
 typedef _Bool bool;
 #define true 1
 #define false 0
