@@ -214,8 +214,35 @@ static void fmt_p(Fmt *fmt, void *ptr) {
     fmt_pad(fmt, pad_start, '0', 16, true);
 }
 
+static bool f_isnan(float f) {
+    return f != f;
+}
+
+static bool f_isposinf(float f) {
+    return f == 1.0 / 0.0;
+}
+
+static bool f_isneginf(float f) {
+    return f == -1.0 / 0.0;
+}
+
 static void fmt_f(Fmt *fmt, f32 value) {
     bool sign = false;
+
+    if(f_isnan(value)) {
+        fmt_s(fmt, "NaN");
+        return;
+    }
+
+    if(f_isposinf(value)) {
+        fmt_s(fmt, "+INF");
+        return;
+    }
+
+    if(f_isneginf(value)) {
+        fmt_s(fmt, "-INF");
+        return;
+    }
 
     // Remove sign
     if (value < 0) {
@@ -231,7 +258,7 @@ static void fmt_f(Fmt *fmt, f32 value) {
     for (u32 i = 0; i < f_width; ++i) {
         value *= 10.0f;
     }
-    u32 f_part = value + 0.5f;
+    u32 f_part = value;
 
     if (sign) fmt_c(fmt, '-');
     fmt_u(fmt, i_part);
