@@ -48,6 +48,10 @@ static bool hot_load(Hot *hot, String path) {
 static void hot_update(Hot *hot, u32 argc, char **argv) {
     if (!hot->child_main) return;
     SWAP(G->app, hot->app);
+    SWAP(G->argv, argv);
+    SWAP(G->argc, argc);
     hot->child_main(G);
     SWAP(G->app, hot->app);
+    SWAP(G->argv, argv);
+    SWAP(G->argc, argc);
 }
