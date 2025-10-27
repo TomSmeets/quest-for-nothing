@@ -57,7 +57,7 @@ static bool cli_flag(Cli *cli, char *name, char *description) {
     char *arg = cli_read(cli);
     if (!arg) return false;
 
-    if(cli->has_match) return false;
+    if (cli->has_match) return false;
 
     if (strz_eq(arg, name)) {
         cli_doc_clear(cli);

@@ -1,8 +1,8 @@
-#include "lib/mem.h"
 #include "lib/fmt.h"
+#include "lib/mem.h"
 
 TYPEDEF_STRUCT(Cli_Option);
-struct Cli_Option{
+struct Cli_Option {
     char *name;
     char *info;
     Cli_Option *next;
@@ -23,19 +23,17 @@ typedef struct {
     bool has_match;
 } Cli;
 
-
 // Construct a new command line argument parser
 // using argc/argv and global allocator
 static Cli *cli_new(void) {
     Memory *mem = G->mem;
     Cli *cli = mem_struct(mem, Cli);
-    cli->mem   = mem;
+    cli->mem = mem;
     cli->argc = G->argc;
     cli->argv = G->argv;
     cli->used = mem_array_zero(mem, bool, cli->argc);
     return cli;
 }
-
 
 // Check for a top-level subcommand and add to documentation
 static bool cli_command(Cli *cli, char *name, char *info) {
@@ -71,9 +69,9 @@ static bool cli_flag(Cli *cli, char *name, char *info) {
 // Call at the end for correct handling
 static void cli_help(Cli *cli) {
     bool active = cli_command(cli, "help", "Show this help");
-    if(!active && cli->has_match) return;
+    if (!active && cli->has_match) return;
 
-    for(Cli_Option *opt = cli->options; opt; opt = opt->next) {
+    for (Cli_Option *opt = cli->options; opt; opt = opt->next) {
         u32 cursor = fmt_cursor(G->fmt);
         fmt_s(G->fmt, "    ");
         fmt_s(G->fmt, opt->name);
@@ -83,7 +81,7 @@ static void cli_help(Cli *cli) {
         fmt_s(G->fmt, opt->info);
         fmt_s(G->fmt, "\n");
 
-        for(Cli_Option *value = opt->values; value; value = value ->next) {
+        for (Cli_Option *value = opt->values; value; value = value->next) {
             u32 cursor = fmt_cursor(G->fmt);
             fmt_s(G->fmt, "    ");
             fmt_s(G->fmt, "    ");
@@ -95,7 +93,7 @@ static void cli_help(Cli *cli) {
             fmt_s(G->fmt, "\n");
         }
 
-        for(Cli_Option *flag = opt->flags; flag; flag = flag ->next) {
+        for (Cli_Option *flag = opt->flags; flag; flag = flag->next) {
             u32 cursor = fmt_cursor(G->fmt);
             fmt_s(G->fmt, "    ");
             fmt_s(G->fmt, "    ");
