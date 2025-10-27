@@ -1,14 +1,12 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // build.c - Build tool for runing and building applications
+#include "lib/cli2.h"
 #include "lib/fmt.h"
 #include "lib/mem.h"
-#include "lib/types.h"
 #include "lib/os_main.h"
-
-TYPEDEF_STRUCT(Cli_Option);
+#include "lib/types.h"
 
 // ./build <command> [Input0] --option1  [input1] --option2
-//
 typedef enum {
     Argument_Word,  // [WORD]
     Argument_Value, // =value
@@ -104,52 +102,8 @@ static void argument_help(Fmt *fmt, Argument *args) {
     }
 }
 
-struct Cli_Option {
-    u32 index;
-    String name;
-    String info;
-    Cli_Option *next;
-    Cli_Option *parent;
-};
 
-typedef struct {
-    Memory *mem;
-    Argument *args;
-} Cli;
-
-struct App {
-    Cli *cli;
-};
-
-static Cli *cli_new(void) {
-    Memory *mem = G->mem;
-    Cli *cli = mem_struct(mem, Cli);
-    cli->mem = mem;
-    cli->args =argument_new(mem, G->argc, G->argv);
-    return cli;
-}
-
-
-static void cli_begin(Cli *cli, char *name, char *info) { }
-static void cli_end(Cli *cli) { }
-
-static bool cli_flag(Cli *cli, char *name, char *info) {
-    cli_begin(cli, name, info);
-    cli_end(cli);
-    return false;
-}
-
-static String cli_next(Cli *cli, char *name, char *info) {
-    cli_begin(cli, name, info);
-    cli_end(cli);
-    return S0;
-}
-
-
-// 0. Lex     ./build run -la --test --hello=4
-// 1. Expand ./build run  -l -a
-//
-
+// Expand -abc args into -a -b -c
 static void argument_expand_short(Argument *args) {
     for(Argument *arg = args; arg; arg = arg->next) {
         if(arg->type != Argument_Short) continue;
@@ -165,6 +119,7 @@ static void argument_expand_short(Argument *args) {
     }
 }
 
+// Expand --key=Value into --key value
 static void argument_expand_long(Argument *args) {
     for(Argument *arg = args; arg; arg = arg->next) {
         if(arg->type != Argument_Long) continue;
@@ -181,76 +136,37 @@ static void argument_expand_long(Argument *args) {
         arg->next = new;
     }
 }
+struct App {
+    Cli *cli;
+};
 
-static String argument_word(Argument *args, String info) {
-    for(Argument *arg = args; arg; arg = arg->next) {
-        if(arg->is_used) continue;
-        if(arg->type != Argument_Word) continue;
-        arg->is_used = true;
-        return arg->name;
-    }
-
-    for(Argument *arg = args; arg; arg = arg->next) {
-        if(arg->next) continue;
-        Argument *new = mem_struct(G->mem, Argument);
-        new->name = info;
-        new->type = Argument_Value;
-        new->is_expected = true;
-        new->is_used     = true;
-        arg->next = new;
-        break;
-    }
-
-    return S0;
+static void build_build(Cli *cli) {
+    bool active = cli_command(cli, "build", "Build executable");
+    char *input       = cli_value(cli, "[INPUT]",  "Input C file");
+    char *output      = cli_value(cli, "[OUTPUT]", "Output file");
+    bool plat_linux   = cli_flag(cli, "--linux", "For Linux");
+    bool plat_windows = cli_flag(cli, "--windows", "For Windows");
+    bool plat_web     = cli_flag(cli, "--web",     "For Web Assembly");
+    bool opt_release = cli_flag(cli, "--release", "Relase mode");
+    if(!active) return;
 }
 
-static bool argument_match(Argument *args, String match) {
-    for(Argument *arg = args; arg; arg = arg->next) {
-        if(arg->is_used) continue;
-        if(arg->type != Argument_Word) continue;
-        if(!str_eq(arg->name, match)) break;
-        arg->is_used = true;
-        return true;
-    }
-    return false;
+static void build_run(Cli *cli) {
+    bool active = cli_command(cli, "run", "Run source file");
+    bool opt_release = cli_flag(cli, "--release", "Build in relase mode");
+    if(!active) return;
 }
 
-static bool argument_flag(Argument *args, String name_short, String name_long) {
-    for(Argument *arg = args; arg; arg = arg->next) {
-        if(arg->is_used) continue;
-        if(!(arg->type == Argument_Short && str_eq(arg->name, name_short))) continue;
-        if(!(arg->type == Argument_Long  && str_eq(arg->name, name_long)))  continue;
-        arg->is_used = true;
-        return true;
-    }
-    return false;
+static void build_format(Cli *cli) {
+    bool build = cli_command(cli, "format", "Format source");
+    if(!build) return;
 }
 
 static void os_main(void) {
-    Argument *args = argument_new(G->mem, G->argc, G->argv);
-    argument_print(G->fmt, args);
-    argument_expand_short(args);
-    argument_expand_long(args);
-    argument_print(G->fmt, args);
-
-    if(argument_match(args, S("build"))) {
-        String src = argument_word(args, S("Source"));
-        String dst = argument_word(args, S("Output"));
-        bool release = argument_flag(args, S("r"), S("release"));
-        bool linux = argument_flag(args, S("l"), S("linux"));
-        bool windows = argument_flag(args, S("w"), S("windows"));
-        bool wasm = argument_flag(args, S("j"), S("wasm"));
-    }
-
-    // for (;;) {
-    //     String word = argument_word(args);
-    //     if (word.len == 0) break;
-    //     fmt_s(G->fmt, "WORD: ");
-    //     fmt_str(G->fmt, word);
-    //     fmt_s(G->fmt, "\n");
-    // }
-
-    argument_print(G->fmt, args);
-    argument_help(G->fmt, args);
+    Cli *cli = cli_new();
+    build_build(cli);
+    build_run(cli);
+    build_format(cli);
+    cli_help(cli);
     os_exit(0);
 }
