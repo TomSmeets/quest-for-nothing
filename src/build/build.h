@@ -62,7 +62,7 @@ static Build *build_new(void) {
 static void build_add_source(Build *build, String path) {
     Build_Source *src = mem_struct(G->mem, Build_Source);
     src->path = path;
-    LIST_PUSH(build->sources, src, next);
+    LIST_PUSH(build->sources, src);
     watch_add(&build->watch, str_c(path));
 }
 

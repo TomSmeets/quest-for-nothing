@@ -4,22 +4,25 @@
 #include "lib/fmt.h"
 #include "lib/types.h"
 
-typedef struct Cli Cli;
+TYPEDEF_STRUCT(Cli);
+
 struct Cli {
     u32 ix;
     u32 argc;
     char **argv;
+    bool has_match;
 
     u32 option_count;
     char *option_list[64][2];
 };
 
-static Cli cli_new(u32 argc, char **argv) {
-    return (Cli){
-        .ix = 1,
-        .argc = argc,
-        .argv = argv,
-    };
+static Cli *cli_new(void) {
+    Memory *mem = G->mem;
+    Cli *cli = mem_struct(mem, Cli);
+    cli->argc = G->argc;
+    cli->argv = G->argv;
+    cli->ix = 1;
+    return cli;
 }
 
 // Read value of current argument
@@ -54,9 +57,12 @@ static bool cli_flag(Cli *cli, char *name, char *description) {
     char *arg = cli_read(cli);
     if (!arg) return false;
 
+    if(cli->has_match) return false;
+
     if (strz_eq(arg, name)) {
         cli_doc_clear(cli);
         cli_next(cli);
+        cli->has_match = true;
         return true;
     }
 

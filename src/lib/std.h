@@ -17,9 +17,9 @@
     } while (0)
 
 // Prepend an element to a singly linked list with only one 'start' pointer
-#define LIST_PUSH(FIRST, EL, NEXT)                                                                                                                   \
+#define LIST_PUSH(FIRST, EL)                                                                                                                   \
     do {                                                                                                                                             \
-        (EL)->NEXT = (FIRST);                                                                                                                        \
+        (EL)->next = (FIRST);                                                                                                                        \
         (FIRST) = (EL);                                                                                                                              \
     } while (0)
 

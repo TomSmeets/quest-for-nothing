@@ -26,20 +26,20 @@ static App *app_load(void) {
 
 static void os_main(void) {
     App *app = app_load();
-    Cli cli = cli_new(G->argc, G->argv);
+    Cli *cli = cli_new();
     do {
         // Basics
-        if (build_build(app->build, &cli)) break;
-        if (build_run(app->build, &cli)) break;
+        if (build_build(app->build, cli)) break;
+        if (build_run(app->build, cli)) break;
 
         // Extras
-        if (build_format(app->build, &cli)) break;
-        if (build_serve(app->build, &cli)) break;
-        if (build_opt_clangd(app->build, &cli)) break;
-        if (build_include_graph(app->build, &cli)) break;
+        if (build_format(app->build, cli)) break;
+        if (build_serve(app->build, cli)) break;
+        if (build_opt_clangd(app->build, cli)) break;
+        if (build_include_graph(app->build, cli)) break;
 
         // failed
-        cli_show_usage(&cli, G->fmt);
+        cli_show_usage(cli, G->fmt);
         os_exit(1);
     } while (0);
     build_update(app->build);

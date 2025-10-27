@@ -56,7 +56,7 @@ static void chunk_free(Chunk *first) {
     Chunk *chunk = first;
     while (chunk) {
         Chunk *next = chunk->next;
-        LIST_PUSH(G->chunk_cache, chunk, next);
+        LIST_PUSH(G->chunk_cache, chunk);
         G->stat_cache_size += CHUNK_SIZE;
         chunk = next;
     }
