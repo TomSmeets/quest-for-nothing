@@ -4,21 +4,30 @@
 #include "lib/fmt.h"
 #include "lib/types.h"
 
-TYPEDEF_STRUCT(Cli);
+TYPEDEF_STRUCT(Cli_Option);
+struct Cli_Option {
+    char *name;
+    char *info;
+    Cli_Option *next;
+};
 
+TYPEDEF_STRUCT(Cli);
 struct Cli {
+    Memory *mem;
     u32 ix;
     u32 argc;
     char **argv;
     bool has_match;
 
-    u32 option_count;
-    char *option_list[64][2];
+    Cli_Option *options;
+    Cli_Option *options_last;
 };
 
 static Cli *cli_new(void) {
     Memory *mem = G->mem;
+
     Cli *cli = mem_struct(mem, Cli);
+    cli->mem = mem;
     cli->argc = G->argc;
     cli->argv = G->argv;
     cli->ix = 1;
@@ -38,14 +47,15 @@ static char *cli_next(Cli *cli) {
 }
 
 static void cli_doc_clear(Cli *cli) {
-    cli->option_count = 0;
+    cli->options = 0;
+    cli->options_last = 0;
 }
 
 static void cli_doc_add(Cli *cli, char *name, char *description) {
-    if (cli->option_count >= array_count(cli->option_list)) return;
-    cli->option_list[cli->option_count][0] = name;
-    cli->option_list[cli->option_count][1] = description;
-    cli->option_count++;
+    Cli_Option *opt = mem_struct(cli->mem, Cli_Option);
+    opt->name = name;
+    opt->info = description;
+    LIST_APPEND(cli->options, cli->options_last, opt);
 }
 
 // Check for a given 'flag'
@@ -104,12 +114,12 @@ static void cli_show_usage(Cli *cli, Fmt *fmt) {
     fmt_s(fmt, "\n");
 
     fmt_s(fmt, "Expecting one of:\n");
-    for (u32 i = 0; i < cli->option_count; ++i) {
+    for (Cli_Option *opt = cli->options; opt; opt = opt->next) {
         fmt_s(fmt, "    ");
         u32 cur = fmt_cursor(fmt);
-        fmt_s(fmt, cli->option_list[i][0]);
+        fmt_s(fmt, opt->name);
         fmt_pad(fmt, cur, ' ', 16, false);
-        fmt_s(fmt, cli->option_list[i][1]);
+        fmt_s(fmt, opt->info);
         fmt_s(fmt, "\n");
     }
 }
