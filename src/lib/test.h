@@ -16,6 +16,7 @@ struct Test {
     Fmt *fmt;
     Memory *mem;
     char *last_file;
+    bool verbose;
     Test_Step *step_first;
     Test_Step *step_last;
 };
@@ -25,6 +26,7 @@ static Test *test_begin(void) {
     Test *test = mem_struct(mem, Test);
     test->mem = mem;
     test->fmt = G->fmt;
+    test->verbose = 0;
     return test;
 }
 
@@ -50,13 +52,15 @@ static void test_end(Test *test) {
         }
     }
 
-    fmt_s(test->fmt, "\n");
-    fmt_s(test->fmt, "\n");
     bool failed = fail_count > 0;
-    if (failed) {
-        fmt_s(test->fmt, "Test Failed!\n");
-    } else {
-        fmt_s(test->fmt, "Test Success!\n");
+    if (test->verbose) {
+        fmt_s(test->fmt, "\n");
+        fmt_s(test->fmt, "\n");
+        if (failed) {
+            fmt_s(test->fmt, "Test Failed!\n");
+        } else {
+            fmt_s(test->fmt, "Test Success!\n");
+        }
     }
     for (Test_Step *step = test->step_first; step; step = step->next) {
         if (step->result) continue;
@@ -79,6 +83,7 @@ static void test_assert(Test *test, char *file, u32 line, char *condition, bool 
     step->result = result;
     LIST_APPEND(test->step_first, test->step_last, step);
 
+    if(test->verbose) {
     if (file != test->last_file) {
         test->last_file = file;
         fmt_ss(test->fmt, "\n==== ", file, " ====\n");
@@ -90,6 +95,7 @@ static void test_assert(Test *test, char *file, u32 line, char *condition, bool 
         fmt_s(G->fmt, "[FAIL] ");
     fmt_s(G->fmt, step->condition);
     fmt_s(G->fmt, "\n");
+    }
 }
 
 #define TEST(cond) test_assert(test, __FILE__, __LINE__, #cond, cond)

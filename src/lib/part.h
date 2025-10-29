@@ -3,8 +3,10 @@
 #pragma once
 #include "lib/mem.h"
 #include "lib/types.h"
+#include "lib/test.h"
 
-typedef struct Part Part;
+TYPEDEF_STRUCT(Part);
+
 struct Part {
     Part *next;
     u8 len;
@@ -75,52 +77,50 @@ static String part_to_str(Part *part) {
     return (String){part->len, part->data};
 }
 
-static void test_part(void) {
-    Memory *mem = mem_new();
+static void part_test(Test *test) {
+    Memory *mem = test->mem;
 
     Part *left = part_new(mem);
 
     String str = S("Hello World");
 
     String buf = part_fill(left, str);
-    assert0(buf.len == str.len);
-    assert0(left->len == str.len);
-    assert0(str_eq(str, part_to_str(left)));
+    TEST(buf.len == str.len);
+    TEST(left->len == str.len);
+    TEST(str_eq(str, part_to_str(left)));
 
     Part *right = 0;
 
     right = part_split(mem, left, 0);
-    assert0(str_eq(part_to_str(left), S0));
-    assert0(str_eq(part_to_str(right), S("Hello World")));
-    assert0(part_join(left, right));
-    assert0(str_eq(part_to_str(left), S("Hello World")));
-    assert0(str_eq(part_to_str(right), S0));
+    TEST(str_eq(part_to_str(left), S0));
+    TEST(str_eq(part_to_str(right), S("Hello World")));
+    TEST(part_join(left, right));
+    TEST(str_eq(part_to_str(left), S("Hello World")));
+    TEST(str_eq(part_to_str(right), S0));
     part_free(mem, right);
 
     right = part_split(mem, left, 5);
-    assert0(str_eq(part_to_str(left), S("Hello")));
-    assert0(str_eq(part_to_str(right), S(" World")));
-    assert0(part_join(left, right));
-    assert0(str_eq(part_to_str(left), S("Hello World")));
-    assert0(str_eq(part_to_str(right), S0));
+    TEST(str_eq(part_to_str(left), S("Hello")));
+    TEST(str_eq(part_to_str(right), S(" World")));
+    TEST(part_join(left, right));
+    TEST(str_eq(part_to_str(left), S("Hello World")));
+    TEST(str_eq(part_to_str(right), S0));
     part_free(mem, right);
 
     right = part_split(mem, left, str.len);
-    assert0(str_eq(part_to_str(left), S("Hello World")));
-    assert0(str_eq(part_to_str(right), S0));
-    assert0(part_join(left, right));
-    assert0(str_eq(part_to_str(left), S("Hello World")));
-    assert0(str_eq(part_to_str(right), S0));
+    TEST(str_eq(part_to_str(left), S("Hello World")));
+    TEST(str_eq(part_to_str(right), S0));
+    TEST(part_join(left, right));
+    TEST(str_eq(part_to_str(left), S("Hello World")));
+    TEST(str_eq(part_to_str(right), S0));
     part_free(mem, right);
 
     part_delete(left, 0, 6);
-    assert0(str_eq(part_to_str(left), S("World")));
+    TEST(str_eq(part_to_str(left), S("World")));
     part_delete(left, 2, 2);
-    assert0(str_eq(part_to_str(left), S("Wod")));
+    TEST(str_eq(part_to_str(left), S("Wod")));
     part_delete(left, 2, 1);
-    assert0(str_eq(part_to_str(left), S("Wo")));
+    TEST(str_eq(part_to_str(left), S("Wo")));
     part_delete(left, 0, 2);
-    assert0(str_eq(part_to_str(left), S0));
-
-    mem_free(mem);
+    TEST(str_eq(part_to_str(left), S0));
 }
