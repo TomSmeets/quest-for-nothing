@@ -4,7 +4,7 @@
 
 static void str_test(Test *test) {
     Memory *mem = test->mem;
-    
+
     // `S0` and `S()`
     TEST(str_eq(S0, S0) == 1);
     TEST(str_eq(S(""), S0) == 1);

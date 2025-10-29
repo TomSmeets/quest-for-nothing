@@ -42,8 +42,8 @@ static void test_step_fmt(Test_Step *step, Fmt *fmt) {
 static void test_end(Test *test) {
     u32 succ_count = 0;
     u32 fail_count = 0;
-    for(Test_Step *step = test->step_first; step; step = step->next) {
-        if(step->result) {
+    for (Test_Step *step = test->step_first; step; step = step->next) {
+        if (step->result) {
             succ_count++;
         } else {
             fail_count++;
@@ -58,8 +58,8 @@ static void test_end(Test *test) {
     } else {
         fmt_s(test->fmt, "Test Success!\n");
     }
-    for(Test_Step *step = test->step_first; step; step = step->next) {
-        if(step->result) continue;
+    for (Test_Step *step = test->step_first; step; step = step->next) {
+        if (step->result) continue;
         fmt_s(G->fmt, step->file);
         fmt_s(G->fmt, ":");
         fmt_u(G->fmt, step->line);
@@ -70,7 +70,6 @@ static void test_end(Test *test) {
     }
     os_exit(failed ? 1 : 0);
 }
-
 
 static void test_assert(Test *test, char *file, u32 line, char *condition, bool result) {
     Test_Step *step = mem_struct(test->mem, Test_Step);
@@ -93,4 +92,4 @@ static void test_assert(Test *test, char *file, u32 line, char *condition, bool 
     fmt_s(G->fmt, "\n");
 }
 
-#define TEST(cond) test_assert(test, __FILE__, __LINE__, # cond, cond)
+#define TEST(cond) test_assert(test, __FILE__, __LINE__, #cond, cond)

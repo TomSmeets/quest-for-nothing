@@ -105,8 +105,7 @@ static bool build_build(Build *app, Cli *cli) {
 
     Clang_Options opts = {};
     opts.includes = app->sources;
-    if (!build_read_opts(cli, &opts)) 
-        cli_show_help_and_exit(cli);
+    if (!build_read_opts(cli, &opts)) cli_show_help_and_exit(cli);
 
     bool ret = clang_compile(opts);
     if (build) os_exit(ret ? 0 : 1);

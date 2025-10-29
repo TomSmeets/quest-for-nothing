@@ -1,7 +1,7 @@
 #include "build/cli.h"
 #include "lib/math_test.h"
-#include "lib/str_test.h"
 #include "lib/os_main.h"
+#include "lib/str_test.h"
 
 static void lib_test(void) {
     // test_part();

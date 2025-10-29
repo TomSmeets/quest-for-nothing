@@ -135,9 +135,9 @@ static void cli_show_help_and_exit(Cli *cli) {
 
 static void cli_test(Test *test) {
     Cli *cli = cli_from(test->mem, 5, (char *[]){"cli_test", "hello", "world", "--x", "--y"});
-    TEST(cli_match(cli, "test",  "Test") == 0);
+    TEST(cli_match(cli, "test", "Test") == 0);
     TEST(cli_match(cli, "world", "World") == 0);
     TEST(cli_match(cli, "hello", "Hello") == 1);
-    TEST(cli_match(cli, "hi",    "Hi") == 0);
+    TEST(cli_match(cli, "hi", "Hi") == 0);
     TEST(cli->has_match == 1);
 }
