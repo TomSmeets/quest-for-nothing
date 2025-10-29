@@ -61,7 +61,44 @@ I'd like to release this someday, so keeping it very simple!
 - [ ] Publish Promo Youtube video (how to play, and how to edit)
 - [ ] Publish 1.0 on Itch
 
-# Design
+# Game Design
+
+Inspiration from Chris Crawford:
+- [Chris Crawford Video Game Series](https://www.youtube.com/watch?v=ajz_1TqccYA)
+
+## Verb List
+What does a player DO?
+
+- shoot
+- dodge
+- explore
+- discover
+
+## Features (based on verb list)
+Qfn verb list
+- shoot
+    - more different interesting guns
+- dodge
+    - slow bullets
+    - telegraph actions
+- explore
+    - more interesting level design
+    - more stations
+- discover
+    - rare artifacts
+    - rare guns
+    - secrets
+
+## Story telling
+Personality model
+- love, trust, fear
+- see emotions
+
+Story
+- Cause -> Effect
+- Fail, user is in control, enrich with cause and effect
+
+# Code Design
 Why only headers and static functions?
 
 - All dependency management is done with `#include`'s.
@@ -78,9 +115,7 @@ How does hot reloading work?
 - Don't use libc malloc/free, it uses globals. (malloc will work, but free probably not)
 
 # Module structure
-
 ![](include-graph.svg)
-
 
 # Todo
 - [x] Turn inside out Platfrom -> Libraries, abstract by composition
