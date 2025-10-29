@@ -61,7 +61,7 @@ static void cli_doc_add(Cli *cli, char *name, char *description) {
 // Check for a given 'flag'
 // returns true on match, and advances to the next argument
 // returns false when no match, stays at the same argument
-static bool cli_flag(Cli *cli, char *name, char *description) {
+static bool cli_match(Cli *cli, char *name, char *description) {
     cli_doc_add(cli, name, description);
 
     char *arg = cli_read(cli);
