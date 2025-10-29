@@ -24,7 +24,7 @@ struct Cli {
 };
 
 static Cli *cli_new(void) {
-    Memory *mem = G->mem;
+    Memory *mem = G->tmp;
 
     Cli *cli = mem_struct(mem, Cli);
     cli->mem = mem;
@@ -122,4 +122,9 @@ static void cli_show_usage(Cli *cli, Fmt *fmt) {
         fmt_s(fmt, opt->info);
         fmt_s(fmt, "\n");
     }
+}
+static bool cli_help(Cli *cli) {
+    if (cli->has_match) return false;
+    cli_show_usage(cli, G->fmt);
+    return true;
 }
