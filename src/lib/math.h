@@ -1,6 +1,7 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // math.h - float, integer and vector math expressions
 #pragma once
+#include "lib/os_alloc.h"
 #include "lib/types.h"
 
 #define INF (1.0f / 0.0f)
