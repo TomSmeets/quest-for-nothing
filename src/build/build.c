@@ -13,15 +13,12 @@ struct App {
     Build *build;
 };
 
-static App *app_load(void) {
-    if (G->app) return G->app;
-    App *app = G->app = mem_struct(G->mem, App);
-    app->build = build_new();
-    return app;
-}
-
 static void os_main(void) {
-    App *app = app_load();
+    if (!G->app) {
+        G->app = mem_struct(G->mem, App);
+        G->app->build = build_new();
+    }
+
     Cli *cli = cli_new();
-    build_update(app->build, cli);
+    build_update(G->app->build, cli);
 }
