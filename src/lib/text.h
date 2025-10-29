@@ -6,9 +6,11 @@
 #include "lib/os_alloc.h"
 #include "lib/part.h"
 #include "lib/str_mem.h"
+#include "lib/test.h"
 #include "lib/types.h"
 
-typedef struct Text Text;
+TYPEDEF_STRUCT(Text);
+
 struct Text {
     Memory *mem;
     Part *part;
@@ -193,12 +195,13 @@ static bool text_find(Text *text, u32 start, String key, u32 *result) {
 }
 
 // TODO: Text
-static void test_text(void) {
-    Memory *mem = mem_new();
+static void text_test(Test *test) {
+    Memory *mem = test->mem;
+    Fmt *fmt = test->fmt;
 
     Text *text = text_from(mem, S0);
-    assert0(text->mem == mem);
-    assert0(text->part == 0);
+    TEST(text->mem == mem);
+    TEST(text->part == 0);
 
     // Join
     Text *text0 = text_from(mem, S("Hello"));
@@ -206,44 +209,44 @@ static void test_text(void) {
     Text *text2 = text_from(mem, S("World"));
     text_join(text0, text1);
     text_join(text0, text2);
-    text_debug(text0, G->fmt);
-    assert0(text_eq(text0, S("Hello World")));
+    text_debug(text0, fmt);
+    TEST(text_eq(text0, S("Hello World")));
 
     Text text3 = text_split(text0, 6);
-    assert0(text_eq(text0, S("Hello ")));
-    assert0(text_eq(&text3, S("World")));
+    TEST(text_eq(text0, S("Hello ")));
+    TEST(text_eq(&text3, S("World")));
 
     // Append
     String hello = S("Hello");
     String world = S(" World!");
     text_append(text, hello);
-    text_debug(text, G->fmt);
-    assert0(text_eq(text, S("Hello!")) == 0); // (too long)
-    assert0(text_eq(text, S("Hello")) == 1);  // OK!
+    text_debug(text, fmt);
+    TEST(text_eq(text, S("Hello!")) == 0); // (too long)
+    TEST(text_eq(text, S("Hello")) == 1);  // OK!
 
     text_append(text, world);
-    text_debug(text, G->fmt);
-    assert0(text_eq(text, S("Hello World!")));
+    text_debug(text, fmt);
+    TEST(text_eq(text, S("Hello World!")));
 
     String awesome = S("AWESOME ");
     text_insert(text, hello.len + 1, awesome);
-    text_debug(text, G->fmt);
-    assert0(text_eq(text, S("Hello AWESOME World!")));
+    text_debug(text, fmt);
+    TEST(text_eq(text, S("Hello AWESOME World!")));
 
     u32 pos = 0;
-    assert0(text_find(text, 0, S("Hello"), &pos));
-    assert0(pos == 0);
-    assert0(text_find(text, 0, S("AWESOME"), &pos));
-    assert0(pos == 6);
-    assert0(text_find(text, 0, S("World!"), &pos));
-    assert0(pos == 14);
-    assert0(text_find(text, 0, S(" "), &pos));
-    assert0(pos == 5);
-    assert0(text_find(text, 5, S(" "), &pos));
-    assert0(pos == 5);
-    assert0(text_find(text, 6, S(" "), &pos));
-    assert0(pos == 13);
-    assert0(text_find(text, 14, S(" "), &pos) == false);
+    TEST(text_find(text, 0, S("Hello"), &pos));
+    TEST(pos == 0);
+    TEST(text_find(text, 0, S("AWESOME"), &pos));
+    TEST(pos == 6);
+    TEST(text_find(text, 0, S("World!"), &pos));
+    TEST(pos == 14);
+    TEST(text_find(text, 0, S(" "), &pos));
+    TEST(pos == 5);
+    TEST(text_find(text, 5, S(" "), &pos));
+    TEST(pos == 5);
+    TEST(text_find(text, 6, S(" "), &pos));
+    TEST(pos == 13);
+    TEST(text_find(text, 14, S(" "), &pos) == false);
 
     text_append(text, S("\n"));
     for (u32 i = 0; i < 26 * 2; ++i) {
@@ -252,12 +255,12 @@ static void test_text(void) {
         text_append(text, (String){1, (u8 *)&c});
         text_append(text, S("\n"));
     }
-    text_debug(text, G->fmt);
+    text_debug(text, fmt);
     text_append(text, S("\n"));
 
     u32 len = 15;
     u32 cursor = 21;
-    fmt_s(G->fmt, "\n=== Add Numbers ===\n");
+    fmt_s(fmt, "\n=== Add Numbers ===\n");
     for (u32 i = 0; i < 26 * 2; ++i) {
         text_insert(text, cursor++, S("0"));
         text_insert(text, cursor++, S("1"));
@@ -265,26 +268,24 @@ static void test_text(void) {
         text_insert(text, cursor++, S("3"));
         cursor += len;
     }
-    text_fmt(text, G->fmt);
+    text_fmt(text, fmt);
 
-    fmt_s(G->fmt, "\n=== DELETE Numbers ===\n");
+    fmt_s(fmt, "\n=== DELETE Numbers ===\n");
     cursor = 21;
     for (u32 i = 0; i < 26 * 2; ++i) {
         text_delete(text, cursor, 4);
         cursor += len;
     }
-    text_fmt(text, G->fmt);
+    text_fmt(text, fmt);
 
-    fmt_s(G->fmt, "\n=== Replace world -> WORLD ===\n");
+    fmt_s(fmt, "\n=== Replace world -> WORLD ===\n");
     String rem = S(" World");
     while (text_find(text, 0, rem, &pos)) {
         text_delete(text, pos, rem.len);
     }
-    text_fmt(text, G->fmt);
+    text_fmt(text, fmt);
 
-    fmt_s(G->fmt, "\n=== DELETE ALL ===\n");
+    fmt_s(fmt, "\n=== DELETE ALL ===\n");
     text_delete(text, 0, text_len(text));
     text_fmt(text, G->fmt);
-
-    mem_free(mem);
 }

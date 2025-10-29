@@ -26,7 +26,7 @@ static Test *test_begin(void) {
     Test *test = mem_struct(mem, Test);
     test->mem = mem;
     test->fmt = G->fmt;
-    test->verbose = 0;
+    test->verbose = 1;
     return test;
 }
 
@@ -83,18 +83,18 @@ static void test_assert(Test *test, char *file, u32 line, char *condition, bool 
     step->result = result;
     LIST_APPEND(test->step_first, test->step_last, step);
 
-    if(test->verbose) {
-    if (file != test->last_file) {
-        test->last_file = file;
-        fmt_ss(test->fmt, "\n==== ", file, " ====\n");
-    }
+    if (test->verbose) {
+        if (file != test->last_file) {
+            test->last_file = file;
+            fmt_ss(test->fmt, "\n==== ", file, " ====\n");
+        }
 
-    if (step->result)
-        fmt_s(G->fmt, "[SUCC] ");
-    else
-        fmt_s(G->fmt, "[FAIL] ");
-    fmt_s(G->fmt, step->condition);
-    fmt_s(G->fmt, "\n");
+        if (step->result)
+            fmt_s(G->fmt, "[SUCC] ");
+        else
+            fmt_s(G->fmt, "[FAIL] ");
+        fmt_s(G->fmt, step->condition);
+        fmt_s(G->fmt, "\n");
     }
 }
 

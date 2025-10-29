@@ -2,8 +2,8 @@
 // part.h - Text part
 #pragma once
 #include "lib/mem.h"
-#include "lib/types.h"
 #include "lib/test.h"
+#include "lib/types.h"
 
 TYPEDEF_STRUCT(Part);
 
@@ -74,7 +74,7 @@ static void part_delete(Part *part, u32 start, u32 count) {
 }
 
 static String part_to_str(Part *part) {
-    return (String){part->len, part->data};
+    return (String){.len = part->len, .zero_terminated = 0, .data = part->data};
 }
 
 static void part_test(Test *test) {

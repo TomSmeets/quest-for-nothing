@@ -4,6 +4,7 @@
 #include "lib/error.h"
 #include "lib/fmt.h"
 #include "lib/read.h"
+#include "lib/test.h"
 
 // NOTE: (to self) Embrace mem type, just grow fmt, don't care
 // https://www.youtube.com/watch?v=P27ml4M3V7A
@@ -174,9 +175,9 @@ static Midi *midi_read(Memory *mem, String *read) {
     return midi;
 }
 
-static void test_midi(void) {
-    // Memory *mem = mem_new();
-    // String file = os_readfile(mem, S("test.mid"));
-    // Midi *midi = midi_read(mem, &file);
-    // assert(midi, "Failed to parse midi");
+static void midi_test(Test *test) {
+    Memory *mem = test->mem;
+    String file = os_readfile(mem, S("test.mid"));
+    Midi *midi = midi_read(mem, &file);
+    assert(midi, "Failed to parse midi");
 }
