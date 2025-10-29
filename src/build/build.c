@@ -15,29 +15,13 @@ struct App {
 
 static App *app_load(void) {
     if (G->app) return G->app;
-
-    Build *build = build_new();
-    build_add_source(build, S("src"));
-
     App *app = G->app = mem_struct(G->mem, App);
-    app->build = build;
+    app->build = build_new();
     return app;
 }
 
 static void os_main(void) {
     App *app = app_load();
     Cli *cli = cli_new();
-
-    // Basics
-    build_build(app->build, cli);
-    build_run(app->build, cli);
-
-    // Extras
-    build_format(app->build, cli);
-    build_serve(app->build, cli);
-    build_opt_clangd(app->build, cli);
-    build_include_graph(app->build, cli);
-
-    if (cli_help(cli)) os_exit(1);
-    build_update(app->build);
+    build_update(app->build, cli);
 }

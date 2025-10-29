@@ -2,6 +2,7 @@
 // cli.h: Command line argument reader
 #pragma once
 #include "lib/fmt.h"
+#include "lib/test.h"
 #include "lib/types.h"
 
 TYPEDEF_STRUCT(Cli_Option);
@@ -23,15 +24,17 @@ struct Cli {
     Cli_Option *options_last;
 };
 
-static Cli *cli_new(void) {
-    Memory *mem = G->tmp;
-
+static Cli *cli_from(Memory *mem, u32 argc, char **argv) {
     Cli *cli = mem_struct(mem, Cli);
     cli->mem = mem;
-    cli->argc = G->argc;
-    cli->argv = G->argv;
+    cli->argc = argc;
+    cli->argv = argv;
     cli->ix = 1;
     return cli;
+}
+
+static Cli *cli_new(void) {
+    return cli_from(G->tmp, G->argc, G->argv);
 }
 
 // Read value of current argument
@@ -62,12 +65,12 @@ static void cli_doc_add(Cli *cli, char *name, char *description) {
 // returns true on match, and advances to the next argument
 // returns false when no match, stays at the same argument
 static bool cli_match(Cli *cli, char *name, char *description) {
+    if (cli->has_match) return false;
+
     cli_doc_add(cli, name, description);
 
     char *arg = cli_read(cli);
     if (!arg) return false;
-
-    if (cli->has_match) return false;
 
     if (strz_eq(arg, name)) {
         cli_doc_clear(cli);
@@ -80,12 +83,15 @@ static bool cli_match(Cli *cli, char *name, char *description) {
 }
 
 static char *cli_value(Cli *cli, char *name, char *description) {
-    cli_doc_clear(cli);
+    char *match = cli_next(cli);
     cli_doc_add(cli, name, description);
-    return cli_next(cli);
+    if (match) cli_doc_clear(cli);
+    return match;
 }
 
-static void cli_show_usage(Cli *cli, Fmt *fmt) {
+// Show command usage and exit application
+static void cli_show_help_and_exit(Cli *cli) {
+    Fmt *fmt = G->fmt;
     u32 pos = 0;
     u32 len = 0;
     for (u32 i = 0; i < cli->argc + 1; ++i) {
@@ -122,9 +128,16 @@ static void cli_show_usage(Cli *cli, Fmt *fmt) {
         fmt_s(fmt, opt->info);
         fmt_s(fmt, "\n");
     }
+
+    // Exit
+    os_exit(1);
 }
-static bool cli_help(Cli *cli) {
-    if (cli->has_match) return false;
-    cli_show_usage(cli, G->fmt);
-    return true;
+
+static void cli_test(Test *test) {
+    Cli *cli = cli_from(test->mem, 5, (char *[]){"cli_test", "hello", "world", "--x", "--y"});
+    TEST(cli_match(cli, "test",  "Test") == 0);
+    TEST(cli_match(cli, "world", "World") == 0);
+    TEST(cli_match(cli, "hello", "Hello") == 1);
+    TEST(cli_match(cli, "hi",    "Hi") == 0);
+    TEST(cli->has_match == 1);
 }

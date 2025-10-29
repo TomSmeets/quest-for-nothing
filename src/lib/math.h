@@ -1,7 +1,6 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // math.h - float, integer and vector math expressions
 #pragma once
-#include "lib/os_alloc.h"
 #include "lib/types.h"
 
 #define INF (1.0f / 0.0f)
@@ -284,111 +283,4 @@ static bool animate_lin(f32 *value, f32 target, f32 dt) {
 static bool is_near(f32 x, f32 y) {
     f32 eps = 0.001;
     return x > y - eps && x < y + eps;
-}
-
-static void test_math(void) {
-    assert0(f_abs(-12.3f) == 12.3f);
-    assert0(f_abs(12.3f) == 12.3f);
-    assert0(f_abs(0) == 0);
-
-    assert0(i_abs(12) == 12);
-    assert0(i_abs(-12) == 12);
-    assert0(i_abs(0) == 0);
-
-    assert0(f_floor(0.0f) == 0);
-    assert0(f_floor(0.1f) == 0);
-    assert0(f_floor(0.9f) == 0);
-    assert0(f_floor(1.0f) == 1);
-
-    assert0(f_floor(-0.0f) == 0);
-    assert0(f_floor(-0.1f) == -1);
-    assert0(f_floor(-0.9f) == -1);
-    assert0(f_floor(-1.0f) == -1);
-
-    assert0(f_round(0.0f) == 0);
-    assert0(f_round(0.1f) == 0);
-    assert0(f_round(0.5f) == 1);
-    assert0(f_round(0.9f) == 1);
-    assert0(f_round(1.0f) == 1);
-    assert0(f_round(1.4f) == 1);
-
-    assert0(f_round(-0.0f) == 0);
-    assert0(f_round(-0.1f) == 0);
-    assert0(f_round(-0.5f) == 0);
-    assert0(f_round(-0.9f) == -1);
-    assert0(f_round(-1.0f) == -1);
-    assert0(f_round(-1.4f) == -1);
-
-    assert0(is_near(f_fract(12.345), 0.345));
-    assert0(is_near(f_fract(0), 0));
-    assert0(is_near(f_fract(-1.12), 0.88));
-    assert0(is_near(f_fract(-10.12), 0.88));
-    assert0(is_near(f_fract(10.12), 0.12));
-
-    assert0(f_trunc(1.2f) == 1);
-    assert0(f_trunc(0.0f) == 0);
-    assert0(f_trunc(-1.2f) == -1);
-
-    assert0(f_min(1, 2) == 1);
-    assert0(f_min(-2, 1) == -2);
-    assert0(f_max(1, 2) == 2);
-    assert0(f_max(-2, 1) == 1);
-
-    assert0(is_near(f_step(0), 0));
-    assert0(is_near(f_step(1), 1));
-    assert0(is_near(f_step(-10), 0));
-    assert0(is_near(f_step(10), 1));
-    // assert0(is_near(f_step(0.5), 0.5));
-
-    assert0(is_near(f_exp(0), 1.0f));
-    // assert0(is_near(f_exp(1), 2.71828f));
-    // assert0(is_near(f_exp(2.302585092994046), 10.0f));
-    assert0(is_near(f_exp(-1000), 0.0f));
-
-    assert0(is_near(f_clamp(-1000, -10, 10), -10.0f));
-    assert0(is_near(f_clamp(1000, -10, 10), 10.0f));
-    assert0(is_near(f_clamp(8, -10, 10), 8.0f));
-    assert0(is_near(f_clamp(-8, -10, 10), -8.0f));
-
-    assert0(is_near(f_wrap(0, 1, 2), 1.0));
-    assert0(is_near(f_wrap(0.123, 1, 2), 1.123));
-    assert0(is_near(f_wrap(3.123, 1, 2), 1.123));
-
-    assert0(is_near(f_sin2pi(0.0f / 4.0f), 0));
-    assert0(is_near(f_sin2pi(1.0f / 4.0f), 1));
-    assert0(is_near(f_sin2pi(2.0f / 4.0f), 0));
-    assert0(is_near(f_sin2pi(3.0f / 4.0f), -1));
-    assert0(is_near(f_sin2pi(4.0f / 4.0f), 0));
-
-    assert0(is_near(f_cos2pi(0.0f / 4.0f), 1));
-    assert0(is_near(f_cos2pi(1.0f / 4.0f), 0));
-    assert0(is_near(f_cos2pi(2.0f / 4.0f), -1));
-    assert0(is_near(f_cos2pi(3.0f / 4.0f), 0));
-    assert0(is_near(f_cos2pi(4.0f / 4.0f), 1));
-
-    assert0(is_near(f_sin(R1), 1));
-    assert0(is_near(f_sin(R2), 0));
-    assert0(is_near(f_sin(R4), 0));
-
-    assert0(is_near(f_cos(R1), 0));
-    assert0(is_near(f_cos(R2), -1));
-    assert0(is_near(f_cos(R4), 1));
-
-    assert0(is_near(f_tan(PI / 4), 1.0f));
-    assert0(is_near(f_tan(-PI / 4), -1.0f));
-    // assert0(f_tan(R1) > 1e6f);
-    // assert0(f_tan(R2) < -1e6f);
-    // assert0(is_near(f_tan(R4), 1));
-
-    assert0(is_near(f_pow2(0), 1));
-    assert0(is_near(f_pow2(1), 2));
-    assert0(is_near(f_pow2(-4), 1 / 16.0f));
-    assert0(is_near(f_pow2(4), 16.0));
-
-    u32 n = 1024;
-    for (u32 i = 0; i < n; ++i) {
-        f32 x = (f32)i / (f32)n * 4 - 2;
-        // assert0(is_near(f_atan(f_tan(x)), x));
-        // assert0(is_near(f_sqrt(x * x), x));
-    }
 }

@@ -52,18 +52,19 @@ struct Build {
     bool first;
 };
 
-static Build *build_new(void) {
-    Build *build = mem_struct(G->mem, Build);
-    build->changed = true;
-    build->hot = hot_new(G->mem);
-    return build;
-}
-
 static void build_add_source(Build *build, String path) {
     Build_Source *src = mem_struct(G->mem, Build_Source);
     src->path = path;
     LIST_PUSH(build->sources, src);
     watch_add(&build->watch, str_c(path));
+}
+
+static Build *build_new(void) {
+    Build *build = mem_struct(G->mem, Build);
+    build->changed = true;
+    build->hot = hot_new(G->mem);
+    build_add_source(build, S("src"));
+    return build;
 }
 
 // Code formatter option
@@ -104,10 +105,8 @@ static bool build_build(Build *app, Cli *cli) {
 
     Clang_Options opts = {};
     opts.includes = app->sources;
-    if (!build_read_opts(cli, &opts)) {
-        cli_show_usage(cli, G->fmt);
-        os_exit(1);
-    }
+    if (!build_read_opts(cli, &opts)) 
+        cli_show_help_and_exit(cli);
 
     bool ret = clang_compile(opts);
     if (build) os_exit(ret ? 0 : 1);
@@ -127,8 +126,7 @@ static bool build_opt_clangd(Build *build, Cli *cli) {
     Clang_Options opts = {};
     opts.includes = build->sources;
     if (!build_read_opts(cli, &opts)) {
-        cli_show_usage(cli, G->fmt);
-        os_exit(1);
+        cli_show_help_and_exit(cli);
     }
 
     Fmt *fmt = fmt_open(G->tmp, "compile_commands.json");
@@ -158,10 +156,6 @@ static bool build_opt_clangd(Build *build, Cli *cli) {
     return true;
 }
 
-static void build_update(Build *build) {
-    build->changed = watch_check(&build->watch);
-}
-
 static bool build_include_graph(Build *build, Cli *cli) {
     bool active = cli_match(cli, "include-graph", "Generate Include graph");
     if (!active) return false;
@@ -189,11 +183,7 @@ static bool build_run(Build *build, Cli *cli) {
     if (!cli_match(cli, "run", "Run an application with dynamic hot reloading")) return false;
 
     char *input_path = cli_value(cli, "<INPUT>", "Input file");
-
-    if (!input_path) {
-        cli_show_usage(cli, G->fmt);
-        os_exit(1);
-    }
+    if (!input_path) cli_show_help_and_exit(cli);
 
     if (build->changed) {
         // Format new output file
@@ -219,4 +209,19 @@ static bool build_run(Build *build, Cli *cli) {
     u32 arg_ix = cli->ix - 1;
     hot_update(build->hot, cli->argc - arg_ix, cli->argv + arg_ix);
     return true;
+}
+
+static void build_update(Build *build, Cli *cli) {
+    // Basics
+    build_build(build, cli);
+    build_run(build, cli);
+
+    // Extras
+    build_format(build, cli);
+    build_serve(build, cli);
+    build_opt_clangd(build, cli);
+    build_include_graph(build, cli);
+
+    if (!cli->has_match) cli_show_help_and_exit(cli);
+    build->changed = watch_check(&build->watch);
 }
