@@ -69,8 +69,8 @@ static Build *build_new(void) {
 
 // Code formatter option
 // Returns true if the argument is matched
-static bool build_format(Build *build, Cli *cli) {
-    if (!cli_match(cli, "format", "Run code formatter")) return false;
+static void build_format(Build *build, Cli *cli) {
+    if (!cli_match(cli, "format", "Run code formatter")) return;
 
     Fmt *cmd = fmt_memory(G->tmp);
     fmt_s(cmd, "clang-format --verbose -i --");
@@ -87,21 +87,19 @@ static bool build_format(Build *build, Cli *cli) {
     bool result = os_system(fmt_get(cmd));
     assert(result, "Format failed!");
     os_exit(0);
-    return true;
 }
 
-static bool build_serve(Build *build, Cli *cli) {
-    if (!cli_match(cli, "serve", "Start a simple local python http server for testing wasm builds")) return false;
+static void build_serve(Build *build, Cli *cli) {
+    if (!cli_match(cli, "serve", "Start a simple local python http server for testing wasm builds")) return;
     assert(os_system(S("cd out && python -m http.server")), "Failed to start python http server. Is python installed?");
     os_exit(0);
-    return true;
 }
 
-static bool build_build(Build *app, Cli *cli) {
+static void build_build(Build *app, Cli *cli) {
     bool build = cli_match(cli, "build", "Build an executable");
     bool watch = cli_match(cli, "watch", "Build an executable and watch changes");
-    if (!build && !watch) return false;
-    if (watch && !app->changed) return true;
+    if (!build && !watch) return;
+    if (watch && !app->changed) return;
 
     Clang_Options opts = {};
     opts.includes = app->sources;
@@ -109,13 +107,12 @@ static bool build_build(Build *app, Cli *cli) {
 
     bool ret = clang_compile(opts);
     if (build) os_exit(ret ? 0 : 1);
-    return true;
 }
 
-static bool build_opt_clangd(Build *build, Cli *cli) {
+static void build_opt_clangd(Build *build, Cli *cli) {
     // Generate compile commands instead of clangd
     bool doit = cli_match(cli, "lsp", "Generate compile_commands.json based on the build settings");
-    if (!doit) return false;
+    if (!doit) return;
 
     // Get current directory
     u32 buf_size = 1024;
@@ -152,12 +149,11 @@ static bool build_opt_clangd(Build *build, Cli *cli) {
     fmt_close(fmt);
 
     os_exit(0);
-    return true;
 }
 
-static bool build_include_graph(Build *build, Cli *cli) {
+static void build_include_graph(Build *build, Cli *cli) {
     bool active = cli_match(cli, "include-graph", "Generate Include graph");
-    if (!active) return false;
+    if (!active) return;
     Include_Graph *graph = include_graph_new(G->tmp);
     for (Build_Source *src = build->sources; src; src = src->next) {
         include_graph_read_dir(graph, src->path);
@@ -166,7 +162,6 @@ static bool build_include_graph(Build *build, Cli *cli) {
     // include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
     os_exit(0);
-    return true;
 }
 
 static String hot_fmt(void) {
@@ -177,9 +172,9 @@ static String hot_fmt(void) {
     return fmt_get(fmt);
 }
 
-static bool build_run(Build *build, Cli *cli) {
+static void build_run(Build *build, Cli *cli) {
     // Check command
-    if (!cli_match(cli, "run", "Run an application with dynamic hot reloading")) return false;
+    if (!cli_match(cli, "run", "Run an application with dynamic hot reloading")) return;
 
     char *input_path = cli_value(cli, "<INPUT>", "Input file");
     if (!input_path) cli_show_help_and_exit(cli);
@@ -207,7 +202,6 @@ static bool build_run(Build *build, Cli *cli) {
 
     u32 arg_ix = cli->ix - 1;
     hot_update(build->hot, cli->argc - arg_ix, cli->argv + arg_ix);
-    return true;
 }
 
 static void build_update(Build *build, Cli *cli) {
