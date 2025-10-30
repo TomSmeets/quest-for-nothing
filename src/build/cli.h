@@ -12,6 +12,7 @@ struct Cli_Option {
     Cli_Option *next;
 };
 
+// ./main [command] <input0> <input1> ... [flag1] [flag2] ...
 TYPEDEF_STRUCT(Cli);
 struct Cli {
     Memory *mem;
