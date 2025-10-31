@@ -5,5 +5,5 @@
 set -euo pipefail
 ROOT=$(dirname $(realpath $0))
 mkdir -p $ROOT/out
-clang -O0 -g -I$ROOT/src -o $ROOT/out/build $ROOT/src/build/build.c
+clang -O0 -g -I$ROOT/src -o $ROOT/out/build $ROOT/src/qfn/build.c
 exec $ROOT/out/build "${@}"

@@ -10,9 +10,6 @@
 
 TYPEDEF_STRUCT(Build);
 struct Build {
-    // Source directories
-    Build_Source *sources;
-
     // Dit a source file change on disk?
     Watch watch;
     bool changed;
@@ -24,18 +21,11 @@ struct Build {
     bool first;
 };
 
-static void build_add_source(Build *build, String path) {
-    Build_Source *src = mem_struct(G->mem, Build_Source);
-    src->path = path;
-    LIST_PUSH(build->sources, src);
-    watch_add(&build->watch, str_c(path));
-}
-
 static Build *build_new(void) {
     Build *build = mem_struct(G->mem, Build);
     build->changed = true;
     build->hot = hot_new(G->mem);
-    build_add_source(build, S("src"));
+    watch_add(&build->watch, "src");
     return build;
 }
 
@@ -45,19 +35,10 @@ static void build_format(Build *build, Cli *cli) {
     bool match = cli_command(cli, "format", "Run code formatter");
     if (!match) return;
 
-    Fmt *cmd = fmt_memory(G->tmp);
-    fmt_s(cmd, "clang-format --verbose -i --");
-    fmt_s(cmd, " $(find");
-    for (Build_Source *src = build->sources; src; src = src->next) {
-        fmt_str(cmd, S(" "));
-        fmt_str(cmd, src->path);
-    }
-    fmt_s(cmd, " -name '*.h' -o -name '*.c'");
-    fmt_s(cmd, ")");
-    fmt_s(G->fmt, "Running Command: ");
-    fmt_str(G->fmt, fmt_get(cmd));
-    fmt_s(G->fmt, "\n");
-    bool result = os_system(fmt_get(cmd));
+    char *cmd = "clang-format --verbose -i -- $(find src -name '*.h' -o -name '*.c'";
+    fmt_ss(G->fmt, "Running Command: ", cmd, "\n");
+
+    bool result = os_system(str_from(cmd));
     assert(result, "Format failed!");
     os_exit(0);
 }
@@ -87,7 +68,6 @@ static void build_build(Build *app, Cli *cli) {
     if (watch && !app->changed) return;
 
     Clang_Options opts = {};
-    opts.includes = app->sources;
     opts.input_path = input;
     opts.output_path = output;
     opts.release = release;
@@ -140,9 +120,7 @@ static void build_include_graph(Build *build, Cli *cli) {
     bool rank = !cli_flag(cli, "--no-rank", "Don't use custom ranking algorithm");
     if (!active) return;
     Include_Graph *graph = include_graph_new(G->tmp);
-    for (Build_Source *src = build->sources; src; src = src->next) {
-        include_graph_read_dir(graph, src->path);
-    }
+    include_graph_read_dir(graph, S("src"));
     include_graph_tred(graph);
     if (rank) include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
@@ -177,7 +155,6 @@ static void build_run(Build *build, Cli *cli) {
             .output_path = (char *)out_path.data,
             .dynamic = true,
             .release = release,
-            .includes = build->sources,
         };
 
         if (clang_compile(opts)) {

@@ -26,7 +26,6 @@ struct Clang_Options {
     Platform platform;
     bool release;
     bool dynamic;
-    Build_Source *includes;
 };
 
 static char *platform_to_string(Platform p) {
@@ -47,12 +46,8 @@ static void clang_fmt(Fmt *fmt, Clang_Options opt) {
     fmt_s(fmt, " -Wno-format");
 
     // Inlcude paths
-    for (Build_Source *src = opt.includes; src; src = src->next) {
-        fmt_s(fmt, " -I");
-        fmt_str(fmt, src->path);
-        fmt_s(fmt, " --embed-dir=");
-        fmt_str(fmt, src->path);
-    }
+    fmt_s(fmt, " -Isrc");
+    fmt_s(fmt, " --embed-dir=src");
 
     // Language flags
     fmt_s(fmt, " -std=c23");

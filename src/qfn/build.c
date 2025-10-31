@@ -23,8 +23,7 @@ static void cmd_release(App *app, Cli *cli) {
     os_system(S("rm -rf out/release/ && mkdir -p out/release/"));
 
     Clang_Options opts = {};
-    opts.includes = app->build->sources;
-    opts.input_path = "src/qfn/qfn.c";
+    opts.input_path = "src/qfn/main.c";
     opts.release = true;
 
     opts.platform = Platform_Linux;
