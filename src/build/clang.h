@@ -2,7 +2,6 @@
 // clang.h - Wrapper for invoking clang
 #pragma once
 #include "lib/fmt.h"
-#include "lib/mem.h"
 
 // Target platform
 typedef enum {
@@ -11,15 +10,7 @@ typedef enum {
     Platform_Wasm,
 } Platform;
 
-TYPEDEF_STRUCT(Build_Source);
 TYPEDEF_STRUCT(Clang_Options);
-
-// Source paths
-struct Build_Source {
-    String path;
-    Build_Source *next;
-};
-
 struct Clang_Options {
     char *output_path;
     char *input_path;
