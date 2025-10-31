@@ -159,32 +159,42 @@ static void cli_help(Cli *cli) {
     fmt_s(f, "Usage:\n");
 
     for(Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
-        GUARD(cmd->match || !has_command);
-        fmt_s(f, "  ");
-        fmt_s(f, cmd->name);
-        fmt_s(f, " | ");
-        fmt_s(f, cmd->info);
-        fmt_s(f, "\n");
-
-        for(Cli_Value *val = cmd->value_first; val; val = val->next) {
-            fmt_s(f, "    ");
-            fmt_s(f, val->name);
-            if(val->match) {
-                fmt_s(f, " = \"");
-                fmt_s(f,val->match);
-                fmt_s(f, "\"");
-            }
+            u32 c = fmt_cursor(f);
+            GUARD(cmd->match || !has_command);
+            fmt_s(f, "  ");
+            fmt_s(f, cmd->name);
+            fmt_pad(f, c, ' ', 20, 0);
             fmt_s(f, " | ");
-            fmt_s(f, val->info);
+            fmt_s(f, cmd->info);
             fmt_s(f, "\n");
-        }
+
+            for (Cli_Value *val = cmd->value_first; val; val = val->next) {
+                u32 c = fmt_cursor(f);
+                fmt_s(f, "    ");
+                fmt_s(f, val->name);
+                if (val->match) {
+                    fmt_s(f, " = \"");
+                    fmt_s(f, val->match);
+                    fmt_s(f, "\"");
+                }
+                fmt_pad(f, c, ' ', 20, 0);
+                fmt_s(f, " | ");
+                fmt_s(f, val->info);
+                fmt_s(f, "\n");
+            }
 
         for(Cli_Flag *flag = cmd->flag_first; flag; flag = flag->next) {
+            u32 c = fmt_cursor(f);
             fmt_s(f, "    ");
             fmt_s(f, flag->name);
+            if(flag->match) {
+                fmt_s(f, " = \"");
+                fmt_u(f,flag->match);
+                fmt_s(f, "\"");
+            }
+            fmt_pad(f, c, ' ', 20, 0);
             fmt_s(f, " | ");
             fmt_s(f, flag->info);
-            if(flag->match) fmt_s(f, " (MATCH)");
             fmt_s(f, "\n");
         }
     }
