@@ -1,5 +1,5 @@
-#include "build/cli.h"
 #include "lib/chunk_test.h"
+#include "lib/cli.h"
 #include "lib/math_test.h"
 #include "lib/midi.h"
 #include "lib/os_main.h"

@@ -2,7 +2,6 @@
 // build.c - Build tool for runing and building applications
 #include "build/build.h"
 #include "build/clang.h"
-#include "build/cli.h"
 #include "build/hot.h"
 #include "build/include_graph.h"
 #include "build/watch.h"

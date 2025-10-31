@@ -2,41 +2,13 @@
 // build.h - Build tool for runing and building applications
 #pragma once
 #include "build/clang.h"
-#include "build/cli.h"
 #include "build/hot.h"
 #include "build/include_graph.h"
 #include "build/watch.h"
+#include "lib/cli.h"
 #include "lib/fmt.h"
 
-// Read command line options for build targets
-static bool build_read_opts(Cli *cli, Clang_Options *opts) {
-    opts->input_path = cli_value(cli, "<Input>", "Source Input Path");
-    if (!opts->input_path) return false;
-
-    opts->output_path = cli_value(cli, "<Output>", "Execurtable Output Path");
-    if (!opts->output_path) return false;
-
-    while (cli_read(cli)) {
-        if (0) {
-        } else if (cli_match(cli, "linux", "Compile for Linux")) {
-            opts->platform = Platform_Linux;
-        } else if (cli_match(cli, "windows", "Compile for Windows")) {
-            opts->platform = Platform_Windows;
-        } else if (cli_match(cli, "wasm", "Compile for Webassembly")) {
-            opts->platform = Platform_Wasm;
-        } else if (cli_match(cli, "release", "Compile in Release Mode")) {
-            opts->release = true;
-        } else if (cli_match(cli, "dynamic", "Create a dynamic executable (a .dll/.so file)")) {
-            opts->dynamic = true;
-        } else {
-            return false;
-        }
-    }
-    return true;
-}
-
 TYPEDEF_STRUCT(Build);
-
 struct Build {
     // Source directories
     Build_Source *sources;
@@ -70,7 +42,8 @@ static Build *build_new(void) {
 // Code formatter option
 // Returns true if the argument is matched
 static void build_format(Build *build, Cli *cli) {
-    if (!cli_match(cli, "format", "Run code formatter")) return;
+    bool match = cli_command(cli, "format", "Run code formatter");
+    if (!match) return;
 
     Fmt *cmd = fmt_memory(G->tmp);
     fmt_s(cmd, "clang-format --verbose -i --");
@@ -90,76 +63,88 @@ static void build_format(Build *build, Cli *cli) {
 }
 
 static void build_serve(Build *build, Cli *cli) {
-    if (!cli_match(cli, "serve", "Start a simple local python http server for testing wasm builds")) return;
+    bool match = cli_command(cli, "serve", "Start a simple local http server");
+    if (!match) return;
     assert(os_system(S("cd out && python -m http.server")), "Failed to start python http server. Is python installed?");
     os_exit(0);
 }
 
 static void build_build(Build *app, Cli *cli) {
-    bool build = cli_match(cli, "build", "Build an executable");
-    bool watch = cli_match(cli, "watch", "Build an executable and watch changes");
-    if (!build && !watch) return;
+    bool match = cli_command(cli, "build", "Build an executable");
+    char *input = cli_value(cli, "<Input>", "Source Input Path");
+    char *output = cli_value(cli, "<Output>", "Executable Output Path");
+
+    bool watch = cli_flag(cli, "--watch", "Build an executable and watch changes");
+    bool release = cli_flag(cli, "--release", "Compile in Release Mode");
+    bool dynamic = cli_flag(cli, "--dynamic", "Create a dynamic library");
+    bool lsp = cli_flag(cli, "--lsp", "Generate a compile_commands.json");
+
+    bool plat_linux = cli_flag(cli, "--linux", "Compile for Linux");
+    bool plat_windows = cli_flag(cli, "--windows", "Compile for Windows");
+    bool plat_wasm = cli_flag(cli, "--wasm", "Compile for Webassembly");
+    if (!match) return;
+    if (!input || !output) return;
     if (watch && !app->changed) return;
 
     Clang_Options opts = {};
     opts.includes = app->sources;
-    if (!build_read_opts(cli, &opts)) cli_show_help_and_exit(cli);
+    opts.input_path = input;
+    opts.output_path = output;
+    opts.release = release;
+    opts.dynamic = dynamic;
+    opts.platform = Platform_Linux;
+    if (plat_linux) opts.platform = Platform_Linux;
+    if (plat_windows) opts.platform = Platform_Windows;
+    if (plat_wasm) opts.platform = Platform_Wasm;
 
-    bool ret = clang_compile(opts);
-    if (build) os_exit(ret ? 0 : 1);
-}
+    if (lsp) {
+        fmt_s(G->fmt, "Generating compile_commands.json\n");
 
-static void build_opt_clangd(Build *build, Cli *cli) {
-    // Generate compile commands instead of clangd
-    bool doit = cli_match(cli, "lsp", "Generate compile_commands.json based on the build settings");
-    if (!doit) return;
+        // Get current directory
+        // Compile_commands needs an absolute path :/
+        // otherwise this was not needed
+        u32 buf_size = 1024;
+        char *cwd = mem_push_uninit(G->tmp, buf_size);
+        assert0(linux_getcwd(cwd, buf_size) > 0);
 
-    // Get current directory
-    u32 buf_size = 1024;
-    char *cwd = mem_push_uninit(G->tmp, buf_size);
-    assert0(linux_getcwd(cwd, buf_size) > 0);
+        Fmt *fmt = fmt_open(G->tmp, "compile_commands.json");
+        fmt_s(fmt, "[\n");
+        fmt_s(fmt, "  {\n");
 
-    Clang_Options opts = {};
-    opts.includes = build->sources;
-    if (!build_read_opts(cli, &opts)) {
-        cli_show_help_and_exit(cli);
+        fmt_s(fmt, "    \"directory\":");
+        fmt_s(fmt, "\"");
+        fmt_s(fmt, cwd);
+        fmt_s(fmt, "\",\n");
+
+        fmt_s(fmt, "    \"command\":");
+        fmt_s(fmt, "\"");
+        clang_fmt(fmt, opts);
+        fmt_s(fmt, "\",\n");
+
+        fmt_s(fmt, "    \"file\":");
+        fmt_s(fmt, "\"");
+        fmt_s(fmt, opts.input_path);
+        fmt_s(fmt, "\"\n");
+
+        fmt_s(fmt, "  }\n");
+        fmt_s(fmt, "]\n");
+        fmt_close(fmt);
     }
 
-    Fmt *fmt = fmt_open(G->tmp, "compile_commands.json");
-    fmt_s(fmt, "[\n");
-    fmt_s(fmt, "  {\n");
-
-    fmt_s(fmt, "    \"directory\":");
-    fmt_s(fmt, "\"");
-    fmt_s(fmt, cwd);
-    fmt_s(fmt, "\",\n");
-
-    fmt_s(fmt, "    \"command\":");
-    fmt_s(fmt, "\"");
-    clang_fmt(fmt, opts);
-    fmt_s(fmt, "\",\n");
-
-    fmt_s(fmt, "    \"file\":");
-    fmt_s(fmt, "\"");
-    fmt_s(fmt, opts.input_path);
-    fmt_s(fmt, "\",\n");
-
-    fmt_s(fmt, "  },\n");
-    fmt_s(fmt, "],\n");
-    fmt_close(fmt);
-
-    os_exit(0);
+    bool ret = clang_compile(opts);
+    if (!watch) os_exit(ret ? 0 : 1);
 }
 
 static void build_include_graph(Build *build, Cli *cli) {
-    bool active = cli_match(cli, "include-graph", "Generate Include graph");
+    bool active = cli_command(cli, "graph", "Generate Include graph");
+    bool rank = cli_flag(cli, "--rank", "Use custom ranking algorithm");
     if (!active) return;
     Include_Graph *graph = include_graph_new(G->tmp);
     for (Build_Source *src = build->sources; src; src = src->next) {
         include_graph_read_dir(graph, src->path);
     }
     include_graph_tred(graph);
-    // include_graph_rank(graph);
+    if (rank) include_graph_rank(graph);
     include_graph_fmt(graph, G->fmt);
     os_exit(0);
 }
@@ -174,10 +159,11 @@ static String hot_fmt(void) {
 
 static void build_run(Build *build, Cli *cli) {
     // Check command
-    if (!cli_match(cli, "run", "Run an application with dynamic hot reloading")) return;
-
-    char *input_path = cli_value(cli, "<INPUT>", "Input file");
-    if (!input_path) cli_show_help_and_exit(cli);
+    bool match = cli_command(cli, "run", "Run an application with dynamic hot reloading");
+    bool release = cli_flag(cli, "--release", "Compile in Release Mode");
+    char *input_path = cli_value(cli, "<Input>", "Source Input Path");
+    if (!match) return;
+    if (!input_path) return;
 
     if (build->changed) {
         // Format new output file
@@ -190,6 +176,7 @@ static void build_run(Build *build, Cli *cli) {
             .input_path = input_path,
             .output_path = (char *)out_path.data,
             .dynamic = true,
+            .release = release,
             .includes = build->sources,
         };
 
@@ -200,8 +187,11 @@ static void build_run(Build *build, Cli *cli) {
         }
     }
 
-    u32 arg_ix = cli->ix - 1;
-    hot_update(build->hot, cli->argc - arg_ix, cli->argv + arg_ix);
+    u32 offset = 2;
+    if (release) offset += 1;
+    char **argv = G->argv + offset;
+    u32 argc = G->argc - offset;
+    hot_update(build->hot, argc, argv);
 }
 
 static void build_update(Build *build, Cli *cli) {
@@ -212,9 +202,8 @@ static void build_update(Build *build, Cli *cli) {
     // Extras
     build_format(build, cli);
     build_serve(build, cli);
-    build_opt_clangd(build, cli);
     build_include_graph(build, cli);
+    cli_help(cli);
 
-    if (!cli->has_match) cli_show_help_and_exit(cli);
     build->changed = watch_check(&build->watch);
 }
