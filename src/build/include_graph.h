@@ -76,7 +76,9 @@ static void include_graph_fmt(Include_Graph *graph, Fmt *fmt) {
 
         for (Include_Node *node = graph->nodes; node; node = node->next) {
             if (node->rank != i) continue;
+            fmt_s(fmt, "\"");
             fmt_str(fmt, node->name);
+            fmt_s(fmt, "\"");
             fmt_s(fmt, "; ");
         }
 

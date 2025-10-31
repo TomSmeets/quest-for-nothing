@@ -137,7 +137,7 @@ static void build_build(Build *app, Cli *cli) {
 
 static void build_include_graph(Build *build, Cli *cli) {
     bool active = cli_command(cli, "graph", "Generate Include graph");
-    bool rank = cli_flag(cli, "--rank", "Use custom ranking algorithm");
+    bool rank = !cli_flag(cli, "--no-rank", "Don't use custom ranking algorithm");
     if (!active) return;
     Include_Graph *graph = include_graph_new(G->tmp);
     for (Build_Source *src = build->sources; src; src = src->next) {
