@@ -35,7 +35,7 @@ static void build_format(Build *build, Cli *cli) {
     bool match = cli_command(cli, "format", "Run code formatter");
     if (!match) return;
 
-    char *cmd = "clang-format --verbose -i -- $(find src -name '*.h' -o -name '*.c'";
+    char *cmd = "clang-format --verbose -i -- $(find src -name '*.h' -o -name '*.c')";
     fmt_ss(G->fmt, "Running Command: ", cmd, "\n");
 
     bool result = os_system(str_from(cmd));
