@@ -66,15 +66,15 @@ static bool cli_flag(Cli *cli, char *name, char *info) {
     flag->info = info;
     LIST_APPEND(cmd->flag_first, cmd->flag_last, flag);
 
-    if(cmd->match) {
-    for(Cli_Arg *arg = cli->arg_rest; arg; arg = arg->next) {
-        GUARD(!arg->used);
-        GUARD(arg->flag);
-        GUARD(strz_eq(arg->value, name));
-        arg->used = true;
-        flag->match = true;
-        break;
-    }
+    if (cmd->match) {
+        for (Cli_Arg *arg = cli->arg_rest; arg; arg = arg->next) {
+            GUARD(!arg->used);
+            GUARD(arg->flag);
+            GUARD(strz_eq(arg->value, name));
+            arg->used = true;
+            flag->match = true;
+            break;
+        }
     }
 
     return flag->match;
@@ -89,14 +89,14 @@ static char *cli_value(Cli *cli, char *name, char *info) {
     value->info = info;
     LIST_APPEND(cmd->value_first, cmd->value_last, value);
 
-    if(cmd->match) {
-    for(Cli_Arg *arg = cli->arg_rest; arg; arg = arg->next) {
-        GUARD(!arg->used);
-        GUARD(!arg->flag);
-        arg->used = true;
-        value->match = arg->value;
-        break;
-    }
+    if (cmd->match) {
+        for (Cli_Arg *arg = cli->arg_rest; arg; arg = arg->next) {
+            GUARD(!arg->used);
+            GUARD(!arg->flag);
+            arg->used = true;
+            value->match = arg->value;
+            break;
+        }
     }
 
     return value->match;
@@ -105,7 +105,7 @@ static char *cli_value(Cli *cli, char *name, char *info) {
 static Cli_Arg *arg_parse(Memory *mem, u32 argc, char **argv) {
     Cli_Arg *first = 0;
     Cli_Arg *last = 0;
-    for(u32 i = 0; i < argc; ++i) {
+    for (u32 i = 0; i < argc; ++i) {
         Cli_Arg *arg = mem_struct(mem, Cli_Arg);
         arg->value = argv[i];
         arg->flag = arg->value[0] == '-';
@@ -149,7 +149,7 @@ static void cli_help(Cli *cli) {
 
     // Check if there is a match
     bool has_command = false;
-    for(Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
+    for (Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
         GUARD(cmd->match);
         has_command = true;
         break;
@@ -158,38 +158,38 @@ static void cli_help(Cli *cli) {
     fmt_s(f, "\n");
     fmt_s(f, "Usage:\n");
 
-    for(Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
+    for (Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
+        u32 c = fmt_cursor(f);
+        GUARD(cmd->match || !has_command);
+        fmt_s(f, "  ");
+        fmt_s(f, cmd->name);
+        fmt_pad(f, c, ' ', 20, 0);
+        fmt_s(f, " | ");
+        fmt_s(f, cmd->info);
+        fmt_s(f, "\n");
+
+        for (Cli_Value *val = cmd->value_first; val; val = val->next) {
             u32 c = fmt_cursor(f);
-            GUARD(cmd->match || !has_command);
-            fmt_s(f, "  ");
-            fmt_s(f, cmd->name);
+            fmt_s(f, "    ");
+            fmt_s(f, val->name);
+            if (val->match) {
+                fmt_s(f, " = \"");
+                fmt_s(f, val->match);
+                fmt_s(f, "\"");
+            }
             fmt_pad(f, c, ' ', 20, 0);
             fmt_s(f, " | ");
-            fmt_s(f, cmd->info);
+            fmt_s(f, val->info);
             fmt_s(f, "\n");
+        }
 
-            for (Cli_Value *val = cmd->value_first; val; val = val->next) {
-                u32 c = fmt_cursor(f);
-                fmt_s(f, "    ");
-                fmt_s(f, val->name);
-                if (val->match) {
-                    fmt_s(f, " = \"");
-                    fmt_s(f, val->match);
-                    fmt_s(f, "\"");
-                }
-                fmt_pad(f, c, ' ', 20, 0);
-                fmt_s(f, " | ");
-                fmt_s(f, val->info);
-                fmt_s(f, "\n");
-            }
-
-        for(Cli_Flag *flag = cmd->flag_first; flag; flag = flag->next) {
+        for (Cli_Flag *flag = cmd->flag_first; flag; flag = flag->next) {
             u32 c = fmt_cursor(f);
             fmt_s(f, "    ");
             fmt_s(f, flag->name);
-            if(flag->match) {
+            if (flag->match) {
                 fmt_s(f, " = \"");
-                fmt_u(f,flag->match);
+                fmt_u(f, flag->match);
                 fmt_s(f, "\"");
             }
             fmt_pad(f, c, ' ', 20, 0);
@@ -199,5 +199,3 @@ static void cli_help(Cli *cli) {
         }
     }
 }
-
-

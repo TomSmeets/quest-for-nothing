@@ -17,7 +17,7 @@ static void os_main(void) {
     cli_value(cli, "[SOURCE]", "Source file");
     cli_value(cli, "[OUTPUT]", "Executable file");
 
-    cli_command(cli, "run",   "Run   Application");
+    cli_command(cli, "run", "Run   Application");
     cli_value(cli, "[SOURCE]", "Source file");
     cli_flag(cli, "--release", "In Release Mode");
 
