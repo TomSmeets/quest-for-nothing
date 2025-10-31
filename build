@@ -3,6 +3,7 @@
 # Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 # build.sh - Build the current project
 set -euo pipefail
-mkdir -p out
-clang -O0 -g -Isrc -o out/build src/qfn/build.c
-exec ./out/build "${@}"
+ROOT=$(dirname $(realpath $0))
+mkdir -p $ROOT/out
+clang -O0 -g -I$ROOT/src -o $ROOT/out/build $ROOT/src/build/build.c
+exec $ROOT/out/build "${@}"
