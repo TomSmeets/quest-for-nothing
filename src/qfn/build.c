@@ -14,6 +14,8 @@ static void os_main(void) {
     cli_flag(cli, "--windows", "For Windows");
     cli_flag(cli, "--wasm", "For WASM");
     cli_flag(cli, "--release", "In Release Mode");
+    cli_value(cli, "[SOURCE]", "Source file");
+    cli_value(cli, "[OUTPUT]", "Executable file");
 
     cli_command(cli, "run",   "Run   Application");
     cli_value(cli, "[SOURCE]", "Source file");

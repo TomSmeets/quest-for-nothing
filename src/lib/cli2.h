@@ -131,7 +131,7 @@ static Cli *cli_new(void) {
 static void cli_help(Cli *cli) {
     Fmt *f = G->fmt;
 
-
+    // Show current command
     fmt_s(f, cli->arg_command);
     for (Cli_Arg *arg = cli->arg_rest; arg; arg = arg->next) {
         fmt_s(f, " ");
@@ -139,6 +139,7 @@ static void cli_help(Cli *cli) {
     }
     fmt_s(f, "\n");
 
+    // Show unknown arguments
     for (Cli_Arg *arg = cli->arg_rest; arg; arg = arg->next) {
         GUARD(!arg->used);
         fmt_s(f, "Unknown argument: ");
@@ -146,25 +147,35 @@ static void cli_help(Cli *cli) {
         fmt_s(f, "\n");
     }
 
+    // Check if there is a match
+    bool has_command = false;
+    for(Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
+        GUARD(cmd->match);
+        has_command = true;
+        break;
+    }
+
     fmt_s(f, "\n");
     fmt_s(f, "Usage:\n");
 
     for(Cli_Command *cmd = cli->command_first; cmd; cmd = cmd->next) {
+        GUARD(cmd->match || !has_command);
         fmt_s(f, "  ");
         fmt_s(f, cmd->name);
         fmt_s(f, " | ");
         fmt_s(f, cmd->info);
-
-        if(cmd->match) fmt_s(f, " (MATCH)");
-
         fmt_s(f, "\n");
 
         for(Cli_Value *val = cmd->value_first; val; val = val->next) {
             fmt_s(f, "    ");
             fmt_s(f, val->name);
+            if(val->match) {
+                fmt_s(f, " = \"");
+                fmt_s(f,val->match);
+                fmt_s(f, "\"");
+            }
             fmt_s(f, " | ");
             fmt_s(f, val->info);
-            if(val->match) fmt_s(f, " (MATCH)");
             fmt_s(f, "\n");
         }
 
