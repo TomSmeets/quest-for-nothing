@@ -194,6 +194,36 @@ static void build_run(Build *build, Cli *cli) {
     hot_update(build->hot, argc, argv);
 }
 
+static void cmd_sync(Cli *cli) {
+    bool match = cli_command(cli, "sync", "Sync tlib with unison");
+    char *path1 = cli_value(cli, "<Root1>", "Root 1 Path");
+    char *path2 = cli_value(cli, "<Root2>", "Root 2 Path");
+    bool gui = cli_flag(cli, "--gui", "Use unison GUI");
+
+    if (!match) return;
+    if (!path1 || !path2) return;
+    Fmt *f = fmt_memory(G->tmp);
+    if (gui) {
+        fmt_s(f, "unison-gui");
+    } else {
+        fmt_s(f, "unison");
+    }
+    fmt_ss(f, " '", path1, "'");
+    fmt_ss(f, " '", path2, "'");
+    fmt_s(f, " -path src/lib");
+    fmt_s(f, " -path src/gfx");
+    fmt_s(f, " -path src/build");
+    fmt_s(f, " -path .gitignore");
+    fmt_s(f, " -path LICENSE.txt");
+    fmt_s(f, " -path .clang-format");
+    String cmd = fmt_get(f);
+    fmt_s(G->fmt, "Running: ");
+    fmt_str(G->fmt, cmd);
+    fmt_s(G->fmt, "\n");
+    os_system(cmd);
+    os_exit(0);
+}
+
 static void build_update(Build *build, Cli *cli) {
     // Basics
     build_build(build, cli);
@@ -203,6 +233,7 @@ static void build_update(Build *build, Cli *cli) {
     build_format(build, cli);
     build_serve(build, cli);
     build_include_graph(build, cli);
+    cmd_sync(cli);
     cli_help(cli);
 
     build->changed = watch_check(&build->watch);
