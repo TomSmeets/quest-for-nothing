@@ -61,7 +61,7 @@ static Monster *game_gen_monsters(Memory *mem, Wall *walls, Rand *rng, v3 spawn)
 
 // Create a new game
 static Game *game_new(Rand *rng) {
-    v2i level_size = {6, 6};
+    v2i level_size = {12, 12};
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);

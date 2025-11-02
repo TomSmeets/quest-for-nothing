@@ -65,7 +65,7 @@ static Level2 *level_generate(Memory *mem, Rand *rng, v2i size) {
     u32 maze_sx = size.x * 2 + 1;
     u32 maze_sy = size.y * 2 + 1;
     Maze *maze = maze_new(G->tmp, maze_sx, maze_sy);
-    maze_init_circle(maze, 1.0, 0.3);
+    maze_init_circle(maze, 1.0, 0.0);
     maze_generate(maze, rng);
     maze_remove_walls(maze, rng, 0.2);
     maze_remove_pillars(maze);
@@ -114,6 +114,7 @@ static Level2 *level_generate(Memory *mem, Rand *rng, v2i size) {
             bool window_yn = cell_yn == Maze_Cell_Outside && rand_choice(rng, 0.5);
 
             v3i wall_pos = (v3i){(x - 1) / 2, 0, (y - 1) / 2} * cell_scale;
+            // v3i wall_pos = (v3i){x, 0,y} * cell_scale;
             level->spawn = wall_pos;
             if (!door_xp) level_add_wall(mem, level, window_xp ? window : wall, wall_pos, mtx_xp);
             if (!door_xn) level_add_wall(mem, level, window_xn ? window : wall, wall_pos, mtx_xn);
