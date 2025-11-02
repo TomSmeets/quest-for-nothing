@@ -19,7 +19,7 @@ typedef struct {
 
     Player *player;
     Monster *monster_list;
-    Wall *walls;
+    Level2 *level;
 
     bool debug;
     Audio audio;
@@ -62,13 +62,14 @@ static Monster *game_gen_monsters(Memory *mem, Wall *walls, Rand *rng, v3 spawn)
 // Create a new game
 static Game *game_new(Rand *rng) {
     v2i level_size = {6, 6};
-    v3 spawn = 0;
 
     Memory *mem = mem_new();
     Game *game = mem_struct(mem, Game);
     game->mem = mem;
-    game->walls = level_generate(mem, rng, level_size);
-    game->monster_list = game_gen_monsters(mem, game->walls, rng, spawn);
+    game->level = level_generate(mem, rng, level_size);
+
+    v3 spawn = v3i_to_v3(game->level->spawn);
+    game->monster_list = game_gen_monsters(mem, game->level->walls, rng, spawn);
     game->player = player_new(game->mem, spawn);
     game->audio.snd = sound_init(mem);
     return game;
@@ -77,7 +78,7 @@ static Game *game_new(Rand *rng) {
 static void game_update(Game *game, Engine *eng) {
     Collision_World *world = collision_world_new(G->tmp);
 
-    for (Wall *wall = game->walls; wall; wall = wall->next) {
+    for (Wall *wall = game->level->walls; wall; wall = wall->next) {
         wall_update(wall, eng, world);
     }
 
