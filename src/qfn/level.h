@@ -71,14 +71,14 @@ static Wall *level_generate(Memory *mem, Rand *rng, v2i size) {
     for (i32 y = -1; y < size.y + 1; ++y) {
         for (i32 x = -1; x < size.x + 1; ++x) {
             v2i pos = {x, y};
-            Maze_Cell cell = maze_get(&maze, pos);
+            Maze_Cell cell = maze_cell_get(&maze, pos);
             assert(cell != Maze_Cell_Todo, "There are still cells left to-do?");
             if (cell == Maze_Cell_Empty) continue;
 
-            Maze_Cell cell_xp = maze_get(&maze, pos + (v2i){1, 0});
-            Maze_Cell cell_xn = maze_get(&maze, pos - (v2i){1, 0});
-            Maze_Cell cell_yp = maze_get(&maze, pos + (v2i){0, 1});
-            Maze_Cell cell_yn = maze_get(&maze, pos - (v2i){0, 1});
+            Maze_Cell cell_xp = maze_cell_get(&maze, pos + (v2i){1, 0});
+            Maze_Cell cell_xn = maze_cell_get(&maze, pos - (v2i){1, 0});
+            Maze_Cell cell_yp = maze_cell_get(&maze, pos + (v2i){0, 1});
+            Maze_Cell cell_yn = maze_cell_get(&maze, pos - (v2i){0, 1});
 
             bool door_xp = cell == Maze_Cell_XP || cell_xp == Maze_Cell_XN;
             bool door_xn = cell == Maze_Cell_XN || cell_xn == Maze_Cell_XP;

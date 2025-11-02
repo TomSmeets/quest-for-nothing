@@ -1,8 +1,12 @@
 // Copyright (c) 2025 - Tom Smeets <tom@tsmeets.nl>
 // maze.h - Generic Maze generator
 #pragma once
+#include "lib/mem.h"
 #include "lib/rand.h"
 #include "lib/types.h"
+#include "lib/vec.h"
+
+TYPEDEF_STRUCT(Maze);
 
 typedef enum {
     // Outsdie the maze, don't generate here
@@ -19,19 +23,29 @@ typedef enum {
     Maze_Cell_YP,
 } Maze_Cell;
 
-typedef struct {
+struct Maze {
+    // Maze size
     v2i size;
-    Maze_Cell *cell_list;
-} Maze;
 
-static Maze_Cell *maze_ref(Maze *maze, v2i pos) {
+    // Array of cells, indexed [y][x]
+    Maze_Cell *cell_list;
+};
+
+// Generate a simple maze
+static Maze *maze_new(Memory *mem, Rand *rand, v2i size);
+static Maze_Cell *maze_cell_ref(Maze *maze, v2i pos);
+static Maze_Cell maze_cell_get(Maze *maze, v2i pos);
+
+// ------------------------------------------------------
+
+static Maze_Cell *maze_cell_ref(Maze *maze, v2i pos) {
     if (pos.x < 0 || pos.x >= maze->size.x) return 0;
     if (pos.y < 0 || pos.y >= maze->size.y) return 0;
     return maze->cell_list + pos.y * maze->size.x + pos.x;
 }
 
-static Maze_Cell maze_get(Maze *maze, v2i pos) {
-    Maze_Cell *cell = maze_ref(maze, pos);
+static Maze_Cell maze_cell_get(Maze *maze, v2i pos) {
+    Maze_Cell *cell = maze_cell_ref(maze, pos);
     if (!cell) return Maze_Cell_Empty;
     return *cell;
 }
@@ -74,7 +88,7 @@ static void maze_generate_at(Maze *maze, Rand *rng, v2i pos) {
 
         // Next position
         v2i next_pos = pos - maze_dir_to_v2i(next_dir);
-        Maze_Cell *next = maze_ref(maze, next_pos);
+        Maze_Cell *next = maze_cell_ref(maze, next_pos);
 
         // Cell does not exist
         if (!next) continue;
@@ -93,6 +107,17 @@ static void maze_generate_at(Maze *maze, Rand *rng, v2i pos) {
 // Generate a maze
 static void maze_generate(Maze *maze, Rand *rng) {
     v2i start_pos = {0, 0};
-    *maze_ref(maze, start_pos) = Maze_Cell_Start;
+    *maze_cell_ref(maze, start_pos) = Maze_Cell_Start;
     maze_generate_at(maze, rng, start_pos);
+}
+
+static Maze *maze_new(Memory *mem, Rand *rand, v2i size) {
+    Maze *maze = mem_struct(mem, Maze);
+    maze->size = size;
+    maze->cell_list = mem_array_zero(mem, Maze_Cell, size.x * size.y);
+    for (i32 i = 0; i < size.x * size.y; ++i) {
+        maze->cell_list[i] = Maze_Cell_Todo;
+    }
+    maze_generate(maze, rand);
+    return maze;
 }
