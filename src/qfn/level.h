@@ -62,8 +62,8 @@ static Level2 *level_generate(Memory *mem, Rand *rng, v2i size) {
     m4_scale(&mtx_zn, adjust);
 
     // Generate maze
-    u32 maze_sx = size.x*2+1;
-    u32 maze_sy = size.y*2+1;
+    u32 maze_sx = size.x * 2 + 1;
+    u32 maze_sy = size.y * 2 + 1;
     Maze *maze = maze_new(G->tmp, maze_sx, maze_sy);
     maze_init_circle(maze, 1.0, 0.3);
     maze_generate(maze, rng);
@@ -77,12 +77,12 @@ static Level2 *level_generate(Memory *mem, Rand *rng, v2i size) {
 
     for (u32 y = 0; y < window->size.y; y++) {
         for (u32 x = 0; x < window->size.x; x++) {
-            f32 dx = ((f32) x + 0.5) / window->size.x * 2 - 1;
-            f32 dy = ((f32) y + 0.5) / window->size.y * 2 - 1;
-            f32 r = dx*dx+dy*dy;
-            if(r > 0.5f*0.5f) continue;
-            v4 color = { 0.5, 0.7, 1.0, 1 };
-            if(r < 0.48f*0.48f) color.w = 0.3;
+            f32 dx = ((f32)x + 0.5) / window->size.x * 2 - 1;
+            f32 dy = ((f32)y + 0.5) / window->size.y * 2 - 1;
+            f32 r = dx * dx + dy * dy;
+            if (r > 0.5f * 0.5f) continue;
+            v4 color = {0.5, 0.7, 1.0, 1};
+            if (r < 0.48f * 0.48f) color.w = 0.3;
             image_write4(window, (v2i){x, y}, color);
         }
     }
@@ -90,7 +90,7 @@ static Level2 *level_generate(Memory *mem, Rand *rng, v2i size) {
     for (i32 y = 1; y < maze_sx; y += 2) {
         for (i32 x = 1; x < maze_sy; x += 2) {
             Maze_Cell cell = maze_get(maze, x, y);
-            if(cell != Maze_Cell_Inside) continue;
+            if (cell != Maze_Cell_Inside) continue;
 
             Maze_Cell wall_xp = maze_get(maze, x + 1, y);
             Maze_Cell wall_xn = maze_get(maze, x - 1, y);
