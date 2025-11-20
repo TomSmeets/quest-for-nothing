@@ -8,10 +8,10 @@ typedef struct {
     u8 *buffer;
 } IO;
 
-// Is there no data to read anymore
 static bool io_can_read(IO *io) {
     return io->read_index < io->write_index;
 }
+
 static bool io_can_write(IO *io) {
     return io->write_index < io->cap;
 }
