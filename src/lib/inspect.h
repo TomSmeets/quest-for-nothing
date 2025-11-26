@@ -1,8 +1,8 @@
 #pragma once
-#include "types.h"
+#include "io.h"
 #include "mem.h"
 #include "str.h"
-#include "io.h"
+#include "types.h"
 
 static u32 DEBUG_DATA[4 * 1024] = {
     0x452307a1,         // magick 1
@@ -31,7 +31,7 @@ static Inspect_Value *parse(Memory *mem) {
     };
 
     // Skip header
-    io.read_index += 4*4;
+    io.read_index += 4 * 4;
     u32 count = io_read_varint(&io);
     Inspect_Value *values = mem_array_zero(mem, Inspect_Value, count);
     for (u32 i = 0; i < count; ++i) values[i].tag = io_read_varint(&io);
